@@ -188,3 +188,77 @@ def test_fail_if_called_rejects_a_true_maxk_miss(tmp_path):
             lambda k: tuple(range(k)),
             fail_if_producer_called=True,
         )
+
+@pytest.mark.parametrize('mode,large,small', [('ratio', .7, .36), ('k', 14, 7)])
+def test_resolved_budget_coverage_is_read_only(tmp_path, mode, large, small):
+    from experiments.modular_config import resolve_budget
+    root = tmp_path / 'store'
+    def params(value):
+        return {'prefix_stable': True, 'budget': resolve_budget({'mode': mode, 'value': value}, 20)}
+    cold = _materialize(root, (14,), lambda k: tuple(range(k)), parameters=params(large))
+    before = _file_state(root)
+    warm = _materialize(root, (7,), lambda k: pytest.fail('producer called'),
+                        parameters=params(small), fail_if_producer_called=True)
+    manifest = warm.to_manifest(root)
+    assert warm.result.artifact_id == cold.result.artifact_id
+    assert warm.artifact_recipe_hash == cold.artifact_recipe_hash
+    assert warm.result.content_hash == cold.result.content_hash
+    assert manifest['request_budget'] == params(small)['budget']
+    assert manifest['artifact_budget'] == params(large)['budget']
+    assert manifest['views']['7']['selected_nodes'] == list(range(7))
+    assert _file_state(root) == before
+
+
+@pytest.mark.parametrize('change', ['mode', 'denominator', 'rounding', 'extra', 'value', 'k',
+                                    'dataset', 'candidates', 'score', 'ranking', 'producer'])
+def test_budget_coverage_preserves_non_size_identity(tmp_path, change):
+    from dataclasses import replace
+    from experiments.modular_config import resolve_budget
+    root = tmp_path / 'store'
+    params = {'prefix_stable': True, 'budget': resolve_budget({'mode': 'ratio', 'value': .7}, 20),
+              'ranking': 'descending'}
+    _materialize(root, (14,), lambda k: tuple(range(k)), parameters=params)
+    params['budget'] = resolve_budget({'mode': 'ratio', 'value': .35}, 20)
+    overrides = {'parameters': params}
+    if change == 'mode': params['budget'] = resolve_budget({'mode': 'k', 'value': 7}, 20)
+    elif change in ('denominator', 'rounding'): params['budget'][change] = 'different'
+    elif change == 'extra': params['budget']['other_semantics'] = 'different'
+    elif change == 'value': params['budget']['value'] = .5
+    elif change == 'k': params['budget']['k'] = 6
+    elif change == 'dataset': overrides['dataset'] = replace(_dataset(), dataset_fingerprint=_sha('other'))
+    elif change == 'candidates':
+        candidates = tuple(range(1, 20))
+        overrides['dataset'] = replace(_dataset(), candidate_nodes=candidates,
+            candidate_set_hash=candidate_fingerprint(candidates, 20))
+    elif change == 'score': overrides['source_score_artifact_id'] = 'score_33333333_44444444'
+    elif change == 'ranking': params['ranking'] = 'ascending'
+    elif change == 'producer': overrides['producer_version'] = ProducerVersion('other', _sha('other'))
+    with pytest.raises(UpstreamProducerCalledError):
+        _materialize(root, (7,), lambda k: tuple(range(k)), fail_if_producer_called=True, **overrides)
+
+
+def test_budget_smallest_covering_and_exact_priority(tmp_path):
+    from experiments.modular_config import resolve_budget
+    root = tmp_path / 'store'
+    def request(k, fail=False):
+        return _materialize(root, (k,), lambda n: tuple(range(n)),
+            parameters={'prefix_stable': True, 'budget': resolve_budget({'mode': 'k', 'value': k}, 20)},
+            fail_if_producer_called=fail)
+    ten, fourteen = request(10), request(14)
+    assert not fourteen.cache_hit  # Small cannot cover large.
+    assert request(7, True).result.artifact_id == ten.result.artifact_id
+    assert request(10, True).lookup_policy == 'cache_v2_exact_recipe'
+
+
+def test_ratio_floor_minimum_one_and_typed_budget_semantics(tmp_path):
+    from experiments.modular_config import resolve_budget
+    def params(ratio, extra):
+        return {'prefix_stable': True, 'budget': {
+            **resolve_budget({'mode': 'ratio', 'value': ratio}, 20), 'extra': extra}}
+    root = tmp_path / 'store'
+    _materialize(root, (7,), lambda k: tuple(range(k)), parameters=params(.39, 1))
+    smallest = _materialize(root, (1,), lambda k: pytest.fail('producer called'),
+        parameters=params(.001, 1), fail_if_producer_called=True)
+    assert smallest.artifact_k == 7 and smallest.views['1']['selected_nodes'] == [0]
+    with pytest.raises(UpstreamProducerCalledError):
+        _materialize(root, (1,), lambda k: [0], parameters=params(.001, True), fail_if_producer_called=True)

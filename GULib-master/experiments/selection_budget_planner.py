@@ -132,6 +132,8 @@ class MaterializedBudgetSelection:
     lookup_policy: str
     result: StoreResult
     views: Mapping[str, Mapping[str, Any]]
+    request_budget: Any = None
+    artifact_budget: Any = None
 
     def to_manifest(self, store_root: Union[str, Path]) -> Mapping[str, Any]:
         root = Path(store_root).expanduser().resolve(strict=False)
@@ -142,6 +144,8 @@ class MaterializedBudgetSelection:
             "requested_budgets_descending": list(self.budgets_descending),
             "request_max_k": self.request_max_k,
             "artifact_k": self.artifact_k,
+            "request_budget": self.request_budget,
+            "artifact_budget": self.artifact_budget,
             "cache": {
                 "root": str(root),
                 "hit": self.cache_hit,
@@ -222,6 +226,8 @@ def materialize_budget_selection(
             producer_called=False,
             lookup_policy=resolution.lookup_policy,
             result=result,
+            request_budget=selector_parameters.get("budget"),
+            artifact_budget=resolution.source_budget,
             views=_budget_views(
                 budgets_desc,
                 request_max_k=request_max_k,
@@ -260,6 +266,8 @@ def materialize_budget_selection(
         producer_called=True,
         lookup_policy=resolution.lookup_policy,
         result=result,
+        request_budget=selector_parameters.get("budget"),
+        artifact_budget=selector_parameters.get("budget"),
         views=_budget_views(
             budgets_desc,
             request_max_k=request_max_k,

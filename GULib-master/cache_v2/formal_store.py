@@ -562,8 +562,20 @@ class FormalArtifactStore(ArtifactStore):
                         or parent_payload.graph_fingerprint != payload.graph_fingerprint):
                     raise ArtifactIntegrityError("attack Evaluation does not match Selection dependency")
             elif relation == "selection_input":
+                from .unlearning_output import UnlearningOutputPayload
+                selected_hash = parent_payload.ordered_nodes_hash
+                if isinstance(payload, UnlearningOutputPayload):
+                    from .formal_artifacts import ordered_int_hash
+                    from .runtime import _decode_exact_mapping
+                    nodes = tuple(payload.arrays['selected_nodes'].tolist())
+                    source_nodes = parent_payload.selected_nodes_ordered
+                    source_fields = _decode_exact_mapping(parent['recipe'], 'Selection Recipe')['fields']
+                    if (0 < len(nodes) < len(source_nodes)
+                            and source_fields.get('selector_parameters', {}).get('prefix_stable') is True
+                            and nodes == source_nodes[:len(nodes)]):
+                        selected_hash = ordered_int_hash(nodes)
                 if (
-                    parent_payload.ordered_nodes_hash
+                    selected_hash
                     != payload.metadata["selected_nodes_hash"]
                     or parent_payload.graph_fingerprint
                     != payload.graph_fingerprint
