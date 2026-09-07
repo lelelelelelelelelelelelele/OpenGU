@@ -167,6 +167,8 @@ def _with_opengu_policy(index: Mapping[str, Any]) -> dict[str, Any]:
     for peer in (data.get("peers") or {}).values():
         if not isinstance(peer, dict):
             continue
+        peer['items'] = [item for item in peer.get('items', [])
+                         if not str(item.get('remote_path', '')).startswith('data/processed/')]
         policy = peer.setdefault("artifact_policy", {})
         if not policy.get("include"):
             policy["include"] = list(OPENGU_ARTIFACT_NAMES)
@@ -180,51 +182,15 @@ def results_payload(
     project_root = Path(options.get("project_root") or Path.cwd()).resolve()
     node_ids = options.get("node_ids")
     include_incomplete = bool(options.get("include_incomplete"))
-    data = _with_opengu_policy(index)
+    result_rows, result_errors, filtered = _run_results(index, project_root, node_ids)
+    data = _with_opengu_policy(filtered)
     with project_context(project_root):
-        trusted = export_payload_from_index(
-            data,
-            node_ids=list(node_ids) if node_ids is not None else None,
-            include_incomplete=include_incomplete,
-        )
-    rows: list[dict[str, Any]] = []
-    parse_errors: list[dict[str, Any]] = []
+        trusted = export_payload_from_index(data, node_ids=list(node_ids) if node_ids else None,
+                                           include_incomplete=include_incomplete)
+    rows: list[dict[str, Any]] = result_rows
+    parse_errors: list[dict[str, Any]] = result_errors
 
     for leaf in trusted.get("leaves") or []:
-        if 'summary.json' in (leaf.get('artifacts') or {}) and 'attack.json' not in (leaf.get('artifacts') or {}):
-            continue
-        if ("output-references.json" in (leaf.get("artifacts") or {})
-                or "target_direct_formal_v2/gu/" in str(leaf.get("remote_leaf") or "")):
-            from opengu_method_output import read_method_output
-            dataset, base_model, ratio = _split_cell_name(leaf.get("cell"))
-            row = {"node_id": leaf.get("node_id"), "cell": leaf.get("cell"),
-                "dataset": dataset, "base_model": base_model, "ratio": ratio,
-                "method_strategy": leaf.get("method_strategy"), "seed": leaf.get("seed"),
-                "layout": leaf.get("layout"), "complete": bool(leaf.get("complete")),
-                "local_leaf": leaf.get("local_leaf"), "remote_leaf": leaf.get("remote_leaf"),
-                "source_report": leaf.get("source_report"), "comparison_stage": "deferred"}
-            try:
-                if not leaf.get('complete'):
-                    raise ValueError('collected method leaf is incomplete')
-                read = read_method_output(leaf.get("artifacts") or {}, project_root)
-                meta, result = read['meta'], read['result']
-                binding = meta['matrix_values']
-                row.update(dataset=binding['dataset_name'], matrix_values=binding,
-                    dataset_fingerprint=binding['dataset_fingerprint'],
-                    base_model=read['payload'].identity['pairing']['model']['architecture'],
-                    ratio=binding['budget_ratio'], seed=meta['seed'],
-                    method=meta['method'], strategy=meta['strategy'], strategy_full=meta['strategy'],
-                    git_sha=meta['git_sha'][:7], output=read['output'], evaluation=read['evaluation'],
-                    f1_after=result['f1_after'], f1_drop=result['f1_drop'],
-                    selected_n=len(result['selected_nodes']), compute_seconds=result['compute_seconds'],
-                    cache_hit=result['cache_hit'], status='ok', parse_errors=[])
-            except Exception as exc:
-                error = f'{type(exc).__name__}: {exc}'
-                row.update(status='parse-error', parse_errors=[error])
-                parse_errors.append({'node_id': leaf.get('node_id'), 'local_leaf': leaf.get('local_leaf'),
-                                     'error': error})
-            rows.append(row)
-            continue
         method, directory_strategy, strategy_full = _split_method_strategy_name(leaf.get("method_strategy"))
         dataset, base_model, ratio = _split_cell_name(leaf.get("cell"))
         leaf_errors = [f"missing artifact: {name}" for name in (leaf.get("missing") or [])]
@@ -312,3 +278,69 @@ def results_payload(
         "errors": trusted.get("errors") or [],
         "files": {"json": ".syncmate/results_table.json", "csv": ".syncmate/results_table.csv"},
     }
+
+
+def _run_results(index, project_root, node_ids):
+    """Project modular runs from the verified index, without reading remote inputs."""
+    from experiments.modular_artifacts import read_run
+    import hashlib
+    rows, errors = [], []
+    filtered = copy.deepcopy(dict(index))
+    for node, peer in (filtered.get('peers') or {}).items():
+        if node_ids and node not in node_ids:
+            continue
+        items = peer.get('items') or []
+        runs = [item for item in items if str(item.get('remote_path', '')).endswith('/run.json')]
+        consumed = set()
+        for entry in runs:
+            remote_root = str(PurePosixPath(entry['remote_path']).parent) + '/'
+            entries = [i for i in items if str(i.get('remote_path', '')).startswith(remote_root)]
+            consumed.update(i['remote_path'] for i in entries)
+            try:
+                if peer.get('summary', {}).get('status') != 'verified':
+                    raise ValueError('run artifact index is not verified')
+                by_remote = {i['remote_path']: i for i in entries}
+                if len(by_remote) != len(entries):
+                    raise ValueError('duplicate run index paths')
+                path = _safe_project_path(project_root, entry['local_path'])
+                if path is None:
+                    raise ValueError('unsafe indexed run path')
+                run, documents = read_run(path, entry['sha256'])
+                expected = {entry['remote_path']}
+                for cell in run['cells']:
+                    for name, file in cell['files'].items():
+                        remote = remote_root + cell['path'] + '/' + name
+                        expected.add(remote)
+                        indexed = by_remote[remote]
+                        target = _safe_project_path(project_root, indexed['local_path'])
+                        if (target != (path.parent / cell['path'] / name).resolve() or file['sha256'] != indexed['sha256']
+                                or hashlib.sha256(target.read_bytes()).hexdigest() != indexed['sha256']):
+                            raise ValueError('result differs from verified index')
+                if expected != set(by_remote):
+                    raise ValueError('run index contains undeclared result files')
+                for cell, document in zip(run['cells'], documents):
+                    conditions = cell['conditions']
+                    values = {k: v for item in document.get('metrics.json', {}).get('rows', []) for k, v in item['values'].items()}
+                    rows.append({'node_id': node, 'experiment_id': run['experiment_id'], 'run_id': run['run_id'],
+                        'source_experiment_id': cell.get('source', {}).get('experiment_id', run['experiment_id']),
+                        'generated_at': run['generated_at'],
+                        'cell_id': cell['cell_id'], 'cell': cell['path'], 'dataset': conditions['dataset_name'],
+                        'method': conditions['method'], 'strategy': conditions['selector'], 'seed': conditions['seed'],
+                        'base_model': conditions['model'], 'ratio': conditions['budget_ratio'],
+                        'git_sha': run['commit'], 'config_path': run['config_path'],
+                        'selected_n': document['selection.json']['requested_k'], 'selection_id': cell['selection_id'],
+                        'status': 'ok', 'complete': True, 'parse_errors': [], 'cache': cell.get('cache'),
+                        'timing': cell.get('timing'), **values})
+            except (ValueError, KeyError, TypeError, OSError) as exc:
+                errors.append({'node_id': node, 'local_leaf': entry['local_path'], 'error': str(exc)})
+        peer['items'] = [i for i in items if i.get('remote_path') not in consumed]
+    # The existing results table is a current projection. New result generations
+    # replace matching cells here; original run documents and index entries stay.
+    current = {}
+    untrusted = {error['node_id'] for error in errors}
+    for row in sorted(rows, key=lambda r: (r['generated_at'], r['run_id'])):
+        if row['node_id'] in untrusted:
+            continue
+        key = (row['node_id'], row['source_experiment_id'], row['cell_id'])
+        current[key] = row
+    return list(current.values()), errors, filtered

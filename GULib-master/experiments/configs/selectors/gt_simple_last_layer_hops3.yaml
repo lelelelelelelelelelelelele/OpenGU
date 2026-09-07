@@ -1,0 +1,11 @@
+kind: selector
+schema_version: 1
+method: gt_simple
+candidate:
+  pool: train_mask
+budget:
+  mode: ratio
+  value: 0.01
+parameters:
+  parameter_scope: last_layer
+  affected_hops: 3

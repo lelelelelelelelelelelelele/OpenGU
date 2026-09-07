@@ -41,9 +41,9 @@
 
 组合表按声明顺序展开 Dataset/Split×Selector×独立方法×训练seed×预算。每个 cell 记录数据集序号、名称与实例指纹；这些展示坐标不进入计算缓存身份。两侧模型训练seed按批次配对，Degree/Random等无需模型的Selector不因训练seed变更失效。GNNDelete、GIF和Retrain各自消费真实Selection并保存独立Output，不隐式调用另一方法。
 
-Selector/Unlearning只以selector_refs声明选点规则；两阶段按同一有效输入与producer自动查找Score/Selection缓存，HIT复用、MISS计算。实际Artifact身份、哈希和HIT/MISS保存在结果中，不要求手填上一轮Selection或summary。执行与核验共用批次及条件展开。Metrics仍读取已收集Output summary及完整预测产物；缺少、冲突或过时Output引用失败关闭。
+Selector/Unlearning只以selector_refs声明选点规则；两阶段按同一有效输入与producer自动查找Score/Selection缓存，HIT复用、MISS计算。实际Artifact身份、哈希和HIT/MISS保存在结果中，不要求手填上一轮Selection或summary。执行与核验共用批次及条件展开。Metrics在执行端读取已完成 run.json 的 Output 引用，从现有远端 Cache 重算；缺少、冲突或过时引用失败关闭。常规结果消费者不依赖本地图、模型或预测。
 
-结果布局由 `scripts/syncmate/opengu_layout.py` 拥有。一个运行保存summary，以及 `summary.outputs/<序号>/` 下的 `attack.json`、`output-references.json`、`predictions.npz`、`_meta.json`。注册指纹、全部引用配置指纹、实际运行身份和精确产物清单必须一致。收集必须通过SyncMate校验与索引后再进入结果核验；命令成功或dry-run不是科研接受。
+结果布局由 `scripts/syncmate/opengu_layout.py` 与 `experiments/modular_artifacts.py` 拥有，唯一内容合同见 [结果回传合同](../docs/experiment-result-return-contract.md)。每次运行保存 run.json 和 cells 下的 Metrics、Selection、可选已有评分；不复制 Cache payload 或收集正式输入。配置按 commit + 仓库内 YAML 路径定位。声明、实际结果与收集索引必须一致；收集通过 SyncMate 校验后才进入项目核验，命令成功或 dry-run 不是科研接受。
 
 正式启动前核对run identity和现有产物。入口不支持强制覆盖、隐式截断或自动重试；发现已存在、部分、过时或损坏结果时按明确的修复链处理，保护历史Cache V2和结果。多预算前缀复用只适用于显式prefix-stable排序；仅精确MISS调用producer。
 
@@ -87,3 +87,14 @@ SSH 正式启动分两层：
 
 进程成功退出不等于可信证据；需核对 Artifact 完整可解析，metadata 的 Git SHA、配置指纹和运行身份一致，并验证 Selection、manifest 与依赖链。远端产物完成收集与核验后才进入本地结论；交接时分别说明执行、验证、可支持结论和未知项。
 正式运行暴露代码、配置、数据、指标、缓存或 provenance 缺陷时，立即停止受影响矩阵并将相关证据标为未验证；后续失效范围、修复、重跑与恢复遵循已确认的修复链，在其重新建立可信身份前不恢复矩阵或混用受影响产物。
+
+
+### Output v2 shared-input contract
+
+Output v2 stores predictions, selected nodes, model state and method-specific tensors.
+Fixed features, labels, graph and split masks are resolved from the YAML-bound
+manifest/graph. The declared deletion semantics reconstruct retained supervision
+and training/evaluation edges. Remote Cache readers require an explicit `dataset_root`.
+These payloads and inputs stay remote. Result collection reads only the separate
+run/cell documents and never collects Dataset/Split dependencies.
+Historical Output v1 files are not converted, removed or automatically rerun.

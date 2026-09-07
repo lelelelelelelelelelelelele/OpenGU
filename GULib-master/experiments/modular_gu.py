@@ -86,7 +86,7 @@ def gu_producer(method, model_config):
     }))
 
 
-def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint, store_root, runtime_root):
+def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint, store_root, runtime_root, dataset_input, dataset_root):
     from cache_v2 import ArtifactRecipe, ArtifactType
     from cache_v2.unlearning_output import OUTPUT_CONTRACT
     from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact, store_formal_artifact
@@ -102,7 +102,7 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
             raise ValueError('GU model differs from verified target checkpoint')
         target['checkpoint_state_hash'] = checkpoint['state_hash']
     producer = gu_producer(instance['method'], instance['model'])
-    identity = {'target': target, 'pairing': pairing_identity(instance, data, selection.selected_nodes),
+    identity = {'dataset_input': dataset_input, 'target': target, 'pairing': pairing_identity(instance, data, selection.selected_nodes),
         'selection': {k: getattr(selection, k) for k in ('artifact_id', 'recipe_hash', 'content_hash')},
         'graph_fingerprint': inputs.graph_fingerprint, 'producer_version': producer.to_dict()}
     request = FormalArtifactRequest(ArtifactType.PREDICTION,
@@ -139,11 +139,11 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
         output_model.eval()
         with torch.no_grad():
             logits = output_model(evaluation.x, evaluation.edge_index).detach().clone()
-        payload = build_output(identity, data, output_model, logits, before)
+        payload = build_output(identity, output_model, logits, before)
         stored = store_formal_artifact(store_root, request, payload, compute_seconds=seconds)
     reference = output_reference(stored, request.recipe.recipe_hash)
     from experiments.unlearning_outputs import load_output
-    verified = load_output(reference, store_root, data=data)
+    verified = load_output(reference, store_root, data=data, dataset_root=dataset_root)
     from experiments.output_metrics import evaluate_method
     return {**reference, 'output': reference, 'hit': hit, 'producer_called': not hit,
             'compute_seconds': seconds, 'result': utility(verified), 'target': target,

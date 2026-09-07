@@ -33,6 +33,14 @@ def method(tables, name, method_file):
                unlearning_refs=[method_file])['unlearning'][0]
 
 
+def result_inputs(tables, *names):
+    result = []
+    for name in names:
+        path = tables[0] / 'results/runs' / name / name / 'run.json'
+        result.append({'run':str(path), 'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+    return result
+
+
 def forbidden(*args, **kwargs):
     raise AssertionError('training or selection producer called during read-only consumption')
 
@@ -54,17 +62,17 @@ def test_independent_retrain_cold_hot_cross_gu_and_metrics_only(tables, monkeypa
     warm = method(tables, 'retrain-hot', 'retrain.yaml')
     assert warm['hit'] and not warm['producer_called']
     assert cold['output'] == warm['output'] and cold['result'] == warm['result']
-    pairs = [{'unlearning': row['output'], 'retrain': cold['output']} for row in (gnn, gif)]
-    before = snapshot(tables[0] / 'v2')
+    pairs = result_inputs(tables, 'run-gnn', 'run-gif', 'run-retrain-cold')
+    before = snapshot(tables[0] / 'results/cache_v2')
     metrics = run(tables, 'metrics', stage='metrics', selector_refs=[],
                   output_inputs=pairs, evaluation_refs=['gap.yaml'])
     again = run(tables, 'metrics-again', stage='metrics', selector_refs=[],
                 output_inputs=pairs, evaluation_refs=['gap.yaml'])
     assert metrics['evaluations'] == again['evaluations']
-    assert before == snapshot(tables[0] / 'v2')
+    assert before == snapshot(tables[0] / 'results/cache_v2')
     for output, row in zip((gnn, gif), metrics['evaluations'][0]['rows']):
-        payload = load_output(output['output'], tables[0] / 'v2')
-        rt = load_output(cold['output'], tables[0] / 'v2')
+        payload = load_output(output['output'], tables[0] / 'results/cache_v2', dataset_root=tables[0])
+        rt = load_output(cold['output'], tables[0] / 'results/cache_v2', dataset_root=tables[0])
         mask = payload.arrays['test_mask']
         expected = float(np.mean(rt.arrays['logits'][mask].argmax(1) == rt.arrays['y'][mask]))
         assert row['metrics']['perf_retrain'] == expected
@@ -106,7 +114,7 @@ def test_retrain_identity_changes_and_pairing_rejects(tables, change):
     assert changed['producer_called'] and changed['recipe_hash'] != cold['recipe_hash']
     with pytest.raises(ValueError, match='same request'):
         run(tables, 'bad-pair', stage='metrics', selector_refs=[], evaluation_refs=['gap.yaml'],
-            output_inputs=[{'unlearning': gnn['output'], 'retrain': changed['output']}])
+            output_inputs=result_inputs(tables, 'run-gnn-original', 'run-changed-retrain'))
 
 
 def test_gu_parameters_and_metrics_do_not_change_retrain(tables):
@@ -118,12 +126,12 @@ def test_gu_parameters_and_metrics_do_not_change_retrain(tables):
     result = run(tables, 'changed-gu', stage='unlearning', selector_refs=['degree.yaml'],
                  unlearning_refs=['gu.yaml'])
     result['evaluations'] = run(tables, 'changed-gu-metrics', stage='metrics', selector_refs=[],
-        output_inputs=[{'unlearning': result['unlearning'][0]['output'], 'retrain': original['output']}],
+        output_inputs=result_inputs(tables, 'changed-gu', 'run-original'),
         evaluation_refs=['gap.yaml'])['evaluations']
     write_yaml(root / 'small.yaml', {'kind': 'evaluation', 'schema_version': 1,
                                    'case': 'post_unlearning_utility_and_retrain_gap', 'metrics': ['gap']})
     small = run(tables, 'small-metrics', stage='metrics', selector_refs=[],
-        output_inputs=[{'unlearning': result['unlearning'][0]['output'], 'retrain': original['output']}],
+        output_inputs=result_inputs(tables, 'changed-gu', 'run-original'),
         evaluation_refs=['small.yaml'])
     assert small['evaluations'][0]['rows'][0]['metrics']['gap'] == result['evaluations'][0]['rows'][0]['metrics']['gap']
     warm = method(tables, 'warm-retrain', 'retrain.yaml')
@@ -133,7 +141,7 @@ def test_gu_parameters_and_metrics_do_not_change_retrain(tables):
 def test_retrain_removes_supervision_and_incident_edges(tables):
     configs(tables)
     result = method(tables, 'retrain', 'retrain.yaml')
-    payload = load_output(result['output'], tables[0] / 'v2')
+    payload = load_output(result['output'], tables[0] / 'results/cache_v2', dataset_root=tables[0])
     a = payload.arrays
     assert not a['retain_mask'][a['selected_nodes']].any()
     assert not np.isin(a['training_edge_index'], a['selected_nodes']).any()
@@ -159,13 +167,13 @@ def test_missing_and_corrupted_outputs_rejected_without_training(tables, monkeyp
     monkeypatch.setattr(torch.optim.Adam, 'step', forbidden)
     wrong = {**result['output'], 'content_hash': '0' * 64}
     with pytest.raises(ValueError, match='digest'):
-        load_output(wrong, tables[0] / 'v2')
+        load_output(wrong, tables[0] / 'results/cache_v2', dataset_root=tables[0])
     with pytest.raises(ValueError, match='MISS'):
         load_output(result['output'], tables[0] / 'absent')
-    payload_path = tables[0] / 'v2/artifacts/prediction' / result['artifact_id'] / 'payload.npz'
+    payload_path = tables[0] / 'results/cache_v2/artifacts/prediction' / result['artifact_id'] / 'payload.npz'
     payload_path.write_bytes(payload_path.read_bytes() + b'corrupt disposable fixture')
     with pytest.raises(Exception, match='hash|size|mismatch'):
-        load_output(result['output'], tables[0] / 'v2')
+        load_output(result['output'], tables[0] / 'results/cache_v2', dataset_root=tables[0])
 
 
 @pytest.mark.parametrize('field', ['x', 'y', 'edge_index', 'split'])
@@ -184,7 +192,7 @@ def test_actual_dataset_changes_cannot_consume_old_output(tables, field):
         data.train_mask[9], data.train_mask[10] = False, True
         data.val_mask[9], data.val_mask[10] = True, False
     with pytest.raises(ValueError, match='identity mismatch'):
-        load_output(output, tables[0] / 'v2', data=data)
+        load_output(output, tables[0] / 'results/cache_v2', dataset_root=tables[0], data=data)
 
 
 def changed_retrain(*args, **kwargs):
@@ -196,16 +204,16 @@ def test_changed_producer_and_missing_selection_dependency_rejected(tables, monk
     import unlearning.unlearning_methods.Retrain.retrain as retrain
     configs(tables)
     output = method(tables, 'retrain', 'retrain.yaml')['output']
-    reference = load_output(output, tables[0] / 'v2').identity['selection']
+    reference = load_output(output, tables[0] / 'results/cache_v2', dataset_root=tables[0]).identity['selection']
     with monkeypatch.context() as patch:
         patch.setattr(retrain, 'run_retrain', changed_retrain)
         with pytest.raises(ValueError, match='producer changed'):
-            load_output(output, tables[0] / 'v2')
-    record = CacheIndex(tables[0] / 'v2/index.sqlite').get_artifact(reference['artifact_id'])
-    path = tables[0] / 'v2' / record['semantic_path']
+            load_output(output, tables[0] / 'results/cache_v2', dataset_root=tables[0])
+    record = CacheIndex(tables[0] / 'results/cache_v2/index.sqlite').get_artifact(reference['artifact_id'])
+    path = tables[0] / 'results/cache_v2' / record['semantic_path']
     path.unlink()  # Disposable fixture only: prove missing dependencies fail closed.
     with pytest.raises(Exception, match='missing'):
-        load_output(output, tables[0] / 'v2')
+        load_output(output, tables[0] / 'results/cache_v2', dataset_root=tables[0])
 
 
 def test_aggregate_serialization_is_lossless():
@@ -223,13 +231,13 @@ def test_metrics_cli_reads_independent_modular_outputs(tables, monkeypatch, reco
     rows = [method(tables, 'cli-' + name, name + '.yaml') for name in ('gu', 'retrain')]
     pairs = [{'strategy': 'degree', 'unlearning': rows[0]['output'], 'retrain': rows[1]['output']}]
     (root / 'references.json').write_text(json.dumps(pairs))
-    store_before = snapshot(root / 'v2')
+    store_before = snapshot(root / 'results/cache_v2')
     command = [sys.executable, '-B', '-X', 'utf8', 'eval_collateral.py',
-        '--store-root', str(root / 'v2'), '--inputs', str(root / 'references.json'),
+        '--dataset-root', str(root), '--store-root', str(root / 'results/cache_v2'), '--inputs', str(root / 'references.json'),
         '--evaluation', str(root / 'gap.yaml'), '--output-dir', str(root / 'cli-metrics')]
     completed = subprocess.run(command, cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True)
     assert completed.returncode == 0, completed.stdout + completed.stderr
-    assert snapshot(root / 'v2') == store_before
+    assert snapshot(root / 'results/cache_v2') == store_before
     raw = json.loads((root / 'cli-metrics/collateral.json').read_text())
     assert raw['training_producer_called'] is False
     assert raw['results'][0]['perf_unlearn'] == rows[0]['result']['f1_after']
@@ -239,7 +247,6 @@ def test_metrics_cli_reads_independent_modular_outputs(tables, monkeypatch, reco
 def test_independent_method_metrics_survive_collection_without_forward(tables, monkeypatch, record_property):
     import shutil
     from experiments.modular_evaluation import evaluate_modular, resolve_evaluation
-    from experiments.modular_artifacts import save_method_result
     from cache_v2.unlearning_output import UnlearningOutputPayload
     configs(tables)
     root = tables[0]
@@ -247,20 +254,8 @@ def test_independent_method_metrics_survive_collection_without_forward(tables, m
     gnn = method(tables, 'independent-gnn', 'gu.yaml')
     rt = method(tables, 'independent-retrain', 'retrain.yaml')
     gif = method(tables, 'independent-gif', 'gif.yaml')
-    exported = []
-    for name, row in (('GNNDelete', gnn), ('Retrain', rt), ('GIF', gif)):
-        folder = root / 'exports' / name
-        save_method_result(row, store_root=root / 'v2', output_dir=folder,
-                           strategy='degree', meta={'method': name})
-        payload = UnlearningOutputPayload.from_bytes((folder / 'predictions.npz').read_bytes())
-        assert payload.content_hash == row['content_hash']
-        assert payload.state
-        raw = json.loads((folder / 'attack.json').read_text())['results']['degree']
-        assert raw['evaluation'] == row['evaluation']
-        assert not (folder / 'collateral.json').exists()
-        exported.append(raw)
-    collected = root / 'collected-store'
-    shutil.copytree(root / 'v2', collected)
+    exported = [row['evaluation'] for row in (gnn, rt, gif)]
+    collected = root / 'results/cache_v2'
     before = snapshot(collected)
     # A global forward hook blocks inference without changing fingerprinted method source.
     monkeypatch.setattr(torch.optim.Adam, 'step', forbidden)
@@ -268,13 +263,13 @@ def test_independent_method_metrics_survive_collection_without_forward(tables, m
     hook = torch.nn.modules.module.register_module_forward_pre_hook(forbidden)
     try:
         single = resolve_evaluation({'kind': 'evaluation', 'schema_version': 1, 'case': 'post_method_metrics'})
-        measured = evaluate_modular(single, [row['output'] for row in (gnn, rt, gif)], store_root=collected)
+        measured = evaluate_modular(single, [row['output'] for row in (gnn, rt, gif)], store_root=collected, dataset_root=root)
         for row, original in zip(measured['rows'], (gnn, rt, gif)):
             assert row['metrics'] == original['evaluation']['metrics']
             assert row['metrics']['f1'] == original['result']['f1_after']
         gap = resolve_evaluation({'kind': 'evaluation', 'schema_version': 1, 'case': 'post_unlearning_utility_and_retrain_gap'})
         differences = evaluate_modular(gap, [{'unlearning': row['output'], 'retrain': rt['output']}
-                                           for row in (gnn, gif)], store_root=collected)
+                                           for row in (gnn, gif)], store_root=collected, dataset_root=root)
     finally:
         hook.remove()
     assert differences['rows'][0]['metrics']['gap'] == rt['result']['f1_after'] - gnn['result']['f1_after']

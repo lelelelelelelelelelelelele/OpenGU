@@ -13,7 +13,7 @@ import yaml
 from test_modular_consumers import tables, write_yaml
 from experiments.modular_config import load_experiment, experiment_batches, load_instance
 from experiments.modular_run import execute
-from experiments.modular_artifacts import read_summary_outputs
+from experiments.modular_artifacts import read_run
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -116,17 +116,14 @@ def test_command_cold_warm_seed_budget_retrain_and_metrics(matrix, record_proper
     assert {k:len(v) for k,v in score_ids.items()} == {'degree.yaml':1,'random.yaml':1,'a_grad_norm.yaml':2}
     assert {k:len(v) for k,v in selection_ids.items()} == {'degree.yaml':2,'random.yaml':2,'a_grad_norm.yaml':4}
     summary_path=Path(cold['execution_receipt']['output'])
-    _, outputs = read_summary_outputs(summary_path, hashlib.sha256(summary_path.read_bytes()).hexdigest())
-    for row, result in zip(cold['unlearning'],outputs):
-        payload=result['payload'];selected=payload.arrays['selected_nodes']
-        assert len(selected)==int(10*row['matrix_values']['budget_ratio'])
-        assert not payload.arrays['retain_mask'][selected].any()
-        assert not set(selected).intersection(payload.arrays['training_edge_index'].reshape(-1))
-        assert payload.identity['pairing']['training']['seed']==row['matrix_values']['training_seed']
-    # Metrics uses collected portable outputs; it does not need the producer Store.
+    result_run, outputs = read_run(summary_path, hashlib.sha256(summary_path.read_bytes()).hexdigest())
+    for row, document in zip(cold['unlearning'], outputs):
+        assert document['selection.json']['requested_k'] == int(10*row['matrix_values']['budget_ratio'])
+        assert document['metrics.json']['rows'][0]['values'] == row['evaluation']['metrics']
+    # Metrics recomputes on the runner from its existing Output Cache.
     write_yaml(root/'gap.yaml',{'kind':'evaluation','schema_version':1,'case':'post_unlearning_utility_and_retrain_gap'})
     config={'kind':'experiment','schema_version':1,'experiment_id':'cpu-metrics','stage':'metrics',
-        'dataset_refs': ['dataset.yaml'],'output_inputs':[{'summary':str(summary_path),
+        'dataset_refs': ['dataset.yaml'],'output_inputs':[{'run':str(summary_path),
         'sha256':hashlib.sha256(summary_path.read_bytes()).hexdigest()}],
         'evaluation_refs':['gap.yaml'],'matrix':'cartesian_product'}
     write_yaml(root/'read.yaml',config)
@@ -153,15 +150,16 @@ def test_stage_s_cache_supplies_real_selections_without_resampling(matrix):
     assert actual['selectors'] and actual['selector_producer_called'] is False
     assert all(r['selection']['cache']['hit'] for r in actual['selectors'])
     expected=[r['selection']['artifact']['artifact_id'] for r in source['selectors']]
-    _,rows=read_summary_outputs(Path(actual['execution_receipt']['output']),
+    actual_run, rows = read_run(Path(actual['execution_receipt']['output']),
         hashlib.sha256(Path(actual['execution_receipt']['output']).read_bytes()).hexdigest())
-    assert [r['payload'].identity['selection']['artifact_id'] for r in rows]==expected
-    assert {r['payload'].identity['pairing']['training']['seed'] for r in rows}=={122,722}
+    assert [r['selection.json']['selection_id'] for r in rows] == expected
+    assert {r['conditions']['seed'] for r in actual_run['cells']} == {122,722}
+
 
 
 def test_public_tracin_uses_real_100_epoch_trajectory(tables, record_property):
     from experiments.modular_model import prepare_model
-    from experiments.modular_run import read_dataset
+    from experiments.dataset_inputs import read_dataset
     from experiments.target_direct_v1.methods import selected_checkpoint_indices
     from experiments.target_direct_v1.method_cache import resolve_methods
     root=tables[0]

@@ -20,7 +20,7 @@ def write_yaml(path, value):
         value = copy.deepcopy(value)
         for field in ('dataset_refs', 'selector_refs', 'unlearning_refs', 'evaluation_refs'):
             if field in value:
-                value[field] = [str((path.parent / ref).resolve()) for ref in value[field]]
+                value[field] = [('./' + ref if not Path(ref).is_absolute() and '/' not in ref and '\\' not in ref else ref) for ref in value[field]]
     path.write_text(yaml.safe_dump(value, sort_keys=False), encoding='utf-8')
 
 
@@ -74,8 +74,8 @@ def run(tables, name, **changes):
     config['experiment_id'] = name
     write_yaml(root / (name + '.yaml'), config)
     context = ExecutionContext(run_id=name, level='verification', request_device='cpu',
-        store_root=root / 'v2', checkpoint_root=root / 'checkpoints',
-        runtime_root=root / 'runtime' / name, output=root / (name + '.json'),
+        store_root=root / 'results' / 'cache_v2', checkpoint_root=root / 'checkpoints',
+        runtime_root=root / 'runtime' / name, output=root / 'results/runs' / name / name / 'run.json',
         executor='pytest')
     return execute(root / (name + '.yaml'), context=context)
 
@@ -149,7 +149,7 @@ def test_missing_and_wrong_identity_fail_before_execution(tables):
     root = tables[0]
     data, inputs = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
     with pytest.raises(ValueError, match='digest mismatch'):
-        verified_selection(reference, store_root=root / 'v2', data=data, inputs=inputs)
+        verified_selection(reference, store_root=root / 'results' / 'cache_v2', data=data, inputs=inputs)
     assert not (root / 'runtime/unlearning').exists()
 
 
@@ -389,7 +389,7 @@ def test_project_context_owns_fixed_store_runtime_device_and_output(tmp_path):
     assert context.store_root == (tmp_path / 'results/cache_v2').resolve()
     assert context.checkpoint_root == (tmp_path / 'results/runtime/modular/checkpoints').resolve()
     assert context.runtime_root == (tmp_path / 'results/runtime/modular/job-7').resolve()
-    assert context.output == (tmp_path / 'results/runs/modular/five-selectors-two-gu/job-7/summary.json').resolve()
+    assert context.output == (tmp_path / 'results/runs/five-selectors-two-gu/job-7/run.json').resolve()
     assert context.request_device == 'cuda'
 
 
@@ -474,8 +474,8 @@ def test_ordinary_cross_budget_coverage(tables, record_property, method, mode, l
         model, checkpoints, _ = prepare_model(instance, data=data, dataset_name=inputs.dataset_name,
             checkpoint_root=root / 'checkpoints', device=torch.device('cpu'), reference_directory=root)
     instance['budget'] = resolve_budget(instance['budget'], inputs.candidate_count)
-    before = {str(p): (p.stat().st_mtime_ns, sha256_file(p)) for p in (root / 'v2').rglob('*') if p.is_file()}
-    warm = resolve_methods(store_root=root / 'v2', data=data, dataset_name=inputs.dataset_name,
+    before = {str(p): (p.stat().st_mtime_ns, sha256_file(p)) for p in (root / 'results' / 'cache_v2').rglob('*') if p.is_file()}
+    warm = resolve_methods(store_root=root / 'results' / 'cache_v2', data=data, dataset_name=inputs.dataset_name,
         model=model, checkpoints=checkpoints, selectors=[instance], model_config=instance.get('model'),
         training=instance.get('training'), fail_if_score_called=True, fail_if_selection_called=True)[method]
     assert warm['score']['artifact_id'] == cold['score']['artifact_id']
@@ -484,7 +484,7 @@ def test_ordinary_cross_budget_coverage(tables, record_property, method, mode, l
     assert warm['selection']['views']['3']['selected_nodes'] == cold['selection']['views']['8']['selected_nodes'][:3]
     assert warm['selection']['cache']['hit'] and not warm['selection']['cache']['producer_called']
     assert warm['score']['hit'] and not warm['score']['producer_called']
-    assert before == {str(p): (p.stat().st_mtime_ns, sha256_file(p)) for p in (root / 'v2').rglob('*') if p.is_file()}
+    assert before == {str(p): (p.stat().st_mtime_ns, sha256_file(p)) for p in (root / 'results' / 'cache_v2').rglob('*') if p.is_file()}
     record_property('cross_budget_receipt', json.dumps(warm['selection']))
 
 
@@ -504,7 +504,7 @@ def test_unlearning_consumes_requested_prefix(tables, record_property):
     write_yaml(root / 'retrain.yaml', gu)
     result = run(tables, 'prefix-gu', selector_refs=['degree.yaml'], stage='unlearning', unlearning_refs=['retrain.yaml'])
     data, _ = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
-    output = load_output(result['unlearning'][0]['output'], root / 'v2', data=data)
+    output = load_output(result['unlearning'][0]['output'], root / 'results' / 'cache_v2', data=data, dataset_root=root)
     assert output.arrays['selected_nodes'].tolist() == cold['selection']['views']['8']['selected_nodes'][:3]
     assert result['selectors'][0]['selection']['artifact_k'] == 8
     record_property('consumed_prefix', json.dumps(output.arrays['selected_nodes'].tolist()))
@@ -518,9 +518,9 @@ def test_unlearning_consumes_requested_prefix(tables, record_property):
     for nodes in (source_nodes[:3][::-1], source_nodes[3:6]):
         identity = copy.deepcopy(output.identity)
         identity['pairing'] = pairing_identity(identity['pairing'], data, nodes)
-        invalid = build_output(identity, data, restore_model(output), torch.tensor(output.arrays['logits']))
+        invalid = build_output(identity, restore_model(output), torch.tensor(output.arrays['logits']))
         request = FormalArtifactRequest(ArtifactType.PREDICTION,
             ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **identity}),
             ProducerVersion(**identity['producer_version']))
         with pytest.raises(ArtifactIntegrityError, match='Selection dependency'):
-            store_formal_artifact(root / 'v2', request, invalid, compute_seconds=0)
+            store_formal_artifact(root / 'results' / 'cache_v2', request, invalid, compute_seconds=0)

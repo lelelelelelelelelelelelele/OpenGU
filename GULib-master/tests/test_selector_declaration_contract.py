@@ -88,9 +88,6 @@ def test_cold_unlearning_and_core_warm_collect_share_declared_rows(workspace, re
     assert first['selector_producer_called'] is True and len(first['unlearning']) == 16
     definition = declaration(runner, path, 'unlearning')
     summary = definition['expected_artifact_paths'][0]
-    definition['expected_artifact_paths'] = [summary] + [
-        summary[:-5] + '.outputs/{}/{}'.format(i, name)
-        for i in range(16) for name in ('attack.json', 'output-references.json', 'predictions.npz', '_meta.json')]
     with context.use(runner, extension=FixtureRegistration(definition)):
         assert queue.runner_queue_submit('selector-contract', definition['id'], expected_git_sha=sha)['submitted']
         device, warnings = devices.load_device(runner / '.syncmate/device.yaml')
@@ -98,8 +95,8 @@ def test_cold_unlearning_and_core_warm_collect_share_declared_rows(workspace, re
         completed = queue.runner_queue_run_once(device)
         assert completed['status'] == 'done', completed
     warm = json.loads((runner / summary).read_text())
-    assert all(r['score']['hit'] and r['selection']['cache']['hit'] for r in warm['selectors'])
-    assert [r['output'] for r in warm['unlearning']] == [r['output'] for r in first['unlearning']]
+    assert all(r['cache']['score'] == 'hit' and r['cache']['selection'] == 'hit' for r in warm['cells'])
+    assert [r['output'] for r in warm['cells']] == [r['output'] for r in first['unlearning']]
     collector = runner / 'collector'
     collector.mkdir()
     for source in runner.glob('*.yaml'):
@@ -112,10 +109,10 @@ def test_cold_unlearning_and_core_warm_collect_share_declared_rows(workspace, re
         assert accepted['accepted_cells'] == 16
         # Even with a transport-valid digest, a false Selection identity is rejected.
         entry = next(r for r in collected['artifact_index']['peers']['cpu-runner']['items']
-                     if r['remote_path'].endswith('/summary.json'))
+                     if r['remote_path'].endswith('/run.json'))
         local = collector / entry['local_path']
         changed = json.loads(local.read_text())
-        changed['selectors'][0]['selection']['artifact']['content_hash'] = 'f' * 64
+        changed['cells'][0]['selection_id'] = 'f' * 64
         local.write_text(json.dumps(changed))
         entry['sha256'] = hashlib.sha256(local.read_bytes()).hexdigest()
         rejected = extension.accept('modular-output-v1', definition, collected)

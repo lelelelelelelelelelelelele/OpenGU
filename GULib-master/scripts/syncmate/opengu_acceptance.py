@@ -70,143 +70,78 @@ def _peer_evidence(
 
 
 def acceptance_payload(profile, definition, context):
-    errors = []
-    cells = []
+    errors, cells = [], []
     if profile not in REVIEWED_PROFILES:
         errors.append('OpenGU acceptance profile is not reviewed')
     else:
-        _, errors, expected_paths, by_remote, observed_sha = _peer_evidence(definition, context, 'modular')
+        _, errors, expected_paths, by_remote, _ = _peer_evidence(definition, context, 'result')
         root = Path(context['project_root']).resolve()
         try:
+            from experiments.modular_artifacts import read_run, planned_cells
+            from experiments.modular_config import load_experiment, configuration_fingerprint, resolve_budget
             for remote, entry in by_remote.items():
                 path = _safe_project_path(root, entry.get('local_path'))
                 if path is None or _sha256(path) != entry['sha256']:
                     raise ValueError('collected checksum mismatch: ' + remote)
-            summary_remote = next(p for p in expected_paths if p.endswith('/summary.json'))
-            entry = by_remote[summary_remote]
-            from experiments.modular_artifacts import read_summary_outputs
-            summary, outputs = read_summary_outputs(root / entry['local_path'], entry['sha256'])
-            if summary['configuration_fingerprint'] != definition['configuration_fingerprint']:
-                raise ValueError('summary differs from registered effective configuration')
-            if summary['logical_cells'] != definition['logical_cells']:
-                raise ValueError('collected logical count differs from registration')
-            execution = summary['execution_receipt']
-            if (execution.get('source_git_sha') != context['expected_git_sha']
-                    or execution['run_id'] != definition['run_identity']['run_id']
-                    or summary['experiment_id'] != definition['run_identity']['experiment_id']):
+            run_remote = next(p for p in expected_paths if p.endswith('/run.json'))
+            entry = by_remote[run_remote]
+            run_path = root / entry['local_path']
+            run, documents = read_run(run_path, entry['sha256'])
+            if (run['commit'] != context['expected_git_sha'] or run['run_id'] != definition['run_identity']['run_id']
+                    or run['experiment_id'] != definition['run_identity']['experiment_id']
+                    or run['config_path'] != definition['config_path'] or run['stage'] != definition['stage']):
                 raise ValueError('collected execution identity mismatch')
-            from experiments.modular_config import load_experiment, experiment_batches, resolve_budget, selector_entries, unlearning_entries
-            config = load_experiment(root / definition['config_path'])
-            from experiments.modular_config import configuration_fingerprint
-            if configuration_fingerprint(root / definition['config_path']) != definition['configuration_fingerprint']:
+            config_path = root / definition['config_path']
+            if configuration_fingerprint(config_path) != definition['configuration_fingerprint']:
                 raise ValueError('collector reviewed configuration changed')
-            if [d['dataset'] for d in summary['datasets']] != config['datasets']:
-                raise ValueError('summary Dataset/Split differs from configuration')
-            stage = config['stage']
-            if stage not in ('selector', 'unlearning', 'metrics') or summary['stage'] != stage or definition['stage'] != stage:
-                raise ValueError('collected stage differs from registration or configuration')
-            if len(definition['expected_datasets']) != len(config['datasets']):
-                raise ValueError('registered Dataset count mismatch')
-            for dataset, instance, counts in zip(summary['datasets'], config['datasets'], definition['expected_datasets']):
-                if (dataset['data_identity']['split_hash'] != instance['artifacts']['split_hash']
-                        or dataset['num_nodes'] != counts['num_nodes']
-                        or dataset['candidate_count'] != counts['candidate_count']):
-                    raise ValueError('summary Split identity or dataset counts differ from registration')
-            batches = list(experiment_batches(config))
-            expected = [(batch, gu, selector, selector_ref, gu_ref)
-                        for batch in batches
-                        for gu, gu_ref, selector, selector_ref in unlearning_entries(batch)]
-            if len(expected) != len(outputs):
-                raise ValueError('collected rows differ from ordinary matrix expansion')
-            selector_rows = summary['selectors']
-            expected_selectors = [(batch, selector, ref) for batch in batches
-                                  for selector, ref in selector_entries(batch)]
-            logical_cells = (sum(len(batch['output_inputs']) for batch in batches) if stage == 'metrics'
-                             else len(expected) if stage == 'unlearning' else len(expected_selectors))
-            if logical_cells != definition['logical_cells']:
-                raise ValueError('registered logical count differs from ordinary matrix expansion')
-            if stage != 'unlearning' and (outputs or summary['unlearning']):
-                raise ValueError('non-Unlearning stage contains method outputs')
-            if stage == 'selector' and summary['evaluations']:
-                raise ValueError('Selector stage contains evaluations')
-            if len(selector_rows) != len(expected_selectors):
-                raise ValueError('collected Selector row count mismatch')
-            for (batch, selector, ref), row in zip(expected_selectors, selector_rows):
-                dataset = summary['datasets'][batch['matrix_values']['dataset_index']]
-                counts = definition['expected_datasets'][batch['matrix_values']['dataset_index']]
-                score = row['score']['recipe']['fields']
-                if (row['matrix_values'] != batch['matrix_values'] or row['selector_ref'] != ref
-                        or row['selection']['strategy'] != selector['method']
-                        or score['score_names'] != [selector['method']]
-                        or score['parameters'] != selector['parameters']
-                        or score['data_identity'] != dataset['data_identity']
-                        or score.get('training') != selector.get('training')
-                        or score.get('selector_model') != selector.get('model')):
-                    raise ValueError('Selector differs from the effective configuration')
-                if stage == 'selector':
-                    k = resolve_budget(selector['budget'], counts['candidate_count'])['k']
-                    nodes = row['selection']['views'][str(k)]['selected_nodes']
-                    if len(nodes) != k or len(set(nodes)) != k:
-                        raise ValueError('Selector view differs from the effective budget')
-                    cells.append({'selector_ref': ref, 'matrix_values': batch['matrix_values'],
-                                  'selection': row['selection']['artifact']})
-            if stage == 'metrics':
-                from cache_v2 import canonical_sha256
-                evaluations = summary['evaluations']
-                if len(evaluations) != len(config['evaluations']) * len(config['datasets']):
-                    raise ValueError('collected Evaluation count differs from configuration')
-                from experiments.modular_config import dataset_binding
-                expected_evaluations = [(i, e) for i in range(len(config['datasets'])) for e in config['evaluations']]
-                for (dataset_index, instance), evaluation in zip(expected_evaluations, evaluations):
-                    if evaluation['dataset_binding'] != dataset_binding(config, dataset_index):
-                        raise ValueError('Metrics Dataset binding mismatch')
-                    if evaluation['effective_config'] != instance or not evaluation['rows']:
-                        raise ValueError('Metrics differs from the effective evaluation configuration')
-                    # One input summary can supply multiple evaluated outputs.
-                    for row in evaluation['rows']:
-                        identity = row['identity']
-                        if (identity['case'] != instance['case']
-                                or identity['metrics'] != sorted(instance['metrics'])
-                                or identity['producer_version'] != instance['producer_version']
-                                or set(row['metrics']) != set(instance['metrics'])
-                                or row['evaluation_receipt_id'] != 'evalr_' + canonical_sha256(identity)[:32]):
-                            raise ValueError('Metrics receipt differs from the effective evaluation')
-                        cells.append({'evaluation': row})
-            for index, ((batch, gu, selector, selector_ref, gu_ref), output) in enumerate(zip(expected, outputs)):
-                dataset = summary['datasets'][batch['matrix_values']['dataset_index']]
-                counts = definition['expected_datasets'][batch['matrix_values']['dataset_index']]
-                identity = output['payload'].identity
-                row = summary['unlearning'][index]
-                selected = next(item for item in selector_rows
-                                if item['matrix_values'] == batch['matrix_values'] and item['selector_ref'] == selector_ref)
-                k = resolve_budget(selector['budget'], counts['candidate_count'])['k']
-                if (row['matrix_values'] != batch['matrix_values'] or row['selector_ref'] != selector_ref
-                        or row['unlearning_ref'] != gu_ref
-                        or identity['pairing']['data_identity'] != dataset['data_identity']
-                        or dataset['data_identity']['split_hash'] != batch['dataset']['artifacts']['split_hash']
-                        or len(output['payload'].arrays['y']) != counts['num_nodes']
-                        or int(output['payload'].arrays['train_mask'].sum()) != counts['candidate_count']
-                        or len(output['payload'].arrays['selected_nodes']) != k
-                        or identity['selection'] != {key: selected['selection']['artifact'][key]
-                            for key in ('artifact_id','recipe_hash','content_hash')}
-                        or output['payload'].arrays['selected_nodes'].tolist() != selected['selection']['views'][str(k)]['selected_nodes']):
-                    raise ValueError('output Dataset/Split, Selector or budget binding mismatch')
-                for name, artifact in row['collected_artifacts'].items():
-                    remote = str(PurePosixPath(summary_remote).parent / (PurePosixPath(summary_remote).stem + '.outputs') / str(index) / name)
-                    collected = by_remote[remote]
-                    actual = (root / entry['local_path']).parent / artifact['path']
-                    if (actual.resolve() != (root / collected['local_path']).resolve()
-                            or artifact['sha256'] != collected['sha256']):
-                        raise ValueError('summary output is outside the verified collected set')
-                if (identity['target']['method'] != gu['method']
-                        or identity['target']['parameters'] != gu['parameters']
-                        or identity['pairing']['model'] != gu['model']
-                        or identity['pairing']['training'] != gu['training']
-                        or identity['pairing']['deletion'] != gu['deletion']):
-                    raise ValueError('output differs from the effective method configuration')
-                cells.append({'method': gu['method'], 'seed': gu['training']['seed'],
-                    'output': output['output'], 'evaluation': output['evaluation'],
-                    'selection': identity['selection'], 'matrix_values': batch['matrix_values']})
+            config = load_experiment(config_path)
+            expected_cells = (definition['expected_cells'] if config['stage'] == 'metrics' else planned_cells(config))
+            if len(run['cells']) != len(expected_cells):
+                raise ValueError('collected cell count differs from registration')
+            actual_paths = [run_remote]
+            for expected, cell, document in zip(expected_cells, run['cells'], documents):
+                if any(cell[key] != expected[key] for key in ('cell_id', 'path', 'conditions')):
+                    raise ValueError('result cell conditions differ from configured matrix')
+                conditions = cell['conditions']
+                counts = definition['expected_datasets'][conditions['dataset_index']]
+                selection = document['selection.json']
+                if (selection['requested_k'] != resolve_budget(conditions['budget'], counts['candidate_count'])['k']
+                        or any(n >= counts['num_nodes'] for n in selection['selected_nodes'])):
+                    raise ValueError('result selection differs from requested budget or dataset')
+                expected_names = {'selection.json'}
+                if config['stage'] != 'selector':
+                    expected_names.add('metrics.json')
+                if config.get('return_scores'):
+                    expected_names.add('scores.npz')
+                if set(cell['files']) != expected_names:
+                    raise ValueError('missing or unexpected declared cell result')
+                if 'metrics.json' in document:
+                    from experiments.modular_evaluation import CASES
+                    expected_metrics = []
+                    if config['stage'] == 'unlearning':
+                        expected_metrics = [('method', set(CASES['post_method_metrics']['metrics'])),
+                            ('utility', {'f1_before', 'f1_after', 'f1_drop', 'f1_drop_ratio'})]
+                    expected_metrics += [(e['case'], set(e['metrics'])) for e in config['evaluations']
+                        if conditions['method'] != 'Retrain' or e['case'] != 'post_unlearning_utility_and_retrain_gap']
+                    measured = document['metrics.json']['rows']
+                    if (len(measured) != len(expected_metrics) or any(
+                            r['stage'] != stage or set(r['values']) != names
+                            for r, (stage, names) in zip(measured, expected_metrics))):
+                        raise ValueError('metrics differ from configured measurement stages')
+                if 'scores.npz' in document and conditions['selector'] != 'im':
+                    if len(document['scores.npz']['candidate_ids']) != counts['candidate_count']:
+                        raise ValueError('score coverage differs from registered candidates')
+                for name, artifact in cell['files'].items():
+                    remote = str(PurePosixPath(run_remote).parent / cell['path'] / name)
+                    actual_paths.append(remote)
+                    indexed = by_remote[remote]
+                    if ((run_path.parent / cell['path'] / name).resolve() != (root / indexed['local_path']).resolve()
+                            or artifact['sha256'] != indexed['sha256']):
+                        raise ValueError('result is outside verified collected set')
+                cells.append({'cell_id': cell['cell_id'], 'conditions': conditions,
+                              'selection_id': cell['selection_id']})
+            if set(actual_paths) != set(expected_paths) or len(actual_paths) != len(expected_paths):
+                raise ValueError('result files differ from exact recipe declaration')
         except (ValueError, KeyError, IndexError, TypeError, OSError, StopIteration) as exc:
             errors.append(str(exc))
     passed = not errors

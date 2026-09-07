@@ -5,9 +5,9 @@ stage: metrics
 dataset_refs:
 - citeseer.yaml
 output_inputs:
-- summary: null
+- run: null
   sha256: null
-- summary: null
+- run: null
   sha256: null
 evaluation_refs:
 - post_unlearning_utility_and_retrain_gap.yaml

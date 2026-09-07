@@ -69,14 +69,14 @@ def require_consumer(instance, consumer):
                 instance['case'], consumer, ', '.join(instance['required_inputs'])))
 
 
-def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verified_outputs=()):
+def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verified_outputs=(), dataset_root=None):
     from experiments.unlearning_outputs import load_output, utility
     from experiments.implementation_identity import implementation_fingerprint
     require_consumer(instance, 'modular_v1')
     outputs = list(verified_outputs)
     for row in unlearning_rows:
         reference = row.get('unlearning', row.get('output', row))
-        outputs.append((reference, load_output(reference, store_root, data=data), row.get('retrain')))
+        outputs.append((reference, load_output(reference, store_root, data=data, dataset_root=dataset_root), row.get('retrain')))
     retrains = [(ref, payload) for ref, payload, _ in outputs if payload.identity['target']['method'] == 'Retrain']
     rows = []
     for reference, output, paired_reference in outputs:
@@ -94,7 +94,7 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
             available = measured['metrics']
             identity['method_evaluation'] = measured['identity']
         if instance['case'] == 'post_unlearning_utility_and_retrain_gap':
-            candidates = ([(paired_reference, load_output(paired_reference, store_root, data=data))]
+            candidates = ([(paired_reference, load_output(paired_reference, store_root, data=data, dataset_root=dataset_root))]
                           if paired_reference else retrains)
             matches = {ref['artifact_id']: (ref, payload) for ref, payload in candidates
                        if payload.identity['target']['method'] == 'Retrain'

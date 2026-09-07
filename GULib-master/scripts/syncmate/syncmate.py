@@ -15,6 +15,7 @@ from opengu_adapter import OpenGUProjectExtension
 
 
 def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
     return core_main(argv, project_root=PROJECT_ROOT, extension=OpenGUProjectExtension(), require_origin_main=True)
 
 

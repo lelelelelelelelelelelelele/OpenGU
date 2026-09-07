@@ -78,6 +78,9 @@ def test_real_queue_command_collect_verify_accept_results_and_repeat(exported,mo
             rows=extension.results(collected['artifact_index'],{'project_root':collector})
             assert len(rows['rows'])==8 and not rows['parse_errors'],rows
             assert all(r['status']=='ok' for r in rows['rows'])
+            assert all(r['cache']['selector_checkpoint'] in ('hit', 'miss') for r in rows['rows'])
+            assert all(r['cache']['method_checkpoint'] == ('not_applicable' if r['method'] == 'Retrain' else 'hit')
+                       for r in rows['rows'])
             repeated=collection.apply_collect(*args,**options)
             assert repeated['summary']['fetched']==0
             record_property('actual_collection',json.dumps({'checked':checked,'row_count':len(rows['rows']),
@@ -86,24 +89,40 @@ def test_real_queue_command_collect_verify_accept_results_and_repeat(exported,mo
     assert not (collector/'results/cache_v2').exists()
 
 
-@pytest.mark.parametrize('fault',['missing_output','unverified_index','duplicate_index','wrong_sha','bytes','config','semantic_budget','semantic_selector','semantic_dataset'])
+@pytest.mark.parametrize('fault',['missing_output','unverified_index','duplicate_index','wrong_sha','bytes','config','semantic_budget','semantic_selector','semantic_dataset','metric_nan','cell_owner','payload_field'])
 def test_collection_faults_fail_closed(exported,fault):
     runner,collector,sha,definition=exported;extension=OpenGUProjectExtension()
     with context.use(collector,extension=extension):
         collected,_,_=collect(exported);peer=collected['artifact_index']['peers']['cpu-runner']
         if fault=='missing_output':peer['items'].pop()
         if fault=='unverified_index':peer['summary']['status']='incomplete'
-        if fault=='duplicate_index':peer['items'].append(copy.deepcopy(peer['items'][0]))
+        if fault=='duplicate_index':peer['items'].append(copy.deepcopy(next(i for i in peer['items'] if i['remote_path'] in definition['expected_artifact_paths'])))
         if fault=='wrong_sha':collected['expected_git_sha']='f'*40
         if fault=='bytes':(collector/peer['items'][0]['local_path']).write_bytes(b'corrupt')
         if fault=='config':definition['configuration_fingerprint']='f'*64
         if fault.startswith('semantic_'):
-            entry=next(i for i in peer['items'] if i['remote_path'].endswith('/summary.json'))
+            entry=next(i for i in peer['items'] if i['remote_path'].endswith('/run.json'))
             path=collector/entry['local_path'];summary=json.loads(path.read_text())
-            if fault=='semantic_budget':summary['unlearning'][0]['matrix_values']['budget_ratio']=.9
-            if fault=='semantic_selector':summary['selectors'][0]['selector_ref']='wrong.yaml'
-            if fault=='semantic_dataset':summary['datasets'][0]['dataset']['split']['seed']=999
+            if fault=='semantic_budget':summary['cells'][0]['conditions']['budget_ratio']=.9
+            if fault=='semantic_selector':summary['cells'][0]['conditions']['selector_ref']='wrong.yaml'
+            if fault=='semantic_dataset':summary['cells'][0]['conditions']['dataset_fingerprint']=999
             path.write_text(json.dumps(summary));entry['sha256']=hashlib.sha256(path.read_bytes()).hexdigest()
+        if fault in ('metric_nan', 'cell_owner', 'payload_field'):
+            entry = next(i for i in peer['items'] if i['remote_path'].endswith('/run.json'))
+            path = collector/entry['local_path']; run = json.loads(path.read_text())
+            cell = run['cells'][0]
+            if fault == 'payload_field':
+                cell['logits'] = [[1,2]]
+            else:
+                metric = path.parent/cell['path']/'metrics.json'
+                document = json.loads(metric.read_text())
+                if fault == 'metric_nan': document['rows'][0]['values']['f1'] = float('nan')
+                else: document['cell_id'] = 'wrong-cell'
+                metric.write_text(json.dumps(document))
+                cell['files']['metrics.json']['sha256'] = hashlib.sha256(metric.read_bytes()).hexdigest()
+                indexed = next(i for i in peer['items'] if (collector/i['local_path']).resolve() == metric.resolve())
+                indexed['sha256'] = cell['files']['metrics.json']['sha256']
+            path.write_text(json.dumps(run)); entry['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
         result=extension.accept('modular-output-v1',definition,collected)
         assert not result['passed'] and result['errors']
 

@@ -707,7 +707,7 @@ FORMAL_PAYLOAD_TYPES: Dict[ArtifactType, Type[Any]] = {
 
 
 def payload_type_for(artifact_type: ArtifactType, recipe: Optional[ArtifactRecipe] = None) -> Type[Any]:
-    if recipe is not None and recipe.fields.get("artifact_contract") == "opengu-node-unlearning-output-v1":
+    if recipe is not None and recipe.fields.get("artifact_contract") == "opengu-node-unlearning-output-v2":
         from .unlearning_output import UnlearningOutputPayload
         if ArtifactType(artifact_type) != ArtifactType.PREDICTION:
             raise ContractValidationError("unlearning output has wrong Artifact type")

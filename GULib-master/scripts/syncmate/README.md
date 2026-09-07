@@ -1180,27 +1180,11 @@ payloads, and Cache V2 artifacts remain read-only historical evidence. They may
 be inspected through the retained reports, but they are not dispatchable and
 must not be used as current paper or figure inputs.
 
-The active experiment surface is `target_direct_formal_v2`. It binds the
-selector and GU consumer to the same checkpoint identity, derives exact `k`
-from the registered 1%/5% ratios, and fails closed on any config, manifest,
-candidate-count, or checkpoint mismatch. No fixed-node-count fallback exists.
-
-Each target-direct GU recipe collects independent GNNDelete and Retrain outputs.
-The recipe takes its file list from the executor's `gu_artifacts` contract:
-`attack.json`, `output-references.json`, `predictions.npz`, and `_meta.json` per
-method/selector. A degree gate therefore returns 8 files; a 17-selector stage
-returns 136. The Adapter passes the registered stage, ratio, configuration and
-gate flag to the experiment preflight; full-matrix authorization is still checked.
-
-After Core verifies collection, OpenGU rechecks each file's indexed checksum,
-decodes the saved model/prediction payload, and binds its Recipe/content/Artifact
-identity to all three output references. It verifies Selection and checkpoint
-provenance, configured method conditions, shared inputs across methods, and
-recomputed single-method metrics. The collector needs no remote cache, training
-or model forward pass. Metrics receipt/protocol mismatches fail closed.
-`results` displays each method independently; `collateral.json` and cross-method
-comparisons belong to subsequent post-processing, not to these GU leaves.
-Other registered experiment surfaces retain their own declared artifact sets.
+The active experiment surface is the ordinary `experiments/run.py <YAML>` entry.
+OpenGU declares `run.json` and the exact cell-level Metrics/Selection files,
+plus `scores.npz` only when the YAML requests existing scores. The collector
+verifies those files and their cell/configuration ownership without input data,
+models, predictions or a local Cache. See the [result contract](../../docs/experiment-result-return-contract.md).
 
 On a checkout configured with `role: runner` or `role: runner+collector`:
 
@@ -1321,6 +1305,17 @@ Reports older than 24 hours are flagged by `doctor` as stale.
 
 ### Ordinary experiment receipts (AAGU-034)
 
+`opengu-aagu031-stage-s-v2` registers the current AAGU-015 eight-group Selector
+table at `experiments/configs/aagu031/stage_s.yaml`: 72 conditions across three
+datasets, run ID `aagu031-stage-s-v2`, one Selector summary, and a 21600-second
+subprocess limit. The summary carries the existing score/ranking and selection
+evidence. Registration binds the reviewed YAML and referenced configuration
+fingerprints; it does not submit a job or authorize formal execution.
+
+Recipe file hashes use Core's `sha256_recipe_config` (normalized LF text), not
+raw Windows file bytes. The extension v2 registration has been corrected to
+this rule; its scientific configuration fingerprint and matrix are unchanged.
+
 The current recipe calls `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v2`.
 The repaired 007 registration uses a new run identity to preserve the previous
 unaccepted batch. `opengu-aagu032-v1` binds the existing 42-cell Cora D-full
@@ -1367,3 +1362,25 @@ reuses budget-independent Scores; training seed affects only model consumers.
 The current 007 plan has four independent method outputs and seventeen exported
 files. A later Metrics recipe must bind real completed outputs before review;
 no placeholders are submitted as jobs.
+
+
+### Experiment result return
+
+`results/runs/<experiment-id>/<run-id>/run.json` records the executing commit,
+repository-relative YAML path, planned cell conditions, result status, and
+observed timing/cache reuse. Each cell has a readable condition directory with
+a stable identifier that separates parameter variants. Selector-only cells do
+not invent a GU method. Metrics and actual requested selections are JSON;
+`return_scores: true` optionally delivers existing numerical scores/rankings.
+
+Use the ordinary `runner-agent collect <peer-id> --job-id <job-id> --json` flow.
+There is no input collection command. The registered recipe's exact files go
+through Core transfer/checksums/indexing, then OpenGU verifies their declared
+ownership. `read_run(path, sha256)` reads a verified result without remote Cache.
+
+Metrics inputs use `output_inputs: [{run: <run.json>, sha256: <digest>}]`.
+Execute a new run on the runner to read its existing Output Cache and regenerate
+metrics. Collecting that new run rebuilds the current results table from the
+latest matching cells; old run files and immutable Cache evidence remain intact.
+Detailed prediction/model analysis can run over SSH. See the unique
+[result content and layout contract](../../docs/experiment-result-return-contract.md).

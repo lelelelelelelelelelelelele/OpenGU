@@ -61,8 +61,8 @@ def test_registry_contains_only_current_reviewed_recipes(project_extension):
     definitions = project_extension.recipes(PROJECT_ROOT)
     expected_ids = {'smoke','opengu-preflight-v1','opengu-aagu007-v2','opengu-aagu032-v1',
         'opengu-aagu032-extend-cora-v1','opengu-aagu032-extend-citeseer-v1',
-        'opengu-aagu032-extend-pubmed-v1','opengu-aagu032-extend-v2'}
-    assert len(definitions) == 8
+        'opengu-aagu032-extend-pubmed-v1','opengu-aagu032-extend-v2','opengu-aagu031-stage-s-v2'}
+    assert len(definitions) == 9
     assert set(definitions) == expected_ids
 
 
@@ -108,7 +108,7 @@ def test_registered_matrix_matches_actual_yaml_and_unique_outputs(project_extens
     assert configuration_fingerprint(config) == definition['configuration_fingerprint']
     assert actual['logical_cells'] == definition['logical_cells']
     paths = definition['expected_artifact_paths']
-    assert len(set(paths)) == len(paths) == 1 + 4 * actual['logical_cells']
+    assert len(set(paths)) == len(paths) == 1 + 2 * actual['logical_cells']
 
 
 def test_recipe_results_are_copy_safe(project_extension):

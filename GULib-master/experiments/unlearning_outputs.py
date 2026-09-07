@@ -10,7 +10,6 @@ from cache_v2.unlearning_output import OUTPUT_CONTRACT, UnlearningOutputPayload
 from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact
 from experiments.effective_config import ConfigurationError, fields
 from experiments.node_deletion import pairing_identity, retained_graph
-from utils.target_checkpoint import data_identity
 
 
 def output_reference(result, recipe_hash):
@@ -18,7 +17,7 @@ def output_reference(result, recipe_hash):
             'content_hash': result.content_hash}
 
 
-def load_output(reference, store_root, *, data=None):
+def load_output(reference, store_root, *, data=None, dataset_root=None):
     fields(reference, {'artifact_id', 'recipe_hash', 'content_hash'},
            {'artifact_id', 'recipe_hash', 'content_hash'}, 'method output reference')
     root = Path(store_root)
@@ -55,31 +54,50 @@ def load_output(reference, store_root, *, data=None):
         expected = pairing_identity(identity['pairing'], data, payload.arrays['selected_nodes'])
         if expected != identity['pairing']:
             raise ConfigurationError('method output Dataset/Split or deletion identity mismatch')
-    validate_embedded_data(payload)
-    return payload
+    if dataset_root is None:
+        raise ConfigurationError('method output requires explicit Dataset/Split root')
+    return resolve_output(payload, dataset_root)
 
 
-def validate_embedded_data(payload):
-    from torch_geometric.data import Data
-    arrays = payload.arrays
-    data = Data(**{key: torch.from_numpy(np.array(arrays[key], copy=True))
-                   for key in ('x', 'y', 'edge_index', 'train_mask', 'val_mask', 'test_mask')})
-    pairing = payload.identity['pairing']
-    if data_identity(data) != pairing['data_identity']:
-        raise ConfigurationError('output embedded Dataset/Split differs from identity')
-    if pairing_identity(pairing, data, arrays['selected_nodes']) != pairing:
-        raise ConfigurationError('output embedded graph semantics differ from identity')
+class ResolvedOutput:
+    """Verified in-memory inputs; only the underlying result is serialized."""
+    def __init__(self, payload, data):
+        self.payload = payload
+        self.identity = payload.identity
+        self.state = payload.state
+        self.auxiliary = payload.auxiliary
+        pairing = payload.identity['pairing']
+        if pairing_identity(pairing, data, payload.arrays['selected_nodes']) != pairing:
+            raise ConfigurationError('output Dataset/Split or deletion identity mismatch')
+        if len(payload.arrays['logits']) != data.num_nodes:
+            raise ConfigurationError('output logits differ from Dataset node count')
+        retained = retained_graph(data, payload.arrays['selected_nodes'])
+        evaluation = data if pairing['deletion']['evaluation_graph'] == 'original' else retained
+        self.arrays = {key: getattr(data, key).detach().cpu().numpy() for key in
+                      ('x', 'y', 'edge_index', 'train_mask', 'val_mask', 'test_mask')}
+        self.arrays.update(payload.arrays)
+        self.arrays.update(retain_mask=retained.train_mask.cpu().numpy(),
+            training_edge_index=retained.edge_index.cpu().numpy(),
+            evaluation_edge_index=evaluation.edge_index.cpu().numpy())
+
+    @property
+    def canonical_bytes(self):
+        return self.payload.canonical_bytes
+
+    @property
+    def content_hash(self):
+        return self.payload.content_hash
 
 
-def build_output(identity, data, model, logits, logits_before=None):
-    retained = retained_graph(data, identity['pairing']['selected_nodes'])
-    evaluation = data if identity['pairing']['deletion']['evaluation_graph'] == 'original' else retained
+def resolve_output(payload, dataset_root):
+    from experiments.dataset_inputs import resolve_input
+    return ResolvedOutput(payload, resolve_input(payload.identity['dataset_input'], dataset_root))
+
+
+def build_output(identity, model, logits, logits_before=None):
     def array(tensor):
         return tensor.detach().cpu().numpy()
-    arrays = {key: array(getattr(data, key)) for key in
-              ('x', 'y', 'edge_index', 'train_mask', 'val_mask', 'test_mask')}
-    arrays.update(logits=array(logits), retain_mask=array(retained.train_mask),
-        training_edge_index=array(retained.edge_index), evaluation_edge_index=array(evaluation.edge_index),
+    arrays = dict(logits=array(logits),
         selected_nodes=np.asarray(identity['pairing']['selected_nodes'], dtype=np.int64))
     if logits_before is not None:
         arrays['logits_before'] = array(logits_before)

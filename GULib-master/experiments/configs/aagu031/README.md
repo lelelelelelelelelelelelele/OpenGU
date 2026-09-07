@@ -1,29 +1,40 @@
-# AAGU-031 · 原 Selector Stage S 合并提交表
+# AAGU-015 · 八组 Selector 实验表（031 执行）
 
-[stage_s.yaml](stage_s.yaml) 合并 AAGU-015 原有三个数据集的 Stage S 表，沿用已接受的 17 个 Selector 和 Q1–Q4 比较设计。按用户 2026-09-08 的明确调整，只运行 10% 选集，后处理评估 1% / 5% / 10% 的重合度；不再将运行预算称为与原表完全一致。原方案由 [AAGU-015](../../../.workblock/items/AAGU-015/EXPERIMENT_PLAN.md) 拥有，正式运行与分析由 [AAGU-031](../../../.workblock/items/AAGU-031/WORKITEM.md) 承接。
+当前执行入口为 [stage_s.yaml](stage_s.yaml)，experiment_id 为 `aagu031-selector-stage-s-v2`。本表按用户最新讨论替代本轮原 17 组执行范围：以预筛选可行性、评分与排序时间为主，保留两组辅助机制对照。结果分析由 [033](../../../.workblock/items/AAGU-033/WORKITEM.md) 承接。
 
-| 轴 | 配置 |
+| 组 | Selector 配置 | 作用 |
+|---|---|---|
+| A | a_grad_norm.yaml | 梯度范数；与 B 比较收益与成本 |
+| B | b_param_hutch.yaml | 曲率修正的参数变化范数估计 |
+| Degree | degree.yaml | 拓扑参照；排名后处理判断预筛选可行性 |
+| D-full 两跳 | gt_full.yaml | 现有两跳计算范围参照 |
+| D-full 三跳（last_layer） | gt_full_last_layer_hops3.yaml | 与 last_layer 两跳比较计算范围 |
+| D-full 三跳（all_trainable） | gt_full_all_trainable_hops3.yaml | 与 last_layer 三跳比较参数范围及成本 |
+| GT-simple 三跳 | gt_simple_last_layer_hops3.yaml | 与三跳 D-full 比较 graph 修正项 |
+| P-graph 三跳 | p_graph_last_layer_hops3.yaml | 与三跳 D-full 比较逆 Hessian 处理 |
+
+| 公共轴 | 当前配置 |
 |---|---|
-| 数据集 | Cora、CiteSeer、PubMed，引用现有公共 Dataset/Split |
+| 数据集 | Cora、CiteSeer、PubMed；公共 Dataset/Split |
 | 划分 | 持久化 70/10/20，split seed 2024 |
 | 模型 | 两层 GCN，hidden 64、dropout 0.5 |
 | 训练 | seeds 42/212/2024；100 epochs；Adam；lr 0.005；weight decay 1e-6 |
-| 候选与目标 | 候选 train_mask；目标条件方法读取 val_mask，test 不参与选点 |
-| 参数范围 | 原 last_layer；graph/simple source 原 affected_hops=2 |
-| 运行预算 | 训练候选的 10% |
-| 后处理比例 | 1% / 5% / 10%，分别从同一完整排名取前缀 |
-| 运行范围 | 3 数据集 × 17 Selector × 3 seed × 1 预算 = 153 条件 |
-| 阶段 | selector；输出分数、完整排名、Selection、身份与成本，不执行 GU/Retrain |
+| 参数范围 | A/B、D-full 两跳/三跳、GT-simple、P-graph 使用 last_layer；另有一组 D-full 三跳使用 all_trainable；Degree 不使用模型 |
+| 候选与目标 | train_mask 候选；目标条件方法用 val_mask；test 不参与选点 |
+| 数值设置 | 消费逆 Hessian 的方法：LiSSA iterations 20、scale 25、damp 0.01；B 为 32 probes、seed 1729 |
+| 运行预算 | 原训练候选数的 10%；覆盖小表的预算默认值 |
+| 规模 | 3 数据集 × 8 组 × 3 seed × 1 预算 = 72 个逻辑条件 |
+| 输出 | 完整 candidate IDs、scores、ranking、10% Selection、身份与现有计时记录 |
 
-方法包括原参数变化参考、point/simple/graph IF/GIF 参考与 Hessian-free 代理、六种 checkpoint 累积方法，以及 degree/random/legacy 控制。不是单独 D-GIF 的新消融表。032 extension v2 的 all_trainable、3-hop 与 SGC 变体不混入。
+本轮移除 legacy、Random、TracIn 和其他 point/simple 组合；不增加预筛选 Selector，不运行预筛选后精排，也不执行 GU/Retrain。032 的已有/新增匹配结果用于分析下游效用，不由本表触发。旧 015 文档及配置是原方案来源，不是本轮执行入口。
 
-组内/组间及 checkpoint 比较沿用原方案 Q1–Q4：收集核验后计算 Spearman/Kendall、common fraction/Jaccard 和成本。全候选相关系数每个方法对、数据集、seed 只计算一次；三个比例不是三次独立评分实验。YAML 负责生成这些分析的原始证据，不会自动把相关性当攻击效果，也不把数值参考当精确重训练真值。
+033 从同一完整排名取 Degree 前 10%/20% 与 D-full 前 1%/5%/10%。包含率为交集大小除以 D-full 目标集合大小；K=max(1,floor(N_train×r))，各比例均以原训练候选数为分母。20% Degree 从完整排名截取，无须再次评分或新增 Selection Artifact。已有 A/B 排名可按同一口径补充分析。高包含率支持初步可行性，不证明实际加速或攻击效果。
 
-后处理对每个比例 r 使用 K=max(1,floor(N_train×r))，从保存的稳定完整排名截取前 K 个节点；不能对 10% 选集长度再次乘 1%/5%。同一方法的三个选集自然嵌套，指标比较的是不同方法在相同 K 下的重合。先验证完整 candidate ID、分数/排名与持久化 10% Selection 一致，分析派生的小选集不冒充新写入的 Cache Artifact。
+时间分析只加一张表，利用现有计时字段读取或推导共享 function、逐点评分、排序及总时间，标明实测/推导/无法独立估计，不新增埋点或页面。共享计算不重复累计；HIT 读取不当作冷计算；不能按候选比例线性缩放全部运行时间。
 
-Cache 按实际有效身份自动 HIT/MISS。原 032 及 extension 已覆盖的一部分评分与选集具备复用机会；其余方法由 Cache 自行判断，不能从 153 个逻辑条件推算实际新计算次数或提前宣称命中率。
+last_layer 两跳/三跳仅改变 affected_hops；两个三跳辅助对照与 last_layer D-full 三跳统一参数范围、训练和跳数。D-full 三跳的 last_layer/all_trainable 配对仅改变 parameter_scope。效果接近且额外耗时不大时优先三跳；实际取舍由匹配结果与时间支持。
 
-当前 Score 与预算无关并保存完整排名。底层 Selection resolver 支持除顶层 K 外身份一致时的大 K 覆盖小 K，但当前 IF 消费入口还把具体 ratio/K 写入 selector_parameters.budget，跨比例请求不会仅因倒序填写就命中大选集。本表只请求 10%，后处理前缀不依赖这个跨比例缓存能力；本次不修改缓存实现或历史 Artifact。
+Cache 按实际配置、输入、producer 与依赖身份判断 HIT/MISS。Degree 及部分 D-full 有复用机会；all_trainable 与旧 last_layer 不是相同身份，不能承诺全部 HIT，也不清理历史缓存。
 
 配置检查：
 
@@ -31,4 +42,4 @@ Cache 按实际有效身份自动 HIT/MISS。原 032 及 extension 已覆盖的�
 & E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/aagu031/stage_s.yaml --dry_run
 ```
 
-本次仅准备原实验的合并配置并核对等价性，未 Claim/完成 031、提交正式 GPU 作业或产生本轮科研结果。新文件需纳入落地 Git 版本，并按项目现有配置登记/提交入口绑定后才能在远端运行；本次未新增固定 SyncMate recipe。已接受 015 的原表仍由其定义检查器消费，作为原方案来源保留。
+队列注册为 `opengu-aagu031-stage-s-v2`，run ID 为 `aagu031-stage-s-v2`，由普通 `experiments/run.py` 消费本表；绑定配置及全部引用指纹、72 条件、三数据集候选数和 Selector summary 产物。超时上限为 21600 秒（6 小时），沿用现有矩阵上限，不是完成时间估计。正式运行仍需落地版本及运行前置审验；注册不提交作业。

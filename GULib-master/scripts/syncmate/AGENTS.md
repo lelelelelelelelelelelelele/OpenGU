@@ -24,7 +24,7 @@ Do not add generic destructive remote cleanup or execute an unconfirmed repair. 
 ## Evidence and Data Paths
 
 - Raw returned artifacts land under `results/runs/`; trusted state exists only after checksum verification into `.syncmate/artifact_index.json`.
-- Generic manual collection defaults to `attack.json`, `collateral.json`, and `_meta.json`. Recipe-driven collection follows its saved output contract. The ordinary modular experiment exports one summary plus independent method leaves with `attack.json`, `output-references.json`, `predictions.npz`, and `_meta.json`; its collateral comparison is separate post-processing.
+- Generic manual collection defaults to `attack.json`, `collateral.json`, and `_meta.json`. Recipe-driven collection follows its saved output contract. Ordinary modular experiments declare `run.json` plus cell-level `metrics.json`, `selection.json`, and optional existing `scores.npz`. Inputs and model/prediction payloads stay remote; metrics regeneration creates a new run and the local results projection selects its latest matching cells.
 - `.syncmate/device.yaml` is the only intentional per-device setup difference and remains untracked.
 - Experiment device selection comes only from that file's explicit `execution_device`. The ordinary entry consumes Core's device reader; do not add GPU models, device defaults, queue inspection or a second execution stage to project adapters.
 - SSH peer definitions may declare `python_executable`; generated and executed remote SyncMate commands must use it instead of assuming the login-shell `PATH`.
