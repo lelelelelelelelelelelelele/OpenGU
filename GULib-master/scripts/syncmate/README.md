@@ -1180,27 +1180,11 @@ payloads, and Cache V2 artifacts remain read-only historical evidence. They may
 be inspected through the retained reports, but they are not dispatchable and
 must not be used as current paper or figure inputs.
 
-The active experiment surface is `target_direct_formal_v2`. It binds the
-selector and GU consumer to the same checkpoint identity, derives exact `k`
-from the registered 1%/5% ratios, and fails closed on any config, manifest,
-candidate-count, or checkpoint mismatch. No fixed-node-count fallback exists.
-
-Each target-direct GU recipe collects independent GNNDelete and Retrain outputs.
-The recipe takes its file list from the executor's `gu_artifacts` contract:
-`attack.json`, `output-references.json`, `predictions.npz`, and `_meta.json` per
-method/selector. A degree gate therefore returns 8 files; a 17-selector stage
-returns 136. The Adapter passes the registered stage, ratio, configuration and
-gate flag to the experiment preflight; full-matrix authorization is still checked.
-
-After Core verifies collection, OpenGU rechecks each file's indexed checksum,
-decodes the saved model/prediction payload, and binds its Recipe/content/Artifact
-identity to all three output references. It verifies Selection and checkpoint
-provenance, configured method conditions, shared inputs across methods, and
-recomputed single-method metrics. The collector needs no remote cache, training
-or model forward pass. Metrics receipt/protocol mismatches fail closed.
-`results` displays each method independently; `collateral.json` and cross-method
-comparisons belong to subsequent post-processing, not to these GU leaves.
-Other registered experiment surfaces retain their own declared artifact sets.
+The active experiment surface is the ordinary `experiments/run.py <YAML>` entry.
+OpenGU declares `run.json` and the exact cell-level Metrics/Selection files,
+plus `scores.npz` only when the YAML requests existing scores. The collector
+verifies those files and their cell/configuration ownership without input data,
+models, predictions or a local Cache. See the [result contract](../../docs/experiment-result-return-contract.md).
 
 On a checkout configured with `role: runner` or `role: runner+collector`:
 
@@ -1380,36 +1364,23 @@ files. A later Metrics recipe must bind real completed outputs before review;
 no placeholders are submitted as jobs.
 
 
-### Shared Dataset/Split inputs (AAGU-036)
+### Experiment result return
 
-Independent method Output v2 stores predictions, selected nodes, model state and
-method-specific tensors. It references the exact YAML-bound persisted manifest
-and graph; it does not embed features, labels, the original graph or split masks.
-The verified reader reconstructs the declared retained supervision and graph.
+`results/runs/<experiment-id>/<run-id>/run.json` records the executing commit,
+repository-relative YAML path, planned cell conditions, result status, and
+observed timing/cache reuse. Each cell has a readable condition directory with
+a stable identifier that separates parameter variants. Selector-only cells do
+not invent a GU method. Metrics and actual requested selections are JSON;
+`return_scores: true` optionally delivers existing numerical scores/rankings.
 
-Before collecting a run whose inputs are absent on the collector, use the same
-configured peer and experiment configuration:
+Use the ordinary `runner-agent collect <peer-id> --job-id <job-id> --json` flow.
+There is no input collection command. The registered recipe's exact files go
+through Core transfer/checksums/indexing, then OpenGU verifies their declared
+ownership. `read_run(path, sha256)` reads a verified result without remote Cache.
 
-```powershell
-python scripts/syncmate/syncmate.py collect-inputs <peer-id> --config experiments/configs/<plan>/experiment.yaml
-python scripts/syncmate/syncmate.py runner-agent collect <peer-id> --job-id <job-id> --json
-```
-
-`collect-inputs` uses Core manifest diff, incremental collection, SHA-256 verification
-and artifact indexing. Manifest and graph are collected once to their existing
-`data/processed/` relative paths. Existing exact inputs transfer zero bytes;
-conflicting files fail without overwrite. The command does not download datasets,
-create a split, run a producer or copy inputs into each run directory. Missing
-inputs make ordinary result acceptance and offline reading fail explicitly.
-Shared input index entries are dependencies, not rows in the experiment results table.
-
-`read_summary_outputs(path, sha256, dataset_root=collector_root)` and
-`load_output(reference, store_root, dataset_root=collector_root)` explicitly bind
-the reading machine's input root. `eval_collateral.py` likewise requires
-`--dataset-root`; its derived prediction file contains only generated predictions
-and deletion requests, with shared input references in its JSON.
-
-Historical Output v1 files remain byte-for-byte unchanged. Current readers reject
-that replaced contract; no compatibility reader, in-place conversion, cleanup or
-automatic rerun is provided. New explicitly requested runs use the new output
-contract and producer identity. This change does not reclaim historical disk usage.
+Metrics inputs use `output_inputs: [{run: <run.json>, sha256: <digest>}]`.
+Execute a new run on the runner to read its existing Output Cache and regenerate
+metrics. Collecting that new run rebuilds the current results table from the
+latest matching cells; old run files and immutable Cache evidence remain intact.
+Detailed prediction/model analysis can run over SSH. See the unique
+[result content and layout contract](../../docs/experiment-result-return-contract.md).

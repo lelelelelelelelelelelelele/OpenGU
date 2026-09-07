@@ -80,6 +80,9 @@ EXPERIMENT_RECIPES = {
 
 
 def recipe_definitions():
+    from pathlib import Path
+    from experiments.modular_config import load_experiment
+    root = Path(__file__).resolve().parents[2]
     definitions = {
         "smoke": {
             "id": "smoke",
@@ -109,15 +112,14 @@ def recipe_definitions():
     }
     for recipe_id, plan in EXPERIMENT_RECIPES.items():
         summary = modular_output_path(**plan['run_identity'])
-        paths = (summary,) + (output_paths(summary, plan['logical_cells'])
-                             if plan['stage'] == 'unlearning' else ())
+        paths = (summary,) + output_paths(summary, load_experiment(root / plan['config_path']))
         definitions[recipe_id] = {**copy.deepcopy(plan), 'id': recipe_id,
             'argv': ('{python}', 'experiments/run.py', plan['config_path'],
                      '--run-id', plan['run_identity']['run_id']),
             'git_binding_policy': 'job-exact-main-v1', 'requires_job_expected_git_sha': True,
             'timeout_seconds': plan['timeout_seconds'], 'expected_artifact_paths': paths,
             'collector_result_roots': (summary.rsplit('/', 1)[0],),
-            'collector_artifact_names': ('summary.json',) + ARTIFACT_NAMES,
+            'collector_artifact_names': ('run.json',) + ARTIFACT_NAMES,
             'preflight_profile': 'modular-project-v1', 'collector_profile': 'modular-output-v1',
             'collector_acceptance': True, 'execution_validator': 'exact-artifacts-json-v1',
             'success_predicate': 'json.passed == true and all reviewed artifacts exist'}

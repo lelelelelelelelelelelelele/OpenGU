@@ -13,7 +13,7 @@
 | [datasets](datasets/) | 已持久化 Dataset/Split 和真实资产引用；不同 split 保留独立实例 |
 | [selectors](selectors/) | 17 种 Selector 的有效参数；另有明确的 B-Hutch64 变体 |
 | [unlearning](unlearning/) | 独立 GNNDelete、GIF、Retrain；另有明确 lr=0.02 变体 |
-| [evaluations](evaluations/) | 单方法指标、utility、收集后的 retrain-gap |
+| [evaluations](evaluations/) | 单方法指标、utility、远端重算的 retrain-gap |
 | [aagu015](aagu015/) | 每数据集四张普通阶段表，无逐 seed/预算生成 YAML |
 | [aagu007](aagu007/) | 本轮最小实验组合表；运行仍需审阅批准 |
 | [aagu032](aagu032/) | 42 条件接口参考；科学方案由 032 单独验收 |
@@ -30,6 +30,6 @@ TracIn 公共表显式选择 steps `[1,10,25,50,75,100]`；`_3` 消费 `[1,50,10
 
 Selector/Unlearning只以 `selector_refs` 声明选点；后续方法使用相同有效规则自动查找或计算，无需手填上轮Selection产物。实际Artifact身份、哈希、HIT/MISS保存在结果中。
 
-新结果使用独立 summary 和对应的 `summary.outputs/<序号>/`，输出目录存在即拒绝覆盖。Cache V2 根据有效输入和 producer 自动 HIT/MISS；表路径、实验名称、run_id、输出位置不进入计算身份。
+新结果采用 [结果回传合同](../../docs/experiment-result-return-contract.md) 的 `results/runs/<experiment-id>/<run-id>/run.json` 与 cell 条件目录。常规回传 Metrics/Selection，`return_scores: true` 才交付已有评分数组，禁止为回传扩大计算。目录存在即拒绝覆盖；Metrics 使用新的 run 重算，收集后重建当前结果表，历史 run 保留。Cache V2 根据有效输入和 producer 自动 HIT/MISS；表路径、实验名称、run_id、输出位置不进入计算身份。
 
 旧扁平配置与 formal-v2 配方已退出执行，原文保存在 [历史配置](../../docs/archive/experiment-configs-pre-aagu034/)。历史结果和 Cache V2 不被迁移或清空。完整合同见 [实验规范](../../docs/experiment_contract/README.md)。

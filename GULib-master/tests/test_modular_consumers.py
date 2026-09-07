@@ -75,7 +75,7 @@ def run(tables, name, **changes):
     write_yaml(root / (name + '.yaml'), config)
     context = ExecutionContext(run_id=name, level='verification', request_device='cpu',
         store_root=root / 'results' / 'cache_v2', checkpoint_root=root / 'checkpoints',
-        runtime_root=root / 'runtime' / name, output=root / (name + '.json'),
+        runtime_root=root / 'runtime' / name, output=root / 'results/runs' / name / name / 'run.json',
         executor='pytest')
     return execute(root / (name + '.yaml'), context=context)
 
@@ -389,7 +389,7 @@ def test_project_context_owns_fixed_store_runtime_device_and_output(tmp_path):
     assert context.store_root == (tmp_path / 'results/cache_v2').resolve()
     assert context.checkpoint_root == (tmp_path / 'results/runtime/modular/checkpoints').resolve()
     assert context.runtime_root == (tmp_path / 'results/runtime/modular/job-7').resolve()
-    assert context.output == (tmp_path / 'results/runs/modular/five-selectors-two-gu/job-7/summary.json').resolve()
+    assert context.output == (tmp_path / 'results/runs/five-selectors-two-gu/job-7/run.json').resolve()
     assert context.request_device == 'cuda'
 
 

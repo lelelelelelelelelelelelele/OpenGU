@@ -1,104 +1,276 @@
-"""Portable method outputs for the normal SyncMate checksum/collection chain."""
-from pathlib import Path
+"""Result documents, separate from remote computation artifacts."""
+from __future__ import annotations
+
 import hashlib
 import json
+import math
+import re
+from datetime import datetime, timezone
+from pathlib import Path, PurePosixPath
 
-ARTIFACT_NAMES = ('attack.json', 'output-references.json', 'predictions.npz', '_meta.json')
+import numpy as np
+
+ARTIFACT_NAMES = ('metrics.json', 'selection.json', 'scores.npz')
+
+
+def existing_scores(resolved, candidate_ids):
+    """Project only arrays already produced; IM never becomes a full ranking."""
+    if resolved['selection']['strategy'] == 'im':
+        gains = resolved.get('selected_gains')
+        if gains is None:
+            raise ValueError('IM has no recorded selected gains to return')
+        return {'selected_gains': np.asarray(gains)}, 'recorded_selection_step_gains'
+    if 'scores' not in resolved or 'ranking' not in resolved:
+        raise ValueError('selector has no existing scores/ranking to return')
+    return {'candidate_ids': np.asarray(candidate_ids, dtype=np.int64),
+            'scores': np.asarray(resolved['scores']),
+            'ranking': np.asarray(resolved['ranking'], dtype=np.int64)}, 'candidate_scores_and_node_ranking'
+
+
+def _slug(value):
+    return re.sub(r'[^A-Za-z0-9_.-]+', '-', str(value)).strip('.-')[:60] or 'none'
+
+
+def planned_cells(config):
+    """Shared matrix expansion for execution, declaration and validation."""
+    from experiments.modular_config import experiment_batches, selector_entries, unlearning_entries
+    cells = []
+    if config['stage'] == 'metrics':
+        for source in config['output_inputs']:
+            run, _ = read_run(Path(config['source_directory']) / source['run'], source['sha256'])
+            for cell in run['cells']:
+                if cell.get('output') and (cell['conditions']['method'] != 'Retrain' or any(
+                        e['case'] != 'post_unlearning_utility_and_retrain_gap' for e in config['evaluations'])):
+                    cells.append({key: cell[key] for key in ('cell_id', 'path', 'conditions')})
+    else:
+        for batch in experiment_batches(config):
+            entries = (unlearning_entries(batch) if config['stage'] == 'unlearning' else
+                       [(None, None, selector, ref) for selector, ref in selector_entries(batch)])
+            for gu, gu_ref, selector, selector_ref in entries:
+                model = (gu or selector).get('model', {}).get('architecture')
+                seed = (gu or selector).get('training', {}).get('seed', selector.get('parameters', {}).get('seed', 0))
+                conditions = {**batch['matrix_values'], 'model': model, 'method': gu['method'] if gu else None,
+                    'selector': selector['method'], 'selector_ref': selector_ref, 'unlearning_ref': gu_ref,
+                    'seed': seed, 'budget': {k: v for k, v in selector['budget'].items() if k != 'k'}}
+                identity = json.dumps(conditions, sort_keys=True, separators=(',', ':'))
+                cell_id = hashlib.sha256(identity.encode()).hexdigest()[:20]
+                budget = selector['budget']
+                coordinate = '{}_{}_{}{}'.format(_slug(conditions['dataset_name']),
+                    _slug(model.replace('OpenGU.', '').replace('Net', '') if model else 'selector'),
+                    'r' if budget['mode'] == 'ratio' else 'k', budget['value'])
+                method = (gu['method'] + '_' if gu else '') + selector['method']
+                cells.append({'cell_id': cell_id, 'path': f'cells/{coordinate}/{_slug(method)}_{cell_id}/seed{seed}',
+                              'conditions': conditions})
+    if len({c['cell_id'] for c in cells}) != len(cells):
+        raise ValueError('duplicate result cell identity')
+    return cells
+
+
+def output_paths(run_path, config):
+    names = ['selection.json'] if config['stage'] == 'selector' else ['metrics.json', 'selection.json']
+    if config.get('return_scores'):
+        names.append('scores.npz')
+    return tuple((Path(run_path).parent / cell['path'] / name).as_posix()
+                 for cell in planned_cells(config) for name in names)
 
 
 def generated_paths(summary, context):
-    """Files actually exported by this stage, relative to its execution workspace."""
-    root = context.store_root.parent.parent
-    return [context.output.relative_to(root).as_posix()] + [
-        (context.output.parent / item['path']).relative_to(root).as_posix()
-        for row in summary['unlearning'] for item in row['collected_artifacts'].values()]
+    run = json.loads(context.output.read_text(encoding='utf-8'))
+    base = context.store_root.parent.parent
+    return [context.output.relative_to(base).as_posix()] + [
+        (context.output.parent / c['path'] / name).relative_to(base).as_posix()
+        for c in run['cells'] for name in c['files']]
 
 
-def output_paths(summary_path, count):
-    parent = Path(summary_path).parent / (Path(summary_path).stem + '.outputs')
-    return tuple((parent / str(i) / name).as_posix()
-                 for i in range(count) for name in ARTIFACT_NAMES)
+def _write(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open('x', encoding='utf-8') as handle:
+        json.dump(value, handle, indent=2, ensure_ascii=False, allow_nan=False)
+        handle.write('\n')
 
 
-def save_method_result(row, *, store_root, output_dir, strategy, meta, dataset_root):
-    """Export the same verified payload that the independent method cached."""
-    from experiments.unlearning_outputs import load_output
-    payload = load_output(row['output'], store_root, dataset_root=dataset_root)
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    result = {**row['result'], 'failed': False,
-              'selected_nodes': payload.arrays['selected_nodes'].tolist(),
-              'output': row['output'], 'evaluation': row['evaluation'],
-              'producer_called': row['producer_called'], 'cache_hit': row['hit'],
-              'compute_seconds': row['compute_seconds']}
-    documents = {'attack.json': {'results': {strategy: result}},
-                 'output-references.json': {'strategy': strategy, 'output': row['output']},
-                 '_meta.json': {**meta, 'output_reference': row['output'],
-                               'evaluation_receipt_id': row['evaluation']['evaluation_receipt_id']}}
-    for name, value in documents.items():
-        with (output_dir / name).open('x', encoding='utf-8') as handle:
-            json.dump(value, handle, indent=2, allow_nan=False)
-    with (output_dir / 'predictions.npz').open('xb') as handle:
-        handle.write(payload.canonical_bytes)
+def start_run(config, context, config_path):
+    config_relative = Path(config_path).resolve().relative_to(context.store_root.parent.parent).as_posix()
+    run = {'experiment_id': config['experiment_id'], 'run_id': context.run_id,
+        'generated_at': datetime.now(timezone.utc).isoformat(), 'commit': context.source_git_sha,
+        'config_path': config_relative, 'stage': config['stage'], 'status': 'pending',
+        'cells': [{**cell, 'status': 'pending', 'files': {},
+                   'results': {'metrics': 'not_applicable' if config['stage'] == 'selector' else 'pending',
+                               'selection': 'pending',
+                               'scores': 'pending' if config.get('return_scores') else 'not_requested'}}
+                  for cell in planned_cells(config)]}
+    _write(context.output, run)
+    return run
 
 
-def export_outputs(summary, *, output, store_root, dataset_root):
-    for index, row in enumerate(summary['unlearning']):
-        from experiments.unlearning_outputs import load_output
-        payload = load_output(row['output'], store_root, dataset_root=dataset_root)
-        folder = output.parent / (output.stem + '.outputs') / str(index)
-        strategy = row.get('selector_ref') or 'bound-selection'
-        save_method_result(row, store_root=store_root, output_dir=folder,
-            strategy=strategy, dataset_root=dataset_root, meta={'method': payload.identity['target']['method'],
-                'strategy': strategy, 'seed': payload.identity['pairing']['training']['seed'],
-                'selection_artifact': payload.identity['selection'],
-                'matrix_values': row['matrix_values'],
-                'dataset': summary['datasets'][row['matrix_values']['dataset_index']],
-                'config_fingerprint': summary['configuration_fingerprint'],
-                'git_sha': summary['execution_receipt']['source_git_sha'],
-                'execution_receipt': summary['execution_receipt']})
-        row['collected_artifacts'] = {name: {
-            'path': (folder / name).relative_to(output.parent).as_posix(),
-            'sha256': hashlib.sha256((folder / name).read_bytes()).hexdigest()}
-            for name in ARTIFACT_NAMES}
+def update_run(run, output):
+    """Only the current invocation's progress document is mutable."""
+    temp = output.with_suffix('.tmp')
+    temp.write_text(json.dumps(run, indent=2, ensure_ascii=False, allow_nan=False) + '\n', encoding='utf-8')
+    temp.replace(output)
 
 
-def read_summary_outputs(path, expected_sha256, *, dataset_root):
-    """Verify a collected summary and its portable outputs without a remote Store."""
-    from scripts.syncmate.opengu_method_output import read_method_output
+def export_outputs(summary, *, config, context, run):
+    """Serialize measured values and actual requested selections, never payload bytes."""
+    rows = summary['unlearning'] if config['stage'] == 'unlearning' else summary['selectors']
+    if config['stage'] == 'metrics':
+        rows = [summary['metric_sources'][c['cell_id']] for c in run['cells']]
+    if len(rows) != len(run['cells']):
+        raise ValueError('execution rows differ from planned result cells')
+    for cell, row in zip(run['cells'], rows):
+        folder = context.output.parent / cell['path']
+        documents = {}
+        if config['stage'] == 'metrics':
+            selected = row['selection_document']
+            cell['source'] = row['source']
+            documents['selection.json'] = {**selected, 'cell_id': cell['cell_id']}
+            selection_id = selected['selection_id']
+            cell['timing'] = {'method_compute_seconds': None}
+            cell['cache'] = {'method': 'hit'}
+            cell['producer_called'] = {'method': False}
+        else:
+            selected = row if config['stage'] == 'selector' else next(s for s in summary['selectors']
+                if s['matrix_values'] == row['matrix_values'] and s['selector_ref'] == row['selector_ref'])
+            selection = selected['selection']
+            k = selected['requested_k']
+            nodes = selection['views'][str(k)]['selected_nodes']
+            selection_id = selection['artifact']['artifact_id']
+            documents['selection.json'] = {'cell_id': cell['cell_id'], 'selection_id': selection_id,
+                'requested_k': k, 'selected_nodes': nodes}
+            cell['timing'] = {'selection_seconds': selected.get('selection_seconds'),
+                'score_access_seconds': selected['score'].get('access_seconds'),
+                'method_compute_seconds': row.get('compute_seconds')}
+            cell['cache'] = {'score': 'hit' if selected['score']['hit'] else 'miss',
+                'selection': 'hit' if selection['cache']['hit'] else 'miss',
+                'method': ('hit' if row['hit'] else 'miss') if config['stage'] == 'unlearning' else 'not_applicable'}
+            cell['producer_called'] = {'score': selected['score']['producer_called'],
+                'selection': selection['cache']['producer_called'], 'method': row.get('producer_called')}
+        cell['selection_id'] = selection_id
+        if config['stage'] != 'selector':
+            cell['output'] = row['output']
+            measurements = []
+            if config['stage'] == 'unlearning':
+                measurements = [{'stage': 'method', 'values': row['evaluation']['metrics']},
+                                {'stage': 'utility', 'values': row['result']}]
+            for evaluation in summary['evaluations']:
+                for measured in evaluation['rows']:
+                    if measured['identity']['unlearning_output'] == row['output']:
+                        item = {'stage': evaluation['effective_config']['case'], 'values': measured['metrics']}
+                        if 'retrain_output' in measured['identity']:
+                            item['baseline_output'] = measured['identity']['retrain_output']
+                        measurements.append(item)
+            if not measurements:
+                raise ValueError('metrics cell has no applicable measurements')
+            documents = {'metrics.json': {'cell_id': cell['cell_id'], 'rows': measurements}, **documents}
+        for name, document in documents.items():
+            _write(folder / name, document)
+            cell['results'][name.split('.')[0]] = 'completed'
+        if config.get('return_scores'):
+            arrays = selected.get('result_scores')
+            if not arrays:
+                raise ValueError('requested scores have no existing result arrays')
+            with (folder / 'scores.npz').open('xb') as handle:
+                np.savez_compressed(handle, **arrays)
+            documents['scores.npz'] = None
+            cell['scores'] = {'keys': list(arrays), 'selector_ref': cell['conditions']['selector_ref'],
+                              'semantics': selected['score_semantics']}
+            cell['results']['scores'] = 'completed'
+        cell['files'] = {name: {'sha256': hashlib.sha256((folder / name).read_bytes()).hexdigest()}
+                         for name in documents}
+        cell['status'] = 'completed'
+        update_run(run, context.output)
+    run['status'] = 'completed'
+    run['generated_at'] = datetime.now(timezone.utc).isoformat()
+    update_run(run, context.output)
+
+
+def safe_path(root, value):
+    path = PurePosixPath(value)
+    if path.is_absolute() or '..' in path.parts or '\\' in value or ':' in value:
+        raise ValueError('unsafe result path')
+    target = (root / value).resolve()
+    target.relative_to(root.resolve())
+    return target
+
+
+def read_run(path, expected_sha256):
+    """Read a checksum-bound result directory, without any input/cache access."""
     path = Path(path).resolve()
     if hashlib.sha256(path.read_bytes()).hexdigest() != expected_sha256:
-        raise ValueError('summary checksum mismatch')
-    summary = json.loads(path.read_text(encoding='utf-8'))
-    if summary.get('schema') != 'opengu.modular_run' or summary.get('version') != 3:
-        raise ValueError('expected modular summary version 3')
-    outputs = []
+        raise ValueError('run checksum mismatch')
+    run = json.loads(path.read_text(encoding='utf-8'))
+    if set(run) != {'experiment_id', 'run_id', 'generated_at', 'commit', 'config_path', 'stage', 'status', 'cells'}:
+        raise ValueError('unexpected run fields')
+    if run['status'] != 'completed' or run['stage'] not in ('selector', 'unlearning', 'metrics'):
+        raise ValueError('run is not completed')
     seen = set()
-    for index, row in enumerate(summary['unlearning']):
-        expected = {(Path(path.stem + '.outputs') / str(index) / name).as_posix() for name in ARTIFACT_NAMES}
-        paths = {item['path'] for item in row['collected_artifacts'].values()}
-        if (set(row['collected_artifacts']) != set(ARTIFACT_NAMES)
-                or len(paths) != len(ARTIFACT_NAMES) or seen & paths or paths != expected):
-            raise ValueError('duplicate or invalid summary output paths')
-        seen.update(paths)
-        artifacts = {name: {'local_path': item['path'], 'sha256': item['sha256']}
-                     for name, item in row['collected_artifacts'].items()}
-        result = read_method_output(artifacts, path.parent, dataset_root=dataset_root)
-        if result['output'] != row['output']:
-            raise ValueError('summary output differs from collected payload')
-        if result['meta']['config_fingerprint'] != summary['configuration_fingerprint']:
-            raise ValueError('collected configuration fingerprint mismatch')
-        if result['meta']['execution_receipt'] != summary['execution_receipt']:
-            raise ValueError('collected execution receipt mismatch')
-        from cache_v2 import canonical_sha256
-        binding = row['matrix_values']
-        if type(binding['dataset_index']) is not int or not 0 <= binding['dataset_index'] < len(summary['datasets']):
-            raise ValueError('invalid collected dataset index')
-        dataset = summary['datasets'][binding['dataset_index']]
-        if (binding['dataset_name'] != dataset['dataset']['dataset']['name']
-                or binding['dataset_fingerprint'] != canonical_sha256(dataset['dataset'])
-                or result['meta']['matrix_values'] != binding
-                or result['payload'].identity['pairing']['data_identity'] != dataset['data_identity']):
-            raise ValueError('collected output Dataset/Split ownership mismatch')
-        outputs.append(result)
-    return summary, outputs
+    documents = []
+    for cell in run['cells']:
+        if set(cell) - {'cell_id', 'path', 'conditions', 'status', 'files', 'results', 'output',
+                        'selection_id', 'timing', 'cache', 'producer_called', 'scores', 'source'}:
+            raise ValueError('unexpected cell fields')
+        if cell['status'] != 'completed' or cell['cell_id'] in seen or cell['path'] in seen:
+            raise ValueError('duplicate or incomplete result cell')
+        seen.update((cell['cell_id'], cell['path']))
+        folder = safe_path(path.parent, cell['path'])
+        required = {'selection.json'}
+        for name in ('metrics', 'scores'):
+            if cell['results'][name] == 'completed':
+                required.add(name + ('.npz' if name == 'scores' else '.json'))
+        if set(cell['files']) != required or required - set(ARTIFACT_NAMES):
+            raise ValueError('result file declaration mismatch')
+        values = {}
+        for name, item in cell['files'].items():
+            target = folder / name
+            if hashlib.sha256(target.read_bytes()).hexdigest() != item['sha256']:
+                raise ValueError('result checksum mismatch: ' + name)
+            if name == 'scores.npz':
+                with np.load(target, allow_pickle=False) as arrays:
+                    if set(arrays.files) != set(cell['scores']['keys']):
+                        raise ValueError('score keys differ from declaration')
+                    values[name] = {key: arrays[key].copy() for key in arrays.files}
+            else:
+                value = json.loads(target.read_text(encoding='utf-8'))
+                if value['cell_id'] != cell['cell_id']:
+                    raise ValueError('result cell ownership mismatch')
+                values[name] = value
+        selection = values['selection.json']
+        nodes = selection['selected_nodes']
+        if (selection['selection_id'] != cell['selection_id'] or type(selection['requested_k']) is not int
+                or selection['requested_k'] != len(nodes) or not nodes or len(set(nodes)) != len(nodes)
+                or any(type(n) is not int or n < 0 for n in nodes)):
+            raise ValueError('invalid actual selection')
+        if 'metrics.json' in values:
+            if set(values['metrics.json']) != {'cell_id', 'rows'} or not values['metrics.json']['rows']:
+                raise ValueError('invalid metrics document')
+            for row in values['metrics.json']['rows']:
+                if (set(row) - {'stage', 'values', 'baseline_output'} or not row['values']
+                        or any(isinstance(v, (dict, list, bool)) or (isinstance(v, float) and not math.isfinite(v))
+                               for v in row['values'].values())):
+                    raise ValueError('metrics must contain scalar measurements')
+                for key, value in row['values'].items():
+                    if key.endswith('_status'):
+                        if not isinstance(value, str):
+                            raise ValueError('metric status must be text')
+                    elif value is not None and type(value) not in (float, int):
+                        raise ValueError('metric value must be numeric or null')
+        if set(selection) != {'cell_id', 'selection_id', 'requested_k', 'selected_nodes'}:
+            raise ValueError('unexpected selection fields')
+        if 'scores.npz' in values:
+            arrays = values['scores.npz']
+            im = cell['conditions']['selector'] == 'im'
+            allowed = {'selected_gains'} if im else {'candidate_ids', 'scores', 'ranking'}
+            if set(arrays) != allowed or any(a.ndim != 1 or not np.isfinite(a).all() for a in arrays.values()):
+                raise ValueError('invalid result score arrays')
+            if im:
+                if len(arrays['selected_gains']) != len(nodes):
+                    raise ValueError('IM gains must describe only the requested selection steps')
+            else:
+                candidates, scores, ranking = (arrays[k] for k in ('candidate_ids', 'scores', 'ranking'))
+                if (not np.issubdtype(candidates.dtype, np.integer) or not np.issubdtype(ranking.dtype, np.integer)
+                        or len(candidates) != len(scores) or len(set(candidates)) != len(candidates)
+                        or sorted(candidates.tolist()) != sorted(ranking.tolist())
+                        or ranking[:len(nodes)].tolist() != nodes):
+                    raise ValueError('scores/ranking/selection disagree')
+        documents.append(values)
+    return run, documents

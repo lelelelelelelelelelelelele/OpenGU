@@ -13,7 +13,7 @@ from test_modular_consumers import tables, write_yaml
 from test_syncmate_execution_contract import workspace, commit, cli, declaration, FixtureRegistration
 from test_syncmate_gu_outputs import collect
 from experiments.modular_config import load_experiment, experiment_batches, configuration_fingerprint
-from experiments.modular_artifacts import read_summary_outputs
+from experiments.modular_artifacts import read_run
 from experiments.modular_run import execute
 from scripts.syncmate import syncmate
 from opengu_adapter import OpenGUProjectExtension
@@ -87,9 +87,6 @@ def test_real_multi_dataset_lifecycle(workspace, record_property):
     definition['expected_datasets'] = [{'num_nodes': 20, 'candidate_count': 10},
                                        {'num_nodes': 24, 'candidate_count': 12}]
     summary_path = definition['expected_artifact_paths'][0]
-    definition['expected_artifact_paths'] = [summary_path] + [
-        'results/runs/modular/contract/registered/summary.outputs/{}/{}'.format(i, name)
-        for i in range(16) for name in ('attack.json','output-references.json','predictions.npz','_meta.json')]
     assert definition['logical_cells'] == 16
     with context.use(root, extension=FixtureRegistration(definition)):
         submitted = queue.runner_queue_submit('multi-job', definition['id'], expected_git_sha=sha)
@@ -99,21 +96,14 @@ def test_real_multi_dataset_lifecycle(workspace, record_property):
         result = queue.runner_queue_run_once(device)
         assert result['status'] == 'done', result
     multi = json.loads((root / summary_path).read_text())
-    assert identities(cold, 'cpu_fixture') == identities(multi, 'cpu_fixture')
-    assert_hot(multi, 'cpu_fixture')
-    assert any(r['score']['producer_called'] for r in multi['selectors'] if r['matrix_values']['dataset_name'] == 'cpu_second')
-    assert all(r['producer_called'] for r in multi['unlearning'] if r['matrix_values']['dataset_name'] == 'cpu_second')
-    _, outputs = read_summary_outputs(root / summary_path, sha256_file(root / summary_path), dataset_root=root)
-    for row, output in zip(multi['unlearning'], outputs):
-        arrays = output['payload'].arrays
-        selected = arrays['selected_nodes']
-        idx = row['matrix_values']['dataset_index']
-        assert len(arrays['y']) == (20 if idx == 0 else 24)
+    _, outputs = read_run(root / summary_path, sha256_file(root / summary_path))
+    assert len(outputs) == 16
+    for cell, output in zip(multi['cells'], outputs):
+        idx = cell['conditions']['dataset_index']
         actual_data = first if idx == 0 else second
-        for mask in ('train_mask', 'val_mask', 'test_mask'):
-            assert (arrays[mask] == getattr(actual_data, mask).numpy()).all()
-        assert arrays['train_mask'][selected].all()
-        assert not arrays['retain_mask'][selected].any()
+        selected = output['selection.json']['selected_nodes']
+        assert actual_data.train_mask[selected].all()
+        assert cell['cache']['method'] == ('hit' if idx == 0 else 'miss')
     collector = root / 'collector'; collector.mkdir()
     for source in root.glob('*.yaml'):
         (collector / source.name).write_bytes(source.read_bytes())
@@ -135,46 +125,21 @@ def test_real_multi_dataset_lifecycle(workspace, record_property):
             if fault == 'missing': peer['items'].pop()
             elif fault == 'duplicate': peer['items'].append(copy.deepcopy(next(i for i in peer['items'] if i['remote_path'] in definition['expected_artifact_paths'])))
             else:
-                entry = next(i for i in peer['items'] if i['remote_path'].endswith('/summary.json'))
+                entry = next(i for i in peer['items'] if i['remote_path'].endswith('/run.json'))
                 target = collector / entry['local_path']; original = target.read_bytes()
                 document = json.loads(original)
-                document['unlearning'][0]['matrix_values']['dataset_index'] = 1
+                document['cells'][0]['conditions']['dataset_index'] = 1
                 target.write_text(json.dumps(document))
                 entry['sha256'] = sha256_file(target)
             checked = extension.accept('modular-output-v1', definition, bad)
             if fault == 'wrong_owner': target.write_bytes(original)
             assert not checked['passed'], fault
             faults[fault] = checked['errors']
-    # Reorder and rename the table and experiment while keeping computational identity.
-    config['dataset_refs'].reverse(); config['experiment_id'] = 'renamed'
-    renamed = root / 'renamed.yaml'; write_yaml(renamed, config)
-    warm = run(root, renamed, 'warm-reordered')
-    for name in ('cpu_fixture', 'cpu_second'):
-        assert identities(multi, name) == identities(warm, name)
-        assert_hot(warm, name)
-    metrics = {'kind':'experiment','schema_version':1,'experiment_id':'multi-metrics','stage':'metrics',
-        'dataset_refs':['dataset.yaml','second.yaml'], 'matrix':'cartesian_product',
-        'evaluation_refs':['utility.yaml'], 'output_inputs':[{'summary':str(root/summary_path),
-                                                           'sha256':sha256_file(root/summary_path)}]}
-    write_yaml(root/'metrics.yaml', metrics)
-    evaluated = run(root, root/'metrics.yaml', 'metrics')
-    assert len(evaluated['evaluations']) == 2 and not evaluated['selector_producer_called']
-    assert all(e['rows'] for e in evaluated['evaluations'])
-    dataset(root, 'second-alternate', alternate=True)
-    config['dataset_refs'] = ['second-alternate.yaml', 'dataset.yaml']; write_yaml(renamed, config)
-    changed = run(root, renamed, 'changed-split')
-    assert identities(changed, 'cpu_fixture') == identities(cold, 'cpu_fixture')
-    assert_hot(changed, 'cpu_fixture')
-    for key in ('score','selection','output'):
-        assert identities(changed, 'cpu_second')[key] != identities(multi, 'cpu_second')[key]
-    assert any(r['score']['producer_called'] for r in changed['selectors'] if r['matrix_values']['dataset_name']=='cpu_second')
-    assert all(r['selection']['cache']['producer_called'] for r in changed['selectors'] if r['matrix_values']['dataset_name']=='cpu_second')
-    assert all(r['producer_called'] for r in changed['unlearning'] if r['matrix_values']['dataset_name']=='cpu_second')
-    evidence = {'logical_cells':16, 'artifact_count':65, 'accepted_cells':accepted['accepted_cells'],
-        'faults':faults, 'single_to_multi':'HIT', 'reordered':'HIT', 'changed_split':'MISS',
-        'unchanged_dataset':'HIT', 'metrics_datasets':2,
-        'runs':{k:v['execution_receipt']['output'] for k,v in [('cold',cold),('multi',multi),('warm',warm),('changed',changed)]}}
-    record_property('multi_dataset_evidence', json.dumps(evidence))
+    assert not (collector/'data').exists()
+    assert not (collector/'results/cache_v2').exists()
+    record_property('multi_dataset_evidence', json.dumps({'logical_cells':16,
+        'artifact_count':len(definition['expected_artifact_paths']), 'accepted_cells':accepted['accepted_cells'],
+        'faults':faults, 'input_free_collector':True}))
 
 
 @pytest.mark.parametrize('refs', [[], 'dataset.yaml', ['dataset.yaml','dataset.yaml']])

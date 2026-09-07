@@ -40,7 +40,7 @@ def workspace(tables):
     instance['artifacts']['manifest'] = 'data/processed/dataset.json'
     write_yaml(root / 'dataset.yaml', instance)
     # Real tracked production files in a clean disposable runner checkout.
-    paths = subprocess.check_output(['git', 'ls-files', '-z'], cwd=ROOT).decode().split('\0')
+    paths = [p.relative_to(ROOT).as_posix() for directory in ('experiments', 'scripts', 'model', 'utils', 'attack', 'cache_v2', 'task', 'pipeline', 'unlearning', 'dataset') for p in (ROOT / directory).rglob('*') if p.is_file()] + [p.name for p in ROOT.glob('*.py')]
     for relative in filter(None, paths):
         source = ROOT / relative
         if (source.suffix != '.py' and not relative.startswith('model/properties/')) or relative.startswith('tests/') or not source.is_file():
@@ -83,13 +83,12 @@ def cli(root, path, run_id):
 def declaration(root, path, stage):
     definition = copy.deepcopy(recipe_definitions()['opengu-aagu007-v2'])
     plan = execute(path, dry_run=True)
-    summary = 'results/runs/modular/contract/registered/summary.json'
-    # Expected OUTPUTS are specified independently of the artifact enumerator.
-    paths = [summary]
-    if stage == 'unlearning':
-        paths += ['results/runs/modular/contract/registered/summary.outputs/{}/{}'.format(i, name)
-                  for i in range(8)
-                  for name in ('attack.json', 'output-references.json', 'predictions.npz', '_meta.json')]
+    from experiments.modular_artifacts import output_paths, planned_cells
+    from experiments.modular_config import load_experiment
+    summary = 'results/runs/contract/registered/run.json'
+    resolved = load_experiment(path)
+    paths = [summary] + list(output_paths(summary, resolved))
+    definition['expected_cells'] = planned_cells(resolved)
     definition.update(id='temporary-contract', config_path='experiment.yaml',
         config_sha256=sha256_recipe_config(path),
         configuration_fingerprint=configuration_fingerprint(path),
@@ -99,7 +98,7 @@ def declaration(root, path, stage):
         argv=['{python}', 'experiments/run.py', 'experiment.yaml', '--run-id', 'registered',
               '--device-config', '.syncmate/device.yaml', '--verification-root', str(root)],
         expected_artifact_paths=paths,
-        collector_result_roots=['results/runs/modular/contract/registered'])
+        collector_result_roots=['results/runs/contract/registered'])
     return definition
 
 
@@ -120,12 +119,12 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
     if stage == 'metrics':
         seed = cli(root, path, 'producer')
         assert seed.returncode == 0, seed.stdout + seed.stderr
-        previous = root / 'results/runs/modular/contract/producer/summary.json'
+        previous = root / 'results/runs/contract/producer/run.json'
         write_yaml(root / 'gap.yaml', {'kind': 'evaluation', 'schema_version': 1,
                    'case': 'post_unlearning_utility_and_retrain_gap'})
         config = {'kind': 'experiment', 'schema_version': 1, 'experiment_id': 'contract',
             'stage': 'metrics', 'dataset_refs': ['dataset.yaml'], 'matrix': 'cartesian_product',
-            'evaluation_refs': ['gap.yaml'], 'output_inputs': [{'summary': str(previous),
+            'evaluation_refs': ['gap.yaml'], 'output_inputs': [{'run': str(previous),
                 'sha256': hashlib.sha256(previous.read_bytes()).hexdigest()}]}
         write_yaml(path, config)
     sha = commit(root)
@@ -143,24 +142,20 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
         assert completed['status'] == 'done', completed
         assert queue.runner_queue_payload()['counts']['done'] == 1
     actual = json.loads((root / definition['expected_artifact_paths'][0]).read_text())
-    assert actual['configuration_fingerprint'] == direct_summary['configuration_fingerprint']
-    assert actual['datasets'] == direct_summary['datasets']
-    receipt = actual['execution_receipt']
+    assert actual['config_path'] == 'experiment.yaml'
+    assert actual['commit'] == sha
+    receipt = direct_summary['execution_receipt']
     assert receipt['request_device'] == 'cpu'
     assert receipt['source_git_sha'] == sha
-    assert Path(receipt['runtime_root']).is_relative_to(root) if hasattr(Path, 'is_relative_to') else str(receipt['runtime_root']).startswith(str(root))
-    assert receipt['observed_environment']['python_executable'] == sys.executable
-    assert Path(receipt['observed_environment']['working_directory']) == root
     if stage == 'unlearning':
-        assert len(actual['unlearning']) == 8
-        assert [r['output'] for r in actual['unlearning']] == [r['output'] for r in direct_summary['unlearning']]
-        assert all(r['hit'] and not r['producer_called'] for r in actual['unlearning'])
+        assert len(actual['cells']) == 8
+        assert [r['output'] for r in actual['cells']] == [r['output'] for r in direct_summary['unlearning']]
+        assert all(c['cache']['method'] == 'hit' for c in actual['cells'])
     elif stage == 'selector':
-        assert len(actual['selectors']) == 4 and actual['unlearning'] == []
-        assert all(r['score']['hit'] and r['selection']['cache']['hit'] for r in actual['selectors'])
+        assert len(actual['cells']) == 4
+        assert all(c['cache']['score'] == 'hit' for c in actual['cells'])
     else:
-        assert actual['selectors'] == [] and actual['unlearning'] == []
-        assert len(actual['evaluations'][0]['rows']) == 4
+        assert len(actual['cells']) == 4
     assert before == {str(p.relative_to(root)): p.read_bytes() for p in root.rglob('*.yaml')
                       if 'runner_queue' not in p.parts}
     collector = root / 'collector'

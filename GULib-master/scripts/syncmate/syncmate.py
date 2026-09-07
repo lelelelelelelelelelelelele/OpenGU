@@ -16,9 +16,6 @@ from opengu_adapter import OpenGUProjectExtension
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
-    if argv and argv[0] == 'collect-inputs':
-        from scripts.syncmate.opengu_inputs import main as inputs_main
-        return inputs_main(argv[1:], PROJECT_ROOT)
     return core_main(argv, project_root=PROJECT_ROOT, extension=OpenGUProjectExtension(), require_origin_main=True)
 
 

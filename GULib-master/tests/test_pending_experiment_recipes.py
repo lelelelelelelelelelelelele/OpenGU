@@ -22,5 +22,5 @@ def test_pending_registration_matches_ordinary_entry(recipe_id):
     assert plan['stage'] == recipe['stage']
     assert not plan['producer_called']
     paths = recipe['expected_artifact_paths']
-    count = 1 if plan['stage'] == 'selector' else 1 + 4 * plan['logical_cells']
+    count = 1 + (1 if plan['stage'] == 'selector' else 2) * plan['logical_cells']
     assert len(paths) == len(set(paths)) == count

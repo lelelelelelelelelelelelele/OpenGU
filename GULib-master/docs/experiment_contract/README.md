@@ -18,7 +18,7 @@ Dataset/Split、Selector、Unlearning仍是三个主要执行职责；Evaluation
 
 同语义小表只维护一份，放在[公共目录](../../experiments/configs/README.md)；参数不同的实例另存，例如B-Hutch64和GNNDelete lr0.02。未知字段、任意override、YAML merge、隐式文件继承均拒绝。
 
-Selector/Unlearning只通过selector_refs声明选点，缓存自动HIT/MISS；实际Selection身份、哈希与缓存观察写入结果，不在用户配置中绑定上轮产物。执行与核验共用批次及条件展开，dry-run和summary展示有效值与来源。注册指纹绑定所有引用配置，Cache V2只绑定实际消费的有效输入与producer。公共路径、experiment/case ID、run_id不进入未消费它们的模块计算键。
+Selector/Unlearning只通过selector_refs声明选点，缓存自动HIT/MISS；实际Selection身份、哈希与缓存观察写入结果，不在用户配置中绑定上轮产物。执行与核验共用批次及条件展开，dry-run展示有效值与来源，回传用 commit + YAML 路径定位配置。注册指纹绑定所有引用配置，Cache V2只绑定实际消费的有效输入与producer。公共路径、experiment/case ID、run_id不进入未消费它们的模块计算键。
 
 ## 使用顺序
 
@@ -33,3 +33,5 @@ Selector/Unlearning只通过selector_refs声明选点，缓存自动HIT/MISS；�
 ## 历史接口修正
 
 旧formal-v2专用解析/调度、扁平run.py分支与015生成器已退役。旧定义保存在[历史配置](../archive/experiment-configs-pre-aagu034/)，实际历史结果与Artifact未改写。17种方法的评分代码保留；TracIn公共表明确从真实100-epoch轨迹取3/6个指定checkpoint。软件验收报告归[同一034 WorkItem](../../.workblock/items/AAGU-034/WORKITEM.md)，不把CPU测试视为正式GPU结果。
+
+常规回传内容与目录以 [结果回传合同](../experiment-result-return-contract.md) 为准。

@@ -33,6 +33,14 @@ def method(tables, name, method_file):
                unlearning_refs=[method_file])['unlearning'][0]
 
 
+def result_inputs(tables, *names):
+    result = []
+    for name in names:
+        path = tables[0] / 'results/runs' / name / name / 'run.json'
+        result.append({'run':str(path), 'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+    return result
+
+
 def forbidden(*args, **kwargs):
     raise AssertionError('training or selection producer called during read-only consumption')
 
@@ -54,7 +62,7 @@ def test_independent_retrain_cold_hot_cross_gu_and_metrics_only(tables, monkeypa
     warm = method(tables, 'retrain-hot', 'retrain.yaml')
     assert warm['hit'] and not warm['producer_called']
     assert cold['output'] == warm['output'] and cold['result'] == warm['result']
-    pairs = [{'unlearning': row['output'], 'retrain': cold['output']} for row in (gnn, gif)]
+    pairs = result_inputs(tables, 'run-gnn', 'run-gif', 'run-retrain-cold')
     before = snapshot(tables[0] / 'results/cache_v2')
     metrics = run(tables, 'metrics', stage='metrics', selector_refs=[],
                   output_inputs=pairs, evaluation_refs=['gap.yaml'])
@@ -106,7 +114,7 @@ def test_retrain_identity_changes_and_pairing_rejects(tables, change):
     assert changed['producer_called'] and changed['recipe_hash'] != cold['recipe_hash']
     with pytest.raises(ValueError, match='same request'):
         run(tables, 'bad-pair', stage='metrics', selector_refs=[], evaluation_refs=['gap.yaml'],
-            output_inputs=[{'unlearning': gnn['output'], 'retrain': changed['output']}])
+            output_inputs=result_inputs(tables, 'run-gnn-original', 'run-changed-retrain'))
 
 
 def test_gu_parameters_and_metrics_do_not_change_retrain(tables):
@@ -118,12 +126,12 @@ def test_gu_parameters_and_metrics_do_not_change_retrain(tables):
     result = run(tables, 'changed-gu', stage='unlearning', selector_refs=['degree.yaml'],
                  unlearning_refs=['gu.yaml'])
     result['evaluations'] = run(tables, 'changed-gu-metrics', stage='metrics', selector_refs=[],
-        output_inputs=[{'unlearning': result['unlearning'][0]['output'], 'retrain': original['output']}],
+        output_inputs=result_inputs(tables, 'changed-gu', 'run-original'),
         evaluation_refs=['gap.yaml'])['evaluations']
     write_yaml(root / 'small.yaml', {'kind': 'evaluation', 'schema_version': 1,
                                    'case': 'post_unlearning_utility_and_retrain_gap', 'metrics': ['gap']})
     small = run(tables, 'small-metrics', stage='metrics', selector_refs=[],
-        output_inputs=[{'unlearning': result['unlearning'][0]['output'], 'retrain': original['output']}],
+        output_inputs=result_inputs(tables, 'changed-gu', 'run-original'),
         evaluation_refs=['small.yaml'])
     assert small['evaluations'][0]['rows'][0]['metrics']['gap'] == result['evaluations'][0]['rows'][0]['metrics']['gap']
     warm = method(tables, 'warm-retrain', 'retrain.yaml')
@@ -239,7 +247,6 @@ def test_metrics_cli_reads_independent_modular_outputs(tables, monkeypatch, reco
 def test_independent_method_metrics_survive_collection_without_forward(tables, monkeypatch, record_property):
     import shutil
     from experiments.modular_evaluation import evaluate_modular, resolve_evaluation
-    from experiments.modular_artifacts import save_method_result
     from cache_v2.unlearning_output import UnlearningOutputPayload
     configs(tables)
     root = tables[0]
@@ -247,20 +254,8 @@ def test_independent_method_metrics_survive_collection_without_forward(tables, m
     gnn = method(tables, 'independent-gnn', 'gu.yaml')
     rt = method(tables, 'independent-retrain', 'retrain.yaml')
     gif = method(tables, 'independent-gif', 'gif.yaml')
-    exported = []
-    for name, row in (('GNNDelete', gnn), ('Retrain', rt), ('GIF', gif)):
-        folder = root / 'exports' / name
-        save_method_result(row, dataset_root=root, store_root=root / 'results/cache_v2', output_dir=folder,
-                           strategy='degree', meta={'method': name})
-        payload = UnlearningOutputPayload.from_bytes((folder / 'predictions.npz').read_bytes())
-        assert payload.content_hash == row['content_hash']
-        assert payload.state
-        raw = json.loads((folder / 'attack.json').read_text())['results']['degree']
-        assert raw['evaluation'] == row['evaluation']
-        assert not (folder / 'collateral.json').exists()
-        exported.append(raw)
-    collected = root / 'collected-store'
-    shutil.copytree(root / 'results/cache_v2', collected)
+    exported = [row['evaluation'] for row in (gnn, rt, gif)]
+    collected = root / 'results/cache_v2'
     before = snapshot(collected)
     # A global forward hook blocks inference without changing fingerprinted method source.
     monkeypatch.setattr(torch.optim.Adam, 'step', forbidden)

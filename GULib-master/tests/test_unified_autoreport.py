@@ -54,7 +54,7 @@ def test_real_success_and_cached_repeat_are_separate_audited_attempts(experiment
                for e in events)
     assert all(e['identity']['experiment_id'] == 'contract' and
                e['identity']['dataset'] == 'cpu_fixture' for e in events)
-    summary = root / 'results/runs/modular/contract/warm/summary.json'
+    summary = root / 'results/runs/contract/warm/run.json'
     assert any(a['path'] == str(summary) and a['content_hash'] == hashlib.sha256(summary.read_bytes()).hexdigest()
                for a in events[-1]['artifacts'])
     for name in ('auto_report.md', 'auto_report.html'):
@@ -73,7 +73,8 @@ def test_real_execution_failure_is_audited_without_completion(experiment):
     assert [e['state'] for e in events] == ['started', 'failed']
     assert events[0]['run_id'] == events[1]['run_id']
     assert events[-1]['error']['type'] and 'mismatch' in events[-1]['error']['message']
-    assert not (root / 'results/runs/modular/contract/failed/summary.json').exists()
+    failed = json.loads((root / 'results/runs/contract/failed/run.json').read_text())
+    assert failed['status'] == 'failed' and all(c['status'] == 'pending' for c in failed['cells'])
 
 
 def test_dry_run_creates_no_audit_attempt(experiment):

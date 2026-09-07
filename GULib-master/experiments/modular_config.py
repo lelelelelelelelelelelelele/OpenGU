@@ -217,7 +217,7 @@ def load_experiment(path):
     required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_refs', 'matrix'}
     fields(value, required | {'round',
         'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
-        'seeds', 'budget_ratios'},
+        'seeds', 'budget_ratios', 'return_scores'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
@@ -236,6 +236,13 @@ def load_experiment(path):
             raise ConfigurationError('metrics stage consumes only explicit output references')
     elif 'output_inputs' in value:
         raise ConfigurationError('output_inputs belongs to the metrics stage')
+    if type(value.get('return_scores', False)) is not bool:
+        raise ConfigurationError('return_scores must be boolean')
+    if value['stage'] == 'metrics':
+        if value.get('return_scores'):
+            raise ConfigurationError('metrics does not generate scores')
+        for source in value['output_inputs']:
+            fields(source, {'run', 'sha256'}, {'run', 'sha256'}, 'metrics input')
     result = dict(value)
     refs = value['dataset_refs']
     if not isinstance(refs, list) or not refs:

@@ -47,7 +47,7 @@ def _plan_summary(config):
     }
 
 
-def execute(path, *, context=None, dry_run=False):
+def _execute(path, *, context=None, dry_run=False, run_state):
     config = load_experiment(path)
     batches = list(experiment_batches(config))
     plan = _plan_summary(config)
@@ -56,6 +56,9 @@ def execute(path, *, context=None, dry_run=False):
         len(batch.get('output_inputs', [])) if batch['stage'] == 'metrics' else
         len(unlearning_entries(batch)) if batch['stage'] == 'unlearning' else len(selector_entries(batch))
         for batch in batches)
+    if config['stage'] == 'metrics' and all(v.get('run') and v.get('sha256') for v in config['output_inputs']):
+        from experiments.modular_artifacts import planned_cells
+        plan['logical_cells'] = len(planned_cells(config))
     plan['configuration_fingerprint'] = configuration_fingerprint(path)
     if dry_run:
         return {**plan, 'dry_run': True, 'execution_context_required': True,
@@ -70,6 +73,8 @@ def execute(path, *, context=None, dry_run=False):
     if config['stage'] == 'unlearning' and any(
             item['case'] == 'post_unlearning_utility_and_retrain_gap' for item in config['evaluations']):
         raise ConfigurationError('retrain-gap belongs to the independent metrics stage')
+    if config['stage'] == 'metrics' and any(not v.get('run') or not v.get('sha256') for v in config['output_inputs']):
+        raise ConfigurationError('metrics requires bound run.json paths and checksums')
     directory = Path(config['source_directory'])
     # Import-time OpenGU CLI belongs to the execution adapter, not its caller's argv.
     runtime_defaults()
@@ -78,8 +83,11 @@ def execute(path, *, context=None, dry_run=False):
     checkpoint_root = context.checkpoint_root
     runtime_root = context.runtime_root
     output = context.output
-    if output.exists() or (output.parent / (output.stem + '.outputs')).exists():
+    if output.parent.exists():
         raise FileExistsError('each invocation must use a new run output: ' + str(output))
+    from experiments.modular_artifacts import start_run
+    run = start_run(config, context, path)
+    run_state['run'] = run
     dataset_root = context.store_root.parent.parent
     datasets = []
     loaded_data = []
@@ -105,35 +113,39 @@ def execute(path, *, context=None, dry_run=False):
         'execution_receipt': context.receipt(), 'datasets': datasets,
         'selectors': [], 'unlearning': [], 'evaluations': []}
     if config['stage'] == 'metrics':
-        from experiments.modular_artifacts import read_summary_outputs
-        from cache_v2 import canonical_sha256
-        # Validate every imported dataset before distributing outputs by identity.
-        portable = {canonical_sha256(d['dataset']): [] for d in datasets}
-        rows = []
-        for value in config['output_inputs']:
-            if 'summary' not in value:
-                rows.append(value)
-                continue
-            if not value['summary'] or not value.get('sha256'):
-                raise ConfigurationError('bind real output summaries and SHA-256 before metrics')
-            previous, outputs = read_summary_outputs(directory / value['summary'], value['sha256'], dataset_root=dataset_root)
-            for prior in previous['datasets']:
-                if prior not in datasets:
-                    raise ConfigurationError('metrics input Dataset/Split mismatch')
-            for row, result in zip(previous['unlearning'], outputs):
-                fingerprint = row['matrix_values']['dataset_fingerprint']
-                portable[fingerprint].append((result['output'], result['payload'], None))
-        if rows and len(datasets) != 1:
-            raise ConfigurationError('multi-dataset metrics requires bound portable summaries')
+        from experiments.modular_artifacts import read_run
+        from experiments.unlearning_outputs import load_output
         from experiments.modular_config import dataset_binding
+        portable = {d['data_identity']['split_hash']: [] for d in datasets}
+        summary['metric_sources'] = {}
+        for value in config['output_inputs']:
+            previous, documents = read_run(directory / value['run'], value['sha256'])
+            for cell, document in zip(previous['cells'], documents):
+                reference = cell.get('output')
+                if not reference:
+                    continue
+                payload = load_output(reference, store_root, dataset_root=dataset_root)
+                matches = [d for d in datasets if d['data_identity'] == payload.identity['pairing']['data_identity']]
+                if len(matches) != 1:
+                    raise ConfigurationError('metrics input Dataset/Split mismatch')
+                if (payload.identity['selection']['artifact_id'] != cell['selection_id']
+                        or payload.arrays['selected_nodes'].tolist() != document['selection.json']['selected_nodes']
+                        or payload.identity['target']['method'] != cell['conditions']['method']
+                        or payload.identity['pairing']['model']['architecture'] != cell['conditions']['model']
+                        or payload.identity['pairing']['training']['seed'] != cell['conditions']['seed']):
+                    raise ConfigurationError('metrics source conditions differ from remote output')
+                portable[matches[0]['data_identity']['split_hash']].append((reference, payload, None))
+                summary['metric_sources'][cell['cell_id']] = {'output': reference,
+                    'selection_document': document['selection.json'],
+                    'source': cell.get('source', {'experiment_id': previous['experiment_id'], 'run_id': previous['run_id']})}
         for index, (data, _) in enumerate(loaded_data):
-            binding = dataset_binding(config, index)
             for item in config['evaluations']:
-                result = evaluate_modular(item, rows, store_root=store_root, data=data,
-                    dataset_root=dataset_root, verified_outputs=portable[binding['dataset_fingerprint']])
-                summary['evaluations'].append({**result, 'dataset_binding': binding})
+                result = evaluate_modular(item, [], store_root=store_root, data=data,
+                    dataset_root=dataset_root, verified_outputs=portable[datasets[index]['data_identity']['split_hash']])
+                summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
         summary['selector_producer_called'] = False
-        _write_summary(output, summary)
+        from experiments.modular_artifacts import export_outputs
+        export_outputs(summary, config=config, context=context, run=run)
         return summary
     device = torch.device(context.request_device)
     if device.type == 'cuda' and not torch.cuda.is_available():
@@ -143,6 +155,8 @@ def execute(path, *, context=None, dry_run=False):
         data = data.to(device)
         loaded_selections = {}
         for item, selector_ref in selector_entries(batch):
+            run_state['active'] = [c for c in run['cells'] if c['conditions']['selector_ref'] == selector_ref
+                and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
             model, checkpoints, observation = None, [], None
             if 'model' in item:
                 model, checkpoints, observation = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
@@ -150,12 +164,21 @@ def execute(path, *, context=None, dry_run=False):
             resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
                 model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
             reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
-            loaded_selections[selector_ref] = verified_selection(reference, store_root=store_root, data=data, inputs=inputs)
+            loaded_selections[selector_ref] = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
+                expected_k=item['budget']['k'])
             summary['selectors'].append({**resolved, 'checkpoint': observation, 'matrix_values': batch['matrix_values'],
-                'selector_ref': selector_ref})
+                'selector_ref': selector_ref, 'requested_k': item['budget']['k']})
+            if config.get('return_scores'):
+                from experiments.modular_artifacts import existing_scores
+                arrays, semantics = existing_scores(resolved, inputs.candidate_nodes)
+                summary['selectors'][-1].update(result_scores=arrays, score_semantics=semantics)
+            run_state['active'] = []
         if config['stage'] == 'unlearning':
             from experiments.modular_gu import run_unlearning
             for item, gu_ref, _, selector_ref in unlearning_entries(batch):
+                run_state['active'] = [c for c in run['cells']
+                    if c['conditions']['selector_ref'] == selector_ref and c['conditions']['unlearning_ref'] == gu_ref
+                    and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
                 model, checkpoint = None, None
                 if item['method'] != 'Retrain':
                     model, _, checkpoint = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
@@ -166,6 +189,7 @@ def execute(path, *, context=None, dry_run=False):
                 summary['unlearning'].append({**result, 'checkpoint': checkpoint,
                     'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
                     'unlearning_ref': gu_ref})
+                run_state['active'] = []
     if config['stage'] == 'unlearning':
         from experiments.modular_config import dataset_binding
         for index, (data, _) in enumerate(loaded_data):
@@ -175,14 +199,23 @@ def execute(path, *, context=None, dry_run=False):
                 summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
     summary['selector_producer_called'] = any(item['score']['producer_called'] or item['selection']['cache']['producer_called'] for item in summary['selectors'])
     from experiments.modular_artifacts import export_outputs
-    export_outputs(summary, output=output, store_root=store_root, dataset_root=dataset_root)
-    _write_summary(output, summary)
+    export_outputs(summary, config=config, context=context, run=run)
+    for row in summary['selectors']:
+        row.pop('result_scores', None)
     return summary
 
 
-def _write_summary(output, summary):
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with output.open('x', encoding='utf-8') as handle:
-        json.dump(summary, handle, indent=2, ensure_ascii=False, allow_nan=False)
-        handle.write('\n')
-    return summary
+
+def execute(path, *, context=None, dry_run=False):
+    run_state = {}
+    try:
+        return _execute(path, context=context, dry_run=dry_run, run_state=run_state)
+    except BaseException as exc:
+        if 'run' in run_state:
+            from experiments.modular_artifacts import update_run
+            run = run_state['run']
+            run.update(status='failed', error=str(exc)[:1000])
+            for cell in run_state.get('active', []):
+                cell.update(status='failed', error=str(exc)[:1000])
+            update_run(run, context.output)
+        raise

@@ -2,7 +2,7 @@
 
 现行普通YAML规范见[configs/README.md](configs/README.md)，统一命令为 `experiments/run.py`。本地验证使用独立临时CPU目录；正式作业经SyncMate登记和项目预检进入同一解析/执行内核。当前任务与批准范围见WORKPLAN。
 
-普通入口把真实运行的 `started / completed / failed` 写入现有AutoReport V3；执行根下 `results/_journal/auto_report.events.jsonl` 是审计原件，Markdown/HTML由现有投影器自动重建。每次运行绑定实验、配置指纹、Git版本、执行run-id和完成后的summary摘要；dry-run不写事件，损坏日志在生产前拒绝。这里记录整份YAML的运行状态，逐条件结果仍由原summary持有。Core提交同一命令，因此共用该事件producer；Core的产物收集清单保持原契约。
+普通入口把真实运行的 `started / completed / failed` 写入现有AutoReport V3；执行根下 `results/runtime/modular/_journal/auto_report.events.jsonl` 是审计原件，Markdown/HTML由现有投影器自动重建。每次运行绑定实验、配置指纹、Git版本、执行run-id和完成后的 run.json 摘要；dry-run不写事件，损坏日志在生产前拒绝。这里记录整份YAML的运行状态，逐条件结果由 run.json 和 cell 目录持有。Core提交同一命令，因此共用该事件producer；Core 使用 OpenGU 按 YAML 声明的精确结果清单，见 [结果合同](../docs/experiment-result-return-contract.md)。
 
 以下保留原benchmark资料，属于历史研究材料，不定义当前运行入口、批准或实验结论。
 
