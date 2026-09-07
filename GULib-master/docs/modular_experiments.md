@@ -4,7 +4,7 @@
 
 ## 同一解析与执行路径
 
-普通命令和 SyncMate 注册都直接调用 `experiments/run.py <config.yaml> --run-id <id>`，共用 `modular_run.execute` 和 `modular_config.load_experiment` / `experiment_batches`。不存在只供检查的新配置规格，也没有逐条件 YAML 生成器。一个组合表只绑定一个 Dataset/Split。
+普通命令和 SyncMate 注册都直接调用 `experiments/run.py <config.yaml> --run-id <id>`，共用 `modular_run.execute` 和 `modular_config.load_experiment` / `experiment_batches`。一个组合表用非空 `dataset_refs` 列表绑定多个 Dataset/Split；单数据集也用列表，重复实例和旧字段被拒绝。展开顺序为数据集、训练 seed、比例、方法、Selector，训练 seed 仍在两侧配对。
 
 - `--dry_run` 展开真实有效值、字段来源、训练 seed/预算批次与逻辑条件数；不读数据、建 Store 或调用 producer。
 - 设备只由 Core 读取的 `.syncmate/device.yaml` 决定：`repo_path` 指定执行根，`execution_device` 明确指定 `cpu`、`cuda` 或 CUDA 索引；没有设备默认值。正式执行要求在配置的 runner checkout 中使用可用 CUDA。
@@ -22,7 +22,9 @@ GNNDelete、GIF、Retrain 各自执行、缓存、保存 Output。Retrain 使用
 
 SyncMate 的 apply_collect → verify_collect → artifact index 仍是收集权威。项目验收消费者重核精确文件集合、字节摘要、运行 SHA、配置与方法身份、Selection、保存预测和指标。其通过仅表示软件证据核验，人的科研验收仍由 WorkItem 决定。
 
-Metrics 是普通 `stage: metrics` 表，`output_inputs` 可以是精确 Output 引用，或 `{summary: <已收集文件>, sha256: <摘要>}` 列表。后者读完整导出，不访问远端 Cache，不调用模型前向或训练。retrain-gap 必须配对同 Selection、Dataset/Split、模型、训练 seed 和删除语义；缺失或多义时拒绝。
+Metrics 是普通 `stage: metrics` 表，多数据集时 `output_inputs` 使用 `{summary: <已收集文件>, sha256: <摘要>}` 列表；单数据集还可读取精确 Output 引用。读取完整导出后按 Dataset/Split 身份分组，不访问远端 Cache，不调用模型前向或训练。输入中未声明的数据集、错误归属或缺失文件均拒绝。retrain-gap 必须配对同 Selection、Dataset/Split、模型、训练 seed 和删除语义；缺失或多义时拒绝。
+
+summary v3 的 `datasets` 按声明顺序记录各实例、真实 data identity、节点数与候选数。每条选择与下游结果的 `matrix_values` 保存 `dataset_index`、`dataset_name`、`dataset_fingerprint`；导出 `_meta.json` 保存相同坐标。SyncMate 的 `expected_datasets` 逐数据集声明节点和候选数量，产物序号在整张表内连续，核验时不得跨数据集配对。旧 summary 保留原文，当前消费者不迁移或重写历史结果。
 
 ## 计算身份与配置指纹
 

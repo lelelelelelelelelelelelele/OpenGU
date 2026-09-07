@@ -3,7 +3,8 @@ schema_version: 1
 experiment_id: illustrative_gu_lr_comparison
 round: 1
 stage: unlearning
-dataset_ref: ../../../experiments/configs/datasets/cora.yaml
+dataset_refs:
+- ../../../experiments/configs/datasets/cora.yaml
 unlearning_refs:
 - ../../../experiments/configs/unlearning/gnndelete.yaml
 - ../../../experiments/configs/unlearning/gnndelete_lr002.yaml

@@ -48,7 +48,7 @@ def main(argv=None):
                 # A YAML invocation owns a run lifecycle; its matrix cells remain
                 # in the existing summary, not fabricated model/method coordinates.
                 identity = {'scope': 'experiment', 'experiment_id': config['experiment_id'],
-                    'dataset': config['dataset']['dataset']['name'], 'execution_stage': config['stage']}
+                    'dataset': ','.join(d['dataset']['name'] for d in config['datasets']), 'execution_stage': config['stage']}
                 journal = context.runtime_root.parent / '_journal'
                 event_path = journal / 'auto_report.events.jsonl'
                 cell_id = make_cell_id(identity)

@@ -18,9 +18,7 @@ def write_yaml(path, value):
     # Disposable tables explicitly bind disposable files, never public datasets.
     if value.get('kind') == 'experiment':
         value = copy.deepcopy(value)
-        if 'dataset_ref' in value:
-            value['dataset_ref'] = str((path.parent / value['dataset_ref']).resolve())
-        for field in ('selector_refs', 'unlearning_refs', 'evaluation_refs'):
+        for field in ('dataset_refs', 'selector_refs', 'unlearning_refs', 'evaluation_refs'):
             if field in value:
                 value[field] = [str((path.parent / ref).resolve()) for ref in value[field]]
     path.write_text(yaml.safe_dump(value, sort_keys=False), encoding='utf-8')
@@ -62,7 +60,7 @@ def tables(tmp_path, record_property):
     write_yaml(tmp_path / 'utility.yaml', {'kind': 'evaluation', 'schema_version': 1,
         'case': 'post_unlearning_utility'})
     experiment = {'kind': 'experiment', 'schema_version': 1, 'experiment_id': 'cold', 'stage': 'selector',
-        'dataset_ref': 'dataset.yaml', 'selector_refs': ['degree.yaml', 'b_param_hutch.yaml', 'tracin_cp_point_3.yaml'],
+        'dataset_refs': ['dataset.yaml'], 'selector_refs': ['degree.yaml', 'b_param_hutch.yaml', 'tracin_cp_point_3.yaml'],
         'matrix': 'cartesian_product'}
     yield tmp_path, experiment, gu
     runs = [json.loads(path.read_text(encoding='utf-8')) for path in sorted(tmp_path.glob('*.json'))]

@@ -100,13 +100,18 @@ def acceptance_payload(profile, definition, context):
             from experiments.modular_config import configuration_fingerprint
             if configuration_fingerprint(root / definition['config_path']) != definition['configuration_fingerprint']:
                 raise ValueError('collector reviewed configuration changed')
-            if summary['dataset'] != config['dataset']:
+            if [d['dataset'] for d in summary['datasets']] != config['datasets']:
                 raise ValueError('summary Dataset/Split differs from configuration')
             stage = config['stage']
             if stage not in ('selector', 'unlearning', 'metrics') or summary['stage'] != stage or definition['stage'] != stage:
                 raise ValueError('collected stage differs from registration or configuration')
-            if summary['data_identity']['split_hash'] != config['dataset']['artifacts']['split_hash']:
-                raise ValueError('summary Split identity differs from configuration')
+            if len(definition['expected_datasets']) != len(config['datasets']):
+                raise ValueError('registered Dataset count mismatch')
+            for dataset, instance, counts in zip(summary['datasets'], config['datasets'], definition['expected_datasets']):
+                if (dataset['data_identity']['split_hash'] != instance['artifacts']['split_hash']
+                        or dataset['num_nodes'] != counts['num_nodes']
+                        or dataset['candidate_count'] != counts['candidate_count']):
+                    raise ValueError('summary Split identity or dataset counts differ from registration')
             batches = list(experiment_batches(config))
             expected = [(batch, gu, selector, selector_ref, gu_ref)
                         for batch in batches
@@ -127,17 +132,19 @@ def acceptance_payload(profile, definition, context):
             if len(selector_rows) != len(expected_selectors):
                 raise ValueError('collected Selector row count mismatch')
             for (batch, selector, ref), row in zip(expected_selectors, selector_rows):
+                dataset = summary['datasets'][batch['matrix_values']['dataset_index']]
+                counts = definition['expected_datasets'][batch['matrix_values']['dataset_index']]
                 score = row['score']['recipe']['fields']
                 if (row['matrix_values'] != batch['matrix_values'] or row['selector_ref'] != ref
                         or row['selection']['strategy'] != selector['method']
                         or score['score_names'] != [selector['method']]
                         or score['parameters'] != selector['parameters']
-                        or score['data_identity'] != summary['data_identity']
+                        or score['data_identity'] != dataset['data_identity']
                         or score.get('training') != selector.get('training')
                         or score.get('selector_model') != selector.get('model')):
                     raise ValueError('Selector differs from the effective configuration')
                 if stage == 'selector':
-                    k = resolve_budget(selector['budget'], definition['expected_dataset']['candidate_count'])['k']
+                    k = resolve_budget(selector['budget'], counts['candidate_count'])['k']
                     nodes = row['selection']['views'][str(k)]['selected_nodes']
                     if len(nodes) != k or len(set(nodes)) != k:
                         raise ValueError('Selector view differs from the effective budget')
@@ -146,9 +153,13 @@ def acceptance_payload(profile, definition, context):
             if stage == 'metrics':
                 from cache_v2 import canonical_sha256
                 evaluations = summary['evaluations']
-                if len(evaluations) != len(config['evaluations']):
+                if len(evaluations) != len(config['evaluations']) * len(config['datasets']):
                     raise ValueError('collected Evaluation count differs from configuration')
-                for instance, evaluation in zip(config['evaluations'], evaluations):
+                from experiments.modular_config import dataset_binding
+                expected_evaluations = [(i, e) for i in range(len(config['datasets'])) for e in config['evaluations']]
+                for (dataset_index, instance), evaluation in zip(expected_evaluations, evaluations):
+                    if evaluation['dataset_binding'] != dataset_binding(config, dataset_index):
+                        raise ValueError('Metrics Dataset binding mismatch')
                     if evaluation['effective_config'] != instance or not evaluation['rows']:
                         raise ValueError('Metrics differs from the effective evaluation configuration')
                     # One input summary can supply multiple evaluated outputs.
@@ -162,17 +173,19 @@ def acceptance_payload(profile, definition, context):
                             raise ValueError('Metrics receipt differs from the effective evaluation')
                         cells.append({'evaluation': row})
             for index, ((batch, gu, selector, selector_ref, gu_ref), output) in enumerate(zip(expected, outputs)):
+                dataset = summary['datasets'][batch['matrix_values']['dataset_index']]
+                counts = definition['expected_datasets'][batch['matrix_values']['dataset_index']]
                 identity = output['payload'].identity
                 row = summary['unlearning'][index]
                 selected = next(item for item in selector_rows
                                 if item['matrix_values'] == batch['matrix_values'] and item['selector_ref'] == selector_ref)
-                k = resolve_budget(selector['budget'], definition['expected_dataset']['candidate_count'])['k']
+                k = resolve_budget(selector['budget'], counts['candidate_count'])['k']
                 if (row['matrix_values'] != batch['matrix_values'] or row['selector_ref'] != selector_ref
                         or row['unlearning_ref'] != gu_ref
-                        or identity['pairing']['data_identity'] != summary['data_identity']
-                        or summary['data_identity']['split_hash'] != config['dataset']['artifacts']['split_hash']
-                        or len(output['payload'].arrays['y']) != definition['expected_dataset']['num_nodes']
-                        or int(output['payload'].arrays['train_mask'].sum()) != definition['expected_dataset']['candidate_count']
+                        or identity['pairing']['data_identity'] != dataset['data_identity']
+                        or dataset['data_identity']['split_hash'] != batch['dataset']['artifacts']['split_hash']
+                        or len(output['payload'].arrays['y']) != counts['num_nodes']
+                        or int(output['payload'].arrays['train_mask'].sum()) != counts['candidate_count']
                         or len(output['payload'].arrays['selected_nodes']) != k
                         or identity['selection'] != {key: selected['selection']['artifact'][key]
                             for key in ('artifact_id','recipe_hash','content_hash')}
@@ -193,8 +206,8 @@ def acceptance_payload(profile, definition, context):
                     raise ValueError('output differs from the effective method configuration')
                 cells.append({'method': gu['method'], 'seed': gu['training']['seed'],
                     'output': output['output'], 'evaluation': output['evaluation'],
-                    'selection': identity['selection']})
-        except (ValueError, KeyError, TypeError, OSError, StopIteration) as exc:
+                    'selection': identity['selection'], 'matrix_values': batch['matrix_values']})
+        except (ValueError, KeyError, IndexError, TypeError, OSError, StopIteration) as exc:
             errors.append(str(exc))
     passed = not errors
     return {'owner': 'opengu', 'profile': profile, 'passed': passed,

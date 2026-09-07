@@ -22,7 +22,7 @@ def test_moved_table_and_cwd_keep_public_instances_and_fingerprint(tmp_path, mon
     (moved.parent / 'cora.yaml').write_text('not: a dataset')
     monkeypatch.chdir(tmp_path)
     actual = load_experiment(moved)
-    for field in ('dataset', 'selectors', 'unlearnings', 'evaluations', 'configuration_sources'):
+    for field in ('datasets', 'selectors', 'unlearnings', 'evaluations', 'configuration_sources'):
         assert actual[field] == expected[field]
     assert configuration_fingerprint(moved) == fingerprint
     assert execute(moved, dry_run=True)['logical_cells'] == 4
@@ -33,7 +33,7 @@ def test_moved_table_and_cwd_keep_public_instances_and_fingerprint(tmp_path, mon
     '..\\cora.yaml', 'C:cora.yaml', '', None, 'missing.yaml'])
 def test_invalid_public_reference_fails_for_load_and_fingerprint(tmp_path, field, reference):
     value = yaml.safe_load((ROOT / 'experiments/configs/aagu007/experiment.yaml').read_text())
-    value[field] = reference if field == 'dataset_ref' else [reference]
+    value[field] = [reference]
     path = tmp_path / 'invalid.yaml'
     path.write_text(yaml.safe_dump(value))
     for consumer in (load_experiment, configuration_fingerprint):
@@ -51,7 +51,7 @@ def test_same_name_uses_field_directory_and_explicit_file_is_unambiguous(tmp_pat
         assert resolve_reference(field, 'same.yaml', tmp_path) == path
     explicit = tmp_path / 'temporary.yaml'
     explicit.write_text('kind: fixture')
-    assert resolve_reference('dataset_ref', str(explicit), tmp_path) == explicit
+    assert resolve_reference('dataset_refs', str(explicit), tmp_path) == explicit
 
 
 def test_fingerprint_tracks_resolved_public_content(tmp_path, monkeypatch):
@@ -62,7 +62,7 @@ def test_fingerprint_tracks_resolved_public_content(tmp_path, monkeypatch):
     instance = directory / 'data.yaml'
     instance.write_text('value: 1')
     table = tmp_path / 'table.yaml'
-    table.write_text('dataset_ref: data.yaml')
+    table.write_text('dataset_refs: [data.yaml]')
     before = configuration_fingerprint(table)
     instance.write_text('value: 2')
     assert configuration_fingerprint(table) != before
@@ -73,19 +73,19 @@ def test_explicit_relative_paths_resolve_from_table_not_cwd(tmp_path, monkeypatc
     value = yaml.safe_load(original.read_text())
     public = load_experiment(original)
     for field, directory in REFERENCE_DIRECTORIES.items():
-        names = [value[field]] if field == 'dataset_ref' else value[field]
+        names = value[field]
         target = tmp_path / directory
         target.mkdir()
         for name in names:
             (target / name).write_bytes((ROOT / 'experiments/configs' / directory / name).read_bytes())
         refs = ['../' + directory + '/' + name for name in names]
-        value[field] = refs[0] if field == 'dataset_ref' else refs
+        value[field] = refs
     table = tmp_path / 'tables/experiment.yaml'
     table.parent.mkdir()
     table.write_text(yaml.safe_dump(value))
     monkeypatch.chdir(ROOT)
     resolved = load_experiment(table)
-    for field in ('dataset', 'selectors', 'unlearnings', 'evaluations'):
+    for field in ('datasets', 'selectors', 'unlearnings', 'evaluations'):
         assert resolved[field] == public[field]
     assert execute(table, dry_run=True)['logical_cells'] == 4
     before = configuration_fingerprint(table)

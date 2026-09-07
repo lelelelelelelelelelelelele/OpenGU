@@ -2,7 +2,8 @@ kind: experiment
 schema_version: 1
 experiment_id: aagu015-metrics-cora
 stage: metrics
-dataset_ref: cora.yaml
+dataset_refs:
+- cora.yaml
 output_inputs:
 - summary: null
   sha256: null

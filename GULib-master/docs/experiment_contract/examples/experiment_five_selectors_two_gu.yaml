@@ -3,7 +3,8 @@ schema_version: 1
 experiment_id: five-selectors-two-gu
 round: 1
 stage: unlearning
-dataset_ref: ../../../experiments/configs/datasets/cora.yaml
+dataset_refs:
+- ../../../experiments/configs/datasets/cora.yaml
 selector_refs:
 - ../../../experiments/configs/selectors/degree.yaml
 - ../../../experiments/configs/selectors/b_param_hutch.yaml

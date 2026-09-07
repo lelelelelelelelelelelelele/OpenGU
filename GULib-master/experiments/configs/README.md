@@ -2,6 +2,10 @@
 
 活动配置只有一种规范：`kind: experiment` 组合表引用四类公共小表。解析与真实执行均经过 `experiments/run.py` → `modular_config` → `modular_run`。
 
+数据轴统一写作 `dataset_refs: [cora.yaml, citeseer.yaml, pubmed.yaml]`，单数据集写作 `dataset_refs: [cora.yaml]`。同一表内不能重复同一个 Dataset/Split 实例。每个数据集独立绑定 manifest、划分和候选空间；加入或重排其他数据集不改变原有计算身份。
+
+[extension v2 合并表](aagu032_extend_v2/experiment.yaml) 展开为 3 数据集 × 10 Selector × 1 Retrain × 3 seed × 4 比例 = 360 条件；原有 288 条件和新增 72 条件的配置保持不变。三者都使用 70/10/20、split seed 2024。该表及 `opengu-aagu032-extend-v2` recipe 的存在不代表已获准执行正式科研矩阵。
+
 引用支持两种写法：只写文件名时按字段定位本目录下的公共小表，例如 `unlearning_refs: [gnndelete.yaml]` 读取 `unlearning/gnndelete.yaml`；显式相对路径（如 `../unlearning/gnndelete.yaml`、`./custom.yaml`）以组合表所在目录为起点。明确的绝对路径也可使用，隔离验证据此绑定临时资产。文件名引用不搜索组合表邻近目录，不受工作目录影响；加载与配置指纹使用同一解析规则。
 
 | 目录 | 职责 |

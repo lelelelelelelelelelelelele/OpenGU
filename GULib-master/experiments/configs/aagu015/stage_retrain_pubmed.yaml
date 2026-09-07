@@ -2,7 +2,8 @@ kind: experiment
 schema_version: 1
 experiment_id: aagu015-retrain-pubmed
 stage: unlearning
-dataset_ref: pubmed.yaml
+dataset_refs:
+- pubmed.yaml
 unlearning_refs:
 - retrain.yaml
 evaluation_refs:

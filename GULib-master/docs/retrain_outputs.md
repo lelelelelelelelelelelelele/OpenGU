@@ -76,7 +76,7 @@ kind: experiment
 schema_version: 1
 experiment_id: metrics-only
 stage: metrics
-dataset_ref: dataset.yaml
+dataset_refs: [dataset.yaml]
 matrix: cartesian_product
 output_inputs:
   - unlearning: {artifact_id: <GU id>, recipe_hash: <full sha256>, content_hash: <full sha256>}

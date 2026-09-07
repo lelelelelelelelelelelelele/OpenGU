@@ -3,7 +3,7 @@
 Block ID: `AAGU-035`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `registered / not claimed`
+当前状态: `working / claimed`
 Stable locator: `.workblock/items/AAGU-035/WORKITEM.md`
 
 ## Human Surface
@@ -31,6 +31,12 @@ Stable locator: `.workblock/items/AAGU-035/WORKITEM.md`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
 
+
+> Git baseline：`c08a9e945ede7074083c91338f99825db6ec294a`
+
+> Source branch：`refs/heads/codex/aagu-035-multi-dataset-matrix`
+
+> Remote target：`origin refs/heads/main`
 - Acceptance Route: `practical`
 - Primary surface: integration / data / configuration contract
 - Minimum real evidence: 独立 CPU 多数据集真实消费者的冷/热运行、选择到下游执行及产物验收；统一表的可读 dry-run；原数据集计算身份保持和错误数据绑定拒绝的检查。

@@ -24,6 +24,14 @@ the installed `syncmate_core` package, installs
 surface without embedding transfer, queue, manifest, checksum, or trusted-index
 implementations.
 
+Ordinary experiments use a nonempty `dataset_refs` list, including single-dataset
+runs. Project recipes declare ordered `expected_datasets` counts. The summary and
+each output bind their Dataset/Split identity; collection validates the whole
+declared matrix and rejects duplicate paths, missing files and incorrect ownership.
+The three-dataset extension v2 table declares 360 conditions (1,441 files including
+the summary); registration does not authorize formal execution. See the
+[ordinary execution contract](../../docs/modular_experiments.md).
+
 The old embedded implementation was removed by SM-004. AAGU-034 also removes
 the obsolete M1 helper and its separate adapter. The current CLI uses only
 `OpenGUProjectExtension`; the material below documents this OpenGU project
