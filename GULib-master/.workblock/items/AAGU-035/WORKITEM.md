@@ -3,7 +3,7 @@
 Block ID: `AAGU-035`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 Stable locator: `.workblock/items/AAGU-035/WORKITEM.md`
 
 ## Human Surface
@@ -75,3 +75,7 @@ Execution topology: `parallel`
 验收入口：[Markdown 报告](REPORT.md)、[HTML 报告](REPORT.html)、[实际身份与产物哈希](evidence/verification.json)。报告结构与本地链接 PASS；本地 HTML 被浏览器 URL 安全策略拒绝，视觉检查为 NOT OBSERVED，以 Markdown 为本次验收入口。
 
 完整 Verify 后只补充同一 item 内的报告、证据与状态投影；其 diff 不改变已测试的执行、缓存、配置和收集行为，复用上述 checkpoint 的通过证据，并单独核验报告结构、链接、数据和最终差异。当前候选为 source branch 的干净 HEAD。Agent 建议接受，决定者为用户；等待接受或返工，不合并、推送或启动正式实验。
+
+## Status history
+
+- `accepted`（2026-09-08T02:39:30+08:00）：user 基于 用户确认支持合并运行后明确表示：可以。验收 接受当前已验证候选。
