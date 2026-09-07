@@ -78,6 +78,9 @@ def test_real_queue_command_collect_verify_accept_results_and_repeat(exported,mo
             rows=extension.results(collected['artifact_index'],{'project_root':collector})
             assert len(rows['rows'])==8 and not rows['parse_errors'],rows
             assert all(r['status']=='ok' for r in rows['rows'])
+            assert all(r['cache']['selector_checkpoint'] in ('hit', 'miss') for r in rows['rows'])
+            assert all(r['cache']['method_checkpoint'] == ('not_applicable' if r['method'] == 'Retrain' else 'hit')
+                       for r in rows['rows'])
             repeated=collection.apply_collect(*args,**options)
             assert repeated['summary']['fetched']==0
             record_property('actual_collection',json.dumps({'checked':checked,'row_count':len(rows['rows']),

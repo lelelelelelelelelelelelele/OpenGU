@@ -65,11 +65,11 @@ def test_selector_then_unlearning_reuses_without_summary_binding(matrix, record_
     assert first['selector_producer_called'] is False
     assert all(r['producer_called'] for r in first['unlearning'])
     assert all(r['hit'] and not r['producer_called'] for r in warm['unlearning'])
-    assert [r['output'] for r in first['unlearning']] == [r['output'] for r in warm['cells']]
+    assert [r['output'] for r in first['unlearning']] == [r['output'] for r in warm['unlearning']]
     assert path.read_bytes() == before
     assert json.loads((root / 'gu-warm.trace.json').read_text()) == {'training_seeds': [], 'score_calls': []}
     record_property('automatic_reuse', json.dumps({'selectors': expected,
-        'cells': len(first['unlearning']), 'warm_outputs': [r['output'] for r in warm['cells']]}))
+        'cells': len(first['unlearning']), 'warm_outputs': [r['output'] for r in warm['unlearning']]}))
 
 
 def test_cold_unlearning_and_core_warm_collect_share_declared_rows(workspace, record_property):
