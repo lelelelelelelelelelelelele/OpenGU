@@ -35,7 +35,7 @@ Item Type: Block
 - Outcome: run and accept the smallest authorized Target-Direct end-to-end gate before the current research experiment branches expand.
 - Fact owner: [007 ordinary experiment](../../../experiments/configs/aagu007/experiment.yaml); OpenGU DocMap remains scientific framing and historical navigation only.
 - Dependencies are projected by WORKPLAN, not copied into lifecycle status.
-- Prerequisites: AAGU-002、AAGU-015、AAGU-028、AAGU-034；001/006/026/009 的已接受基础从这些前置继承。
+- Prerequisites: AAGU-002、AAGU-015、AAGU-028、AAGU-034、AAGU-036；001/006/026/009 的已接受基础从这些前置继承。
 - Downstream: AAGU-031、后续 GU 矩阵与 AAGU-027 等正式研究路线；方案整理和隔离 CPU 软件验证不因本 gate 而阻塞。
 
 ## Acceptance route proposal
@@ -82,3 +82,7 @@ Item Type: Block
 - 配置加载与指纹共用解析函数；活动组合表改用文件名，007注册重新绑定对应配置摘要和引用指纹。历史Artifact和科学矩阵不变，实际缓存命中仍以运行记录为准。
 - 本次为运行前的软件修正；007保持registered / not claimed，未启动正式作业。
 - 软件验证：32项公共引用/相对路径检查、30项真实CPU消费者与统一命令检查、176项SyncMate回归通过；18张活动表逐项比对仅引用写法变化，007为4输出、032为42条件。007配置摘要/注册指纹、WorkItem格式及dashboard check通过。初轮两个失败分别来自修改前进程的相对路径规则和临时绝对引用的测试分组标签，修正后受影响30项已重跑通过；CPU验证保留现有两条CUDA依赖警告，不构成正式GPU证据。
+
+## 结果存储修复前置 · 2026-09-08
+
+用户要求先修 bug 再执行新实验：`AAGU-007 depends_on AAGU-036`。036 结果存储修复须接受并落地，007 才能按新代码开展正式运行；031/033 及其余后续实验沿既有依赖继承。方案整理和修复隔离验证不受此运行门槛阻塞。生命周期保持 registered / not claimed，本次未授权运行。

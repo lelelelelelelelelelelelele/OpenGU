@@ -58,3 +58,9 @@ YAML 已绑定且正式 processed 目录已持有的图、节点特征、标签�
 ## Status history
 
 - 2026-09-08：用户要求创建解决重复输入存储问题的 Block；registered / not claimed。
+## Execution ordering · 2026-09-08
+
+- Priority: `P0`；当前优先修复节点。
+- Prerequisite: `AAGU-034` 已接受的公共执行入口。
+- `AAGU-007 depends_on AAGU-036`：本修复接受并落地后，再执行 007 和由其门控的 031/033 等后续实际实验。
+- 用户明确授权本次维护依赖图与看板；不构成 Claim、实施或实验运行授权。方案工作和本修复的受控软件验证可先行。
