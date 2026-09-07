@@ -51,7 +51,10 @@ def model_training(value):
     if architecture == 'OpenGU.SGCNet':
         default.update(layers=3, dropout=0.0)
     model = effective(model, default, 'model')
-    if model['layers'] != default['layers'] or model['hidden_channels'] <= 0 or model['dropout'] != default['dropout']:
+    valid_layers = model['layers'] == default['layers']
+    if architecture == 'OpenGU.SGCNet':
+        valid_layers = type(model['layers']) is int and model['layers'] > 0
+    if not valid_layers or model['hidden_channels'] <= 0 or model['dropout'] != default['dropout']:
         raise ConfigurationError('model shape/dropout is outside the supported OpenGU implementation')
     if architecture == 'OpenGU.SGCNet' and model['hidden_channels'] != 64:
         raise ConfigurationError('OpenGU SGC has no hidden_channels override')

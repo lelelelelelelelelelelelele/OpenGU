@@ -9,7 +9,7 @@ from torch import Tensor
 from config import root_path
 from parameter_parser import parameter_parser
 class SGCNet(abstract_model):
-    def __init__(self,args, in_channels, out_channels, num_layers=2):
+    def __init__(self,args, in_channels, out_channels, num_layers=3):
         super(SGCNet, self).__init__()
         self.args = args
         self.config = self.load_config()
@@ -26,7 +26,7 @@ class SGCNet(abstract_model):
                 self.convs.append(SGConv(hidden_channels, hidden_channels))
                 self.linear = torch.nn.Linear(hidden_channels,out_channels)
             else:
-                self.convs.append(SGConv(in_channels, out_channels, K=3, bias=False))
+                self.convs.append(SGConv(in_channels, out_channels, K=num_layers, bias=False))
             
 
     def forward(self, x, edge_index=None,return_feature=False,return_all_emb=False,batch = None):

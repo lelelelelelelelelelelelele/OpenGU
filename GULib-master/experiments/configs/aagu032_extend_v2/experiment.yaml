@@ -1,0 +1,30 @@
+kind: experiment
+schema_version: 1
+experiment_id: aagu032-extended-v2-cora-gcn-retrain
+stage: unlearning
+dataset_ref: cora.yaml
+selector_refs:
+- gt_full.yaml
+- gt_full_all_trainable.yaml
+- degree.yaml
+- random.yaml
+- gt_simple.yaml
+- r_point.yaml
+- p_graph.yaml
+- p_point.yaml
+- gt_full_all_trainable_hops3.yaml
+- gt_full_sgc_all_trainable_hops3.yaml
+unlearning_refs:
+- retrain.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds:
+- 42
+- 212
+- 2024
+budget_ratios:
+- 0.01
+- 0.05
+- 0.10
+- 0.15

@@ -186,6 +186,31 @@ def test_different_selector_and_gu_backbones(tables):
     assert result['unlearning'][0]['producer_called']
 
 
+def test_sgc_depth_change_keeps_degree_and_gcn_output_cached(tables):
+    root = tables[0]
+    selector = yaml.safe_load((root / 'r_point.yaml').read_text())
+    selector.update(method='gt_full', model={'architecture': 'OpenGU.SGCNet', 'layers': 2},
+                    parameters={'parameter_scope': 'all_trainable', 'affected_hops': 3,
+                                'lissa': {'iterations': 2}})
+    write_yaml(root / 'sgc.yaml', selector)
+    gu = copy.deepcopy(tables[2])
+    gu.update(method='Retrain', parameters={})
+    write_yaml(root / 'retrain.yaml', gu)
+    options = dict(selector_refs=['degree.yaml', 'sgc.yaml'], stage='unlearning',
+                   unlearning_refs=['retrain.yaml'])
+    cold = run(tables, 'sgc2_cold', **options)
+    warm = run(tables, 'sgc2_warm', **options)
+    assert all(row['score']['hit'] and row['selection']['cache']['hit'] for row in warm['selectors'])
+    assert all(row['hit'] for row in warm['unlearning'])
+    selector['model']['layers'] = 3
+    selector['parameters']['affected_hops'] = 4
+    write_yaml(root / 'sgc.yaml', selector)
+    changed = run(tables, 'sgc3', **options)
+    assert [row['score']['hit'] for row in changed['selectors']] == [True, False]
+    assert [row['hit'] for row in changed['unlearning']] == [True, False]
+    assert cold['selectors'][1]['checkpoint']['state_hash'] != changed['selectors'][1]['checkpoint']['state_hash']
+
+
 def test_command_requires_context_and_gu_reuses_declared_selection(tables):
     import subprocess
     import sys
