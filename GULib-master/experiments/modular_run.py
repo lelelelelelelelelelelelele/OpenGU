@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import pickle
+from dataclasses import dataclass
 from pathlib import Path
 import torch
 from cache_v2.runtime import load_selection_artifact
@@ -69,6 +70,24 @@ def verified_selection(reference, *, store_root, data, inputs, expected_selector
     if loaded.recipe_hash != reference['recipe_hash'] or loaded.content_hash != reference['content_hash']:
         raise ConfigurationError('Selection digest mismatch')
     return loaded
+
+
+@dataclass(frozen=True)
+class SelectionPrefix:
+    """Consumer view; the hashes continue to identify the full source Artifact."""
+    artifact_id: str
+    recipe_hash: str
+    content_hash: str
+    artifact_k: int
+    requested_k: int
+    selected_nodes: tuple
+
+
+def selection_prefix(loaded, requested_k):
+    if type(requested_k) is not int or not 0 < requested_k <= loaded.k:
+        raise ConfigurationError('requested Selection prefix is outside the source artifact')
+    return SelectionPrefix(loaded.artifact_id, loaded.recipe_hash, loaded.content_hash,
+                           loaded.k, requested_k, loaded.selected_nodes[:requested_k])
 
 
 def _plan_summary(config):
@@ -185,7 +204,9 @@ def execute(path, *, context=None, dry_run=False):
             resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
                 model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
             reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
-            loaded_selections[selector_ref] = verified_selection(reference, store_root=store_root, data=data, inputs=inputs)
+            loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
+                expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'])
+            loaded_selections[selector_ref] = selection_prefix(loaded, item['budget']['k'])
             summary['selectors'].append({**resolved, 'checkpoint': observation, 'matrix_values': batch['matrix_values'],
                 'selector_ref': selector_ref})
         if config['stage'] == 'unlearning':

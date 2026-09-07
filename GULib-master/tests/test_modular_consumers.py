@@ -451,3 +451,76 @@ def test_evaluation_is_independent_and_missing_retrain_fails_closed(tables):
     with pytest.raises(ValueError, match='independent metrics stage'):
         run(tables, 'unsupported-eval', stage='unlearning', selector_refs=['degree.yaml'],
             unlearning_refs=['gu.yaml'], evaluation_refs=['retrain-gap.yaml'])
+
+@pytest.mark.parametrize('method', ['degree', 'random', 'r_point'])
+@pytest.mark.parametrize('mode,large,small', [('ratio', .8, .35), ('k', 8, 3)])
+def test_ordinary_cross_budget_coverage(tables, record_property, method, mode, large, small):
+    from experiments.modular_config import load_instance, resolve_budget
+    from experiments.modular_model import prepare_model
+    from experiments.modular_run import read_dataset
+    from experiments.target_direct_v1.method_cache import resolve_methods
+    root = tables[0]
+    raw = yaml.safe_load((root / ('r_point.yaml' if method == 'r_point' else 'degree.yaml')).read_text())
+    raw.update(method=method, budget={'mode': mode, 'value': large})
+    if method == 'r_point': raw['parameters'] = {'lissa': {'iterations': 2, 'scale': 25., 'damp': .01}}
+    write_yaml(root / 'coverage.yaml', raw)
+    cold = run(tables, 'coverage-cold', selector_refs=['coverage.yaml'])['selectors'][0]
+    raw['budget']['value'] = small
+    write_yaml(root / 'coverage.yaml', raw)
+    instance = load_instance(root / 'coverage.yaml', 'selector')
+    data, inputs = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
+    model, checkpoints = None, []
+    if 'model' in instance:
+        model, checkpoints, _ = prepare_model(instance, data=data, dataset_name=inputs.dataset_name,
+            checkpoint_root=root / 'checkpoints', device=torch.device('cpu'), reference_directory=root)
+    instance['budget'] = resolve_budget(instance['budget'], inputs.candidate_count)
+    before = {str(p): (p.stat().st_mtime_ns, sha256_file(p)) for p in (root / 'v2').rglob('*') if p.is_file()}
+    warm = resolve_methods(store_root=root / 'v2', data=data, dataset_name=inputs.dataset_name,
+        model=model, checkpoints=checkpoints, selectors=[instance], model_config=instance.get('model'),
+        training=instance.get('training'), fail_if_score_called=True, fail_if_selection_called=True)[method]
+    assert warm['score']['artifact_id'] == cold['score']['artifact_id']
+    assert warm['selection']['artifact'] == cold['selection']['artifact']
+    assert warm['selection']['request_max_k'] == 3 and warm['selection']['artifact_k'] == 8
+    assert warm['selection']['views']['3']['selected_nodes'] == cold['selection']['views']['8']['selected_nodes'][:3]
+    assert warm['selection']['cache']['hit'] and not warm['selection']['cache']['producer_called']
+    assert warm['score']['hit'] and not warm['score']['producer_called']
+    assert before == {str(p): (p.stat().st_mtime_ns, sha256_file(p)) for p in (root / 'v2').rglob('*') if p.is_file()}
+    record_property('cross_budget_receipt', json.dumps(warm['selection']))
+
+
+def test_unlearning_consumes_requested_prefix(tables, record_property):
+    from experiments.unlearning_outputs import load_output
+    from experiments.modular_config import load_instance
+    from experiments.modular_run import read_dataset
+    root = tables[0]
+    selector = yaml.safe_load((root / 'degree.yaml').read_text())
+    selector['budget'] = {'mode': 'ratio', 'value': .8}
+    write_yaml(root / 'degree.yaml', selector)
+    cold = run(tables, 'prefix-large', selector_refs=['degree.yaml'])['selectors'][0]
+    selector['budget']['value'] = .35
+    write_yaml(root / 'degree.yaml', selector)
+    gu = copy.deepcopy(tables[2])
+    gu.update(method='Retrain', parameters={})
+    write_yaml(root / 'retrain.yaml', gu)
+    result = run(tables, 'prefix-gu', selector_refs=['degree.yaml'], stage='unlearning', unlearning_refs=['retrain.yaml'])
+    data, _ = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
+    output = load_output(result['unlearning'][0]['output'], root / 'v2', data=data)
+    assert output.arrays['selected_nodes'].tolist() == cold['selection']['views']['8']['selected_nodes'][:3]
+    assert result['selectors'][0]['selection']['artifact_k'] == 8
+    record_property('consumed_prefix', json.dumps(output.arrays['selected_nodes'].tolist()))
+    from cache_v2 import ArtifactRecipe, ArtifactType, ProducerVersion
+    from cache_v2.store import ArtifactIntegrityError
+    from cache_v2.unlearning_output import OUTPUT_CONTRACT
+    from experiments.artifact_producer import FormalArtifactRequest, store_formal_artifact
+    from experiments.unlearning_outputs import build_output, restore_model
+    from experiments.node_deletion import pairing_identity
+    source_nodes = cold['selection']['views']['8']['selected_nodes']
+    for nodes in (source_nodes[:3][::-1], source_nodes[3:6]):
+        identity = copy.deepcopy(output.identity)
+        identity['pairing'] = pairing_identity(identity['pairing'], data, nodes)
+        invalid = build_output(identity, data, restore_model(output), torch.tensor(output.arrays['logits']))
+        request = FormalArtifactRequest(ArtifactType.PREDICTION,
+            ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **identity}),
+            ProducerVersion(**identity['producer_version']))
+        with pytest.raises(ArtifactIntegrityError, match='Selection dependency'):
+            store_formal_artifact(root / 'v2', request, invalid, compute_seconds=0)

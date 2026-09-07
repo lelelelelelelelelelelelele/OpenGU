@@ -10,6 +10,7 @@ and enforces integrity. Prefix slicing remains an experiment responsibility.
 from __future__ import annotations
 
 import copy
+import math
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -22,10 +23,11 @@ from .contracts import (
     validate_artifact_id,
     validate_sha256,
 )
-from .canonical import TYPE_TAG
+from .canonical import TYPE_TAG, canonicalize, canonical_json
 from .errors import CacheResolutionError, ContractValidationError
 from .index import CacheIndex
 from .resolver import ArtifactResolver
+from .runtime import _decode_exact_mapping
 from .store import ArtifactStore, StoreResult
 
 
@@ -218,6 +220,7 @@ class SelectionResolution:
     source_k: Optional[int] = None
     source_recipe_hash: Optional[str] = None
     lookup_policy: str = "cache_v2_exact_recipe"
+    source_budget: Optional[Mapping[str, Any]] = None
 
 
 def _absolute_store_root(store_root: Union[str, Path]) -> Path:
@@ -263,6 +266,7 @@ def resolve_selection_artifact(
             explanation.miss_reasons,
             source_k=int(request.recipe.fields["k"]),
             source_recipe_hash=request.recipe.recipe_hash,
+            source_budget=request.recipe.fields["selector_parameters"].get("budget"),
         )
     if (
         explanation.exact_candidate is None
@@ -363,16 +367,46 @@ def _covering_recipe_from_record(
         requested_k,
         "indexed Selection Recipe fields",
     )
+    fields = request.recipe.fields
+    request_parameters = fields["selector_parameters"]
+    if "budget" in request_parameters:
+        # Only size changes within one declared budget mode are interchangeable.
+        # Preserve all other fields (including unknown semantics) in the comparison.
+        source_parameters = _tagged_mapping_item(
+            canonical_fields, "selector_parameters", "indexed Selection fields"
+        )
+        source_budget_tagged = _optional_tagged_mapping_item(
+            source_parameters, "budget", "indexed selector parameters"
+        )
+        if source_budget_tagged is None:
+            return None
+        source_budget = dict(_decode_exact_mapping(source_budget_tagged, "Selection budget"))
+        request_budget = request_parameters["budget"]
+        if request_parameters.get("prefix_stable") is not True:
+            return None
+        if not (_valid_coverage_budget(source_budget, candidate_k, fields["candidate_count"])
+                and _valid_coverage_budget(request_budget, requested_k, fields["candidate_count"])):
+            return None
+        normalized_budget = dict(source_budget, value=request_budget["value"], k=requested_k)
+        if canonical_json(normalized_budget) != canonical_json(request_budget):
+            return None
+        # Replace only the budget, not the surrounding selector identity.
+        normalized_parameters = _replace_tagged_mapping_item(
+            source_parameters, "budget", canonicalize(request_budget), "indexed selector parameters"
+        )
+        normalized_fields = _replace_tagged_mapping_item(
+            normalized_fields, "selector_parameters", normalized_parameters, "indexed Selection fields"
+        )
+        fields["selector_parameters"]["budget"] = source_budget
     normalized_recipe = _replace_tagged_mapping_item(
         canonical_recipe,
         "fields",
         normalized_fields,
         "indexed Selection Recipe",
     )
-    if normalized_recipe != request.recipe.canonical_form:
+    if canonical_json(normalized_recipe) != canonical_json(request.recipe.canonical_form):
         return None
 
-    fields = request.recipe.fields
     fields["k"] = candidate_k
     recipe = ArtifactRecipe(fields, recipe_version=request.recipe.recipe_version)
     if recipe.recipe_hash != record.get("recipe_hash"):
@@ -380,6 +414,21 @@ def _covering_recipe_from_record(
             "indexed covering Selection Recipe hash is inconsistent"
         )
     return candidate_k, recipe
+
+
+def _valid_coverage_budget(budget: Any, k: int, candidate_count: int) -> bool:
+    """Recognize the ordinary resolver's existing ratio/K metadata, fail closed."""
+    if not isinstance(budget, Mapping) or type(budget.get("k")) is not int or budget["k"] != k:
+        return False
+    value = budget.get("value")
+    if budget.get("mode") == "k":
+        return type(value) is int and value == k and 0 < k <= candidate_count
+    if budget.get("mode") == "ratio":
+        return (type(value) in (int, float) and math.isfinite(value) and 0 < value <= 1
+                and budget.get("denominator") == "train_candidate_count"
+                and budget.get("rounding") == "floor_with_minimum_one"
+                and max(1, int(candidate_count * value)) == k)
+    return False
 
 
 def resolve_covering_selection_artifact(
@@ -434,6 +483,7 @@ def resolve_covering_selection_artifact(
         source_k=source_k,
         source_recipe_hash=recipe.recipe_hash,
         lookup_policy="cache_v2_exact_then_smallest_covering_k",
+        source_budget=recipe.fields["selector_parameters"].get("budget"),
     )
 
 
