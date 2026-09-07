@@ -100,6 +100,10 @@ def _field(md: str, label: str) -> str:
 
 def _lifecycle_state(status: str) -> str:
     value = status.casefold()
+    if value == "完":
+        return "closed"
+    if value == "on going":
+        return "working"
     if "accepted" in value or "closed" in value:
         return "closed"
     if "awaiting acceptance" in value:
@@ -262,6 +266,9 @@ def project_nodes(nodes: list[dict], items: dict, current_id: str) -> list[dict]
             projection, state, blocked = "blocked", "todo", True
         else:
             projection, state, blocked = item["raw_status"], "todo", False
+
+        if item["raw_status"] in {"on going", "完"} or "实验表已做" in item["raw_status"]:
+            projection = item["raw_status"]
 
         if node["id"] == current_id:
             projection += " / current"

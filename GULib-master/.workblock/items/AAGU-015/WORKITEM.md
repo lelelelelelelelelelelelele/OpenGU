@@ -4,7 +4,7 @@ Block ID: `AAGU-015`
 
 Item Version: 2.1
 
-当前状态: `accepted`
+当前状态: `accepted / 实验表已做，尚未跑`
 
 Item Type: Block
 
@@ -114,3 +114,7 @@ Execution topology: `parallel`
 - [回执](evidence/selector-reuse-check.json) 绑定未变消费者 source HEAD、代码哈希及已运行验证器哈希；验证器运行于新增脚本提交前，不能把旧 HEAD 单独当成完整测试脚本身份。原始运行目录保留在 source 忽略的 runtime。
 - CPU fixture 为 20 节点、14/2/4 mask，hidden 4、6 epochs、LiSSA/Hutch 2、GU 2，独立临时 Store；正式 YAML 未改，所列历史保护目录哈希前后相同。首个验证器启动因 OpenGU import-time CLI 误读验证器参数而退出，未执行计算；清空已消费的 verifier argv 后完整复跑通过。
 - [分数排名示例](evidence/selector-score-rank-example.csv)、[Selector Metrics 示例](evidence/selector-comparisons-example.json)、[可重跑检查](evidence/verify_selector_reuse.py) 已持久化到本 WorkItem。接受判断以当前报告和当前精确候选为准；未获得用户最终接受决定。
+
+## 用户进度确认 · 2026-09-08
+
+用户修正口述编号为015：实验表已做，但还没跑。保留既有实验表交付的接受事实，不把它解释为实验已运行或研究已完成；本次不修改031的状态。

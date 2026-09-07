@@ -1,9 +1,9 @@
-# AAGU-032 · D-full 有效性实验表与配置
+# AAGU-032 · D-full 实验执行任务
 
 Block ID: `AAGU-032`
 Item Version: 2.1
 Item Type: Block
-当前状态: `registered / not claimed`
+当前状态: `on going`
 Stable locator: `.workblock/items/AAGU-032/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -12,6 +12,8 @@ Execution topology: `parallel`
 ## Human Surface
 
 ### 核心意图
+
+**2026-09-08 用户最新定义（覆盖下文旧 Block 执行说明）**：本项按科研任务推进，不要求创建代码分支、Claim 或合并代码。正在跑；新加的 extension 尚未执行。完成后统一标记为“完”。下文原方案/执行合同保留为历史来源；与本次任务定义冲突时以本次用户修正为准。
 
 为早期 D-full 有效性研究形成一份用户可以直接验收的实验表及其实际配置：只用 GCN 方案和独立 Retrain，比较以 D-full（当前代码 gt_full）为核心的 4～5 个变体与 Degree，检验选出的删除集合能否造成更大的真实重训练性能下降。先按一个数据集组织，完成该数据集的未来运行与分析后再逐个推进。
 
@@ -63,3 +65,11 @@ Execution topology: `parallel`
 - 用户明确公共 YAML 目录、两套解析器、统一实际执行入口、旧注册与 015 的 424 份生成 YAML 退役不属于 032，另登记 [AAGU-034](../AAGU-034/WORKITEM.md) 作为 026 的后续返工。新增 `AAGU-032 depends_on AAGU-034`，用于最终可执行配置与模板验收；科学方案讨论可继续。
 - 032 linked source 中已有两轴展开/模板/测试作为 034 可复核的参考，未经接受不整包落地主线。034 不依赖 032 接受，避免循环；032 后续候选应重新对齐本责任划分和最新公共接口。
 - 本轮只登记新 FIX 与必要前置，不更改 032 的 live Claim、候选状态或历史验证，也不表示接受或关闭 032。
+
+## 用户进度确认 · 2026-09-08
+
+- 当前状态：on going。
+- 实际进度：正在跑；新加的 extension 尚未执行。
+- 完成状态词：完；现在尚未标完。
+- 进度来源：用户本轮明确确认，不是对远端进程正在运行的实时检测。
+- 036 门槛仅约束后续受影响代码的新实验执行，不抹除已跑结果，不阻止已有产物分析。

@@ -1,9 +1,9 @@
-# AAGU-033 · D-full 有效性正式运行与分析
+# AAGU-033 · D-full 实验分析任务
 
 Block ID: `AAGU-033`
 Item Version: 2.1
 Item Type: Block
-当前状态: `registered / not claimed`
+当前状态: `on going`
 Stable locator: `.workblock/items/AAGU-033/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -12,6 +12,8 @@ Execution topology: `parallel`
 ## Human Surface
 
 ### 核心意图
+
+**2026-09-08 用户最新定义（覆盖下文旧 Block 执行说明）**：本项按科研任务推进，不要求创建代码分支、Claim 或合并代码。分析部分，on going；不将已有实验产物等同于分析完成。完成后统一标记为“完”。下文原方案/执行合同保留为历史来源；与本次任务定义冲突时以本次用户修正为准。
 
 将 AAGU-032 经用户验收的 D-full 有效性实验表与配置转成真实运行证据，回答其删除集合相较 Degree 是否造成更大的 GCN 真实重训练性能下降。本项在 AAGU-007 最小正式实验验收后推进，与 AAGU-031 的 Selector Stage S 正式运行与 Q1–Q4 分析并行，拥有独立的实验范围、结果和人工验收。
 
@@ -55,3 +57,11 @@ Execution topology: `parallel`
 ## Status history
 
 - 2026-09-06：按用户要求登记为 032 的独立正式运行与分析 Block，前置 007 和 032，与 031 平行；registered / not claimed，未新建执行任务、Claim 或运行科研作业。
+
+## 用户进度确认 · 2026-09-08
+
+- 当前状态：on going。
+- 实际进度：分析部分，on going；不将已有实验产物等同于分析完成。
+- 完成状态词：完；现在尚未标完。
+- 进度来源：用户本轮明确确认，不是对远端进程正在运行的实时检测。
+- 036 门槛仅约束后续受影响代码的新实验执行，不抹除已跑结果，不阻止已有产物分析。

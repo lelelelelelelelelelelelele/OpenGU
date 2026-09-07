@@ -12,6 +12,8 @@ Next step: 先执行 AAGU-036 结果存储修复，接受并落地后再授权 A
 
 ## 0. 一句话现状
 
+最新科研进度：032 on going（新增 extension 待跑）；033 on going（分析）；015 实验表已做、尚未跑。032/033 完成后标“完”；旧文中的 Block Claim 不用于判断这两项科研任务是否开展。
+
 AAGU-034 公共配置与统一执行入口 FIX 已接受并合入，修正 026 的未收敛实现并接管 015 冗余配置生成；AAGU-036 现为当前 P0 存储修复，接受并落地后才进入 AAGU-007 最小正式实验 gate，后者仍未 Claim 或获运行授权，032 的最终配置验收也已可消费该修正。AAGU-015 的 Selector 方案与能力检查已接受；实际实验先走 AAGU-002 设备就绪 → AAGU-007 最小正式实验，再由 AAGU-031 展开 Selector 大组与分析；AAGU-033 在 032 方案验收后独立承接 D-full 有效性运行，与 031 平行。Phase 2 由 AAGU-030 整理完整表，AAGU-011/AAGU-012 已沿用原编号改登记为 X3 GU 主矩阵与结果、X4 退化分解与副作用分析。其余实验分区与配置继续逐项映射，各 Block 生命周期由下方 WorkItem 投影给出。
 
 ## 1. WorkItem 状态投影
@@ -25,7 +27,6 @@ AAGU-034 公共配置与统一执行入口 FIX 已接受并合入，修正 026 �
 | [AAGU-036](../../.workblock/items/AAGU-036/WORKITEM.md) | FIX | registered / not claimed / current | P0 | AAGU-034 | [AAGU-036 修复合同](../../.workblock/items/AAGU-036/WORKITEM.md) |
 | [AAGU-007](../../.workblock/items/AAGU-007/WORKITEM.md) | EXP | blocked by AAGU-036 | P0 | AAGU-002, AAGU-015, AAGU-028, AAGU-034, AAGU-036 | [007 ordinary experiment](../../experiments/configs/aagu007/experiment.yaml) |
 | [AAGU-031](../../.workblock/items/AAGU-031/WORKITEM.md) | EXP | blocked by AAGU-007 | P0 | AAGU-015, AAGU-007 | [AAGU-031 实验合同](../../.workblock/items/AAGU-031/WORKITEM.md) |
-| [AAGU-033](../../.workblock/items/AAGU-033/WORKITEM.md) | EXP | blocked by AAGU-007, AAGU-032 | P0 | AAGU-007, AAGU-032 | [AAGU-033 运行与分析合同](../../.workblock/items/AAGU-033/WORKITEM.md) |
 | [AAGU-010](../../.workblock/items/AAGU-010/WORKITEM.md) | FIX | blocked by AAGU-027 | P1 | AAGU-027 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | [AAGU-011](../../.workblock/items/AAGU-011/WORKITEM.md) | EXP | blocked by AAGU-030, AAGU-031, AAGU-007 | P1 | AAGU-030, AAGU-031, AAGU-007 | [AAGU-011 X3 实验合同](../../.workblock/items/AAGU-011/WORKITEM.md) |
 | [AAGU-012](../../.workblock/items/AAGU-012/WORKITEM.md) | EXP | blocked by AAGU-030, AAGU-011 | P1 | AAGU-030, AAGU-011 | [AAGU-012 X4 分析合同](../../.workblock/items/AAGU-012/WORKITEM.md) |
@@ -37,13 +38,14 @@ AAGU-034 公共配置与统一执行入口 FIX 已接受并合入，修正 026 �
 | [AAGU-014](../../.workblock/items/AAGU-014/WORKITEM.md) | EXP | blocked by AAGU-007 | P2 | AAGU-007 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-014, AAGU-010, AAGU-011, AAGU-012 | P2 | AAGU-014, AAGU-010, AAGU-023, AAGU-011, AAGU-012 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 | [AAGU-022](../../.workblock/items/AAGU-022/WORKITEM.md) | EXP | blocked by AAGU-021 | P2 | AAGU-021 | [AAGU-022 Block contract](../../.workblock/items/AAGU-022/WORKITEM.md) |
-| [AAGU-032](../../.workblock/items/AAGU-032/WORKITEM.md) | DOCS/CONFIG | registered / not claimed | P0 | AAGU-001, AAGU-015, AAGU-028, AAGU-034 | [AAGU-032 实验表合同](../../.workblock/items/AAGU-032/WORKITEM.md) |
+| [AAGU-032](../../.workblock/items/AAGU-032/WORKITEM.md) | EXP | on going | P0 | AAGU-001, AAGU-015, AAGU-028, AAGU-034 | [AAGU-032 实验表合同](../../.workblock/items/AAGU-032/WORKITEM.md) |
+| [AAGU-033](../../.workblock/items/AAGU-033/WORKITEM.md) | ANALYSIS | on going | P0 | AAGU-007, AAGU-032 | [AAGU-033 运行与分析合同](../../.workblock/items/AAGU-033/WORKITEM.md) |
 | [AAGU-030](../../.workblock/items/AAGU-030/WORKITEM.md) | DOCS/CONFIG | registered / not claimed | P1 | AAGU-001, AAGU-015, AAGU-026, AAGU-028 | [AAGU-030 表格与覆盖合同](../../.workblock/items/AAGU-030/WORKITEM.md) |
 | [AAGU-016](../../.workblock/items/AAGU-016/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [评审与 rebuttal](../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md) |
 | [AAGU-017](../../.workblock/items/AAGU-017/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-029](../../.workblock/items/AAGU-029/WORKITEM.md) | SUPPORT | registered / not claimed | P2 | AAGU-001, AAGU-026 | [AAGU-029 Block contract](../../.workblock/items/AAGU-029/WORKITEM.md) |
 | [AAGU-002](../../.workblock/items/AAGU-002/WORKITEM.md) | GATE | accepted / closed | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
-| [AAGU-015](../../.workblock/items/AAGU-015/WORKITEM.md) | EXP | accepted / closed | P0 | AAGU-006, AAGU-001, AAGU-026, AAGU-009 | [AAGU-015 Block contract](../../.workblock/items/AAGU-015/WORKITEM.md) |
+| [AAGU-015](../../.workblock/items/AAGU-015/WORKITEM.md) | EXP | accepted / 实验表已做，尚未跑 | P0 | AAGU-006, AAGU-001, AAGU-026, AAGU-009 | [AAGU-015 Block contract](../../.workblock/items/AAGU-015/WORKITEM.md) |
 | [AAGU-001](../../.workblock/items/AAGU-001/WORKITEM.md) | GATE | accepted / closed | P0 | AAGU-006 | [AAGU-001 合同与注册规范](../../.workblock/items/AAGU-001/WORKITEM.md) |
 | [AAGU-005](../../.workblock/items/AAGU-005/WORKITEM.md) | SUPPORT | accepted / closed | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
 | [AAGU-024](../../.workblock/items/AAGU-024/WORKITEM.md) | DOCS/PROTOCOL | accepted / closed | 未定 | — | [AAGU-024 Block contract](../../.workblock/items/AAGU-024/WORKITEM.md) |
@@ -109,8 +111,8 @@ flowchart LR
   subgraph Phase1[Phase 1 · Selector 运行与分析 · 当前]
     T0[AAGU-015 accepted Selector plan]
     S0[AAGU-031 Stage S run and Q1–Q4 analysis]
-    S1[AAGU-032 GCN Retrain effectiveness plan]
-    S2[AAGU-033 D-full effectiveness run and analysis]
+    S1[AAGU-032 实验执行 on going / extension待跑]
+    S2[AAGU-033 实验分析 on going]
     R0 --> G0 --> T0
     R0 --> T0
     R6 --> T0
@@ -208,14 +210,14 @@ flowchart LR
 
 这是通过最小实验后优先展开的研究阶段。015 的表格和比较设计已接受；031 消费它们及 007 已接受的运行证据，完成本范围输入与成本检查后分批形成真实输出和分析。031 不等待 030 或后续 GU 矩阵。
 
-032 整理早期 D-full 有效性的 GCN + Retrain 实验方案，最终可执行配置在 034 公共修正接受后交付用户验收；方案制作不等待 002 设备就绪或 031 全矩阵完成。033 消费 032 已验收方案和 007 已接受 gate，逐数据集完成正式运行、收集核验和有效性分析。031 与 033 不互设前置；精确匹配的产物可复用，共享 GPU 的调度不改变研究依赖。
+2026-09-08 用户确认：032 是实验执行任务，正在跑，新增 extension 尚未做；033 是分析任务。两者当前为 on going，完成后统一标“完”，不走代码分支 Claim/合并流程。015 实验表已做但还没跑；本次纠正的是015，不修改031的既有登记。036约束后续受影响的新执行，已有产物与分析进度保留。
 
 | ID | 类型 | 节点 | 优先级 | 前置 | Owner |
 |---|---|---|---|---|---|
-| AAGU-015 | EXP | Selector 两阶段实验与证据 | P0 | AAGU-006, AAGU-001, AAGU-026, AAGU-009 | [AAGU-015 Block contract](../../.workblock/items/AAGU-015/WORKITEM.md) |
+| AAGU-015 | EXP | Selector 实验表已做，尚未跑 | P0 | AAGU-006, AAGU-001, AAGU-026, AAGU-009 | [AAGU-015 Block contract](../../.workblock/items/AAGU-015/WORKITEM.md) |
 | AAGU-031 | EXP | Selector Stage S 正式运行与 Q1–Q4 分析 | P0 | AAGU-015, AAGU-007 | [AAGU-031 实验合同](../../.workblock/items/AAGU-031/WORKITEM.md) |
-| AAGU-032 | DOCS/CONFIG | D-full 有效性实验表与配置 | P0 | AAGU-001, AAGU-015, AAGU-028, AAGU-034 | [AAGU-032 实验表合同](../../.workblock/items/AAGU-032/WORKITEM.md) |
-| AAGU-033 | EXP | D-full 有效性正式运行与分析 | P0 | AAGU-007, AAGU-032 | [AAGU-033 运行与分析合同](../../.workblock/items/AAGU-033/WORKITEM.md) |
+| AAGU-032 | EXP | D-full 实验执行（on going；新增 extension 待跑） | P0 | AAGU-001, AAGU-015, AAGU-028, AAGU-034 | [AAGU-032 实验表合同](../../.workblock/items/AAGU-032/WORKITEM.md) |
+| AAGU-033 | ANALYSIS | D-full 实验分析（on going） | P0 | AAGU-007, AAGU-032 | [AAGU-033 运行与分析合同](../../.workblock/items/AAGU-033/WORKITEM.md) |
 
 ## Phase 2 · 完整实验表与后续运行映射
 

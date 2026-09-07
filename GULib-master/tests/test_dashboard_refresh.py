@@ -52,6 +52,21 @@ def _node_table(rows):
 
 
 class DashboardRefreshTests(unittest.TestCase):
+    def test_research_progress_preserves_user_status_words(self):
+        refresh = _load_refresh_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_item(root, "AAGU-032", "on going")
+            _write_item(root, "AAGU-033", "完")
+            rows = [("AAGU-032", "EXP", "run", "P0", "—", "owner"),
+                    ("AAGU-033", "ANALYSIS", "analysis", "P0", "AAGU-032", "owner")]
+            items = refresh.load_workitems(root / ".workblock" / "items")
+            nodes = refresh.project_nodes(refresh.parse_plan_nodes(_node_table(rows)), items, "")
+            self.assertEqual(nodes[0]["projection"], "on going")
+            self.assertEqual(nodes[0]["state"], "wip")
+            self.assertEqual(nodes[1]["projection"], "完")
+            self.assertEqual(nodes[1]["state"], "done")
+
     def test_workitem_statuses_are_projected_from_records(self):
         refresh = _load_refresh_module()
         with tempfile.TemporaryDirectory() as tmp:
