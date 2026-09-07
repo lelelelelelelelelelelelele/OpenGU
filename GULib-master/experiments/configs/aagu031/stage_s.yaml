@@ -1,6 +1,6 @@
 kind: experiment
 schema_version: 1
-experiment_id: aagu031-selector-stage-s-v1
+experiment_id: aagu031-selector-stage-s-v2
 stage: selector
 dataset_refs:
 - cora.yaml
@@ -11,19 +11,10 @@ selector_refs:
 - b_param_hutch.yaml
 - degree.yaml
 - gt_full.yaml
-- gt_simple.yaml
-- legacy.yaml
-- p_graph.yaml
-- p_point.yaml
-- p_simple.yaml
-- r_point.yaml
-- random.yaml
-- tracin_cp_graph_3.yaml
-- tracin_cp_graph_6.yaml
-- tracin_cp_point_3.yaml
-- tracin_cp_point_6.yaml
-- tracin_cp_simple_3.yaml
-- tracin_cp_simple_6.yaml
+- gt_full_last_layer_hops3.yaml
+- gt_full_all_trainable_hops3.yaml
+- gt_simple_last_layer_hops3.yaml
+- p_graph_last_layer_hops3.yaml
 seeds:
 - 42
 - 212
