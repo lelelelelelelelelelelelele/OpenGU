@@ -133,7 +133,7 @@ def test_real_multi_dataset_lifecycle(workspace, record_property):
             bad = copy.deepcopy(collected)
             peer = bad['artifact_index']['peers']['cpu-runner']
             if fault == 'missing': peer['items'].pop()
-            elif fault == 'duplicate': peer['items'].append(copy.deepcopy(peer['items'][0]))
+            elif fault == 'duplicate': peer['items'].append(copy.deepcopy(next(i for i in peer['items'] if i['remote_path'] in definition['expected_artifact_paths'])))
             else:
                 entry = next(i for i in peer['items'] if i['remote_path'].endswith('/summary.json'))
                 target = collector / entry['local_path']; original = target.read_bytes()

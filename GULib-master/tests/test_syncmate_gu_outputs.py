@@ -96,7 +96,7 @@ def test_collection_faults_fail_closed(exported,fault):
         collected,_,_=collect(exported);peer=collected['artifact_index']['peers']['cpu-runner']
         if fault=='missing_output':peer['items'].pop()
         if fault=='unverified_index':peer['summary']['status']='incomplete'
-        if fault=='duplicate_index':peer['items'].append(copy.deepcopy(peer['items'][0]))
+        if fault=='duplicate_index':peer['items'].append(copy.deepcopy(next(i for i in peer['items'] if i['remote_path'] in definition['expected_artifact_paths'])))
         if fault=='wrong_sha':collected['expected_git_sha']='f'*40
         if fault=='bytes':(collector/peer['items'][0]['local_path']).write_bytes(b'corrupt')
         if fault=='config':definition['configuration_fingerprint']='f'*64

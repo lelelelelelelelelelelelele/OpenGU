@@ -64,7 +64,7 @@ def test_real_success_and_cached_repeat_are_separate_audited_attempts(experiment
 
 def test_real_execution_failure_is_audited_without_completion(experiment):
     root, path, _ = experiment
-    (root / 'graph.pkl').write_bytes(b'invalid graph bytes')
+    (root / 'data/processed/graph.pkl').write_bytes(b'invalid graph bytes')
     commit(root)
     result = cli(root, path, 'failed')
     assert result.returncode != 0

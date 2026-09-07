@@ -88,5 +88,3 @@ def read_dataset(instance, directory):
         raise ConfigurationError('current consumers require finite float32 features')
     inputs = make_dataset_selection_inputs(data, dataset_name=instance['dataset']['name'].lower())
     return data, inputs
-
-
