@@ -7186,7 +7186,7 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
     assert contract["job_schema"]["expected_git_sha_pattern"] == "[0-9a-fA-F]{40}"
     expected_recipes = ['smoke', 'opengu-preflight-v1', 'opengu-aagu007-v2', 'opengu-aagu032-v1',
                         'opengu-aagu032-extend-cora-v1', 'opengu-aagu032-extend-citeseer-v1',
-                        'opengu-aagu032-extend-pubmed-v1']
+                        'opengu-aagu032-extend-pubmed-v1', 'opengu-aagu032-extend-v2']
     assert contract["execution"]["allowlisted_recipes"] == expected_recipes
     assert contract["execution"]["single_shot_flag"] == "--once"
     assert "runner-agent serve" in contract["state_machine"]["owner"]

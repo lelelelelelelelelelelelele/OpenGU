@@ -126,7 +126,7 @@ def test_command_cold_warm_seed_budget_retrain_and_metrics(matrix, record_proper
     # Metrics uses collected portable outputs; it does not need the producer Store.
     write_yaml(root/'gap.yaml',{'kind':'evaluation','schema_version':1,'case':'post_unlearning_utility_and_retrain_gap'})
     config={'kind':'experiment','schema_version':1,'experiment_id':'cpu-metrics','stage':'metrics',
-        'dataset_ref':'dataset.yaml','output_inputs':[{'summary':str(summary_path),
+        'dataset_refs': ['dataset.yaml'],'output_inputs':[{'summary':str(summary_path),
         'sha256':hashlib.sha256(summary_path.read_bytes()).hexdigest()}],
         'evaluation_refs':['gap.yaml'],'matrix':'cartesian_product'}
     write_yaml(root/'read.yaml',config)
@@ -145,7 +145,7 @@ def test_stage_s_cache_supplies_real_selections_without_resampling(matrix):
     source=command(root,path,'selector',instrument=False)
     output=Path(source['execution_receipt']['output'])
     gu={'kind':'experiment','schema_version':1,'experiment_id':'bound-gu','stage':'unlearning',
-        'dataset_ref':'dataset.yaml', 'selector_refs':config['selector_refs'],
+        'dataset_refs': ['dataset.yaml'], 'selector_refs':config['selector_refs'],
         'seeds':config['seeds'], 'budget_ratios':config['budget_ratios'],
         'unlearning_refs':['retrain.yaml'],'matrix':'cartesian_product'}
     write_yaml(root/'bound.yaml',gu)

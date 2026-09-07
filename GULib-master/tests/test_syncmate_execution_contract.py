@@ -87,7 +87,7 @@ def declaration(root, path, stage):
         config_sha256=sha256_recipe_config(path),
         configuration_fingerprint=configuration_fingerprint(path),
         logical_cells=plan['logical_cells'], stage=stage,
-        expected_dataset={'num_nodes': 20, 'candidate_count': 10},
+        expected_datasets=[{'num_nodes': 20, 'candidate_count': 10}],
         run_identity={'experiment_id': 'contract', 'run_id': 'registered'},
         argv=['{python}', 'experiments/run.py', 'experiment.yaml', '--run-id', 'registered',
               '--device-config', '.syncmate/device.yaml', '--verification-root', str(root)],
@@ -117,7 +117,7 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
         write_yaml(root / 'gap.yaml', {'kind': 'evaluation', 'schema_version': 1,
                    'case': 'post_unlearning_utility_and_retrain_gap'})
         config = {'kind': 'experiment', 'schema_version': 1, 'experiment_id': 'contract',
-            'stage': 'metrics', 'dataset_ref': 'dataset.yaml', 'matrix': 'cartesian_product',
+            'stage': 'metrics', 'dataset_refs': ['dataset.yaml'], 'matrix': 'cartesian_product',
             'evaluation_refs': ['gap.yaml'], 'output_inputs': [{'summary': str(previous),
                 'sha256': hashlib.sha256(previous.read_bytes()).hexdigest()}]}
         write_yaml(path, config)
@@ -137,7 +137,7 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
         assert queue.runner_queue_payload()['counts']['done'] == 1
     actual = json.loads((root / definition['expected_artifact_paths'][0]).read_text())
     assert actual['configuration_fingerprint'] == direct_summary['configuration_fingerprint']
-    assert actual['data_identity'] == direct_summary['data_identity']
+    assert actual['datasets'] == direct_summary['datasets']
     receipt = actual['execution_receipt']
     assert receipt['request_device'] == 'cpu'
     assert receipt['source_git_sha'] == sha

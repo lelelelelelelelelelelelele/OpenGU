@@ -3,7 +3,7 @@
 Block ID: `AAGU-035`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `registered / not claimed`
+当前状态: `accepted`
 Stable locator: `.workblock/items/AAGU-035/WORKITEM.md`
 
 ## Human Surface
@@ -31,6 +31,12 @@ Stable locator: `.workblock/items/AAGU-035/WORKITEM.md`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
 
+
+> Git baseline：`c08a9e945ede7074083c91338f99825db6ec294a`
+
+> Source branch：`refs/heads/codex/aagu-035-multi-dataset-matrix`
+
+> Remote target：`origin refs/heads/main`
 - Acceptance Route: `practical`
 - Primary surface: integration / data / configuration contract
 - Minimum real evidence: 独立 CPU 多数据集真实消费者的冷/热运行、选择到下游执行及产物验收；统一表的可读 dry-run；原数据集计算身份保持和错误数据绑定拒绝的检查。
@@ -59,3 +65,17 @@ Execution topology: `parallel`
 2026-09-08：按用户明确注册授权形成并登记本 Block。当前仅注册，未 Claim、未实施本 Block，未创建任务，未执行远端操作。
 
 后续使用 `block-workflow` 读取本 locator、最新项目指令和仓库事实，Claim 同一 Block 后实施。保持已确认的 practical 路线，完成候选与验证后停在用户验收边界；注册本身不授权合并、安装、推送或正式实验运行。
+
+## Run / Verify
+
+2026-09-08：重新核对后在已固定的 `c08a9e945ede7074083c91338f99825db6ec294a` 基线上 Claim 同一 Block。当前 owner 为任务“AAGU-035 · 多数据集实验矩阵”（`01a07ce4-c7b4-7833-965b-d87453e21718`），source project 为 `E:/project/OpenGU/aagu-035-multi-dataset-matrix/GULib-master`。SGC 与公共 Selector 参数保持基线原样。
+
+完整测试检查点 `f865dd0240b4a28f1b8178fa2aac4e70f752ebfd`：普通消费者/多数据集/输出验证 110 项 PASS，SyncMate 205 项 PASS。双数据集实际执行、16 cell/65 文件收集验收、缓存隔离、mask 归属和负向拒绝均 PASS；三数据集合并 YAML 的普通入口 dry-run 为 360 条件，6 份实验 recipe 指纹匹配。没有执行正式 GPU 科研矩阵。
+
+验收入口：[Markdown 报告](REPORT.md)、[HTML 报告](REPORT.html)、[实际身份与产物哈希](evidence/verification.json)。报告结构与本地链接 PASS；本地 HTML 被浏览器 URL 安全策略拒绝，视觉检查为 NOT OBSERVED，以 Markdown 为本次验收入口。
+
+完整 Verify 后只补充同一 item 内的报告、证据与状态投影；其 diff 不改变已测试的执行、缓存、配置和收集行为，复用上述 checkpoint 的通过证据，并单独核验报告结构、链接、数据和最终差异。当前候选为 source branch 的干净 HEAD。Agent 建议接受，决定者为用户；等待接受或返工，不合并、推送或启动正式实验。
+
+## Status history
+
+- `accepted`（2026-09-08T02:39:30+08:00）：user 基于 用户确认支持合并运行后明确表示：可以。验收 接受当前已验证候选。

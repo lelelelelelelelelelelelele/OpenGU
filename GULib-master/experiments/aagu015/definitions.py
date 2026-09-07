@@ -38,7 +38,7 @@ def dry_run(directory=CONFIG):
                         trajectory = [{'global_step':i} for i in range(1,selector['training']['epochs']+1)]
                         steps = [trajectory[i]['global_step'] for i in selected_checkpoint_indices(trajectory,selector['parameters'])]
                         if len(steps) != int(name[-1]):raise ValueError('TracIn checkpoint count drift')
-                    rows.append({'dataset':config['dataset']['dataset']['name'],'selector':name,
+                    rows.append({'dataset':batch['dataset']['dataset']['name'],'selector':name,
                         'training_seed':seed,'matrix_values':batch['matrix_values'],
                         'planned_k':budget['k'],'checkpoint_steps':steps})
     if stages != {'s':306,'u':612,'retrain':306}:

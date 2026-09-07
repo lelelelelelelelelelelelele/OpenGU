@@ -2,7 +2,8 @@ kind: experiment
 schema_version: 1
 experiment_id: example-cora-retrain
 stage: unlearning
-dataset_ref: cora.yaml
+dataset_refs:
+- cora.yaml
 selector_refs:
 - degree.yaml
 - gt_full.yaml

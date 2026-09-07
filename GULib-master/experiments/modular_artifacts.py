@@ -52,6 +52,8 @@ def export_outputs(summary, *, output, store_root):
             strategy=strategy, meta={'method': payload.identity['target']['method'],
                 'strategy': strategy, 'seed': payload.identity['pairing']['training']['seed'],
                 'selection_artifact': payload.identity['selection'],
+                'matrix_values': row['matrix_values'],
+                'dataset': summary['datasets'][row['matrix_values']['dataset_index']],
                 'config_fingerprint': summary['configuration_fingerprint'],
                 'git_sha': summary['execution_receipt']['source_git_sha'],
                 'execution_receipt': summary['execution_receipt']})
@@ -68,8 +70,17 @@ def read_summary_outputs(path, expected_sha256):
     if hashlib.sha256(path.read_bytes()).hexdigest() != expected_sha256:
         raise ValueError('summary checksum mismatch')
     summary = json.loads(path.read_text(encoding='utf-8'))
+    if summary.get('schema') != 'opengu.modular_run' or summary.get('version') != 3:
+        raise ValueError('expected modular summary version 3')
     outputs = []
-    for row in summary['unlearning']:
+    seen = set()
+    for index, row in enumerate(summary['unlearning']):
+        expected = {(Path(path.stem + '.outputs') / str(index) / name).as_posix() for name in ARTIFACT_NAMES}
+        paths = {item['path'] for item in row['collected_artifacts'].values()}
+        if (set(row['collected_artifacts']) != set(ARTIFACT_NAMES)
+                or len(paths) != len(ARTIFACT_NAMES) or seen & paths or paths != expected):
+            raise ValueError('duplicate or invalid summary output paths')
+        seen.update(paths)
         artifacts = {name: {'local_path': item['path'], 'sha256': item['sha256']}
                      for name, item in row['collected_artifacts'].items()}
         result = read_method_output(artifacts, path.parent)
@@ -79,5 +90,15 @@ def read_summary_outputs(path, expected_sha256):
             raise ValueError('collected configuration fingerprint mismatch')
         if result['meta']['execution_receipt'] != summary['execution_receipt']:
             raise ValueError('collected execution receipt mismatch')
+        from cache_v2 import canonical_sha256
+        binding = row['matrix_values']
+        if type(binding['dataset_index']) is not int or not 0 <= binding['dataset_index'] < len(summary['datasets']):
+            raise ValueError('invalid collected dataset index')
+        dataset = summary['datasets'][binding['dataset_index']]
+        if (binding['dataset_name'] != dataset['dataset']['dataset']['name']
+                or binding['dataset_fingerprint'] != canonical_sha256(dataset['dataset'])
+                or result['meta']['matrix_values'] != binding
+                or result['payload'].identity['pairing']['data_identity'] != dataset['data_identity']):
+            raise ValueError('collected output Dataset/Split ownership mismatch')
         outputs.append(result)
     return summary, outputs

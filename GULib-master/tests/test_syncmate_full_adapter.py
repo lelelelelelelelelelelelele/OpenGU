@@ -59,8 +59,10 @@ def test_existing_experiment_templates_use_common_cli(block, cells, batches, tmp
 
 def test_registry_contains_only_current_reviewed_recipes(project_extension):
     definitions = project_extension.recipes(PROJECT_ROOT)
-    expected_ids = {'smoke','opengu-preflight-v1','opengu-aagu007-v2','opengu-aagu032-v1'}
-    assert len(definitions) == 4
+    expected_ids = {'smoke','opengu-preflight-v1','opengu-aagu007-v2','opengu-aagu032-v1',
+        'opengu-aagu032-extend-cora-v1','opengu-aagu032-extend-citeseer-v1',
+        'opengu-aagu032-extend-pubmed-v1','opengu-aagu032-extend-v2'}
+    assert len(definitions) == 8
     assert set(definitions) == expected_ids
 
 
@@ -76,7 +78,7 @@ def test_representative_recipe_fields_remain_exact(project_extension):
     recipe = definitions['opengu-aagu007-v2']
     assert recipe['timeout_seconds'] == 1800
     assert recipe['logical_cells'] == 4
-    assert recipe['expected_dataset'] == {'num_nodes':2708,'candidate_count':1895}
+    assert recipe['expected_datasets'] == [{'num_nodes':2708,'candidate_count':1895}]
     assert recipe['requires_job_expected_git_sha'] is True
 
 

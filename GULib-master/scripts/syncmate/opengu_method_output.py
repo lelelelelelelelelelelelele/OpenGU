@@ -66,6 +66,16 @@ def read_method_output(artifacts, project_root):
     payload = UnlearningOutputPayload.from_bytes(content['predictions.npz'])
     validate_embedded_data(payload)
     identity = payload.identity
+    from cache_v2 import canonical_sha256
+    dataset = meta['dataset']
+    binding = meta['matrix_values']
+    if (binding['dataset_name'] != dataset['dataset']['dataset']['name']
+            or binding['dataset_fingerprint'] != canonical_sha256(dataset['dataset'])
+            or dataset['data_identity'] != identity['pairing']['data_identity']
+            or dataset['data_identity']['split_hash'] != dataset['dataset']['artifacts']['split_hash']
+            or dataset['num_nodes'] != len(payload.arrays['y'])
+            or dataset['candidate_count'] != int(payload.arrays['train_mask'].sum())):
+        raise ValueError('method output Dataset/Split provenance mismatch')
     recipe = ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **identity})
     reference = {'recipe_hash': recipe.recipe_hash, 'content_hash': payload.content_hash,
         'artifact_id': build_artifact_id(ArtifactType.PREDICTION, recipe.recipe_hash, payload.content_hash)}

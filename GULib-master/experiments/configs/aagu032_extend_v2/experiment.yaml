@@ -1,8 +1,11 @@
 kind: experiment
 schema_version: 1
-experiment_id: aagu032-extended-v2-cora-gcn-retrain
+experiment_id: aagu032-extended-v2-multi-gcn-retrain
 stage: unlearning
-dataset_ref: cora.yaml
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
 selector_refs:
 - gt_full.yaml
 - gt_full_all_trainable.yaml

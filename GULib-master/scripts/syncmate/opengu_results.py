@@ -208,7 +208,12 @@ def results_payload(
                     raise ValueError('collected method leaf is incomplete')
                 read = read_method_output(leaf.get("artifacts") or {}, project_root)
                 meta, result = read['meta'], read['result']
-                row.update(method=meta['method'], strategy=meta['strategy'], strategy_full=meta['strategy'],
+                binding = meta['matrix_values']
+                row.update(dataset=binding['dataset_name'], matrix_values=binding,
+                    dataset_fingerprint=binding['dataset_fingerprint'],
+                    base_model=read['payload'].identity['pairing']['model']['architecture'],
+                    ratio=binding['budget_ratio'], seed=meta['seed'],
+                    method=meta['method'], strategy=meta['strategy'], strategy_full=meta['strategy'],
                     git_sha=meta['git_sha'][:7], output=read['output'], evaluation=read['evaluation'],
                     f1_after=result['f1_after'], f1_drop=result['f1_drop'],
                     selected_n=len(result['selected_nodes']), compute_seconds=result['compute_seconds'],

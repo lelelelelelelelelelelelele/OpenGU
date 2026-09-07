@@ -31,7 +31,7 @@
 
 ## 4. 统一配置消费者
 
-普通 `kind: experiment` 表只绑定一个Dataset/Split，引用 `configs/datasets/`、`selectors/`、`unlearning/`、`evaluations/` 公共实例。通用解析器拒绝旧扁平配置和未知字段。大表只允许覆盖训练 `seeds` 与 `budget_ratios`，优先级为大表显式值、小表填写值、方法默认值；执行时记录有效值与来源，源文件保持不变。
+普通 `kind: experiment` 表通过非空 `dataset_refs` 列表绑定一个或多个独立 Dataset/Split（单数据集也用列表），引用 `configs/datasets/`、`selectors/`、`unlearning/`、`evaluations/` 公共实例。通用解析器拒绝旧字段和未知字段。大表只允许覆盖训练 `seeds` 与 `budget_ratios`，优先级为大表显式值、小表填写值、方法默认值；执行时记录有效值与来源，源文件保持不变。
 
 配置检查与实际执行都使用 `run.py → modular_config → modular_run`。本地dry-run命令为 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run`。普通执行和SyncMate注册均直接调用 `run.py <config.yaml> --run-id <id>`，没有专用stage或第二次YAML生成。运行设备只读取Core解析的 `.syncmate/device.yaml` 中 `execution_device`，执行根来自 `repo_path`；字段缺失或设备不可用即拒绝。Core按peer配置选择SSH目录及解释器，处理版本绑定、队列与回传。隔离验证另需显式 `--verification-root <temporary-root>`；该根须等于设备配置的 `repo_path`，测试资产须在根内。可用 `--device-config <temporary-device.yaml>` 指定临时设备文件；不能以本地验证代替正式SSH/GPU证据。
 
@@ -39,7 +39,7 @@
 
 ## 5. 通用矩阵与证据接缝
 
-组合表展开Selector×独立方法×训练seed×预算。两侧模型训练seed按批次配对，Degree/Random等无需模型的Selector不因训练seed变更失效。GNNDelete、GIF和Retrain各自消费真实Selection并保存独立Output，不隐式调用另一方法。
+组合表按声明顺序展开 Dataset/Split×Selector×独立方法×训练seed×预算。每个 cell 记录数据集序号、名称与实例指纹；这些展示坐标不进入计算缓存身份。两侧模型训练seed按批次配对，Degree/Random等无需模型的Selector不因训练seed变更失效。GNNDelete、GIF和Retrain各自消费真实Selection并保存独立Output，不隐式调用另一方法。
 
 Selector/Unlearning只以selector_refs声明选点规则；两阶段按同一有效输入与producer自动查找Score/Selection缓存，HIT复用、MISS计算。实际Artifact身份、哈希和HIT/MISS保存在结果中，不要求手填上一轮Selection或summary。执行与核验共用批次及条件展开。Metrics仍读取已收集Output summary及完整预测产物；缺少、冲突或过时Output引用失败关闭。
 

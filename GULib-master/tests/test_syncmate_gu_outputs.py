@@ -102,7 +102,7 @@ def test_collection_faults_fail_closed(exported,fault):
             path=collector/entry['local_path'];summary=json.loads(path.read_text())
             if fault=='semantic_budget':summary['unlearning'][0]['matrix_values']['budget_ratio']=.9
             if fault=='semantic_selector':summary['selectors'][0]['selector_ref']='wrong.yaml'
-            if fault=='semantic_dataset':summary['dataset']['split']['seed']=999
+            if fault=='semantic_dataset':summary['datasets'][0]['dataset']['split']['seed']=999
             path.write_text(json.dumps(summary));entry['sha256']=hashlib.sha256(path.read_bytes()).hexdigest()
         result=extension.accept('modular-output-v1',definition,collected)
         assert not result['passed'] and result['errors']

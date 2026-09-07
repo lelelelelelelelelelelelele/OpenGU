@@ -2,7 +2,8 @@ kind: experiment
 schema_version: 1
 experiment_id: aagu015-s-citeseer
 stage: selector
-dataset_ref: citeseer.yaml
+dataset_refs:
+- citeseer.yaml
 selector_refs:
 - a_grad_norm.yaml
 - b_param_hutch.yaml

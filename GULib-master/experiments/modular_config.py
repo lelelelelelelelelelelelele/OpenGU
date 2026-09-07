@@ -9,7 +9,7 @@ from experiments.target_direct_v1.methods import resolve_parameters, uses_model,
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_DIRECTORIES = {
-    'dataset_ref': 'datasets',
+    'dataset_refs': 'datasets',
     'selector_refs': 'selectors',
     'unlearning_refs': 'unlearning',
     'evaluation_refs': 'evaluations',
@@ -214,7 +214,7 @@ def resolve_budget(value, candidate_count):
 def load_experiment(path):
     path = Path(path).resolve()
     value = read_yaml(path)
-    required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_ref', 'matrix'}
+    required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_refs', 'matrix'}
     fields(value, required | {'round',
         'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
         'seeds', 'budget_ratios'},
@@ -237,11 +237,18 @@ def load_experiment(path):
     elif 'output_inputs' in value:
         raise ConfigurationError('output_inputs belongs to the metrics stage')
     result = dict(value)
-    dataset_path = resolve_reference('dataset_ref', value['dataset_ref'], path.parent)
-    result['dataset'] = load_instance(dataset_path, 'dataset_split')
-    result['dataset_directory'] = str(dataset_path.parent)
+    refs = value['dataset_refs']
+    if not isinstance(refs, list) or not refs:
+        raise ConfigurationError('dataset_refs must be a nonempty list')
+    paths = [resolve_reference('dataset_refs', ref, path.parent) for ref in refs]
+    result['datasets'] = [load_instance(p, 'dataset_split') for p in paths]
+    from cache_v2 import canonical_sha256
+    fingerprints = [canonical_sha256(item) for item in result['datasets']]
+    if len(set(paths)) != len(paths) or len(set(fingerprints)) != len(fingerprints):
+        raise ConfigurationError('dataset_refs must not contain duplicate Dataset/Split instances')
+    result['dataset_directories'] = [str(p.parent) for p in paths]
     result['configuration_sources'] = {
-        'dataset': str(dataset_path), 'selectors': [], 'unlearnings': [], 'evaluations': []}
+        'datasets': [str(p) for p in paths], 'selectors': [], 'unlearnings': [], 'evaluations': []}
     for field, kind in (('selector_refs', 'selector'), ('unlearning_refs', 'unlearning'),
                         ('evaluation_refs', 'evaluation')):
         refs = value.get(field, [])
@@ -291,20 +298,23 @@ def experiment_batches(config):
     Within a batch, Selector x Unlearning remains the existing Cartesian product.
     Training seeds are paired across the two model consumers, not crossed.
     """
-    for seed in config.get('seeds', [None]):
-        for ratio in config.get('budget_ratios', [None]):
-            batch = copy.deepcopy(config)
-            batch['matrix_values'] = {'training_seed': seed, 'budget_ratio': ratio}
-            for kind in ('selector', 'unlearning'):
-                for index, instance in enumerate(batch[kind + 's']):
-                    sources = batch['configuration_sources'][kind + 's'][index]
-                    if seed is not None and 'training' in instance:
-                        instance['training']['seed'] = seed
-                        sources['training.seed'] = 'experiment:seeds'
-                    if kind == 'selector' and ratio is not None:
-                        instance['budget']['value'] = float(ratio)
-                        sources['budget.value'] = 'experiment:budget_ratios'
-            yield batch
+    for index, dataset in enumerate(config['datasets']):
+        for seed in config.get('seeds', [None]):
+            for ratio in config.get('budget_ratios', [None]):
+                batch = copy.deepcopy(config)
+                batch['dataset'] = dataset
+                batch['dataset_directory'] = config['dataset_directories'][index]
+                batch['matrix_values'] = {**dataset_binding(config, index), 'training_seed': seed, 'budget_ratio': ratio}
+                for kind in ('selector', 'unlearning'):
+                    for instance_index, instance in enumerate(batch[kind + 's']):
+                        sources = batch['configuration_sources'][kind + 's'][instance_index]
+                        if seed is not None and 'training' in instance:
+                            instance['training']['seed'] = seed
+                            sources['training.seed'] = 'experiment:seeds'
+                        if kind == 'selector' and ratio is not None:
+                            instance['budget']['value'] = float(ratio)
+                            sources['budget.value'] = 'experiment:budget_ratios'
+                yield batch
 
 
 def selector_entries(batch):
@@ -331,11 +341,19 @@ def configuration_fingerprint(path):
             raise ConfigurationError('cyclic configuration references')
         visited.add(current)
         value = read_yaml(current)
-        refs = ([resolve_reference('dataset_ref', value['dataset_ref'], current.parent)] if 'dataset_ref' in value else [])
-        for field in ('selector_refs', 'unlearning_refs', 'evaluation_refs'):
+        refs = []
+        for field in ('dataset_refs', 'selector_refs', 'unlearning_refs', 'evaluation_refs'):
             refs.extend(resolve_reference(field, ref, current.parent) for ref in value.get(field, []))
         children = [document(ref) for ref in refs]
         visited.remove(current)
         return {'document': value, 'references': children}
     return hashlib.sha256(json.dumps(document(path), sort_keys=True,
         separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+
+
+def dataset_binding(config, index):
+    """Presentation coordinates never enter computational cache identities."""
+    from cache_v2 import canonical_sha256
+    dataset = config['datasets'][index]
+    return {'dataset_index': index, 'dataset_name': dataset['dataset']['name'],
+            'dataset_fingerprint': canonical_sha256(dataset)}

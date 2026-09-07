@@ -22,8 +22,7 @@ from utils.target_checkpoint import data_identity, sha256_file
 def write_yaml(path, value):
     if value.get('kind') == 'experiment':
         value = dict(value)
-        value['dataset_ref'] = str((path.parent / value['dataset_ref']).resolve())
-        for field in ('selector_refs', 'unlearning_refs', 'evaluation_refs'):
+        for field in ('dataset_refs', 'selector_refs', 'unlearning_refs', 'evaluation_refs'):
             if field in value:
                 value[field] = [str((path.parent / ref).resolve()) for ref in value[field]]
     path.write_text(yaml.safe_dump(value, sort_keys=False), encoding='utf-8')
@@ -62,7 +61,7 @@ def run_example(directory):
             'parameters': parameters})
     write_yaml(directory / 'gap.yaml', {'kind': 'evaluation', 'schema_version': 1,
                                       'case': 'post_unlearning_utility_and_retrain_gap'})
-    base = {'kind': 'experiment', 'schema_version': 1, 'dataset_ref': 'dataset.yaml',
+    base = {'kind': 'experiment', 'schema_version': 1, 'dataset_refs': ['dataset.yaml'],
             'matrix': 'cartesian_product'}
     def run(name, **fields):
         path = directory / (name + '.yaml')
