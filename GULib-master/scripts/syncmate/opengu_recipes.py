@@ -11,6 +11,16 @@ RUNNER_RECIPE_ALLOWED_TOOL_DELTA = ("GULib-master/scripts/syncmate/", "GULib-mas
 # These fingerprints are reviewed constants, not recomputed expected values.
 # Changing any referenced table requires a new review and updated registration.
 EXPERIMENT_RECIPES = {
+    'opengu-aagu031-stage-s-v2': {
+        'config_path': 'experiments/configs/aagu031/stage_s.yaml',
+        'config_sha256': 'b996e5f654ce14e3924cf384931336568ccb5957e615be9dcddf68fd2d6767f3',
+        'configuration_fingerprint': '5ee2ab0b879f20e6b0eb24b37a6cbe351fee641c4b501fdbff7955fa5498ad44',
+        'run_identity': {'experiment_id': 'aagu031-selector-stage-s-v2', 'run_id': 'aagu031-stage-s-v2'},
+        'timeout_seconds': 21600, 'logical_cells': 72, 'stage': 'selector',
+        'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
+                              {'num_nodes': 3327, 'candidate_count': 2328},
+                              {'num_nodes': 19717, 'candidate_count': 13801}],
+    },
     'opengu-aagu007-v2': {
         'config_path': 'experiments/configs/aagu007/experiment.yaml',
         'config_sha256': '19208034fb94760b546f811af73673f97ca0cb9f12619ce41f194f807f5e8848',
@@ -58,7 +68,7 @@ EXPERIMENT_RECIPES = {
      'expected_datasets': [{'num_nodes': 19717, 'candidate_count': 13801}]},
     'opengu-aagu032-extend-v2': {
         'config_path': 'experiments/configs/aagu032_extend_v2/experiment.yaml',
-        'config_sha256': '79fb4cd376dc10c6579f514eaee02e812e6f49eed7c386cbb3597b4dc8a445e1',
+        'config_sha256': 'c6032e4d5ed8a9d3ac02b5366eb42a018bfa09b16a08e1f671a6810005f62aa8',
         'configuration_fingerprint': 'a98b63a0bf2ee0377edc031e21b9db992d45123243fbe32d2b68330a21354842',
         'run_identity': {'experiment_id': 'aagu032-extended-v2-multi-gcn-retrain', 'run_id': 'aagu032-extend-v2'},
         'timeout_seconds': 21600, 'logical_cells': 360, 'stage': 'unlearning',

@@ -42,4 +42,4 @@ Cache 按实际配置、输入、producer 与依赖身份判断 HIT/MISS。Degre
 & E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/aagu031/stage_s.yaml --dry_run
 ```
 
-本次只更新实验配置并做本地无写入展开。正式运行仍需落地版本、对应队列注册及运行前置审验；当前不因改表自动入队。
+队列注册为 `opengu-aagu031-stage-s-v2`，run ID 为 `aagu031-stage-s-v2`，由普通 `experiments/run.py` 消费本表；绑定配置及全部引用指纹、72 条件、三数据集候选数和 Selector summary 产物。超时上限为 21600 秒（6 小时），沿用现有矩阵上限，不是完成时间估计。正式运行仍需落地版本及运行前置审验；注册不提交作业。
