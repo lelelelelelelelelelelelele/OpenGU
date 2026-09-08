@@ -17,7 +17,7 @@ from utils.target_checkpoint import data_identity
 from experiments.dataset_inputs import read_dataset
 
 
-def verified_selection(reference, *, store_root, data, inputs, expected_selector=None, expected_k=None):
+def verified_selection(reference, *, store_root, data, inputs, expected_selector=None, expected_k=None, expected_parameters=None):
     fields(reference, {'artifact_id', 'recipe_hash', 'content_hash'},
            {'artifact_id', 'recipe_hash', 'content_hash'}, 'Selection reference')
     if any(not value for value in reference.values()):
@@ -26,7 +26,7 @@ def verified_selection(reference, *, store_root, data, inputs, expected_selector
         candidate_nodes=inputs.candidate_nodes, expected_selector=expected_selector, expected_k=expected_k,
         expected_dataset_fingerprint=inputs.dataset_fingerprint,
         expected_graph_fingerprint=inputs.graph_fingerprint,
-        expected_parameters={'split_hash': data_identity(data)['split_hash']})
+        expected_parameters={'split_hash': data_identity(data)['split_hash'], **(expected_parameters or {})})
     if loaded.recipe_hash != reference['recipe_hash'] or loaded.content_hash != reference['content_hash']:
         raise ConfigurationError('Selection digest mismatch')
     return loaded
@@ -180,14 +180,20 @@ def _execute(path, *, context=None, dry_run=False, run_state):
             if 'model' in item:
                 model, checkpoints, observation = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
                     checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
-            resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
-                model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
+            if item['method'] == 'im':
+                from experiments.modular_im import resolve_im
+                resolved = resolve_im(item, store_root=store_root, data=data, inputs=inputs)
+            else:
+                resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
+                    model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
             reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
             loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
-                expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'])
+                expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'],
+                expected_parameters=item['parameters'] if item['method'] == 'im' else None)
             loaded_selections[selector_ref] = selection_prefix(loaded, item['budget']['k'])
             summary['selectors'].append({**resolved, 'checkpoint': observation, 'matrix_values': batch['matrix_values'],
-                'selector_ref': selector_ref, 'requested_k': item['budget']['k']})
+                'selector_ref': selector_ref, 'requested_k': item['budget']['k'],
+                'configuration_sources': batch['configuration_sources']['selectors'][batch['selector_refs'].index(selector_ref)]})
             if config.get('return_scores'):
                 from experiments.modular_artifacts import existing_scores
                 arrays, semantics = existing_scores(resolved, inputs.candidate_nodes)

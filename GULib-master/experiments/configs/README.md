@@ -33,3 +33,5 @@ Selector/Unlearning只以 `selector_refs` 声明选点；后续方法使用相�
 新结果采用 [结果回传合同](../../docs/experiment-result-return-contract.md) 的 `results/runs/<experiment-id>/<run-id>/run.json` 与 cell 条件目录。常规回传 Metrics/Selection，`return_scores: true` 才交付已有评分数组，禁止为回传扩大计算。目录存在即拒绝覆盖；Metrics 使用新的 run 重算，收集后重建当前结果表，历史 run 保留。Cache V2 根据有效输入和 producer 自动 HIT/MISS；表路径、实验名称、run_id、输出位置不进入计算身份。
 
 旧扁平配置与 formal-v2 配方已退出执行，原文保存在 [历史配置](../../docs/archive/experiment-configs-pre-aagu034/)。历史结果和 Cache V2 不被迁移或清空。完整合同见 [实验规范](../../docs/experiment_contract/README.md)。
+
+IM的独立selector seed轴、单值/多值普通表示例及选集复用见 [AAGU-040](aagu040/README.md)。

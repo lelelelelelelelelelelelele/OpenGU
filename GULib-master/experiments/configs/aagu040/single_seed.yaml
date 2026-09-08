@@ -1,0 +1,24 @@
+kind: experiment
+schema_version: 1
+experiment_id: aagu040-im-single-example
+stage: unlearning
+dataset_refs:
+- cora.yaml
+selector_refs:
+- im.yaml
+- degree.yaml
+- random.yaml
+- r_point.yaml
+unlearning_refs:
+- retrain.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds:
+- 42
+- 212
+- 2024
+budget_ratios:
+- 0.1
+im_selector_seeds:
+- 2024
