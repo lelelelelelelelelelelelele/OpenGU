@@ -335,7 +335,7 @@ CP-6 对 point 有轻微帮助，对 graph 几乎无变化，对 simple 反而�
 
 - GU 正式矩阵与逐方法汇总：[`reports/small_selection_gu_FULL_REPORT.md`](../../../reports/small_selection_gu_FULL_REPORT.md)
 - B/C 目标矩阵及历史 retrain 对照：[`reports/bc_target_matrix_REPORT.md`](../../../reports/bc_target_matrix_REPORT.md)
-- IF / GIF 公式分类与 selection fidelity：[`report/paper/outline/A6_if_gif_taxonomy.md`](../../paper/outline/A6_if_gif_taxonomy.md)
+- IF / GIF 公式分类与 selection fidelity：原 `report/paper/outline/A6_if_gif_taxonomy.md`（旧大纲已删除；此处保留当时引用的来源名称）
 - 正式 cell 指标：`results/runs/gpu4090-gu-20260722/analysis/cell_metrics.csv`
 - dataset-selector 汇总：`results/runs/gpu4090-gu-20260722/analysis/dataset_selector_summary.csv`
 

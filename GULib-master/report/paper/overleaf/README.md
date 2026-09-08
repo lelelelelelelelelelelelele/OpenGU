@@ -1,5 +1,7 @@
 # Overleaf submission package — NeurIPS 2025/2026
 
+> 当前章节规划与正文草稿由 [OB 论文主页面](../../../../../OpenGU-DocMap/40_论文写作/40_论文写作.md)及其独立章节维护。本目录是正式投稿输出，内容成熟后再整理；以下既有说明保留其历史时间与证据范围。
+
 > Created 2026-05-04. NeurIPS 2026 `.sty` file is not yet released as of this
 > date; the 2025 `.sty` is shipped here. When 2026 official files appear,
 > drop them into this directory and update `\usepackage{neurips_2026}` →
