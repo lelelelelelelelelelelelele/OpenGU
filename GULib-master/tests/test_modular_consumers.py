@@ -52,7 +52,7 @@ def tables(tmp_path, record_property):
     selector = {'kind': 'selector', 'schema_version': 1, 'method': 'degree',
         'candidate': {'pool': 'train_mask'}, 'budget': {'mode': 'k', 'value': 1}}
     write_yaml(tmp_path / 'degree.yaml', selector)
-    for name in ('b_param_hutch', 'tracin_cp_point_3', 'r_point', 'legacy'):
+    for name in ('b_param_hutch', 'tracin_cp_point_3', 'r_point'):
         write_yaml(tmp_path / (name + '.yaml'), {**selector, 'method': name, 'model': model, 'training': training})
     gu = {'kind': 'unlearning', 'schema_version': 1, 'method': 'GNNDelete', 'model': model,
           'training': training, 'parameters': {'unlearning_epochs': 2}}
@@ -242,13 +242,13 @@ def test_invalid_method_configuration_fails_before_store(tables, bad):
     assert not (root / 'v2').exists()
 
 
-def test_all_seventeen_methods_match_pre_refactor_formulas(tables, record_property):
+def test_all_active_methods_match_pre_refactor_formulas(tables, record_property):
     from experiments.modular_config import load_instance, resolve_budget
     from experiments.modular_model import prepare_model
     from experiments.modular_run import read_dataset
     from experiments.target_direct_v1.method_cache import resolve_methods
     from experiments.target_direct_v1.methods import SCORE_NAMES, resolve_parameters
-    from experiments.c_target_v1.core import checkpoint_point_gradients, inverse_hessian_target, deployed_cross_gradient_scores
+    from experiments.c_target_v1.core import checkpoint_point_gradients, inverse_hessian_target
     from experiments.target_direct_v1.scoring import (checkpoint_graph_scores, checkpoint_view_indices,
         degree_scores, deterministic_random_scores, inverse_hessian_vectors,
         hutchinson_parameter_change_scores, weighted_checkpoint_scores)
@@ -273,7 +273,7 @@ def test_all_seventeen_methods_match_pre_refactor_formulas(tables, record_proper
         hessian_train_ids=candidates, parameter_scope='last_layer', vectors=probes, **lissa)[0]
     expected = dict(a_grad_norm=matrix.norm(dim=1), b_param_hutch=hutchinson_parameter_change_scores(matrix, inverse_probes),
         degree=degree_scores(data.edge_index, candidates, data.num_nodes), random=deterministic_random_scores(len(candidates), 104245),
-        r_point=matrix.mv(inverse), p_point=matrix.mv(points[-1][1]), legacy=deployed_cross_gradient_scores(matrix),
+        r_point=matrix.mv(inverse), p_point=matrix.mv(points[-1][1]),
         **graph['final_scores'])
     views = checkpoint_view_indices(len(checkpoints))
     for source, vectors in [('point', [m.mv(t).to(torch.float64) for m,t in points]),
@@ -299,8 +299,8 @@ def test_all_seventeen_methods_match_pre_refactor_formulas(tables, record_proper
         torch.testing.assert_close(actual, expected[name].to(torch.float64), rtol=1e-6, atol=1e-9)
         errors[name] = float((actual-expected[name]).abs().max())
         assert not cold[name]['score']['hit'] and warm[name]['score']['hit']
-    assert len({item['score']['recipe_hash'] for item in cold.values()}) == 17
-    record_property('seventeen_method_max_abs_error', json.dumps(errors))
+    assert len({item['score']['recipe_hash'] for item in cold.values()}) == 16
+    record_property('active_method_max_abs_error', json.dumps(errors))
 
 
 def gu_reason_once_variant(self, data):

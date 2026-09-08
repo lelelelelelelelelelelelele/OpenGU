@@ -55,6 +55,7 @@ MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 STAGES = [
     ("实验起点", "实验起点 · 最小正式验证"),
     ("Phase 1", "Phase 1 · Selector"),
+    ("IM · 效果比较", "IM · 效果比较"),
     ("Phase 2 · 完整实验表", "Phase 2 · 完整实验表"),
     ("修复队列", "修复"),
     ("实验 timeline", "既有实验 · 待映射"),

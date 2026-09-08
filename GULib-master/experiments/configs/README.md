@@ -11,7 +11,7 @@
 | 目录 | 职责 |
 |---|---|
 | [datasets](datasets/) | 已持久化 Dataset/Split 和真实资产引用；不同 split 保留独立实例 |
-| [selectors](selectors/) | 17 种 Selector 的有效参数；另有明确的 B-Hutch64 变体 |
+| [selectors](selectors/) | 16 种 Selector 的有效参数；另有明确的 B-Hutch64 变体 |
 | [unlearning](unlearning/) | 独立 GNNDelete、GIF、Retrain；另有明确 lr=0.02 变体 |
 | [evaluations](evaluations/) | 单方法指标、utility、远端重算的 retrain-gap |
 | [aagu015](aagu015/) | 每数据集四张普通阶段表，无逐 seed/预算生成 YAML |

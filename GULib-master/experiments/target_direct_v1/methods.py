@@ -7,7 +7,6 @@ import torch
 from experiments.effective_config import effective, choice, ConfigurationError
 from experiments.c_target_v1.core import (
     checkpoint_point_gradients, inverse_hessian_target, graph_source_scores,
-    deployed_cross_gradient_scores,
 )
 from experiments.target_direct_v1.scoring import (
     degree_scores, deterministic_random_scores, inverse_hessian_vectors,
@@ -16,7 +15,7 @@ from experiments.target_direct_v1.scoring import (
 
 
 SCORE_NAMES = (
-    'a_grad_norm', 'b_param_hutch', 'degree', 'gt_full', 'gt_simple', 'legacy',
+    'a_grad_norm', 'b_param_hutch', 'degree', 'gt_full', 'gt_simple',
     'p_graph', 'p_point', 'p_simple', 'r_point', 'random',
     'tracin_cp_graph_3', 'tracin_cp_graph_6', 'tracin_cp_point_3',
     'tracin_cp_point_6', 'tracin_cp_simple_3', 'tracin_cp_simple_6',
@@ -33,7 +32,7 @@ def uses_model(name):
 
 
 def uses_target(name):
-    return uses_model(name) and name not in {'a_grad_norm', 'b_param_hutch', 'legacy'}
+    return uses_model(name) and name not in {'a_grad_norm', 'b_param_hutch'}
 
 
 def uses_graph_source(name):
@@ -135,10 +134,6 @@ def score_a(c, p):
     return c.point(len(c.checkpoints)-1, p['parameter_scope'])[0].norm(dim=1)
 
 
-def score_legacy(c, p):
-    return deployed_cross_gradient_scores(c.point(len(c.checkpoints)-1, p['parameter_scope'])[0])
-
-
 def score_b(c, p):
     matrix = c.point(len(c.checkpoints)-1, p['parameter_scope'])[0]
     generator = torch.Generator(device='cpu').manual_seed(p['hutchinson']['seed'])
@@ -194,7 +189,7 @@ def score_trajectory(c, p, *, source):
 
 
 METHODS = {'degree': score_degree, 'random': score_random, 'a_grad_norm': score_a,
-           'b_param_hutch': score_b, 'legacy': score_legacy, 'r_point': score_r, 'p_point': score_point}
+           'b_param_hutch': score_b, 'r_point': score_r, 'p_point': score_point}
 METHODS.update({name: partial(score_graph, name=name) for name in GRAPH_METHODS})
 METHODS.update({name: partial(score_trajectory, source=name.split('_')[2])
                 for name in SCORE_NAMES if name.startswith('tracin_cp_')})

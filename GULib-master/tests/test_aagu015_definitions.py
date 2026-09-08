@@ -13,8 +13,8 @@ def test_all_ordinary_tables_no_write_or_producer(monkeypatch):
         monkeypatch.setattr(entry,name,forbidden)
     monkeypatch.setattr(Path,'mkdir',forbidden)
     result=dry_run()
-    assert result['counts']=={'stage_s':306,'stage_u':612,'independent_retrain':306,
-        'conditional_preparation_groups':9,'conditional_score_groups':141,'conditional_selection_groups':282}
+    assert result['counts']=={'stage_s':288,'stage_u':576,'independent_retrain':288,
+        'conditional_preparation_groups':9,'conditional_score_groups':132,'conditional_selection_groups':264}
     assert result['maintained_yaml']==12 and result['generated_yaml']==0
     assert not list((CONFIG/'generated').rglob('*.yaml'))
     assert {(r['dataset'],r['planned_k']) for r in result['stage_s']}=={
@@ -24,14 +24,14 @@ def test_all_ordinary_tables_no_write_or_producer(monkeypatch):
 def test_declared_selection_stages_pair_training_seeds():
     for path in CONFIG.glob('stage_u_*.yaml'):
         config=load_experiment(path)
-        assert len(config['selectors'])==17
+        assert len(config['selectors'])==16
         assert config['selector_refs']
         batches=list(experiment_batches(config))
         assert len(batches)==6
         for batch in batches:
             assert {i['training']['seed'] for i in batch['unlearnings']}=={batch['matrix_values']['training_seed']}
-            assert len(batch['selectors'])==17
-        assert execute(path,dry_run=True)['logical_cells']==204
+            assert len(batch['selectors'])==16
+        assert execute(path,dry_run=True)['logical_cells']==192
 
 
 def test_032_remains_42_conditions():

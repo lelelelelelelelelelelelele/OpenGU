@@ -16,7 +16,6 @@ selector_refs:
 - degree.yaml
 - gt_full.yaml
 - gt_simple.yaml
-- legacy.yaml
 - p_graph.yaml
 - p_point.yaml
 - p_simple.yaml

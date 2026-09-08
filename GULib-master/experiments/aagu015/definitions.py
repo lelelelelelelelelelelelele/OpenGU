@@ -26,7 +26,7 @@ def dry_run(directory=CONFIG):
                 raise ValueError('AAGU-015 scientific axes changed')
             for batch in experiment_batches(config):
                 if sorted(s['method'] for s in batch['selectors']) != sorted(SELECTORS):
-                    raise ValueError('AAGU-015 requires all 17 registered selectors')
+                    raise ValueError('AAGU-015 requires all currently registered selectors')
                 for selector in batch['selectors']:
                     budget = resolve_budget(selector['budget'], int(count * .7))
                     name = selector['method']; seed = selector.get('training',{}).get('seed')
@@ -41,7 +41,7 @@ def dry_run(directory=CONFIG):
                     rows.append({'dataset':batch['dataset']['dataset']['name'],'selector':name,
                         'training_seed':seed,'matrix_values':batch['matrix_values'],
                         'planned_k':budget['k'],'checkpoint_steps':steps})
-    if stages != {'s':306,'u':612,'retrain':306}:
+    if stages != {'s':288,'u':576,'retrain':288}:
         raise ValueError('AAGU-015 stage cardinality drift')
     return {'evidence_level':'configuration_only','execution_ready':False,'producer_called':False,
         'generated_result_artifacts':[], 'maintained_yaml':len(list(directory.glob('*.yaml'))),
