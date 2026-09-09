@@ -1,0 +1,10 @@
+kind: selector
+schema_version: 1
+method: pagerank
+candidate:
+  pool: train_mask
+budget:
+  mode: ratio
+  value: 0.10
+parameters:
+  pagerank_alpha: 0.85

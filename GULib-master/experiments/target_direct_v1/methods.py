@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from functools import partial
+import math
 import torch
 
 from experiments.effective_config import effective, choice, ConfigurationError
@@ -16,7 +17,7 @@ from experiments.target_direct_v1.scoring import (
 
 SCORE_NAMES = (
     'a_grad_norm', 'b_param_hutch', 'degree', 'gt_full', 'gt_simple',
-    'p_graph', 'p_point', 'p_simple', 'r_point', 'random',
+    'p_graph', 'p_point', 'p_simple', 'r_point', 'random', 'pagerank',
     'tracin_cp_graph_3', 'tracin_cp_graph_6', 'tracin_cp_point_3',
     'tracin_cp_point_6', 'tracin_cp_simple_3', 'tracin_cp_simple_6',
 )
@@ -28,7 +29,7 @@ IHVP_METHODS = frozenset({'b_param_hutch', 'r_point', 'gt_full', 'gt_simple'})
 
 
 def uses_model(name):
-    return name not in {'degree', 'random'}
+    return name not in {'degree', 'random', 'pagerank'}
 
 
 def uses_target(name):
@@ -52,6 +53,8 @@ def parameter_defaults(name):
         value['affected_hops'] = 2
     if name == 'b_param_hutch':
         value['hutchinson'] = {'probes': 32, 'seed': 1729}
+    if name == 'pagerank':
+        value['pagerank_alpha'] = 0.85
     if name == 'random':
         value['seed'] = 104245
     if name.startswith('tracin_cp_'):
@@ -62,6 +65,10 @@ def parameter_defaults(name):
 
 def resolve_parameters(name, supplied=None):
     params = effective({} if supplied is None else supplied, parameter_defaults(name))
+    if name == 'pagerank':
+        alpha = params['pagerank_alpha']
+        if isinstance(alpha, bool) or not isinstance(alpha, (int, float)) or not math.isfinite(alpha) or not 0 <= alpha <= 1:
+            raise ConfigurationError('pagerank_alpha must be finite and in [0, 1]')
     if 'parameter_scope' in params:
         choice(params['parameter_scope'], ('last_layer', 'all_trainable'), 'parameter_scope')
     for loss in ('target_loss', 'hessian_loss'):
@@ -126,6 +133,11 @@ def score_degree(c, p):
     return degree_scores(c.data.edge_index, c.candidates, int(c.data.num_nodes))
 
 
+def score_pagerank(c, p):
+    from attack.attack_strategies.pagerank_strategy import PageRankStrategy
+    return PageRankStrategy(p).score_nodes(c.data)[c.candidates.cpu()]
+
+
 def score_random(c, p):
     return deterministic_random_scores(len(c.candidates), p['seed'])
 
@@ -188,7 +200,7 @@ def score_trajectory(c, p, *, source):
     return weighted_checkpoint_scores(vectors, weights, range(len(indices)))
 
 
-METHODS = {'degree': score_degree, 'random': score_random, 'a_grad_norm': score_a,
+METHODS = {'pagerank': score_pagerank, 'degree': score_degree, 'random': score_random, 'a_grad_norm': score_a,
            'b_param_hutch': score_b, 'r_point': score_r, 'p_point': score_point}
 METHODS.update({name: partial(score_graph, name=name) for name in GRAPH_METHODS})
 METHODS.update({name: partial(score_trajectory, source=name.split('_')[2])
@@ -198,6 +210,9 @@ METHODS.update({name: partial(score_trajectory, source=name.split('_')[2])
 def implementation_functions(name):
     function = METHODS[name]
     functions = [function.func if isinstance(function, partial) else function]
+    if name == 'pagerank':
+        from attack.attack_strategies.pagerank_strategy import PageRankStrategy
+        functions += [PageRankStrategy]
     if uses_model(name):
         functions += [Computations.point]
     if uses_graph_source(name):

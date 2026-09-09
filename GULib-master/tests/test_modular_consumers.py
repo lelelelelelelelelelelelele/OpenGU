@@ -275,6 +275,10 @@ def test_all_active_methods_match_pre_refactor_formulas(tables, record_property)
         degree=degree_scores(data.edge_index, candidates, data.num_nodes), random=deterministic_random_scores(len(candidates), 104245),
         r_point=matrix.mv(inverse), p_point=matrix.mv(points[-1][1]),
         **graph['final_scores'])
+    import networkx as nx
+    from torch_geometric.utils import to_networkx
+    pr = nx.pagerank(to_networkx(data, to_undirected=True), alpha=.85)
+    expected['pagerank'] = torch.tensor([pr[int(node)] for node in candidates], dtype=torch.float32)
     views = checkpoint_view_indices(len(checkpoints))
     for source, vectors in [('point', [m.mv(t).to(torch.float64) for m,t in points]),
                             ('simple', graph['simple_vectors']), ('graph', graph['graph_vectors'])]:
@@ -299,7 +303,7 @@ def test_all_active_methods_match_pre_refactor_formulas(tables, record_property)
         torch.testing.assert_close(actual, expected[name].to(torch.float64), rtol=1e-6, atol=1e-9)
         errors[name] = float((actual-expected[name]).abs().max())
         assert not cold[name]['score']['hit'] and warm[name]['score']['hit']
-    assert len({item['score']['recipe_hash'] for item in cold.values()}) == 16
+    assert len({item['score']['recipe_hash'] for item in cold.values()}) == len(SCORE_NAMES)
     record_property('active_method_max_abs_error', json.dumps(errors))
 
 
