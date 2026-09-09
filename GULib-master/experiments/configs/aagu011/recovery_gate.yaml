@@ -1,0 +1,19 @@
+# Numerical recovery gate: both affected shard methods, including the failing condition.
+kind: experiment
+schema_version: 1
+experiment_id: aagu047-shard-numerics
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- gt_full.yaml
+unlearning_refs:
+- grapheraser.yaml
+- graphrevoker.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds: [42, 2024]
+budget_ratios: [0.10]

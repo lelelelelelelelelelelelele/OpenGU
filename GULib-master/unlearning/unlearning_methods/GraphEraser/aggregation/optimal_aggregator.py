@@ -101,7 +101,7 @@ class OptimalAggregator:
 
                 optimizer.step()
                 with torch.no_grad():
-                    weight_para[:] = torch.clamp(weight_para, min=0.0)
+                    weight_para[:] = torch.clamp(weight_para, min=torch.finfo(weight_para.dtype).eps)
 
             scheduler.step()
 
@@ -121,7 +121,7 @@ class OptimalAggregator:
 
         aggregate_posteriors = F.softmax(aggregate_posteriors, dim=1).to(self.device)
         loss_1 = F.cross_entropy(aggregate_posteriors, labels)
-        loss_2 = torch.sqrt(torch.sum(weight_para ** 2))
+        loss_2 = torch.linalg.vector_norm(weight_para)
 
         return loss_1 + loss_2
 

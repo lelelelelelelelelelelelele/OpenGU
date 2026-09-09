@@ -112,6 +112,20 @@ EXPERIMENT_RECIPES = {
 }
 
 
+EXPERIMENT_RECIPES['opengu-aagu047-shard-gate-v1'] = {
+    'config_path': 'experiments/configs/aagu011/recovery_gate.yaml',
+    'config_sha256': '2a8970e305e0c314b2e32cdcf0227fd7e7baad1857e55346ca056fa8e438f568',
+    'configuration_fingerprint': 'cf3bc6e7083883d74ffbf88620df2d61d370864bfb85a792bc42f5c9b7550270',
+    'run_identity': {'experiment_id': 'aagu047-shard-numerics', 'run_id': 'aagu047-shard-gate-v1'},
+    'timeout_seconds': 21600, 'logical_cells': 12, 'stage': 'unlearning',
+    'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
+                          {'num_nodes': 3327, 'candidate_count': 2328},
+                          {'num_nodes': 19717, 'candidate_count': 13801}],
+}
+EXPERIMENT_RECIPES['opengu-aagu011-table01-v2'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-table01-v1'])
+EXPERIMENT_RECIPES['opengu-aagu011-table01-v2']['run_identity']['run_id'] = 'aagu011-table01-v2'
+
+
 def recipe_definitions():
     from pathlib import Path
     from experiments.modular_config import load_experiment
