@@ -1,7 +1,7 @@
-# AAGU-051 fixed design; formal execution requires the registered gate.
+# Final design: 10 Random selections, fixed training seed42, 210 cells.
 kind: experiment
 schema_version: 1
-experiment_id: aagu051-random-gu
+experiment_id: aagu051-random-response
 stage: unlearning
 dataset_refs:
 - cora.yaml
@@ -16,14 +16,13 @@ unlearning_refs:
 - idea.yaml
 - grapheraser.yaml
 - graphrevoker.yaml
+- retrain.yaml
 evaluation_refs:
 - post_method_metrics.yaml
 - post_unlearning_utility.yaml
 matrix: cartesian_product
 seeds:
 - 42
-- 212
-- 2024
 budget_ratios:
 - 0.1
 random_selector_seeds:
