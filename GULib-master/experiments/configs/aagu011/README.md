@@ -47,3 +47,8 @@ After it passes, `opengu-aagu011-table01-v2` executes the unchanged scientific
 `table01.yaml` under a new run identity. No failed run is overwritten. Previously
 verified Retrain references remain usable by exact semantic pairing across this
 unrelated-to-Retrain source change; the analysis records each source SHA.
+
+
+### GPA数值恢复
+
+047恢复gate在PubMed GraphRevoker分区目标出现nonfinite并失败，保留原run。048修复GPA的无边batch与零概率目标/梯度边界，采用recovery_gate_v2.yaml（相同3图、gt_full、两分片方法、seed42/2024、10%），run aagu048-gpa-gate-v1。完整主表仍使用未启动过的aagu011-table01-v2，科学配置不变。新的GR producer与初始ensemble重算，GE与其余GU/Selection/Retrain继续按完整身份复用。
