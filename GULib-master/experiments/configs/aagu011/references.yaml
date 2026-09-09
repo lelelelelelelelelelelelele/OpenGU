@@ -1,0 +1,22 @@
+# Matching independent Retrain references; exact cached outputs are reused.
+kind: experiment
+schema_version: 1
+experiment_id: aagu011-table01-retrain
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- r_point.yaml
+- gt_full.yaml
+- degree.yaml
+- random.yaml
+- pagerank.yaml
+unlearning_refs:
+- retrain.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds: [42, 212, 2024]
+budget_ratios: [0.10]

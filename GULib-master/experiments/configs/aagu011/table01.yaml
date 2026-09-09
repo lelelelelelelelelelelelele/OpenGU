@@ -1,0 +1,27 @@
+# User-approved table 01: selected IF / naive selectors crossed with six GU methods.
+kind: experiment
+schema_version: 1
+experiment_id: aagu011-table01-gu
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- r_point.yaml
+- gt_full.yaml
+- degree.yaml
+- random.yaml
+- pagerank.yaml
+unlearning_refs:
+- gif.yaml
+- gnndelete.yaml
+- megu.yaml
+- idea.yaml
+- grapheraser.yaml
+- graphrevoker.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds: [42, 212, 2024]
+budget_ratios: [0.10]
