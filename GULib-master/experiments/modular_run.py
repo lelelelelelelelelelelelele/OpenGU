@@ -203,7 +203,11 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                 if item['method'] != 'Retrain':
                     model, _, checkpoint = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
                         checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
-                result = run_unlearning(item, selection=loaded_selections[selector_ref], model=model, data=data,
+                executor = run_unlearning
+                if item['method'] == 'GraphEraser':
+                    from experiments.modular_shards import run_shard_unlearning
+                    executor = run_shard_unlearning
+                result = executor(item, selection=loaded_selections[selector_ref], model=model, data=data,
                     dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
                     dataset_input=datasets[batch['matrix_values']['dataset_index']]['input_reference'])
                 summary['unlearning'].append({**result, 'checkpoint': checkpoint,

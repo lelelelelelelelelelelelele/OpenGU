@@ -127,7 +127,13 @@ def restore_model(payload):
     arrays = payload.arrays
     config = payload.identity['pairing']['model']
     data = SimpleNamespace(x=torch.tensor(arrays['x']), y=torch.tensor(arrays['y']))
-    if payload.identity['target']['method'] == 'GNNDelete':
+    if payload.identity['target']['method'] == 'GraphEraser':
+        from experiments.modular_shards import ShardEnsemble
+        assignment = torch.tensor(payload.state['assignment'])
+        weights = torch.tensor(payload.state['weights'])
+        models = [create_model(config, 'stored', data, torch.device('cpu')) for _ in weights]
+        model = ShardEnsemble(models, assignment, weights)
+    elif payload.identity['target']['method'] == 'GNNDelete':
         from model.base_gnn.deletion import GCNDelete
         args = runtime_defaults()
         args.update(gcn_num_layers=config['layers'], gcn_hidden=config['hidden_channels'],

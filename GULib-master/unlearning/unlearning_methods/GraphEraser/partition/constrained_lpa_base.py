@@ -43,6 +43,9 @@ class ConstrainedLPABase:
 
             ## Step 1: calculate desired move
             desire_move = self._determine_desire_move()
+            if not len(desire_move):
+                lpa_deltas.append(0.0)
+                break
             relocation = {}
             utility_func = {}
 
@@ -154,7 +157,7 @@ class ConstrainedLPABase:
 
                         desire_move.append(desire_move_temp)
 
-        return np.stack(desire_move)
+        return np.stack(desire_move) if desire_move else np.empty((0, 4))
 
     def _lpa_delta(self, lpa_pre, lpa_cur):
         delta = 0.0
