@@ -44,3 +44,21 @@ def test_nonfinite_and_zero_rhs():
         solve_gif_system(lambda v: v*float('nan'), torch.ones(2), iterations=2, scale=1., damp=0.)
     solution, info = solve_gif_system(lambda v: v, torch.zeros(2), iterations=2, scale=1., damp=0.)
     assert torch.count_nonzero(solution)==0 and info['relative_residual']==0
+
+
+def test_cross_entropy_sum_mean_and_explicit_hessian_agree():
+    x=torch.tensor([[1.,2.],[-1.,.5],[.3,-.2]],dtype=torch.double)
+    y=torch.tensor([0,1,0])
+    weights=torch.tensor([[.2,-.4],[.1,.3]],dtype=torch.double,requires_grad=True)
+    loss=lambda w: torch.nn.functional.cross_entropy(x@w,y,reduction='sum')
+    h=torch.autograd.functional.hessian(loss,weights).reshape(4,4)
+    gradient,=torch.autograd.grad(loss(weights),weights,create_graph=True)
+    rhs=torch.tensor([1.,-1.,.5,-.5],dtype=torch.double)
+    def hvp(v):
+        value,=torch.autograd.grad((gradient*v.reshape_as(weights)).sum(),weights,retain_graph=True)
+        torch.testing.assert_close(value.flatten(),h@v)
+        return value.flatten()
+    delta,_=solve_gif_system(hvp,rhs,iterations=300,scale=10.,damp=.1,rtol=1e-9)
+    torch.testing.assert_close(delta,torch.linalg.solve(h+torch.eye(4),rhs),rtol=1e-8,atol=1e-8)
+    mean_delta,_=solve_gif_system(lambda v:hvp(v)/3,rhs/3,iterations=300,scale=10./3,damp=.1,rtol=1e-9)
+    torch.testing.assert_close(mean_delta,delta)

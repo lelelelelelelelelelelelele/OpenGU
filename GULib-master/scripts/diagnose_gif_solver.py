@@ -35,8 +35,9 @@ def main():
     parser.add_argument('--repo', type=Path, required=True)
     parser.add_argument('--bundle', type=Path, required=True)
     parser.add_argument('--destination', type=Path, required=True)
-    parser.add_argument('--phase', choices=['curvature', 'updates'], required=True)
+    parser.add_argument('--phase', choices=['curvature', 'updates', 'compare'], required=True)
     parser.add_argument('--plan', type=Path)
+    parser.add_argument('--updates-result', type=Path)
     options = parser.parse_args()
     root = options.repo.resolve()
     destination = options.destination.resolve()
@@ -196,7 +197,19 @@ def main():
                     probability_rmse=float((logits[mask].softmax(1)-reference[mask].softmax(1)).square().mean().sqrt()))
     result['zero_update'] = dict(reused_file=str(root/'results/diagnostics/AAGU-049/stress50-v1/gif-k0.pt'),
                                  original_test=metrics(before,before))
-    for arm in plan['arms']:
+    if options.phase == 'compare':
+        assert options.updates_result is not None
+        old_result=json.loads(options.updates_result.read_text())
+        assert old_result['plan_sha256']==result['plan_sha256']
+        assert old_result['checkpoint']==result['checkpoint']
+        assert len(old_result['cells'])==3*len(plan['arms'])
+        for row in old_result['cells']:
+            assert row['status'] in ('returned','rejected')
+            assert sha(row['saved_file']['path'])==row['saved_file']['sha256']
+        old_result['comparison_source_manifest']=manifest
+        old_result['updates_result_sha256']=sha(options.updates_result)
+        result=old_result
+    for arm in (plan['arms'] if options.phase == 'updates' else []):
         for k in (10,189,947):
             started=time.perf_counter()
             row=dict(arm=arm['name'],implementation=arm['implementation'],k=k,parameters=arm['parameters'],status='started')
@@ -249,7 +262,11 @@ def main():
             del obj,gradients,params,rhs
     # Matched retraining is inspected only after every pre-registered solve.
     from unlearning.unlearning_methods.Retrain.retrain import run_retrain
+    prior_retrain={row['k']:row for row in result.get('retrain',[])}
     result['retrain']=[]
+    retrain_runpath=root/'results/runs/aagu011-table01-retrain/aagu011-references-v1/run.json'
+    retrain_run=json.loads(retrain_runpath.read_text())
+    result['retrain_run']=dict(path=str(retrain_runpath),sha256=sha(retrain_runpath))
     for k in (10,189,947):
         if k==947:
             reference_model=model()
@@ -259,7 +276,7 @@ def main():
             with torch.no_grad(): reference=reference_model(data.x,data.edge_index)
             provenance=dict(path=str(reference_path),sha256=sha(reference_path),reused=True)
         elif k==189:
-            ref_cell=next(c for c in run['cells'] if c['conditions']['method']=='Retrain' and
+            ref_cell=next(c for c in retrain_run['cells'] if c['conditions']['method']=='Retrain' and
                          c['conditions']['dataset_name']=='Cora' and c['conditions']['training_seed']==42 and
                          c['conditions']['selector']=='random')
             ref=load_output(ref_cell['output'],root/'results/cache_v2',dataset_root=root)
@@ -270,13 +287,20 @@ def main():
             with torch.no_grad():reference=reference_model(data.x,data.edge_index)
             provenance=dict(output=ref_cell['output'],reused=True)
         else:
-            assert plan['new_retrain_budget'] >= 1
-            reference_model,elapsed=run_retrain(pair,data,order[:k],'Cora')
+            if options.phase == 'compare':
+                provenance=prior_retrain[k]['provenance']
+                assert sha(provenance['path'])==provenance['sha256']
+                reference_model=model()
+                reference_model.load_state_dict(torch.load(provenance['path'],map_location='cuda',weights_only=False))
+            else:
+                assert plan['new_retrain_budget'] >= 1
+                reference_model,elapsed=run_retrain(pair,data,order[:k],'Cora')
             reference_model.eval()
             with torch.no_grad():reference=reference_model(data.x,data.edge_index)
-            reference_path=destination/'retrain-k10.pt'
-            torch.save(reference_model.state_dict(),reference_path)
-            provenance=dict(path=str(reference_path),sha256=sha(reference_path),reused=False,seconds=elapsed)
+            if options.phase == 'updates':
+                reference_path=destination/'retrain-k10.pt'
+                torch.save(reference_model.state_dict(),reference_path)
+                provenance=dict(path=str(reference_path),sha256=sha(reference_path),reused=False,seconds=elapsed)
         entry=dict(k=k,original_test=metrics(reference,before),provenance=provenance,
                    baseline_gap=metrics(before,reference),comparisons=[])
         for row in result['cells']:

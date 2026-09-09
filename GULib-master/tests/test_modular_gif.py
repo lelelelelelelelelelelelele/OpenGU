@@ -70,3 +70,30 @@ def test_node_deletion_removes_exact_incident_edges_independent_of_order():
         instance.data = SimpleNamespace(edge_index=edges[:,index])
         expected = instance.data.edge_index[:, ~(instance.data.edge_index == 1).any(0)]
         assert torch.equal(instance.update_edge_index_unlearn([1]), expected)
+
+
+def test_default_nonconvergence_cannot_publish_output(tables):
+    from test_modular_consumers import run, write_yaml
+    from unlearning.unlearning_methods.GIF.solver import GIFConvergenceError
+    root,_,gu=tables
+    gu['method']='GIF'
+    gu['parameters']={}
+    write_yaml(root/'gif-default.yaml',gu)
+    with pytest.raises(GIFConvergenceError):
+        run(tables,'gif-default-experiment',stage='unlearning',selector_refs=['degree.yaml'],unlearning_refs=['gif-default.yaml'])
+    assert not list((root/'results/cache_v2/artifacts/prediction').glob('*/payload.npz'))
+
+
+def solver_variant(*args, **kwargs):
+    raise RuntimeError('identity test only')
+
+
+def test_solver_source_participates_in_gif_producer(monkeypatch):
+    from experiments.modular_gu import gu_producer
+    import unlearning.unlearning_methods.GIF.solver as solver
+    config={'architecture':'OpenGU.GCNNet'}
+    before=gu_producer('GIF',config)
+    retrain=gu_producer('Retrain',config)
+    monkeypatch.setattr(solver,'solve_gif_system',solver_variant)
+    assert gu_producer('GIF',config)!=before
+    assert gu_producer('Retrain',config)==retrain
