@@ -15,7 +15,7 @@ budget_ratios: [0.1]
 |---|---:|---:|---:|
 | single_seed.yaml | 1 × 3 = 3 | 各3 | 12 |
 | multi_seed.yaml | 3 × 3 = 9 | 各3 | 18 |
-| candidates.yaml | 两种IM各9 | Degree / Random / R-point / GT-full 各3 | 30 |
+| candidates.yaml | RR：3 × 3 = 9 | Degree / Random / R-point / GT-full 各3 | 21 |
 
 在同一图、候选集、K、算法和其他参数下，多值实例仅需3份 IM Selection。训练seed=42消费11/22/33三份选集，212和2024复用这三份。不同selector seed可以偶然得到相同节点集合；判据是身份隔离，不是强迫节点不同。
 
@@ -23,19 +23,29 @@ budget_ratios: [0.1]
 
 本入口运行现有MC/Batch-CELF与固定RR最大覆盖贪心，按实际K生产选集。K或selector seed改变形成不同身份；不从大K选集截断复用，不计算全候选静态排名。Numba后端支持Batch-CELF；Python经典CELF仅允许batch size=1，后端变更会隔离身份。
 
-## 两个候选与公共小表
+## RR 主基准与 CELF 备用
 
 | 小表 | 实际实现 | 用途 |
 |---|---|---|
-| [im_celf.yaml](../selectors/im_celf.yaml) | `method: im`，batch=1，MC=100 | 首轮参考候选；逐步更新边际收益，避免batch一次取多个节点的近似 |
-| [im_rr_greedy.yaml](../selectors/im_rr_greedy.yaml) | `method: im_rr_greedy`，RR=4096 | 对照候选；一次固定RR采样，再按尚未覆盖的样本逐点贪心 |
-| [im.yaml](../selectors/im.yaml) | 原有 `method: im`，batch=5 | 既有Batch-CELF参数实例，不计作第三个独立候选算法 |
+| [im.yaml](../selectors/im.yaml) | `method: im_rr_greedy`，RR=4096 | 默认 IM 主基准；单 seed / 多 seed 示例均消费此表 |
+| [im_rr_greedy.yaml](../selectors/im_rr_greedy.yaml) | `method: im_rr_greedy`，RR=4096 | 显式 RR 实例；与默认表参数相同，不是另一种算法 |
+| [im_celf.yaml](../selectors/im_celf.yaml) | `method: im`，batch=1，MC=100 | 备用；只有主动加入 selector_refs 才运行，不进入常规示例 |
+
+默认 im.yaml 已由 Batch-CELF 切换为 RR；消费该公共表的后续运行会使用 RR 及其独立缓存身份。历史结果保持原样。底层 method: im 仍明确表示 MC-CELF，不能凭结果标签把它解释为 RR。
 
 RR读取图的有向边（重复边去重）、全部节点作为均匀采样root、train_mask作为可选节点；静态IC传播概率由propagation_prob指定。它复用im_score_benchmark的真实采样与覆盖实现，返回K个节点。rr_count、传播概率、selector seed、数据/图/候选集、split、K和实现指纹均进入身份；训练seed不进入。改变rr_count会重新选点，普通入口未单独缓存RR样本。
 
 4096是可修改的固定采样预算，不是IMM/OPIM-C的自适应精度证书。MC=100与RR=4096也不是等计算量。现有MC每次边际估计使用采样，不应把确定性子模贪心的严格保证直接套到它的噪声估计上。RR-SNI/Shapley的静态单点排名与本次集合覆盖目标不同，未在此入口冒充为IM集合选择。
 
-两个IM小表可与IF小表同时引用；大表IM轴分别覆盖它们的采样seed，其他算法参数仍各自独立。缺少大表轴时，各小表seed分别生效。此轮建议先保留MC-CELF和RR贪心作配对比较，再用正式GU效果决定是否扩充；传播覆盖不能替代删除损害。
+RR 小表可与 IF 小表并列引用，分别运行各自的选择方法；这不是 Hybrid 融合。大表 IM 轴覆盖 RR 采样 seed，IF 参数保持独立。此次只实现 RR 主入口和 CELF 备用入口，不改变现有 HybridStrategy 的静态分数融合语义。
+
+### 采样预算与第二阶段
+
+第一阶段集中生成 rr_count 个 RR 样本；第二阶段仅做覆盖计数、倒排索引和堆更新，不重新模拟传播。覆盖总数也按新增样本数累加，不再每轮扫描全部样本。样本和索引保留在内存中，大图仍需评估其大小。
+
+当前固定样本 RR 没有 Lambda 精度参数。调节采样预算应修改 parameters.rr_count（正整数）；4096 保持为起始值。未来可以人工设置如 8192、16384，配合独立评估判断精度与开销，本次未生成或执行任何采样预算实验。更多样本通常降低估计噪声，但不保证每次选集或下游效果单调变好。propagation_prob 改变传播模型，im_selector_seed 改变采样随机性，两者都不是精度旋钮；Hybrid 的融合权重也与 rr_count 无关。
+
+本轮仅允许合成小图单元验证与 YAML 无写入解析，不启动真实数据、训练、遗忘或 SSH 实验；因此没有大图耗时、内存或科研效果结论。
 
 可复现的轻量候选评估：`python -m experiments.im_candidate_probe --output <不存在的JSON路径>`。它只生成三张80节点CPU小图，K=5、40个候选、3个selector seed，以固定16384个独立RR样本评估传播覆盖，并记录耗时和选集Jaccard。MC在该probe中使用serial Numba，warmup单列；公共小表的parallel_mc仍可独立选择。JSON包含图边、候选集、全部选集与每seed估计，不构成正式GU科研数据。
 

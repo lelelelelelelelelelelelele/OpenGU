@@ -36,4 +36,4 @@ Selector/Unlearning只以 `selector_refs` 声明选点；后续方法使用相�
 
 IM的独立selector seed轴、单值/多值普通表示例及选集复用见 [AAGU-040](aagu040/README.md)。
 
-IM 候选公共小表为 `selectors/im_celf.yaml`（MC-CELF）和 `selectors/im_rr_greedy.yaml`（固定RR最大覆盖贪心）。可与IF混合引用，见 [候选组合与参数语义](aagu040/README.md)。
+IM 默认小表 `selectors/im.yaml` 使用固定 RR 最大覆盖贪心；显式 RR 实例为 `selectors/im_rr_greedy.yaml`。MC-CELF 保留在 `selectors/im_celf.yaml`，只在主动引用时作为备用运行。可与 IF 小表并列引用（不是 Hybrid 融合），见 [组合与参数语义](aagu040/README.md)。

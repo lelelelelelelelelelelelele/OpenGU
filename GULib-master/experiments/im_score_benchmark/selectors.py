@@ -70,6 +70,7 @@ def maximum_coverage_greedy(
     selected: List[int] = []
     accepted: List[float] = []
     coverage_trace: List[int] = []
+    covered_count = 0
     while len(selected) < budget:
         while heap:
             negative_gain, node, local_id, version = heapq.heappop(heap)
@@ -109,7 +110,8 @@ def maximum_coverage_greedy(
                         int(versions[other_local]),
                     ),
                 )
-        coverage_trace.append(int(covered.sum()))
+        covered_count += len(newly_covered)
+        coverage_trace.append(covered_count)
 
     return SelectionArtifact(
         algorithm=algorithm,
@@ -119,11 +121,11 @@ def maximum_coverage_greedy(
         source_rr_count=bundle.rr_count,
         metadata={
             "tie_break": "gain_desc_node_id_asc",
-            "covered_rr_count": int(covered.sum()),
-            "coverage_fraction": float(covered.mean()),
+            "covered_rr_count": covered_count,
+            "coverage_fraction": covered_count / float(bundle.rr_count),
             "coverage_trace": coverage_trace,
             "estimated_spread": (
-                float(bundle.num_nodes) * float(covered.mean())
+                float(bundle.num_nodes) * (covered_count / float(bundle.rr_count))
             ),
         },
     )

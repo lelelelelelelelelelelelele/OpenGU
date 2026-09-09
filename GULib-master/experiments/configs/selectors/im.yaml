@@ -1,6 +1,6 @@
 kind: selector
 schema_version: 1
-method: im
+method: im_rr_greedy
 candidate:
   pool: train_mask
 budget:
@@ -8,8 +8,5 @@ budget:
   value: 0.1
 parameters:
   propagation_prob: 0.1
-  mc_rounds: 100
-  candidate_fraction: 1.0
+  rr_count: 4096
   im_selector_seed: 2024
-  im_batch_size: 5
-  parallel_mc: true
