@@ -52,7 +52,10 @@ def retrain_node(args, model, data, nodes, runtime_root):
 
 from experiments.modular_megu import megu_node, megu_logits
 
-GU_METHODS = {'MEGU': megu_node, 'GNNDelete': gnndelete_node, 'GIF': gif_node, 'Retrain': retrain_node}
+from experiments.modular_idea import idea_node
+
+
+GU_METHODS = {'MEGU': megu_node, 'IDEA': idea_node, 'GNNDelete': gnndelete_node, 'GIF': gif_node, 'Retrain': retrain_node}
 
 
 def gu_producer(method, model_config):
@@ -81,6 +84,10 @@ def gu_producer(method, model_config):
         from task.MEGUTrainer import MEGUTrainer, GATE
         from experiments.modular_megu import build_megu_output, run_megu_unlearning
         functions += [megu, MEGUTrainer, GATE, megu_logits, build_megu_output, run_megu_unlearning]
+    elif method == 'IDEA':
+        from unlearning.unlearning_methods.IDEA.idea import idea
+        from task.IDEATrainer import IDEATrainer
+        functions += [idea, IDEATrainer, idea_node, model_class.forward_once, model_class.forward_once_unlearn]
     elif method == 'Retrain':
         functions += [run_retrain, train_supervised]
     else:
@@ -155,3 +162,4 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
     return {**reference, 'output': reference, 'hit': hit, 'producer_called': not hit,
             'compute_seconds': seconds, 'result': utility(verified), 'target': target,
             'evaluation': evaluate_method(reference, verified)}
+

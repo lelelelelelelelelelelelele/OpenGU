@@ -112,7 +112,10 @@ def gu_defaults(method):
         return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'GIF_method')}
     if method == 'MEGU':
         return {k: defaults[k] for k in ('unlearning_epochs', 'kappa', 'alpha1', 'alpha2', 'GNN_layer')}
-    raise ConfigurationError('supported GU methods: GNNDelete, GIF, MEGU, Retrain')
+
+    if method == 'IDEA':
+        return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'gaussian_mean', 'gaussian_std')}
+    raise ConfigurationError('supported GU methods: GNNDelete, GIF, MEGU, IDEA, Retrain')
 
 
 def unlearning(value):
@@ -132,9 +135,18 @@ def unlearning(value):
         if (params['unlearning_epochs'] <= 0 or params['GNN_layer'] <= 0 or params['kappa'] < 0
                 or not 0 <= params['alpha1'] <= 1 or not 0 <= params['alpha2'] <= 1):
             raise ConfigurationError('invalid MEGU parameters')
+    elif value['method'] == 'IDEA':
+        if (type(params['iteration']) is not int or params['iteration'] <= 0
+                or not math.isfinite(params['scale']) or params['scale'] <= 0
+                or not 0 <= params['damp'] < 1
+                or not math.isfinite(params['gaussian_mean'])
+                or not math.isfinite(params['gaussian_std']) or params['gaussian_std'] < 0):
+            raise ConfigurationError('invalid IDEA parameters')
     model, training = model_training({k: value[k] for k in ('model', 'training') if k in value})
     if value['method'] == 'GNNDelete' and model['architecture'] != 'OpenGU.GCNNet':
         raise ConfigurationError('GNNDelete modular node consumer currently supports GCN')
+    if value['method'] == 'IDEA' and model['architecture'] != 'OpenGU.GCNNet':
+        raise ConfigurationError('IDEA modular node consumer currently supports GCN')
     if value['method'] == 'Retrain' and 'checkpoint' in value:
         raise ConfigurationError('Retrain starts from scratch and cannot consume a checkpoint')
     from experiments.node_deletion import resolve_deletion
@@ -370,3 +382,4 @@ def dataset_binding(config, index):
     dataset = config['datasets'][index]
     return {'dataset_index': index, 'dataset_name': dataset['dataset']['name'],
             'dataset_fingerprint': canonical_sha256(dataset)}
+
