@@ -139,4 +139,6 @@ def restore_model(payload):
     else:
         model = create_model(config, 'stored', data, torch.device('cpu'))
     model.load_state_dict({key: torch.tensor(value) for key, value in payload.state.items()}, strict=True)
+    if payload.identity['target']['method'] == 'MEGU':
+        model.megu_pseudo_labels = torch.tensor(payload.auxiliary['megu_pseudo_labels'])
     return model.eval()

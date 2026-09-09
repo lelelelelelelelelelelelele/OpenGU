@@ -50,7 +50,9 @@ def retrain_node(args, model, data, nodes, runtime_root):
     return run_retrain(args['instance'], data, nodes, args['dataset_name'])
 
 
-GU_METHODS = {'GNNDelete': gnndelete_node, 'GIF': gif_node, 'Retrain': retrain_node}
+from experiments.modular_megu import megu_node, megu_logits
+
+GU_METHODS = {'MEGU': megu_node, 'GNNDelete': gnndelete_node, 'GIF': gif_node, 'Retrain': retrain_node}
 
 
 def gu_producer(method, model_config):
@@ -74,6 +76,11 @@ def gu_producer(method, model_config):
         from unlearning.unlearning_methods.GIF.gif import gif
         from task.GIFTrainer import GIFTrainer
         functions += [gif, GIFTrainer, gif_node, model_class.reason_once, model_class.reason_once_unlearn]
+    elif method == 'MEGU':
+        from unlearning.unlearning_methods.MEGU.megu import megu
+        from task.MEGUTrainer import MEGUTrainer, GATE
+        from experiments.modular_megu import build_megu_output, run_megu_unlearning
+        functions += [megu, MEGUTrainer, GATE, megu_logits, build_megu_output, run_megu_unlearning]
     elif method == 'Retrain':
         functions += [run_retrain, train_supervised]
     else:
