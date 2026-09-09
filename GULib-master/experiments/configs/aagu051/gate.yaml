@@ -1,7 +1,7 @@
-# Random response: four GU methods and Retrain, fixed training seed42, 150 cells.
+# Full-table subset: default warm request plus seed11 on every dataset and method.
 kind: experiment
 schema_version: 1
-experiment_id: aagu051-random-response
+experiment_id: aagu051-random-gate
 stage: unlearning
 dataset_refs:
 - cora.yaml
@@ -18,18 +18,6 @@ unlearning_refs:
 evaluation_refs:
 - post_method_metrics.yaml
 matrix: cartesian_product
-seeds:
-- 42
-budget_ratios:
-- 0.1
-random_selector_seeds:
-- 11
-- 22
-- 33
-- 44
-- 55
-- 66
-- 77
-- 88
-- 99
-- 104245
+seeds: [42]
+budget_ratios: [0.10]
+random_selector_seeds: [104245, 11]

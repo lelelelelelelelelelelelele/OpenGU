@@ -10,10 +10,10 @@
 | Selector | 公共 random.yaml |
 | Random 抽样 seed | 11、22、33、44、55、66、77、88、99、104245 |
 | 所有方法的训练 seed | 42 |
-| 方法 | GIF、GNNDelete、MEGU、IDEA、GraphEraser、GraphRevoker、Retrain |
-| 条件数 | 每数据集70；总计210（180 GU + 30 Retrain） |
+| 方法 | GNNDelete、MEGU、GraphEraser、GraphRevoker、Retrain |
+| 条件数 | 每数据集50；总计150（120 GU + 30 Retrain） |
 
-研究问题是固定训练seed42下，不同Random删除选集带来的响应分布；不估计训练seed方差，不声称训练seed影响小。每个数据集10组选集跨七种方法共享。不同抽样seed允许选集重合，保留实际清单、哈希及每数据集45对Jaccard，不重抽、不挑seed。
+研究问题是固定训练seed42下，不同Random删除选集带来的响应分布；不估计训练seed方差，不声称训练seed影响小。每个数据集10组选集跨五种方法共享。不同抽样seed允许选集重合，保留实际清单、哈希及每数据集45对Jaccard，不重抽、不挑seed。
 
 ## 本地核验
 
@@ -29,4 +29,8 @@ evaluation_refs仅引用post_method_metrics.yaml，与原表01一致。unlearnin
 
 ## 执行边界
 
-正式运行沿用experiments/AGENTS.md的验证、smoke、注册最小gate、版本一致性和可信收集要求。GIF/IDEA消费049有效性结论，具体状态读取canonical WorkItem；其他方法也需实际before/after语义核验。配置dry-run不是正式GPU证据。后续离线汇总及REPORT.md/REPORT.html必须明确固定训练seed42的结论边界。
+正式运行沿用experiments/AGENTS.md的验证、smoke、注册最小gate、版本一致性和可信收集要求。本轮移除GIF/IDEA，不等待049，不作两者的科学结论。保留方法仍需实际before/after语义核验。配置dry-run不是正式GPU证据。后续离线汇总及REPORT.md/REPORT.html必须明确固定训练seed42的结论边界。
+
+## 最小gate
+
+[gate.yaml](gate.yaml)取全表内的104245和11两个抽样seed，覆盖三数据集、五方法，共30格。104245验证默认选集HIT，11验证另一选集执行链；不强迫已有缓存MISS。输出须全部可校验，before/after有限、Selection跨方法一致，seed/预算/输入身份与全表匹配，失败停止扩展。全表使用独立Result并复用gate缓存，保留gate结果。
