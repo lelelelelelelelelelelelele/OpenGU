@@ -117,7 +117,7 @@ def partition_embeddings(dataset, embeddings, parameters, logger):
                            weight_decay=parameters.get('gpa_weight_decay', 1e-5))
     model.train()
     for epoch in range(parameters.get('gpa_epochs', 10)):
-        for batch in loader:
+        for batch_index, batch in enumerate(loader):
             optimizer.zero_grad()
             adj = to_dense_adj(batch.edge_index, max_num_nodes=batch.num_nodes)[0]
             output = model(batch.x, batch.edge_index)
@@ -126,9 +126,14 @@ def partition_embeddings(dataset, embeddings, parameters, logger):
             balance = eff_norm(output, adj, batch.edge_index.shape[1])
             loss = cut + semantic * 1e-3 + balance * .001
             if not torch.isfinite(loss):
-                raise ValueError('GPA objective is nonfinite')
+                raise ValueError('GPA objective is nonfinite: epoch={}, batch={}, nodes={}, edges={}'.format(
+                    epoch, batch_index, batch.num_nodes, batch.num_edges))
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), .5)
+            try:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), .5, error_if_nonfinite=True)
+            except RuntimeError as exc:
+                raise ValueError('GPA gradients are nonfinite: epoch={}, batch={}, nodes={}, edges={}'.format(
+                    epoch, batch_index, batch.num_nodes, batch.num_edges)) from exc
             optimizer.step()
         logger.info('GPA epoch %s', epoch)
     model.eval()
@@ -152,14 +157,19 @@ def balance_loss(y, n):
     return torch.sum((torch.sum(y, dim=0) - n / g) ** 2) / g
 
 def ncut_loss(Y, A):
+    if not torch.any(A):
+        return Y.sum() * 0
     D = torch.sum(A, dim=1)
     Gamma = torch.mm(Y.t(), D.unsqueeze(1).float())
+    Gamma = Gamma.clamp_min(torch.finfo(Gamma.dtype).eps)
     loss = torch.sum(torch.mm(torch.div(Y.float(), Gamma.t()), (1 - Y).t().float()) * A.float())
     #loss = torch.sum(torch.mm(Y.float(), (1 - Y).t().float()) * A.float())
 
     return loss
 
 def eff_norm(Y, A, edge_cnt):
+    if edge_cnt == 0:
+        return Y.sum() * 0
     shard_num_nodes = torch.sum(Y, dim=0)
     y = Y.unsqueeze(2) # (N, S, 1)
     shard_edges = torch.einsum('nsc,msc->snm', y, y) # For each shard, (N, 1) matmul (1, N)
@@ -167,4 +177,8 @@ def eff_norm(Y, A, edge_cnt):
     shard_num_edges = torch.sum((A.unsqueeze(0) * shard_edges).view(y.shape[1], -1),  
                                  dim=1)
 
-    return torch.sum(((shard_num_nodes / Y.shape[0]) * (shard_num_nodes / Y.shape[0]) * (shard_num_edges / edge_cnt)) ** (1/3))
+    volume = ((shard_num_nodes / Y.shape[0]) ** 2) * (shard_num_edges / edge_cnt)
+    # Squared machine epsilon bounds both the zero-point derivative and its
+    # float32 norm; subtract the root so zero remains exactly zero.
+    floor = torch.finfo(volume.dtype).eps ** 2
+    return torch.sum((volume + floor) ** (1 / 3) - floor ** (1 / 3))

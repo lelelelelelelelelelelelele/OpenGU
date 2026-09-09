@@ -126,6 +126,15 @@ EXPERIMENT_RECIPES['opengu-aagu011-table01-v2'] = copy.deepcopy(EXPERIMENT_RECIP
 EXPERIMENT_RECIPES['opengu-aagu011-table01-v2']['run_identity']['run_id'] = 'aagu011-table01-v2'
 
 
+EXPERIMENT_RECIPES['opengu-aagu048-gpa-gate-v1'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu047-shard-gate-v1'])
+EXPERIMENT_RECIPES['opengu-aagu048-gpa-gate-v1'].update({
+    'config_path': 'experiments/configs/aagu011/recovery_gate_v2.yaml',
+    'config_sha256': '4424629c775f2e1d8274ab578a40ac51b1e377bf8ee84547783b8834e9b3a543',
+    'configuration_fingerprint': '97277ec53f40c7a10eb7ad2384a5fffb3dc2683ca1e573d57925bded0d335c3e',
+    'run_identity': {'experiment_id': 'aagu048-gpa-numerics', 'run_id': 'aagu048-gpa-gate-v1'},
+})
+
+
 def recipe_definitions():
     from pathlib import Path
     from experiments.modular_config import load_experiment
