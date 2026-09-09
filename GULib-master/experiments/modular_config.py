@@ -110,7 +110,9 @@ def gu_defaults(method):
         return result
     if method == 'GIF':
         return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'GIF_method')}
-    raise ConfigurationError('supported GU methods: GNNDelete, GIF, Retrain')
+    if method == 'MEGU':
+        return {k: defaults[k] for k in ('unlearning_epochs', 'kappa', 'alpha1', 'alpha2', 'GNN_layer')}
+    raise ConfigurationError('supported GU methods: GNNDelete, GIF, MEGU, Retrain')
 
 
 def unlearning(value):
@@ -126,6 +128,10 @@ def unlearning(value):
         if params['iteration'] <= 0 or params['scale'] <= 0 or not 0 <= params['damp'] < 1:
             raise ConfigurationError('invalid GIF parameters')
         choice(params['GIF_method'], ('GIF', 'IF'), 'GIF_method')
+    if value['method'] == 'MEGU':
+        if (params['unlearning_epochs'] <= 0 or params['GNN_layer'] <= 0 or params['kappa'] < 0
+                or not 0 <= params['alpha1'] <= 1 or not 0 <= params['alpha2'] <= 1):
+            raise ConfigurationError('invalid MEGU parameters')
     model, training = model_training({k: value[k] for k in ('model', 'training') if k in value})
     if value['method'] == 'GNNDelete' and model['architecture'] != 'OpenGU.GCNNet':
         raise ConfigurationError('GNNDelete modular node consumer currently supports GCN')

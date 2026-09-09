@@ -116,6 +116,7 @@ class MEGUTrainer(BaseTrainer):
             else:           
                 preds = torch.argmax(preds, axis=1).type_as(self.data.y)
             
+        self.model.megu_pseudo_labels = preds.detach().clone()
         if self.args["base_model"] == "SIGN":
             self.data.x = self.data.x_unlearn
             self.data.edge_index = self.data.edge_index_unlearn
@@ -142,7 +143,12 @@ class MEGUTrainer(BaseTrainer):
                 loss_u = criterionKD(out_ori[self.temp_node], out[self.temp_node]) - F.cross_entropy(out[self.temp_node], preds[self.temp_node])
                 loss_r = criterionKD(out[self.neighbor_khop], out_ori[self.neighbor_khop]) + F.cross_entropy(out_ori[self.neighbor_khop], preds[self.neighbor_khop])
             
+            if not torch.as_tensor(self.neighbor_khop).any():
+                # An isolated request has no preservation neighborhood.
+                loss_r = out_ori.sum() * 0.0
             loss = self.args['kappa'] * loss_u + loss_r
+            if not torch.isfinite(loss):
+                raise ValueError('MEGU produced a non-finite unlearning loss')
 
             loss.backward()
             optimizer.step()
