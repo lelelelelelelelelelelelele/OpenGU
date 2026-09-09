@@ -54,6 +54,9 @@ GU_METHODS = {'GNNDelete': gnndelete_node, 'GIF': gif_node, 'Retrain': retrain_n
 
 
 def gu_producer(method, model_config):
+    if method == 'GraphRevoker':
+        from experiments.modular_graphrevoker import graphrevoker_producer
+        return graphrevoker_producer(model_config)
     runtime_defaults()
     from experiments.modular_model import train_supervised
     from experiments.implementation_identity import model_functions

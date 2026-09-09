@@ -104,19 +104,25 @@ def gu_defaults(method):
         defaults = parameter_parser()
     finally:
         sys.argv = previous
+    if method == 'GraphRevoker':
+        from experiments.modular_graphrevoker import graphrevoker_defaults
+        return graphrevoker_defaults(defaults)
     if method == 'GNNDelete':
         result = {k: defaults[k] for k in ('unlearn_lr', 'unlearning_epochs', 'alpha', 'loss_fct', 'loss_type')}
         result.update(deletion_optimizer='Adam', deletion_weight_decay=0.0)
         return result
     if method == 'GIF':
         return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'GIF_method')}
-    raise ConfigurationError('supported GU methods: GNNDelete, GIF, Retrain')
+    raise ConfigurationError('supported GU methods: GNNDelete, GIF, Retrain, GraphRevoker')
 
 
 def unlearning(value):
     fields(value, {'kind', 'schema_version', 'method', 'model', 'training', 'parameters', 'checkpoint', 'deletion'},
                   {'kind', 'schema_version', 'method'}, 'unlearning')
     params = effective(value.get('parameters', {}), gu_defaults(value['method']))
+    if value['method'] == 'GraphRevoker':
+        from experiments.modular_graphrevoker import validate_graphrevoker
+        validate_graphrevoker(params)
     if value['method'] == 'GNNDelete':
         if (params['unlearn_lr'] <= 0 or params['unlearning_epochs'] <= 0 or not 0 <= params['alpha'] <= 1
                 or params['deletion_optimizer'] != 'Adam' or params['deletion_weight_decay'] != 0

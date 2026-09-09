@@ -122,6 +122,9 @@ def utility(payload):
 
 def restore_model(payload):
     """Reconstruct the saved CPU model for independent forward verification."""
+    if payload.identity['target']['method'] == 'GraphRevoker':
+        from experiments.modular_graphrevoker import restore_graphrevoker
+        return restore_graphrevoker(payload)
     from types import SimpleNamespace
     from experiments.modular_model import create_model, runtime_defaults
     arrays = payload.arrays

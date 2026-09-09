@@ -78,3 +78,76 @@ def test_invalid_partition_rejected():
     p['partition_method'] = 'random'
     with pytest.raises(ConfigurationError):
         validate_graphrevoker(p)
+
+
+@pytest.fixture
+def shared_shards_dependency(monkeypatch):
+    # Before integration, the registered AAGU-045 dependency can be explicitly
+    # supplied to this test process. Production never imports external source.
+    import importlib.util
+    import os
+    import sys
+    path = os.environ.get('OPENGU_SHARDS_TEST_SOURCE')
+    if path:
+        spec = importlib.util.spec_from_file_location('experiments.modular_shards', path)
+        module = importlib.util.module_from_spec(spec)
+        monkeypatch.setitem(sys.modules, spec.name, module)
+        spec.loader.exec_module(module)
+    else:
+        import experiments.modular_shards
+
+
+from test_modular_consumers import tables, run, write_yaml
+
+
+def test_graphrevoker_yaml_output_metrics_and_exact_cache(tables, shared_shards_dependency):
+    import numpy as np
+    from experiments.unlearning_outputs import load_output, restore_model
+    root = tables[0]
+    value = {'kind': 'unlearning', 'schema_version': 1, 'method': 'GraphRevoker',
+             'model': {'hidden_channels': 4}, 'training': {'epochs': 2},
+             'parameters': {'num_shards': 2, 'opt_num_epochs': 1, 'num_opt_samples': 1,
+                            'gpa_epochs': 1, 'gpa_hidden_channels': 8, 'gpa_batch_size': 64}}
+    write_yaml(root / 'revoker.yaml', value)
+    args = dict(selector_refs=['degree.yaml'], stage='unlearning', unlearning_refs=['revoker.yaml'])
+    cold = run(tables, 'revoker_cold', **args)['unlearning'][0]
+    warm = run(tables, 'revoker_warm', **args)['unlearning'][0]
+    assert cold['producer_called'] and warm['hit']
+    assert not cold['ensemble_preparation']['hit'] and warm['ensemble_preparation']['hit']
+    assert cold['output'] == warm['output']
+    index = list(root.rglob('index.sqlite'))
+    assert len(index) == 1
+    payload = load_output(cold['output'], index[0].parent, dataset_root=root)
+    restored = restore_model(payload)
+    with torch.no_grad():
+        logits = restored(torch.tensor(payload.arrays['x']), torch.tensor(payload.arrays['evaluation_edge_index']))
+    np.testing.assert_allclose(logits.numpy(), payload.arrays['logits'], atol=1e-6)
+    assert len(restored.shard_models) == 2
+    assert hasattr(restored, 'partition_encoder') and hasattr(restored, 'partitioner')
+    assert len(payload.arrays['selected_nodes']) == 1
+    assert not np.array_equal(payload.arrays['logits_before'], payload.auxiliary['canonical_logits_before'])
+    assert cold['evaluation'] == warm['evaluation']
+    write_yaml(root / 'random.yaml', {'kind': 'selector', 'schema_version': 1, 'method': 'random',
+        'candidate': {'pool': 'train_mask'}, 'budget': {'mode': 'k', 'value': 1}})
+    other = run(tables, 'revoker_random', stage='unlearning', selector_refs=['random.yaml'],
+                unlearning_refs=['revoker.yaml'])['unlearning'][0]
+    assert other['ensemble_preparation']['hit']
+    assert other['output'] != cold['output']
+    value['parameters']['gpa_lr'] = .002
+    write_yaml(root / 'revoker.yaml', value)
+    changed = run(tables, 'revoker_changed', **args)['unlearning'][0]
+    assert not changed['hit'] and not changed['ensemble_preparation']['hit']
+    assert changed['output'] != cold['output']
+
+
+def test_graphrevoker_three_dataset_dryrun(tmp_path):
+    import yaml
+    from experiments.modular_run import execute
+    path = tmp_path / 'experiment.yaml'
+    path.write_text(yaml.safe_dump({'kind': 'experiment', 'schema_version': 1,
+        'experiment_id': 'revoker_dry', 'stage': 'unlearning',
+        'dataset_refs': ['cora.yaml', 'citeseer.yaml', 'pubmed.yaml'],
+        'selector_refs': ['degree.yaml'], 'unlearning_refs': ['graphrevoker.yaml'],
+        'seeds': [42, 212, 2024], 'budget_ratios': [.1], 'matrix': 'cartesian_product'}), encoding='utf-8')
+    result = execute(path, dry_run=True)
+    assert result['logical_cells'] == 9 and not result['producer_called']
