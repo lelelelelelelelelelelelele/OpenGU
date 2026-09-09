@@ -1,6 +1,8 @@
 """One experiment table references independent, fully resolved module instances."""
 from __future__ import annotations
 
+from experiments.im_methods import IM_METHODS
+
 import copy
 import math
 from pathlib import Path
@@ -72,10 +74,18 @@ def selector(value):
     fields(value, {'kind', 'schema_version', 'method', 'candidate', 'budget', 'selection_rule',
                    'model', 'training', 'parameters', 'numerics', 'checkpoint'},
                   {'kind', 'schema_version', 'method', 'candidate', 'budget'}, 'selector')
-    choice(value['method'], SCORE_NAMES, 'selector method')
+    choice(value['method'], (*SCORE_NAMES, *IM_METHODS), 'selector method')
     if value['candidate'] != {'pool': 'train_mask'}:
         raise ConfigurationError('candidate pool must explicitly reference persisted train_mask')
     result = {key: value[key] for key in ('kind', 'schema_version', 'method', 'candidate', 'budget')}
+    if value['method'] in IM_METHODS:
+        from experiments.modular_im import resolve_im_parameters
+        from experiments.modular_rr import resolve_rr_parameters
+        resolver = resolve_im_parameters if value['method'] == 'im' else resolve_rr_parameters
+        result['parameters'] = resolver(value.get('parameters', {}))
+        if set(value) & {'model', 'training', 'checkpoint', 'selection_rule', 'numerics'}:
+            raise ConfigurationError('IM is a topology-only K-set selector without a ranking rule')
+        return result
     result['parameters'] = resolve_parameters(value['method'], value.get('parameters'))
     result['selection_rule'] = effective(value.get('selection_rule', {}),
         {'direction': 'descending', 'tie_break': 'node_id_ascending'}, 'selection_rule')
@@ -214,6 +224,9 @@ def configuration_sources(path, resolved):
                 visit(item, supplied.get(key, {}), name + '.')
             elif key in supplied:
                 sources[name] = 'instance:' + str(Path(path).resolve())
+            elif name.startswith('parameters.') and resolved.get('method') in IM_METHODS:
+                sources[name] = ('experiments/selection_producer.py:ImParameters' if resolved['method'] == 'im'
+                                else 'experiments/modular_rr.py:resolve_rr_parameters')
             elif name.startswith('parameters.'):
                 sources[name] = ('experiments/target_direct_v1/methods.py:parameter_defaults' if resolved['kind'] == 'selector'
                                  else 'parameter_parser.py + experiments/modular_config.py:gu_defaults')
@@ -249,7 +262,7 @@ def load_experiment(path):
     required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_refs', 'matrix'}
     fields(value, required | {'round',
         'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
-        'seeds', 'random_selector_seeds', 'budget_ratios', 'return_scores'},
+        'seeds', 'random_selector_seeds', 'budget_ratios', 'im_selector_seeds', 'return_scores'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
@@ -305,7 +318,7 @@ def load_experiment(path):
 
 def validate_repeats(config):
     """Explicit experimental axes, not arbitrary module-parameter overrides."""
-    for field in ('seeds', 'random_selector_seeds', 'budget_ratios'):
+    for field in ('seeds', 'random_selector_seeds', 'budget_ratios', 'im_selector_seeds'):
         if field not in config:
             continue
         values = config[field]
@@ -314,7 +327,7 @@ def validate_repeats(config):
         if not isinstance(values, list) or not values:
             raise ConfigurationError(field + ' must be a nonempty list')
         for value in values:
-            valid = (type(value) is int and value >= 0) if field in ('seeds', 'random_selector_seeds') else (
+            valid = (type(value) is int and value >= 0) if field in ('seeds', 'random_selector_seeds', 'im_selector_seeds') else (
                 type(value) in (int, float) and math.isfinite(value) and 0 < value <= 1)
             if not valid:
                 raise ConfigurationError('invalid ' + field + ' value')
@@ -322,11 +335,16 @@ def validate_repeats(config):
             raise ConfigurationError(field + ' must not contain duplicates')
     if 'random_selector_seeds' in config and not any(s['method'] == 'random' for s in config['selectors']):
         raise ConfigurationError('random_selector_seeds requires a Random selector')
+    im = [s for s in config['selectors'] if s['method'] in IM_METHODS]
+    if 'im_selector_seeds' in config and not im:
+        raise ConfigurationError('im_selector_seeds requires an IM selector')
+    if im and config.get('return_scores'):
+        raise ConfigurationError('IM Selection stores selected nodes only; return_scores is unavailable')
     if 'budget_ratios' in config:
         if not config['selectors'] or any(s['budget']['mode'] != 'ratio' for s in config['selectors']):
             raise ConfigurationError('budget_ratios requires ratio-based selector refs')
     if 'seeds' in config:
-        models = [s for s in config['selectors'] if uses_model(s['method'])] + config['unlearnings']
+        models = [s for s in config['selectors'] if s['method'] not in IM_METHODS and uses_model(s['method'])] + config['unlearnings']
         if not models:
             raise ConfigurationError('seeds requires a model training consumer')
         if any('checkpoint' in instance for instance in models):
@@ -355,11 +373,13 @@ def experiment_batches(config):
                         if kind == 'selector' and ratio is not None:
                             instance['budget']['value'] = float(ratio)
                             sources['budget.value'] = 'experiment:budget_ratios'
-                if 'random_selector_seeds' not in config:
+                im = [i for i, item in enumerate(batch['selectors']) if item['method'] in IM_METHODS]
+                random = [i for i, item in enumerate(batch['selectors'])
+                          if item['method'] == 'random' and 'random_selector_seeds' in config]
+                ordinary = [i for i in range(len(batch['selectors'])) if i not in im and i not in random]
+                if not im and not random:
                     yield batch
                     continue
-                ordinary = [i for i, item in enumerate(batch['selectors']) if item['method'] != 'random']
-                random = [i for i, item in enumerate(batch['selectors']) if item['method'] == 'random']
                 def subset(indices):
                     part = copy.deepcopy(batch)
                     part['selectors'] = [part['selectors'][i] for i in indices]
@@ -374,6 +394,14 @@ def experiment_batches(config):
                         part['selectors'][0]['parameters']['seed'] = random_seed
                         part['matrix_values']['random_selector_seed'] = random_seed
                         part['configuration_sources']['selectors'][0]['parameters.seed'] = 'experiment:random_selector_seeds'
+                        yield part
+                for i in im:
+                    for im_seed in config.get('im_selector_seeds', [batch['selectors'][i]['parameters']['im_selector_seed']]):
+                        part = subset([i])
+                        part['selectors'][0]['parameters']['im_selector_seed'] = im_seed
+                        part['matrix_values']['im_selector_seed'] = im_seed
+                        if 'im_selector_seeds' in config:
+                            part['configuration_sources']['selectors'][0]['parameters.im_selector_seed'] = 'experiment:im_selector_seeds'
                         yield part
 
 

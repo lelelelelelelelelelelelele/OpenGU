@@ -80,7 +80,7 @@ Metrics、Selection 和可选 scores 位于各 cell 目录，不再将整次矩�
 
 普通执行入口沿用 `experiments/run.py <experiment.yaml> --run-id <新run>`。结果目录已存在时拒绝覆盖；运行中的 run.json 记录 pending/completed/failed，未开始的 cell 保持 pending，失败记录简短错误。回传文件只从 cell 的 files 声明产生，注册配方以相同矩阵展开枚举精确路径。
 
-组合表默认不交付评分；`return_scores: true` 仅导出已经产生的数值数组。当前普通 target-direct 注册的 Selector 提供 candidate_ids/scores/ranking。IM 未接入该普通执行注册；已有 IM 结果的投影只接受已记录的选点收益，不创建全量评分/排名或扩展 K。本次没有扩展 IM 算法执行入口。
+组合表默认不交付评分；`return_scores: true` 仅导出已经产生的数值数组。当前普通 target-direct 注册的 Selector 提供 candidate_ids/scores/ranking。AAGU-040 将现有 MC/Batch-CELF（im）与固定 RR 最大覆盖贪心（im_rr_greedy）接入普通入口，按实际 K 保存 Selection。IM 的 selection.json 额外包含 im_selector_seed、training_seed、selection_reference（artifact_id / recipe_hash / content_hash）和 selector_seed_source；两条 seed 与 run 条件交叉核验，HIT 同样回传。Score 状态为 not_applicable。当前 Selection Store 没有保留收益数组，包含 IM 的表拒绝 return_scores: true，不为回传新增计算。
 
 独立 Metrics 表使用 `output_inputs: [{run: <已有run.json路径>, sha256: <文件SHA256>}]`，在持有正式输入和 Cache 的执行端重算。生成新 run 后走普通收集，既有 results 表按原实验和 cell 选择最新完成的指标；不把旧轮未请求指标混入新轮，也不改写历史 run。Metrics 的来源 run 以简要引用保存。没有通用运行时配置覆盖入口，因此不创建空 overrides 或配置副本。
 

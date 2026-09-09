@@ -1,6 +1,8 @@
 """Result documents, separate from remote computation artifacts."""
 from __future__ import annotations
 
+from experiments.im_methods import IM_METHODS
+
 import hashlib
 import json
 import math
@@ -15,7 +17,7 @@ ARTIFACT_NAMES = ('metrics.json', 'selection.json', 'scores.npz')
 
 def existing_scores(resolved, candidate_ids):
     """Project only arrays already produced; IM never becomes a full ranking."""
-    if resolved['selection']['strategy'] == 'im':
+    if resolved['selection']['strategy'] in IM_METHODS:
         gains = resolved.get('selected_gains')
         if gains is None:
             raise ValueError('IM has no recorded selected gains to return')
@@ -137,10 +139,17 @@ def export_outputs(summary, *, config, context, run):
             selection_id = selection['artifact']['artifact_id']
             documents['selection.json'] = {'cell_id': cell['cell_id'], 'selection_id': selection_id,
                 'requested_k': k, 'selected_nodes': nodes}
+            if cell['conditions']['selector'] in IM_METHODS:
+                documents['selection.json'].update(
+                    im_selector_seed=cell['conditions']['im_selector_seed'],
+                    training_seed=cell['conditions']['seed'] if cell['conditions']['method'] else None,
+                    selection_reference=selection['artifact'],
+                    selector_seed_source=selected['configuration_sources']['parameters.im_selector_seed'])
             cell['timing'] = {'selection_seconds': selected.get('selection_seconds'),
                 'score_access_seconds': selected['score'].get('access_seconds'),
                 'method_compute_seconds': row.get('compute_seconds')}
-            cell['cache'] = {'score': 'hit' if selected['score']['hit'] else 'miss',
+            cell['cache'] = {'score': ('not_applicable' if selected['score']['hit'] is None else
+                          'hit' if selected['score']['hit'] else 'miss'),
                 'selection': 'hit' if selection['cache']['hit'] else 'miss',
                 'method': ('hit' if row['hit'] else 'miss') if config['stage'] == 'unlearning' else 'not_applicable'}
             for name, checkpoint in (('selector_checkpoint', selected.get('checkpoint')),
@@ -257,11 +266,27 @@ def read_run(path, expected_sha256):
                             raise ValueError('metric status must be text')
                     elif value is not None and type(value) not in (float, int):
                         raise ValueError('metric value must be numeric or null')
-        if set(selection) != {'cell_id', 'selection_id', 'requested_k', 'selected_nodes'}:
+        selection_fields = {'cell_id', 'selection_id', 'requested_k', 'selected_nodes'}
+        if cell['conditions']['selector'] in IM_METHODS:
+            selection_fields |= {'im_selector_seed', 'training_seed', 'selection_reference',
+                                 'selector_seed_source'}
+            reference = selection.get('selection_reference', {})
+            im_seed = selection.get('im_selector_seed')
+            training_seed = cell['conditions']['seed'] if cell['conditions']['method'] else None
+            if (type(im_seed) is not int or im_seed != cell['conditions']['im_selector_seed']
+                    or selection.get('training_seed') != training_seed
+                    or set(reference) != {'artifact_id', 'recipe_hash', 'content_hash'}
+                    or reference.get('artifact_id') != cell['selection_id']
+                    or any(not re.fullmatch('[0-9a-f]{64}', reference.get(key, ''))
+                           for key in ('recipe_hash', 'content_hash'))
+                    or not isinstance(selection.get('selector_seed_source'), str)
+                    or not selection['selector_seed_source']):
+                raise ValueError('IM seed or Selection reference mismatch')
+        if set(selection) != selection_fields:
             raise ValueError('unexpected selection fields')
         if 'scores.npz' in values:
             arrays = values['scores.npz']
-            im = cell['conditions']['selector'] == 'im'
+            im = cell['conditions']['selector'] in IM_METHODS
             allowed = {'selected_gains'} if im else {'candidate_ids', 'scores', 'ranking'}
             if set(arrays) != allowed or any(a.ndim != 1 or not np.isfinite(a).all() for a in arrays.values()):
                 raise ValueError('invalid result score arrays')
