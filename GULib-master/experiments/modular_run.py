@@ -171,7 +171,11 @@ def _execute(path, *, context=None, dry_run=False, run_state):
     device = torch.device(context.request_device)
     if device.type == 'cuda' and not torch.cuda.is_available():
         raise RuntimeError('CUDA requested but unavailable')
-    for batch in batches:
+    # Execute larger ratios first even when the ordinary table lists small
+    # budgets first. Cell identities and declaration-order reporting stay intact.
+    execution_batches = sorted(batches,
+        key=lambda batch: -(batch['matrix_values']['budget_ratio'] or 0))
+    for batch in execution_batches:
         data, inputs = loaded_data[batch['matrix_values']['dataset_index']]
         data = data.to(device)
         loaded_selections = {}

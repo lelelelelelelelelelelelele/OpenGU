@@ -1,4 +1,4 @@
-"""RR uses the real sampler, exact-K cache, matrix and Result consumers."""
+"""RR uses the real sampler, prefix cache, matrix and Result consumers."""
 import hashlib
 
 import pytest
@@ -50,13 +50,13 @@ def test_mixed_rr_real_sampling_identity_and_return(tables, monkeypatch):
             assert doc['selection.json']['im_selector_seed'] == cell['conditions']['im_selector_seed']
             assert doc['selection.json']['training_seed'] == 99
             assert len(doc['selection.json']['selected_nodes']) == 2
-    # Sampling budget and K each invalidate only RR selections.
+    # Sampling changes miss; a smaller K reuses that new RR artifact.
     for label, instance in [('samples', rr_instance(rr_count=65)),
                             ('k', {**rr_instance(rr_count=65), 'budget': {'mode': 'k', 'value': 1}})]:
         write_yaml(root / 'rr.yaml', instance)
         calls.clear()
         result = run(tables, 'rr_' + label, **{**changes, 'seeds': [42]})
-        assert len(calls) == 2
+        assert len(calls) == (2 if label == 'samples' else 0)
         assert all(s['selection']['cache']['hit'] for s in result['selectors']
                    if s['selection']['strategy'] != 'im_rr_greedy')
 

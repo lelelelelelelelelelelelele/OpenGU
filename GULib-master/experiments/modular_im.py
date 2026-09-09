@@ -1,4 +1,4 @@
-"""Ordinary-table adapter for exact-K MC/Batch-CELF Selection artifacts."""
+"""Ordinary CELF Selection with explicitly bounded cross-budget reuse."""
 from dataclasses import asdict
 import math
 import time
@@ -9,8 +9,9 @@ from experiments.effective_config import effective, ConfigurationError
 from experiments.selection_producer import (
     ImParameters, SelectionInputs, build_selection_job, build_im_producer,
     resolve_or_produce_selection, load_im_strategy, im_algorithm_version,
-    producer_source_fingerprint, IM_PRODUCER_SEMANTIC_VERSION,
+    producer_source_fingerprint,
 )
+from experiments.selection_budget_planner import materialize_budget_selection
 from utils.target_checkpoint import data_identity
 
 
@@ -32,11 +33,25 @@ def resolve_im(item, *, store_root, data, inputs):
     strategy, has_numba, source = load_im_strategy()
     if not has_numba and params.im_batch_size != 1:
         raise ConfigurationError('Batch-CELF requires numba; Python CELF requires im_batch_size=1')
+    prefix_stable = params.im_batch_size == 1 and params.candidate_fraction == 1.0
     identity = {**params.to_dict(), 'split_hash': data_identity(data)['split_hash'],
-                'prefix_stable': False}
+                'prefix_stable': prefix_stable}
     k = item['budget']['k']
-    producer = ProducerVersion(IM_PRODUCER_SEMANTIC_VERSION,
+    producer = ProducerVersion('opengu-im-prefix-selection-v3',
                                producer_source_fingerprint(source, 'im'))
+    if prefix_stable:
+        # No K-dependent candidate pruning or batch truncation. The heap,
+        # MC seed schedule and tie breaking depend only on the common prefix.
+        started = time.perf_counter()
+        materialized = materialize_budget_selection(store_root=store_root, dataset=inputs,
+            strategy='im', selector_seed=params.im_selector_seed, budgets=[k],
+            producer_version=producer, algorithm_version=im_algorithm_version(has_numba),
+            parameters=identity, source_score_artifact_id=None,
+            producer=lambda max_k: build_im_producer(inputs, max_k, params, strategy)())
+        return {'score': {'hit': None, 'producer_called': False, 'access_seconds': None},
+            'selection': {**materialized.to_manifest(store_root),
+                          'effective_parameters': params.to_dict()},
+            'selection_seconds': time.perf_counter() - started}
     job = build_selection_job(SelectionInputs(inputs, 'im', params.im_selector_seed, k,
         producer, im_algorithm_version(has_numba), identity),
         build_im_producer(inputs, k, params, strategy))
@@ -53,7 +68,8 @@ def resolve_im(item, *, store_root, data, inputs):
         'selection': {'strategy': 'im', 'artifact_k': k,
             'artifact': {key: getattr(loaded, key) for key in ('artifact_id', 'recipe_hash', 'content_hash')},
             'cache': {'hit': materialized.hit, 'producer_called': materialized.producer_called,
-                      'lookup_policy': 'exact_k'},
+                      'lookup_policy': 'exact_k',
+                      'prefix_reuse_unavailable': 'requires im_batch_size=1 and candidate_fraction=1'},
             'views': {str(k): {'selected_nodes': list(loaded.selected_nodes)}},
             'effective_parameters': params.to_dict(), 'recipe': job.recipe.to_dict()},
         'selection_seconds': time.perf_counter() - started}

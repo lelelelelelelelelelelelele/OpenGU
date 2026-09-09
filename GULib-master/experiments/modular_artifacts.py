@@ -143,7 +143,8 @@ def export_outputs(summary, *, config, context, run):
                 documents['selection.json'].update(
                     im_selector_seed=cell['conditions']['im_selector_seed'],
                     training_seed=cell['conditions']['seed'] if cell['conditions']['method'] else None,
-                    selection_reference=selection['artifact'],
+                    selection_reference={key: selection['artifact'][key]
+                        for key in ('artifact_id', 'recipe_hash', 'content_hash')},
                     selector_seed_source=selected['configuration_sources']['parameters.im_selector_seed'])
             cell['timing'] = {'selection_seconds': selected.get('selection_seconds'),
                 'score_access_seconds': selected['score'].get('access_seconds'),
