@@ -54,6 +54,15 @@ def test_default_implementation_is_core_backed_exact_entry():
     assert sm.__name__ == 'scripts.syncmate.syncmate'
 
 
+def test_reviewed_project_recipes_satisfy_core_execution_contract():
+    # UI enumeration alone does not instantiate Core's bounded Recipe contract.
+    with _context.use(sm.PROJECT_ROOT, extension=OpenGUProjectExtension()):
+        recipes = _recipes.ExecutionAdapter().recipes()
+    assert set(recipes) == set(_project_recipes.recipe_definitions())
+    assert all(1 <= recipe.timeout_seconds <= _constants.RUNNER_AGENT_MAX_TIMEOUT_SECONDS
+               for recipe in recipes.values())
+
+
 def test_direct_syncmate_script_bootstraps_repo_import_path(tmp_path):
     script = Path(sm.__file__).resolve()
     repo = script.parents[2]

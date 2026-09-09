@@ -1,5 +1,5 @@
 # 48 selection cells. --dry_run only validates expansion; it does not read cache.
-# Ordinary execution computes MISS. RR/CELF currently require exact K.
+# Ordinary execution computes MISS; supported RR/CELF now reuse larger-K prefixes.
 kind: experiment
 schema_version: 1
 experiment_id: aagu053-im-group-selection05
