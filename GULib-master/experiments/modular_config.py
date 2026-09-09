@@ -249,7 +249,7 @@ def load_experiment(path):
     required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_refs', 'matrix'}
     fields(value, required | {'round',
         'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
-        'seeds', 'budget_ratios', 'return_scores'},
+        'seeds', 'random_selector_seeds', 'budget_ratios', 'return_scores'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
@@ -304,8 +304,8 @@ def load_experiment(path):
 
 
 def validate_repeats(config):
-    """Two explicit experimental axes, not arbitrary module-parameter overrides."""
-    for field in ('seeds', 'budget_ratios'):
+    """Explicit experimental axes, not arbitrary module-parameter overrides."""
+    for field in ('seeds', 'random_selector_seeds', 'budget_ratios'):
         if field not in config:
             continue
         values = config[field]
@@ -314,12 +314,14 @@ def validate_repeats(config):
         if not isinstance(values, list) or not values:
             raise ConfigurationError(field + ' must be a nonempty list')
         for value in values:
-            valid = (type(value) is int and value >= 0) if field == 'seeds' else (
+            valid = (type(value) is int and value >= 0) if field in ('seeds', 'random_selector_seeds') else (
                 type(value) in (int, float) and math.isfinite(value) and 0 < value <= 1)
             if not valid:
                 raise ConfigurationError('invalid ' + field + ' value')
         if len(set(values)) != len(values):
             raise ConfigurationError(field + ' must not contain duplicates')
+    if 'random_selector_seeds' in config and not any(s['method'] == 'random' for s in config['selectors']):
+        raise ConfigurationError('random_selector_seeds requires a Random selector')
     if 'budget_ratios' in config:
         if not config['selectors'] or any(s['budget']['mode'] != 'ratio' for s in config['selectors']):
             raise ConfigurationError('budget_ratios requires ratio-based selector refs')
@@ -353,7 +355,26 @@ def experiment_batches(config):
                         if kind == 'selector' and ratio is not None:
                             instance['budget']['value'] = float(ratio)
                             sources['budget.value'] = 'experiment:budget_ratios'
-                yield batch
+                if 'random_selector_seeds' not in config:
+                    yield batch
+                    continue
+                ordinary = [i for i, item in enumerate(batch['selectors']) if item['method'] != 'random']
+                random = [i for i, item in enumerate(batch['selectors']) if item['method'] == 'random']
+                def subset(indices):
+                    part = copy.deepcopy(batch)
+                    part['selectors'] = [part['selectors'][i] for i in indices]
+                    part['selector_refs'] = [part['selector_refs'][i] for i in indices]
+                    part['configuration_sources']['selectors'] = [part['configuration_sources']['selectors'][i] for i in indices]
+                    return part
+                if ordinary:
+                    yield subset(ordinary)
+                for i in random:
+                    for random_seed in config['random_selector_seeds']:
+                        part = subset([i])
+                        part['selectors'][0]['parameters']['seed'] = random_seed
+                        part['matrix_values']['random_selector_seed'] = random_seed
+                        part['configuration_sources']['selectors'][0]['parameters.seed'] = 'experiment:random_selector_seeds'
+                        yield part
 
 
 def selector_entries(batch):

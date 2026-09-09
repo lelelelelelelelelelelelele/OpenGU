@@ -18,7 +18,7 @@
 | [aagu007](aagu007/) | 本轮最小实验组合表；运行仍需审阅批准 |
 | [aagu032](aagu032/) | 42 条件接口参考；科学方案由 032 单独验收 |
 
-复制 [可复用模板](experiment.template.yaml) 后，只修改本轮引用、`seeds` 与 `budget_ratios` 等组合字段。两种覆盖仅在内存生效：大表显式值优先于小表，小表优先于方法默认值。训练 seed 配对模型型 Selector 与 GU/Retrain，不改变 split seed、Random 抽样 seed 或 Hutch 探针 seed。未知字段、任意 overrides、YAML merge 和给显式 checkpoint 换标签都拒绝。
+复制 [可复用模板](experiment.template.yaml) 后，只修改本轮引用、`seeds`、`random_selector_seeds` 与 `budget_ratios` 等组合字段。覆盖仅在内存生效：大表显式值优先于小表，小表优先于方法默认值。训练 seed 配对模型型 Selector 与 GU/Retrain，不改变 split seed、Random 抽样 seed 或 Hutch 探针 seed。`random_selector_seeds` 只展开Random，与训练seed独立；非空非负整数列表，不允许重复或无Random的表声明该轴。省略时沿用Random小表的 `parameters.seed` 或默认104245。见[完整扩表示例](aagu050/README.md)。未知字段、任意 overrides、YAML merge 和给显式 checkpoint 换标签都拒绝。
 
 ```powershell
 & E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/experiment.template.yaml --dry_run
