@@ -59,6 +59,9 @@ GU_METHODS = {'MEGU': megu_node, 'IDEA': idea_node, 'GNNDelete': gnndelete_node,
 
 
 def gu_producer(method, model_config):
+    if method == 'GraphEraser':
+        from experiments.modular_shards import shard_producer
+        return shard_producer(method, model_config)
     runtime_defaults()
     from experiments.modular_model import train_supervised
     from experiments.implementation_identity import model_functions

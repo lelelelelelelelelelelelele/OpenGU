@@ -207,6 +207,9 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                 if item['method'] == 'MEGU':
                     from experiments.modular_megu import run_megu_unlearning
                     consumer = run_megu_unlearning
+                elif item['method'] == 'GraphEraser':
+                    from experiments.modular_shards import run_shard_unlearning
+                    consumer = run_shard_unlearning
                 result = consumer(item, selection=loaded_selections[selector_ref], model=model, data=data,
                     dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
                     dataset_input=datasets[batch['matrix_values']['dataset_index']]['input_reference'])
@@ -243,3 +246,4 @@ def execute(path, *, context=None, dry_run=False):
                 cell.update(status='failed', error=str(exc)[:1000])
             update_run(run, context.output)
         raise
+

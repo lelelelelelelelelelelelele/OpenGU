@@ -104,6 +104,9 @@ def gu_defaults(method):
         defaults = parameter_parser()
     finally:
         sys.argv = previous
+    if method == 'GraphEraser':
+        from experiments.modular_shards import grapheraser_defaults
+        return grapheraser_defaults(defaults)
     if method == 'GNNDelete':
         result = {k: defaults[k] for k in ('unlearn_lr', 'unlearning_epochs', 'alpha', 'loss_fct', 'loss_type')}
         result.update(deletion_optimizer='Adam', deletion_weight_decay=0.0)
@@ -122,6 +125,9 @@ def unlearning(value):
     fields(value, {'kind', 'schema_version', 'method', 'model', 'training', 'parameters', 'checkpoint', 'deletion'},
                   {'kind', 'schema_version', 'method'}, 'unlearning')
     params = effective(value.get('parameters', {}), gu_defaults(value['method']))
+    if value['method'] == 'GraphEraser':
+        from experiments.modular_shards import validate_grapheraser
+        validate_grapheraser(params)
     if value['method'] == 'GNNDelete':
         if (params['unlearn_lr'] <= 0 or params['unlearning_epochs'] <= 0 or not 0 <= params['alpha'] <= 1
                 or params['deletion_optimizer'] != 'Adam' or params['deletion_weight_decay'] != 0
@@ -143,6 +149,8 @@ def unlearning(value):
                 or not math.isfinite(params['gaussian_std']) or params['gaussian_std'] < 0):
             raise ConfigurationError('invalid IDEA parameters')
     model, training = model_training({k: value[k] for k in ('model', 'training') if k in value})
+    if value['method'] == 'GraphEraser' and model['architecture'] != 'OpenGU.GCNNet':
+        raise ConfigurationError('GraphEraser modular node consumer currently supports GCN')
     if value['method'] == 'GNNDelete' and model['architecture'] != 'OpenGU.GCNNet':
         raise ConfigurationError('GNNDelete modular node consumer currently supports GCN')
     if value['method'] == 'IDEA' and model['architecture'] != 'OpenGU.GCNNet':
