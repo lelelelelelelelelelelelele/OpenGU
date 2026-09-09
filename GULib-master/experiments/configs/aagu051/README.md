@@ -23,7 +23,7 @@ E:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/aagu
 
 ## 评价与分析
 
-保存单方法指标和自身before/after utility。每个GU的未删除基线为B_m，分片方法使用未删除ensemble；完整模型P0另行区分。比较同一评价集合/协议下的B_m-U_m,R、P0-R_R、R_R-U_m,R，差异保留符号，不预设下降。GU与Retrain均为seed42，但配对仍必须核验Selection、Dataset/Split、训练配置和删除/评价语义，不能仅凭seed相同认定完整身份匹配。
+evaluation_refs仅引用post_method_metrics.yaml，与原表01一致。unlearning结果的metrics.json自动包含utility行（f1_before、f1_after、f1_drop、f1_drop_ratio），无需额外utility eval。回传后基于已核验数值计算分布统计；缺失before必须保留未知，不能用额外eval补造。每个GU的未删除基线为B_m，分片方法使用未删除ensemble；完整模型P0另行区分。比较同一评价集合/协议下的B_m-U_m,R、P0-R_R、R_R-U_m,R，差异保留符号，不预设下降。GU与Retrain均为seed42，但配对仍必须核验Selection、Dataset/Split、训练配置和删除/评价语义，不能仅凭seed相同认定完整身份匹配。
 
 每数据集、每方法以10组选集为统计单位，报告均值、样本标准差、中位数、范围及逐抽样seed明细。三个数据集分别汇总，不混为30次同分布重复。保存原始输入、Selection和Output引用；缺失和失败不填补、不隐藏。单训练seed不估计GU或Retrain训练方差；重训练差异不可直接称纯遗忘误差，F1不降不能证明遗忘成功。
 

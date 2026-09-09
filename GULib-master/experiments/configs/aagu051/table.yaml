@@ -19,7 +19,6 @@ unlearning_refs:
 - retrain.yaml
 evaluation_refs:
 - post_method_metrics.yaml
-- post_unlearning_utility.yaml
 matrix: cartesian_product
 seeds:
 - 42
