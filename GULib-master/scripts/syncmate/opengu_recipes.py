@@ -135,6 +135,30 @@ EXPERIMENT_RECIPES['opengu-aagu048-gpa-gate-v1'].update({
 })
 
 
+EXPERIMENT_RECIPES['opengu-aagu051-gate-v1'] = {'config_path': 'experiments/configs/aagu051/gate.yaml',
+ 'config_sha256': '4a739195862329bab803ff11a4730e325e3ca3159810c387beaf08b28ff11e19',
+ 'configuration_fingerprint': '1cb3324c7d6deb81c5e0725e46c44443b6b6ba3de5a6f049f0a7cc1715335829',
+ 'run_identity': {'experiment_id': 'aagu051-random-gate',
+                  'run_id': 'aagu051-gate-v1'},
+ 'timeout_seconds': 21600,
+ 'logical_cells': 30,
+ 'stage': 'unlearning',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
+                       {'num_nodes': 3327, 'candidate_count': 2328},
+                       {'num_nodes': 19717, 'candidate_count': 13801}]}
+EXPERIMENT_RECIPES['opengu-aagu051-table-v1'] = {'config_path': 'experiments/configs/aagu051/table.yaml',
+ 'config_sha256': '84fbe2d3e753870ef1d55a128498d4206f346f9c0b783f242bd49502790cdfa1',
+ 'configuration_fingerprint': '34a2d4dd387f990a39daf4f4ed718428cce50ab84cce92b9f3586371cbc9d140',
+ 'run_identity': {'experiment_id': 'aagu051-random-response',
+                  'run_id': 'aagu051-table-v1'},
+ 'timeout_seconds': 21600,
+ 'logical_cells': 150,
+ 'stage': 'unlearning',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
+                       {'num_nodes': 3327, 'candidate_count': 2328},
+                       {'num_nodes': 19717, 'candidate_count': 13801}]}
+
+
 def recipe_definitions():
     from pathlib import Path
     from experiments.modular_config import load_experiment

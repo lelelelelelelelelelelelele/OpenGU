@@ -1,0 +1,35 @@
+# Random response: four GU methods and Retrain, fixed training seed42, 150 cells.
+kind: experiment
+schema_version: 1
+experiment_id: aagu051-random-response
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- random.yaml
+unlearning_refs:
+- gnndelete.yaml
+- megu.yaml
+- grapheraser.yaml
+- graphrevoker.yaml
+- retrain.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds:
+- 42
+budget_ratios:
+- 0.1
+random_selector_seeds:
+- 11
+- 22
+- 33
+- 44
+- 55
+- 66
+- 77
+- 88
+- 99
+- 104245

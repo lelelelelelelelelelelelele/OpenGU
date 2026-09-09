@@ -1,0 +1,23 @@
+# Full-table subset: default warm request plus seed11 on every dataset and method.
+kind: experiment
+schema_version: 1
+experiment_id: aagu051-random-gate
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- random.yaml
+unlearning_refs:
+- gnndelete.yaml
+- megu.yaml
+- grapheraser.yaml
+- graphrevoker.yaml
+- retrain.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds: [42]
+budget_ratios: [0.10]
+random_selector_seeds: [104245, 11]
