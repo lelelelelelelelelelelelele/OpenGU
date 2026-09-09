@@ -159,6 +159,41 @@ EXPERIMENT_RECIPES['opengu-aagu051-table-v1'] = {'config_path': 'experiments/con
                        {'num_nodes': 19717, 'candidate_count': 13801}]}
 
 
+EXPERIMENT_RECIPES['opengu-aagu053-gate-v1'] = {'config_path': 'experiments/configs/im_group_discussion/gate_10.yaml',
+ 'config_sha256': '0264197ecb135798da8187c3250d6fbebbf68a7a97e3b8880c4bec9bec1f1f6c',
+ 'configuration_fingerprint': 'f40d0751d691f3892b8980ca56836ec72216ea13e098968e31120d7bbe452315',
+ 'run_identity': {'experiment_id': 'aagu053-im-group-gate10',
+                  'run_id': 'aagu053-gate-v1'},
+ 'timeout_seconds': 43200,
+ 'logical_cells': 36,
+ 'stage': 'unlearning',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
+                       {'num_nodes': 3327, 'candidate_count': 2328},
+                       {'num_nodes': 19717, 'candidate_count': 13801}]}
+EXPERIMENT_RECIPES['opengu-aagu053-table-v1'] = {'config_path': 'experiments/configs/im_group_discussion/Experiment.yaml',
+ 'config_sha256': 'b44d131927bf822e008ac86a448dc7c9c60c5acd4d44b6d0f6aa50da6d4eee8b',
+ 'configuration_fingerprint': 'd296c63caf0cae2950f3a4fb3f590c78f249911311883b8e25d3f68f67486a15',
+ 'run_identity': {'experiment_id': 'aagu053-im-group-budget10',
+                  'run_id': 'aagu053-table-v1'},
+ 'timeout_seconds': 43200,
+ 'logical_cells': 96,
+ 'stage': 'unlearning',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
+                       {'num_nodes': 3327, 'candidate_count': 2328},
+                       {'num_nodes': 19717, 'candidate_count': 13801}]}
+EXPERIMENT_RECIPES['opengu-aagu053-selection05-v1'] = {'config_path': 'experiments/configs/im_group_discussion/selection_05.yaml',
+ 'config_sha256': '98b83a7b04ae0a4686892ec632951fd5347fec39594fb22ba5f20a6f8bfafc65',
+ 'configuration_fingerprint': '57c2384784f3e8d6660d69567f641f25f53a541e929e8ae44c041eab35bca2d4',
+ 'run_identity': {'experiment_id': 'aagu053-im-group-selection05',
+                  'run_id': 'aagu053-selection05-v1'},
+ 'timeout_seconds': 43200,
+ 'logical_cells': 48,
+ 'stage': 'selector',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
+                       {'num_nodes': 3327, 'candidate_count': 2328},
+                       {'num_nodes': 19717, 'candidate_count': 13801}]}
+
+
 def recipe_definitions():
     from pathlib import Path
     from experiments.modular_config import load_experiment

@@ -1,0 +1,31 @@
+# Main-table subset; 36 cells across all datasets and selector/GU lanes.
+kind: experiment
+schema_version: 1
+experiment_id: aagu053-im-group-gate10
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- ./rr_1024.yaml
+- ./rr_4096.yaml
+- ./rr_16384.yaml
+- im_celf.yaml
+- degree.yaml
+- random.yaml
+unlearning_refs:
+- gnndelete.yaml
+- retrain.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds:
+- 42
+im_selector_seeds:
+- 11
+budget_ratios:
+- 0.1
+return_scores: false
+random_selector_seeds:
+- 104245
