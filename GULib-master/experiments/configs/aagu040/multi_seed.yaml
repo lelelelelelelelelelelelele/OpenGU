@@ -5,7 +5,7 @@ stage: unlearning
 dataset_refs:
 - cora.yaml
 selector_refs:
-- im.yaml
+- im_rr_greedy.yaml
 - degree.yaml
 - random.yaml
 - r_point.yaml

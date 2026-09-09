@@ -1,4 +1,4 @@
-"""RR defaults and incremental selection; no datasets or training runs."""
+"""Explicit IM configurations and incremental selection; no training runs."""
 from pathlib import Path
 
 import numpy as np
@@ -13,19 +13,17 @@ from experiments.im_score_benchmark.selectors import maximum_coverage_greedy
 ROOT = Path(__file__).resolve().parents[1] / 'experiments/configs'
 
 
-def test_public_im_defaults_to_rr_and_celf_is_opt_in():
-    default = selector(yaml.safe_load((ROOT / 'selectors/im.yaml').read_text()))
-    explicit = selector(yaml.safe_load((ROOT / 'selectors/im_rr_greedy.yaml').read_text()))
-    assert default == explicit
-    backup = selector(yaml.safe_load((ROOT / 'selectors/im_celf.yaml').read_text()))
-    assert backup['method'] == 'im'
-    assert backup['parameters']['im_batch_size'] == 1
+def test_public_im_instances_resolve_explicit_algorithms():
+    rr = selector(yaml.safe_load((ROOT / 'selectors/im_rr_greedy.yaml').read_text()))
+    assert rr['method'] == 'im_rr_greedy'
+    assert rr['parameters']['rr_count'] == 4096
+    celf = selector(yaml.safe_load((ROOT / 'selectors/im_celf.yaml').read_text()))
+    assert celf['method'] == 'im'
+    assert celf['parameters']['im_batch_size'] == 1
     for name in ('single_seed', 'multi_seed', 'candidates'):
         table = yaml.safe_load((ROOT / f'aagu040/{name}.yaml').read_text())
-        methods = [selector(yaml.safe_load((ROOT / 'selectors' / ref).read_text()))['method']
-                   for ref in table['selector_refs']]
-        assert 'im_rr_greedy' in methods
-        assert 'im' not in methods
+        for ref in table['selector_refs']:
+            selector(yaml.safe_load((ROOT / 'selectors' / ref).read_text()))
 
 
 @pytest.mark.parametrize('seed', range(8))

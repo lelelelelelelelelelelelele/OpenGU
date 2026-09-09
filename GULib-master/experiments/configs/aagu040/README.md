@@ -23,21 +23,22 @@ budget_ratios: [0.1]
 
 本入口运行现有MC/Batch-CELF与固定RR最大覆盖贪心，按实际K生产选集。K或selector seed改变形成不同身份；不从大K选集截断复用，不计算全候选静态排名。Numba后端支持Batch-CELF；Python经典CELF仅允许batch size=1，后端变更会隔离身份。
 
-## RR 主基准与 CELF 备用
+## 算法小表与选型结论
 
 | 小表 | 实际实现 | 用途 |
 |---|---|---|
-| [im.yaml](../selectors/im.yaml) | `method: im_rr_greedy`，RR=4096 | 默认 IM 主基准；单 seed / 多 seed 示例均消费此表 |
-| [im_rr_greedy.yaml](../selectors/im_rr_greedy.yaml) | `method: im_rr_greedy`，RR=4096 | 显式 RR 实例；与默认表参数相同，不是另一种算法 |
-| [im_celf.yaml](../selectors/im_celf.yaml) | `method: im`，batch=1，MC=100 | 备用；只有主动加入 selector_refs 才运行，不进入常规示例 |
+| [im_rr_greedy.yaml](../selectors/im_rr_greedy.yaml) | `method: im_rr_greedy`，RR=4096 | 固定样本覆盖贪心 |
+| [im_celf.yaml](../selectors/im_celf.yaml) | `method: im`，batch=1，MC=100 | Monte Carlo 传播估计与 CELF 贪心 |
 
-默认 im.yaml 已由 Batch-CELF 切换为 RR；消费该公共表的后续运行会使用 RR 及其独立缓存身份。历史结果保持原样。底层 method: im 仍明确表示 MC-CELF，不能凭结果标签把它解释为 RR。
+实验表通过 selector_refs 明确引用算法小表，可以单独运行其中一种，也可以同时比较。底层 method: im 表示 MC-CELF，method: im_rr_greedy 表示 RR，不按主次地位改变算法含义。
+
+选型结论：后续 IM 组优先采用 RR，因为共享采样后只需覆盖更新，符合预期的大图计算方式。因此本目录示例显式引用 im_rr_greedy.yaml；这是实验配置选择，不是对 CELF 的禁用或软件约束，也不是 RR 实测更优的结论。
 
 RR读取图的有向边（重复边去重）、全部节点作为均匀采样root、train_mask作为可选节点；静态IC传播概率由propagation_prob指定。它复用im_score_benchmark的真实采样与覆盖实现，返回K个节点。rr_count、传播概率、selector seed、数据/图/候选集、split、K和实现指纹均进入身份；训练seed不进入。改变rr_count会重新选点，普通入口未单独缓存RR样本。
 
 4096是可修改的固定采样预算，不是IMM/OPIM-C的自适应精度证书。MC=100与RR=4096也不是等计算量。现有MC每次边际估计使用采样，不应把确定性子模贪心的严格保证直接套到它的噪声估计上。RR-SNI/Shapley的静态单点排名与本次集合覆盖目标不同，未在此入口冒充为IM集合选择。
 
-RR 小表可与 IF 小表并列引用，分别运行各自的选择方法；这不是 Hybrid 融合。大表 IM 轴覆盖 RR 采样 seed，IF 参数保持独立。此次只实现 RR 主入口和 CELF 备用入口，不改变现有 HybridStrategy 的静态分数融合语义。
+IM 小表可与 IF 小表并列引用，分别运行各自的选择方法；这不是 Hybrid 融合。大表 IM 轴覆盖各 IM 算法的采样 seed，IF 参数保持独立。现有 HybridStrategy 的静态分数融合语义未改变。
 
 ### 采样预算与第二阶段
 
