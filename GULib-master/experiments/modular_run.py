@@ -210,6 +210,9 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                 elif item['method'] == 'GraphEraser':
                     from experiments.modular_shards import run_shard_unlearning
                     consumer = run_shard_unlearning
+                elif item['method'] == 'GraphRevoker':
+                    from experiments.modular_graphrevoker import run_graphrevoker_unlearning
+                    consumer = run_graphrevoker_unlearning
                 result = consumer(item, selection=loaded_selections[selector_ref], model=model, data=data,
                     dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
                     dataset_input=datasets[batch['matrix_values']['dataset_index']]['input_reference'])

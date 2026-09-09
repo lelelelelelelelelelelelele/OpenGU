@@ -1,0 +1,6 @@
+kind: unlearning
+schema_version: 1
+method: GraphRevoker
+parameters:
+  partition_method: gpa
+  aggregator: optimal

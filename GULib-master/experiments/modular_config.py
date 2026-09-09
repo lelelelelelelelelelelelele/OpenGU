@@ -107,6 +107,9 @@ def gu_defaults(method):
     if method == 'GraphEraser':
         from experiments.modular_shards import grapheraser_defaults
         return grapheraser_defaults(defaults)
+    if method == 'GraphRevoker':
+        from experiments.modular_graphrevoker import graphrevoker_defaults
+        return graphrevoker_defaults(defaults)
     if method == 'GNNDelete':
         result = {k: defaults[k] for k in ('unlearn_lr', 'unlearning_epochs', 'alpha', 'loss_fct', 'loss_type')}
         result.update(deletion_optimizer='Adam', deletion_weight_decay=0.0)
@@ -118,7 +121,7 @@ def gu_defaults(method):
 
     if method == 'IDEA':
         return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'gaussian_mean', 'gaussian_std')}
-    raise ConfigurationError('supported GU methods: GNNDelete, GIF, MEGU, IDEA, Retrain')
+    raise ConfigurationError('supported GU methods: GNNDelete, GIF, MEGU, IDEA, GraphEraser, GraphRevoker, Retrain')
 
 
 def unlearning(value):
@@ -128,6 +131,9 @@ def unlearning(value):
     if value['method'] == 'GraphEraser':
         from experiments.modular_shards import validate_grapheraser
         validate_grapheraser(params)
+    if value['method'] == 'GraphRevoker':
+        from experiments.modular_graphrevoker import validate_graphrevoker
+        validate_graphrevoker(params)
     if value['method'] == 'GNNDelete':
         if (params['unlearn_lr'] <= 0 or params['unlearning_epochs'] <= 0 or not 0 <= params['alpha'] <= 1
                 or params['deletion_optimizer'] != 'Adam' or params['deletion_weight_decay'] != 0

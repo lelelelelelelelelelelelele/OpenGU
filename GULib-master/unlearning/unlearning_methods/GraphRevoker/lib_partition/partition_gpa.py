@@ -1,10 +1,7 @@
-import cupy as cp
 import numpy as np
 import logging
 
-import config
 from unlearning.unlearning_methods.GraphRevoker.lib_partition.partition import Partition
-from unlearning.unlearning_methods.GraphRevoker.lib_partition.node_embedding import NodeEmbedding
 # from lib_utils import utils
 
 from torch import nn, optim
@@ -78,130 +75,77 @@ class PartitionGPA(Partition):
         super(PartitionGPA, self).__init__(args, graph, dataset)
         self.logger = logger
         self.model_zoo = model_zoo
+        import cupy as cp
         cp.cuda.Device(self.args['cuda']).use()
         self.load_embeddings()
 
     def load_embeddings(self):
+        from unlearning.unlearning_methods.GraphRevoker.lib_partition.node_embedding import NodeEmbedding
         node_embedding = NodeEmbedding(self.args, self.logger,self.graph, self.dataset,self.model_zoo)
 
         self.node_to_embedding = node_embedding.encoder(256, 2)
     
     def partition(self):
-        self.logger.info("Training the partition network")
+        nodes = torch.nonzero(self.dataset.train_mask).flatten()
+        embeddings = torch.as_tensor(np.array([self.node_to_embedding[int(n)] for n in nodes]))
+        assignment, _ = partition_embeddings(self.dataset, embeddings, self.args, self.logger)
+        return {shard: nodes[assignment.cpu() == shard].cpu().numpy()
+                for shard in range(self.num_shards)}
 
-        embedding = np.array(list(self.node_to_embedding.values()))
 
-        device = torch.device(self.args['cuda'])
+def partition_embeddings(dataset, embeddings, parameters, logger):
+    """Existing GPA objective and postprocessing over correctly relabelled train nodes."""
+    from torch_geometric.utils import subgraph
+    nodes = dataset.train_mask.nonzero().flatten()
+    if len(nodes) < parameters['num_shards']:
+        raise ValueError('fewer training nodes than GPA shards')
+    edge_index, _ = subgraph(nodes, dataset.edge_index, relabel_nodes=True,
+                            num_nodes=dataset.num_nodes)
+    if edge_index.shape[1] == 0:
+        raise ValueError('GPA partition requires nonempty training edges')
+    x = embeddings.to(dataset.x.device)
+    if len(x) != len(nodes):
+        raise ValueError('GPA embeddings do not match ordered training nodes')
+    y = dataset.y[nodes]
+    n_classes = int(dataset.y.max()) + 1
+    data = Data(x=x, edge_index=edge_index, y=y)
+    data.n_id = torch.arange(data.num_nodes, device=x.device)
+    loader = NeighborLoader(data, num_neighbors=[-1, -1], input_nodes=None,
+        batch_size=parameters.get('gpa_batch_size', 512), shuffle=True)
+    model = Partitioner(x.shape[1], parameters.get('gpa_hidden_channels', 256), parameters['num_shards']).to(x.device)
+    optimizer = optim.AdamW(model.parameters(), lr=parameters.get('gpa_lr', 1e-3),
+                           weight_decay=parameters.get('gpa_weight_decay', 1e-5))
+    model.train()
+    for epoch in range(parameters.get('gpa_epochs', 10)):
+        for batch in loader:
+            optimizer.zero_grad()
+            adj = to_dense_adj(batch.edge_index, max_num_nodes=batch.num_nodes)[0]
+            output = model(batch.x, batch.edge_index)
+            cut = ncut_loss(output, adj)
+            semantic = LabelEntropyLoss(y[batch.n_id], n_classes)(output)
+            balance = eff_norm(output, adj, batch.edge_index.shape[1])
+            loss = cut + semantic * 1e-3 + balance * .001
+            if not torch.isfinite(loss):
+                raise ValueError('GPA objective is nonfinite')
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), .5)
+            optimizer.step()
+        logger.info('GPA epoch %s', epoch)
+    model.eval()
+    with torch.no_grad():
+        results = torch.argsort(model(data.x, data.edge_index), dim=1, descending=True)[:, :1].cpu().numpy()
+    counts = [0] * parameters['num_shards']
+    assignment = torch.empty(len(nodes), dtype=torch.long, device=x.device)
+    for node in sorted(range(len(nodes)), key=lambda i: results[i][0]):
+        label = int(results[node][0])
+        if counts[label] >= len(nodes) / parameters['num_shards'] + len(nodes) * parameters['shard_size_delta']:
+            label = int(np.argmin(counts))
+        assignment[node] = label
+        counts[label] += 1
+    if min(counts) == 0:
+        raise ValueError('GPA partition produced an empty shard')
+    return assignment, model
 
-        train_indices = torch.nonzero(self.dataset.train_mask.cpu()).squeeze(1).detach().cpu().numpy()
-        val_indices = torch.nonzero(self.dataset.val_mask).squeeze(1).detach().cpu().numpy()
-        # edge_index = self.dataset.edge_index_train.numpy()
-        edge_index = self.dataset.edge_index.detach().cpu().numpy()
-        val_edge_mask = np.logical_or(np.isin(edge_index[0], val_indices),
-                                      np.isin(edge_index[1], val_indices))
-        train_only_edge_mask = np.logical_not(val_edge_mask)
-        edge_index = edge_index[:, train_only_edge_mask]
-        edge_index = np.searchsorted(train_indices, edge_index)
-        edge_index = torch.LongTensor(edge_index).to(device)
-        
-        x = torch.from_numpy(embedding).to(device)
-        y = self.dataset.y[self.dataset.train_mask.cpu()].to(device)
-        n_classes = len(np.unique(self.dataset.y.cpu().numpy()))
-
-        data = Data(x=x, edge_index=edge_index, y=y)
-        data.n_id = torch.arange(data.num_nodes).to(device)
-
-        #loader = NeighborLoader(data, num_neighbors=[10, 7], input_nodes=None, batch_size=512, shuffle=True, drop_last=True) # Flickr
-        loader = NeighborLoader(data, num_neighbors=[-1, -1], input_nodes=None, batch_size=512, shuffle=True) # Cora & Citeseer
-
-        model = Partitioner(x.shape[1], 256, self.num_shards).to(device)
-        model.train()
-        
-        optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-5)
-        #for epoch in range(30): # Flickr
-        for epoch in range(10): # Cora & Citeseer
-            self.logger.info('epoch %s' % (epoch,))
-            for it, batch in enumerate(loader):
-                optimizer.zero_grad()
-                adj = to_dense_adj(batch['edge_index'])[0]
-                output = model(batch['x'], batch['edge_index'])
-                #output = output * 0.9 + 0.1 / self.num_shards # Flickr 
-                #balance_loss = balance_loss(output, output.shape[0])
-                balance_loss = eff_norm(output, adj, batch['edge_index'].shape[1])
-                semloss_criterion = LabelEntropyLoss(y[batch['n_id']], n_classes)
-                cut_loss = ncut_loss(output, adj)
-                sem_loss = semloss_criterion(output)
-                loss = cut_loss + sem_loss * 1e-3 + balance_loss * 0.001 #+ sem_loss * 1e-3 #+ sem_loss * 1e-3 # Cora & Citeseer & Flickr
-                loss.backward()
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
-                optimizer.step()
-
-                if it % 100 == 0:
-                    self.logger.info('loss: %.4f, balance loss: %.4f, cut_loss: %.4f, sem_loss: %.4f' % \
-                        (loss.item(), balance_loss.item(), cut_loss.item(), sem_loss.item()))
-        
-        self.logger.info("Inferencing")
-        model.eval()
-        loader2 = NeighborLoader(data, num_neighbors=[-1], input_nodes=None, batch_size=data.num_nodes, shuffle=False) # Cora & Citeseer & Flickr
-        results = []
-        # Top-k available
-        k = 1
-        with torch.no_grad():
-            for batch in tqdm(loader2):
-                x, edge_index, batch_size = batch['x'], batch['edge_index'], batch['batch_size']
-                out = torch.argsort(model(x, edge_index)[:batch_size, :], dim=1, descending=True)[:, :k]
-                results.append(out.cpu())
-        #input(results[0].flatten()[:200])
-        self.logger.info("Postprocessing")
-        results = torch.concat(results, dim=0).numpy()
-        node_cnt = [0 for i in range(self.num_shards)]
-        node_idx2com = []
-        
-        # Aggregate nodes that are assigned to a same shard together
-        for node_idx in sorted([i for i in range(results.shape[0])], key=lambda i:results[i][0]):
-            res = results[node_idx]
-            final_label = -1
-            for label in res:
-                if node_cnt[label] < x.shape[0] / self.num_shards + x.shape[0] * self.args['shard_size_delta']:
-                    final_label = label
-                    break
-            if final_label == -1:
-                final_label = np.argmin(node_cnt)
-            node_idx2com.append((node_idx, final_label))
-            node_cnt[final_label] += 1
-        node_to_community = {}
-        nodes = list(self.node_to_embedding.keys())
-        for node_idx, final_label in node_idx2com:
-            node_to_community[nodes[node_idx]] = final_label
-        '''
-        for it, batch in enumerate(loader2):
-            # Top-k available
-            k = 1
-            results = torch.argsort(model(batch['x'], batch['edge_index'])[:128, :], dim=1, descending=True)[:, :k]
-            results = results.detach().cpu().numpy()
-            for res in results:
-                final_label = -1
-                for label in res:
-                    if node_cnt[label] < x.shape[0] / self.num_shards + x.shape[0] * self.args['shard_size_delta']:
-                        final_label = label
-                        break
-                if final_label == -1:
-                    final_label = np.argmin(node_cnt)
-                cluster_labels.append(final_label)
-                node_cnt[final_label] += 1
-
-        node_to_community = {}
-        for com, node in zip(cluster_labels, self.node_to_embedding.keys()):
-            node_to_community[node] = com
-        '''
-
-        community_to_node = {}
-        for com in range(len(set(node_to_community.values()))):
-            community_to_node[com] = [train_indices[idx] for idx in np.where(np.array(list(node_to_community.values())) == com)[0]]
-        community_to_node = dict(sorted(community_to_node.items()))
-
-        return community_to_node
-        
 
 def balance_loss(y, n):
     g = y.shape[1]
