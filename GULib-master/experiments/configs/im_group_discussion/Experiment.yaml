@@ -1,0 +1,42 @@
+# IM 组内测试：讨论草案，尚未注册或授权运行。
+# 以 AAGU-040 已接受候选 8d67ffc2 为解析依据；当前 main 尚未包含该实现。
+# 问题 1：RR 采样量改变后，删除效果与选集稳定性是否变化？
+# 问题 2：RR 与 MC-CELF、Random、Degree 相比表现如何？
+# rr_count 是采样量，不是带理论误差保证的 Lambda。
+# 主比较保持图/split、候选集、传播概率、删除预算、训练 seed 和 GU 设置一致。
+# CELF 的 mc_rounds 与 RR 的 rr_count 不是等计算预算；不能据此声称同预算效率优势。
+kind: experiment
+schema_version: 1
+experiment_id: im-group-discussion-cora-gcn
+stage: unlearning
+dataset_refs:
+- cora.yaml
+selector_refs:
+- ./rr_1024.yaml
+- ./rr_4096.yaml
+- ./rr_16384.yaml
+- im_celf.yaml                  # MC-CELF: p=0.1, mc_rounds=100, batch_size=1
+- degree.yaml
+- ./random_11.yaml
+- ./random_22.yaml
+- ./random_33.yaml
+unlearning_refs:
+- gnndelete.yaml
+- retrain.yaml                  # 同一 Selection 的独立精确重训对照
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds: [42, 212, 2024]          # 模型训练重复，与选点随机性分离
+im_selector_seeds: [11, 22, 33] # 仅展开 RR/CELF；Degree 和 Random 不乘此轴
+budget_ratios: [0.01, 0.05, 0.10] # 相对于 train_mask 候选池
+return_scores: false           # IM 返回实际 K 选集，不是全候选排序
+
+# 共 (4 个 IM 实例 × 3 个 selector seed + Degree + 3 个 Random)
+#    × 3 个训练 seed × 3 个预算 × 2 个 GU 方法 = 288 个 cell。
+# 选集稳定性：固定方法/采样量/预算，比较 3 个 selector seed 的 Jaccard。
+# 方法间重叠：固定预算，比较实际 Selection；不要把训练 seed 复制算作新选集。
+# 先按 selector seed 汇总配对训练结果，再报告随机性；9 格不是 9 个独立选点样本。
+# Retrain gap 需后续按 Selection 身份、训练 seed、模型及删除语义配对分析；
+# 当前 evaluation 只直接输出各方法的 F1/accuracy/CE/AUC 等，不自动生成组间分析。
+# 首轮可缩成 RR4096 + Degree + Random11、两条 seed 均单值、预算 0.01，
+# 保留 GNNDelete + Retrain，共 6 格。定稿时另存 gate 配置，不覆盖已运行配置。

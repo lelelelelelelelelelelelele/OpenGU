@@ -1,0 +1,12 @@
+kind: selector
+schema_version: 1
+method: im_rr_greedy
+candidate:
+  pool: train_mask
+budget:
+  mode: ratio
+  value: 0.1
+parameters:
+  propagation_prob: 0.1
+  rr_count: 1024
+  im_selector_seed: 2024
