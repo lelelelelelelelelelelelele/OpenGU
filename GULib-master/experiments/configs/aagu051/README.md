@@ -8,7 +8,7 @@
 | 模型 | GCN |
 | 删除预算 | train 候选池的 10% |
 | Selector | 公共 random.yaml |
-| Random 抽样 seed | 11、22、33、44、55、66、77、88、99、110 |
+| Random 抽样 seed | 11、22、33、44、55、66、77、88、99、104245 |
 | 所有方法的训练 seed | 42 |
 | 方法 | GIF、GNNDelete、MEGU、IDEA、GraphEraser、GraphRevoker、Retrain |
 | 条件数 | 每数据集70；总计210（180 GU + 30 Retrain） |
