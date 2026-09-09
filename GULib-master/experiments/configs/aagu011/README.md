@@ -29,3 +29,21 @@ are reused on exact identities. Missing PageRank references and new GU Outputs
 are computed. A clean full table requires 270 observed GU cells, 45 matching
 reference cells, and verified collection, with failures/missing explicitly
 reported. Completion of execution is distinct from user scientific acceptance.
+
+## AAGU-047 numerical recovery
+
+The first table01 run stopped on GraphRevoker aggregation weights. Both shard
+optimizers share a zero-weight norm/normalization hazard. Their numerical repair
+uses a dtype machine-epsilon lower bound during optimization and a defined
+vector-norm gradient at zero; the optimizer, objective and output validation are
+retained. This changes both shard producers and original ensemble checkpoints;
+old GraphEraser/GraphRevoker outputs remain immutable historical evidence and
+are not reused as repaired outputs. Other GU, Selection and Retrain identities
+are unchanged.
+
+`recovery_gate.yaml` covers three datasets, gt_full, the two shard methods and
+seeds 42/2024 (12 cells), including the condition implicated by the failed run.
+After it passes, `opengu-aagu011-table01-v2` executes the unchanged scientific
+`table01.yaml` under a new run identity. No failed run is overwritten. Previously
+verified Retrain references remain usable by exact semantic pairing across this
+unrelated-to-Retrain source change; the analysis records each source SHA.
