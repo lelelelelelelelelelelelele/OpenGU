@@ -110,7 +110,9 @@ def gu_defaults(method):
         return result
     if method == 'GIF':
         return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'GIF_method')}
-    raise ConfigurationError('supported GU methods: GNNDelete, GIF, Retrain')
+    if method == 'IDEA':
+        return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'gaussian_mean', 'gaussian_std')}
+    raise ConfigurationError('supported GU methods: GNNDelete, GIF, IDEA, Retrain')
 
 
 def unlearning(value):
@@ -126,9 +128,18 @@ def unlearning(value):
         if params['iteration'] <= 0 or params['scale'] <= 0 or not 0 <= params['damp'] < 1:
             raise ConfigurationError('invalid GIF parameters')
         choice(params['GIF_method'], ('GIF', 'IF'), 'GIF_method')
+    elif value['method'] == 'IDEA':
+        if (type(params['iteration']) is not int or params['iteration'] <= 0
+                or not math.isfinite(params['scale']) or params['scale'] <= 0
+                or not 0 <= params['damp'] < 1
+                or not math.isfinite(params['gaussian_mean'])
+                or not math.isfinite(params['gaussian_std']) or params['gaussian_std'] < 0):
+            raise ConfigurationError('invalid IDEA parameters')
     model, training = model_training({k: value[k] for k in ('model', 'training') if k in value})
     if value['method'] == 'GNNDelete' and model['architecture'] != 'OpenGU.GCNNet':
         raise ConfigurationError('GNNDelete modular node consumer currently supports GCN')
+    if value['method'] == 'IDEA' and model['architecture'] != 'OpenGU.GCNNet':
+        raise ConfigurationError('IDEA modular node consumer currently supports GCN')
     if value['method'] == 'Retrain' and 'checkpoint' in value:
         raise ConfigurationError('Retrain starts from scratch and cannot consume a checkpoint')
     from experiments.node_deletion import resolve_deletion

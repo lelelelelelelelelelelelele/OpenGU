@@ -50,7 +50,10 @@ def retrain_node(args, model, data, nodes, runtime_root):
     return run_retrain(args['instance'], data, nodes, args['dataset_name'])
 
 
-GU_METHODS = {'GNNDelete': gnndelete_node, 'GIF': gif_node, 'Retrain': retrain_node}
+from experiments.modular_idea import idea_node
+
+
+GU_METHODS = {'IDEA': idea_node, 'GNNDelete': gnndelete_node, 'GIF': gif_node, 'Retrain': retrain_node}
 
 
 def gu_producer(method, model_config):
@@ -74,6 +77,10 @@ def gu_producer(method, model_config):
         from unlearning.unlearning_methods.GIF.gif import gif
         from task.GIFTrainer import GIFTrainer
         functions += [gif, GIFTrainer, gif_node, model_class.reason_once, model_class.reason_once_unlearn]
+    elif method == 'IDEA':
+        from unlearning.unlearning_methods.IDEA.idea import idea
+        from task.IDEATrainer import IDEATrainer
+        functions += [idea, IDEATrainer, idea_node, model_class.forward_once, model_class.forward_once_unlearn]
     elif method == 'Retrain':
         functions += [run_retrain, train_supervised]
     else:
