@@ -1,6 +1,8 @@
 """Execute independent instances through existing selector and GU consumers."""
 from __future__ import annotations
 
+from experiments.im_methods import IM_METHODS
+
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -180,16 +182,18 @@ def _execute(path, *, context=None, dry_run=False, run_state):
             if 'model' in item:
                 model, checkpoints, observation = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
                     checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
-            if item['method'] == 'im':
+            if item['method'] in IM_METHODS:
                 from experiments.modular_im import resolve_im
-                resolved = resolve_im(item, store_root=store_root, data=data, inputs=inputs)
+                from experiments.modular_rr import resolve_rr
+                resolver = resolve_im if item['method'] == 'im' else resolve_rr
+                resolved = resolver(item, store_root=store_root, data=data, inputs=inputs)
             else:
                 resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
                     model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
             reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
             loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
                 expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'],
-                expected_parameters=item['parameters'] if item['method'] == 'im' else None)
+                expected_parameters=item['parameters'] if item['method'] in IM_METHODS else None)
             loaded_selections[selector_ref] = selection_prefix(loaded, item['budget']['k'])
             summary['selectors'].append({**resolved, 'checkpoint': observation, 'matrix_values': batch['matrix_values'],
                 'selector_ref': selector_ref, 'requested_k': item['budget']['k'],

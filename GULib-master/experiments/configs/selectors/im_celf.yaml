@@ -1,0 +1,15 @@
+kind: selector
+schema_version: 1
+method: im
+candidate:
+  pool: train_mask
+budget:
+  mode: ratio
+  value: 0.1
+parameters:
+  propagation_prob: 0.1
+  mc_rounds: 100
+  candidate_fraction: 1.0
+  im_selector_seed: 2024
+  im_batch_size: 1
+  parallel_mc: true

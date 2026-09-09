@@ -1,6 +1,8 @@
 """One experiment table references independent, fully resolved module instances."""
 from __future__ import annotations
 
+from experiments.im_methods import IM_METHODS
+
 import copy
 import math
 from pathlib import Path
@@ -72,13 +74,15 @@ def selector(value):
     fields(value, {'kind', 'schema_version', 'method', 'candidate', 'budget', 'selection_rule',
                    'model', 'training', 'parameters', 'numerics', 'checkpoint'},
                   {'kind', 'schema_version', 'method', 'candidate', 'budget'}, 'selector')
-    choice(value['method'], (*SCORE_NAMES, 'im'), 'selector method')
+    choice(value['method'], (*SCORE_NAMES, *IM_METHODS), 'selector method')
     if value['candidate'] != {'pool': 'train_mask'}:
         raise ConfigurationError('candidate pool must explicitly reference persisted train_mask')
     result = {key: value[key] for key in ('kind', 'schema_version', 'method', 'candidate', 'budget')}
-    if value['method'] == 'im':
+    if value['method'] in IM_METHODS:
         from experiments.modular_im import resolve_im_parameters
-        result['parameters'] = resolve_im_parameters(value.get('parameters', {}))
+        from experiments.modular_rr import resolve_rr_parameters
+        resolver = resolve_im_parameters if value['method'] == 'im' else resolve_rr_parameters
+        result['parameters'] = resolver(value.get('parameters', {}))
         if set(value) & {'model', 'training', 'checkpoint', 'selection_rule', 'numerics'}:
             raise ConfigurationError('IM is a topology-only K-set selector without a ranking rule')
         return result
@@ -188,8 +192,9 @@ def configuration_sources(path, resolved):
                 visit(item, supplied.get(key, {}), name + '.')
             elif key in supplied:
                 sources[name] = 'instance:' + str(Path(path).resolve())
-            elif name.startswith('parameters.') and resolved.get('method') == 'im':
-                sources[name] = 'experiments/selection_producer.py:ImParameters'
+            elif name.startswith('parameters.') and resolved.get('method') in IM_METHODS:
+                sources[name] = ('experiments/selection_producer.py:ImParameters' if resolved['method'] == 'im'
+                                else 'experiments/modular_rr.py:resolve_rr_parameters')
             elif name.startswith('parameters.'):
                 sources[name] = ('experiments/target_direct_v1/methods.py:parameter_defaults' if resolved['kind'] == 'selector'
                                  else 'parameter_parser.py + experiments/modular_config.py:gu_defaults')
@@ -296,7 +301,7 @@ def validate_repeats(config):
                 raise ConfigurationError('invalid ' + field + ' value')
         if len(set(values)) != len(values):
             raise ConfigurationError(field + ' must not contain duplicates')
-    im = [s for s in config['selectors'] if s['method'] == 'im']
+    im = [s for s in config['selectors'] if s['method'] in IM_METHODS]
     if 'im_selector_seeds' in config and not im:
         raise ConfigurationError('im_selector_seeds requires an IM selector')
     if im and config.get('return_scores'):
@@ -305,7 +310,7 @@ def validate_repeats(config):
         if not config['selectors'] or any(s['budget']['mode'] != 'ratio' for s in config['selectors']):
             raise ConfigurationError('budget_ratios requires ratio-based selector refs')
     if 'seeds' in config:
-        models = [s for s in config['selectors'] if s['method'] != 'im' and uses_model(s['method'])] + config['unlearnings']
+        models = [s for s in config['selectors'] if s['method'] not in IM_METHODS and uses_model(s['method'])] + config['unlearnings']
         if not models:
             raise ConfigurationError('seeds requires a model training consumer')
         if any('checkpoint' in instance for instance in models):
@@ -334,8 +339,8 @@ def experiment_batches(config):
                         if kind == 'selector' and ratio is not None:
                             instance['budget']['value'] = float(ratio)
                             sources['budget.value'] = 'experiment:budget_ratios'
-                ordinary = [i for i, item in enumerate(batch['selectors']) if item['method'] != 'im']
-                im = [i for i, item in enumerate(batch['selectors']) if item['method'] == 'im']
+                ordinary = [i for i, item in enumerate(batch['selectors']) if item['method'] not in IM_METHODS]
+                im = [i for i, item in enumerate(batch['selectors']) if item['method'] in IM_METHODS]
                 if not im:
                     yield batch
                     continue
