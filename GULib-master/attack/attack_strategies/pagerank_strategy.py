@@ -23,6 +23,15 @@ class PageRankStrategy(BaseStrategy):
         model: torch.nn.Module,
         k: int,
     ) -> Tensor:
+        scores = self.score_nodes(data)
+        candidates = self.candidate_nodes(data).cpu()
+        k = self._validate_k(k, candidates)
+        _, topk_indices = torch.topk(scores[candidates], k)
+
+        return candidates[topk_indices]
+
+    def score_nodes(self, data: Data) -> Tensor:
+        """Full graph scores using the established undirected NetworkX semantics."""
         # 转换为 NetworkX 图
         G = to_networkx(data, to_undirected=True)
 
@@ -31,8 +40,4 @@ class PageRankStrategy(BaseStrategy):
 
         # 转换为 tensor 并按分数排序
         scores = torch.tensor([pr_scores[i] for i in range(data.num_nodes)], dtype=torch.float)
-        candidates = self.candidate_nodes(data).cpu()
-        k = self._validate_k(k, candidates)
-        _, topk_indices = torch.topk(scores[candidates], k)
-
-        return candidates[topk_indices]
+        return scores
