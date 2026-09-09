@@ -15,20 +15,10 @@ Thumbs.db
 # Local Claude Code settings
 .claude/settings.local.json
 
-# Historical Legacy payloads remain device-local until separately authorized
-# archive. Active consumers use Cache V2; per-dir CLAUDE.md stays tracked.
-results/cache/*.json
-results/selection_cache/*.json
-results/score_cache/**/*.json
-results/score_cache/**/*.npz
-
-# Cache V2 stores are device-local, content-addressed runtime caches. Formal
-# evidence belongs in tracked experiment summaries/manifests and MD/HTML
-# reports, not in mutable SQLite indexes or payload stores.
-results/cache_v2/
-
-# Modular model checkpoints and GU working files are device-local runtime.
-/results/runtime/
+# Results, caches, checkpoints and diagnostics are device-local artifacts.
+# Existing tracked documentation and historical paper assets remain tracked
+# until their owners retire them; ignoring this directory does not delete files.
+/results/
 
 # Runtime logs (timestamped, large, regenerable)
 log/
@@ -41,30 +31,8 @@ report/daily-log/
 *.tar.gz
 *.md5
 
-# Migration interim aggregator outputs（MIGRATION_RUNBOOK.md §6.1）
-results/_phase_b_*.csv
-# Exception: the canonical aggregate is paper-essential (drives all 6 figures
-# in scripts/plot_neurips_figures.py + master scorecard). 160 KB, worth tracking.
-!results/_phase_b_aggregate.csv
-
 # NeurIPS template unzip dir (redundant with zip, regeneratable)
 report/paper/NeurIPS_2025_template/
-
-# Experiment outputs — untracked 2026-05-05 (1300+ files of pre-Phase-B,
-# bug-polluted data; Phase B regenerates clean data into results/runs/).
-# results/baseline/ retained as k=5 noise-floor reference (k=5 baseline is
-# NOT replaceable by Phase B's r=0.05 random strategy).
-results/relative/
-results/experiments/
-results/collateral/
-results/step0_validation/
-results/runs/
-results/_deprecated_tracin_bug/
-results/hybrid_alpha_sweep/
-
-# Archived snapshots (2026-05-06: Phase B Blocker-1/2 污染 + pre-Phase-B
-# legacy 全部 move 进 _archive_YYYYMMDD/ 不删；保险起见落盘)
-results/_archive_*/
 
 GEMINI.md
 
@@ -74,11 +42,6 @@ GEMINI.md
 *.bbl
 *.blg
 *.out
-
-# k=5 noise floor — pre-v2 tracked evidence is preserved under
-# k5_random_OLD_20260227. New canonical k5_random artifacts stay device-local;
-# acceptance numbers belong in tracked summaries/reports rather than raw seeds.
-results/baseline/
 
 # Device-local syncmate identity/state. This is intentionally different on
 # each machine and must not be committed.
