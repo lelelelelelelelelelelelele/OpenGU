@@ -164,7 +164,7 @@ def test_real_gu_method_and_default_equivalence(tables):
     assert identities(first) == identities(explicit)
     assert explicit['unlearning'][0]['hit'] is True
     gu['method'] = 'GIF'
-    gu['parameters'] = {'iteration': 2}
+    gu['parameters'] = {'iteration': 100, 'scale': 100, 'damp': .5}
     write_yaml(root / 'gif.yaml', gu)
     gif = run(tables, 'gif_run', stage='unlearning', selector_refs=['degree.yaml'], unlearning_refs=['gif.yaml'])
     assert identities(first) == identities(gif)
@@ -322,7 +322,7 @@ def test_actual_dependency_implementation_changes(tables, monkeypatch):
     global ORIGINAL_REASON_ONCE
     ORIGINAL_REASON_ONCE = GCNNet.reason_once
     root, _, gu = tables
-    gu['method'], gu['parameters'] = 'GIF', {'iteration': 2}
+    gu['method'], gu['parameters'] = 'GIF', {'iteration': 100, 'scale': 100, 'damp': .5}
     write_yaml(root / 'gif.yaml', gu)
     kwargs = dict(selector_refs=['degree.yaml', 'b_param_hutch.yaml'], stage='unlearning', unlearning_refs=['gif.yaml'])
     first = run(tables, 'code_cold', **kwargs)
