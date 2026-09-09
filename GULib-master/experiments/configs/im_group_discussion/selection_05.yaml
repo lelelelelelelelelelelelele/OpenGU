@@ -1,8 +1,9 @@
-# AAGU-053: full 10% table, 96 cells; formal run requires identity and gates.
+# 48 selection cells. --dry_run only validates expansion; it does not read cache.
+# Ordinary execution computes MISS. RR/CELF currently require exact K.
 kind: experiment
 schema_version: 1
-experiment_id: aagu053-im-group-budget10
-stage: unlearning
+experiment_id: aagu053-im-group-selection05
+stage: selector
 dataset_refs:
 - cora.yaml
 - citeseer.yaml
@@ -14,20 +15,13 @@ selector_refs:
 - im_celf.yaml
 - degree.yaml
 - random.yaml
-unlearning_refs:
-- gnndelete.yaml
-- retrain.yaml
-evaluation_refs:
-- post_method_metrics.yaml
 matrix: cartesian_product
-seeds:
-- 42
 im_selector_seeds:
 - 11
 - 22
 - 33
 budget_ratios:
-- 0.1
+- 0.05
 return_scores: false
 random_selector_seeds:
 - 104245
