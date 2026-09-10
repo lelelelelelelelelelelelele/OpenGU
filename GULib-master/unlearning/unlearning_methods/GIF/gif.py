@@ -18,7 +18,7 @@ from config import root_path,unlearning_path,unlearning_edge_path
 from task.edge_prediction import EdgePredictor
 from task import get_trainer
 from pipeline.IF_based_pipeline import IF_based_pipeline
-from unlearning.unlearning_methods.GIF.solver import solve_gif_system, GIFConvergenceError
+from unlearning.unlearning_methods.GIF.solver import solve_gif_system, GIFNumericalError
 class gif(IF_based_pipeline):
     """
     GIF (Graph Influence Function) class implements a IF-based pipeline for performing unlearning tasks on GNNs, enabling efficient removal of specific data points, edges, or features from
@@ -804,14 +804,14 @@ class gif(IF_based_pipeline):
             delta, self.solver_diagnostics = solve_gif_system(
                 matvec, torch.cat([part.detach().reshape(-1) for part in v]),
                 iterations=iteration, scale=scale, damp=damp)
-        except GIFConvergenceError as error:
+        except GIFNumericalError as error:
             self.solver_diagnostics = error.diagnostics
             raise
         params_change = [part.reshape_as(p) for part, p in zip(delta.split(sizes), model_params)]
         params_esti   = [p1 + p2 for p1, p2 in zip(params_change, model_params)]
         if not all(torch.isfinite(p).all() for p in params_esti):
             self.solver_diagnostics['status'] = 'nonfinite_parameters'
-            raise GIFConvergenceError(self.solver_diagnostics)
+            raise GIFNumericalError(self.solver_diagnostics)
 
         test_F1 = self.target_model.eval_unlearn(params_esti)
 

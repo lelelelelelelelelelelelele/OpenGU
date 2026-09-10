@@ -1,65 +1,67 @@
-"""Numerical reference problems independent of the OpenGU CLI/model stack."""
+"""Independent explicit-matrix references for GIF's finite approximation."""
 import pytest
 import torch
 
-from unlearning.unlearning_methods.GIF.solver import GIFConvergenceError, solve_gif_system
+from unlearning.unlearning_methods.GIF.solver import GIFNumericalError, solve_gif_system
 
 
 @pytest.mark.parametrize('damp', [0., .2])
-def test_autograd_hvp_and_solution_match_explicit_reference(damp):
-    h = torch.tensor([[4., 1.], [1., 2.]], dtype=torch.double)
+@pytest.mark.parametrize('steps', [1, 4, 100])
+def test_fixed_budget_matches_explicit_matrix_polynomial(damp, steps):
+    # Includes negative curvature: finite GIF remains defined even when its
+    # infinite Neumann series does not converge. No replacement inverse/shift.
+    h = torch.tensor([[4., 1.], [1., -2.]], dtype=torch.double)
     p = torch.tensor([.2, -.3], dtype=torch.double, requires_grad=True)
-    gradient, = torch.autograd.grad(.5 * p @ h @ p, p, create_graph=True)
+    gradient, = torch.autograd.grad(.5*p@h@p, p, create_graph=True)
+    rhs = torch.tensor([2., -1.], dtype=torch.double, requires_grad=True)
     def hvp(v):
-        result, = torch.autograd.grad(gradient @ v, p, retain_graph=True)
-        torch.testing.assert_close(result, h @ v)
+        assert not v.requires_grad
+        result, = torch.autograd.grad(gradient@v, p, retain_graph=True)
+        torch.testing.assert_close(result, h@v)
         return result
-    v = torch.tensor([2., -1.], dtype=torch.double)
-    solution, info = solve_gif_system(hvp, v, iterations=200, scale=6., damp=damp, rtol=1e-10)
-    reference = torch.linalg.solve(h + 6*damp*torch.eye(2, dtype=h.dtype), v)
-    torch.testing.assert_close(solution, reference, rtol=1e-9, atol=1e-9)
-    assert info['relative_residual'] < 1e-10
-    if damp:
-        assert float((h @ solution-v).norm()/v.norm()) > .1
+    delta, info = solve_gif_system(hvp, rhs, iterations=steps, scale=6., damp=damp)
+    transition = (1-damp)*torch.eye(2, dtype=h.dtype)-h/6
+    reference = sum(torch.linalg.matrix_power(transition, j)@rhs.detach()
+                    for j in range(steps+1))/6
+    torch.testing.assert_close(delta, reference)
+    assert info['iterations'] == steps
+    assert info['status'] == 'finite_truncation'
+    assert info['shift'] == 6*damp
+    assert not delta.requires_grad
+    expected = torch.linalg.vector_norm(rhs-(h+6*damp*torch.eye(2))@delta)/rhs.norm()
+    assert info['relative_residual'] == pytest.approx(float(expected))
 
 
-def test_large_scale_does_not_prevent_solving_the_undamped_equation():
+def test_large_scale_reports_truncation_instead_of_claiming_an_inverse():
     delta, info = solve_gif_system(lambda v: 2*v, torch.ones(2), iterations=100, scale=1e9, damp=0.)
-    torch.testing.assert_close(delta, torch.full((2,), .5))
-    assert info['relative_residual'] <= 1e-3
+    torch.testing.assert_close(delta, torch.full((2,), 101/1e9), rtol=1e-5, atol=1e-12)
+    assert info['relative_residual'] > .999
+    assert not info['residual_within_tolerance']
+    assert info['rtol_role'] == 'diagnostic_only'
 
 
-def test_indefinite_hessian_is_solved_without_an_implicit_shift():
-    h = torch.diag(torch.tensor([-1., 3.], dtype=torch.double))
+def test_tolerance_does_not_change_finite_iteration_or_early_stop():
+    h = torch.diag(torch.tensor([1., 2.], dtype=torch.double))
     rhs = torch.ones(2, dtype=torch.double)
-    delta, info = solve_gif_system(lambda v: h@v, rhs, iterations=100, scale=5., damp=0.)
-    torch.testing.assert_close(delta, torch.linalg.solve(h, rhs))
-    assert info['shift'] == 0.
-    delta, info = solve_gif_system(lambda v: h@v, rhs, iterations=100, scale=5., damp=.4)
-    torch.testing.assert_close(delta, torch.linalg.solve(h+2*torch.eye(2),rhs), rtol=.002, atol=.002)
-    assert info['shift'] == 2.
-
-
-def test_inconsistent_singular_system_is_rejected_even_if_library_stops():
-    h = torch.diag(torch.tensor([0., 2.], dtype=torch.double))
-    with pytest.raises(GIFConvergenceError) as error:
-        solve_gif_system(lambda v: h@v, torch.ones(2, dtype=torch.double),
-                         iterations=20, scale=5., damp=0.)
-    assert error.value.diagnostics['relative_residual'] > .5
+    a, first = solve_gif_system(lambda v:h@v, rhs, iterations=10, scale=3., damp=0., rtol=.9)
+    b, second = solve_gif_system(lambda v:h@v, rhs, iterations=10, scale=3., damp=0., rtol=1e-12)
+    torch.testing.assert_close(a, b, rtol=0, atol=0)
+    assert first['iterations'] == second['iterations'] == 10
+    assert first['residual_within_tolerance'] and not second['residual_within_tolerance']
 
 
 def test_nonfinite_and_zero_rhs():
-    with pytest.raises(GIFConvergenceError):
-        solve_gif_system(lambda v: v*float('nan'), torch.ones(2), iterations=2, scale=1., damp=0.)
-    solution, info = solve_gif_system(lambda v: v, torch.zeros(2), iterations=2, scale=1., damp=0.)
+    with pytest.raises(GIFNumericalError):
+        solve_gif_system(lambda v:v*float('nan'), torch.ones(2), iterations=2, scale=1., damp=0.)
+    solution, info = solve_gif_system(lambda v:v, torch.zeros(2), iterations=2, scale=1., damp=0.)
     assert torch.count_nonzero(solution)==0 and info['relative_residual']==0
 
 
-def test_cross_entropy_sum_mean_and_explicit_hessian_agree():
+def test_cross_entropy_hvp_and_long_convergent_series_match_exact_solve():
     x=torch.tensor([[1.,2.],[-1.,.5],[.3,-.2]],dtype=torch.double)
     y=torch.tensor([0,1,0])
     weights=torch.tensor([[.2,-.4],[.1,.3]],dtype=torch.double,requires_grad=True)
-    loss=lambda w: torch.nn.functional.cross_entropy(x@w,y,reduction='sum')
+    loss=lambda w:torch.nn.functional.cross_entropy(x@w,y,reduction='sum')
     h=torch.autograd.functional.hessian(loss,weights).reshape(4,4)
     gradient,=torch.autograd.grad(loss(weights),weights,create_graph=True)
     rhs=torch.tensor([1.,-1.,.5,-.5],dtype=torch.double)
@@ -67,7 +69,8 @@ def test_cross_entropy_sum_mean_and_explicit_hessian_agree():
         value,=torch.autograd.grad((gradient*v.reshape_as(weights)).sum(),weights,retain_graph=True)
         torch.testing.assert_close(value.flatten(),h@v)
         return value.flatten()
-    delta,_=solve_gif_system(hvp,rhs,iterations=300,scale=10.,damp=.1,rtol=1e-9)
+    delta,info=solve_gif_system(hvp,rhs,iterations=300,scale=10.,damp=.1)
     torch.testing.assert_close(delta,torch.linalg.solve(h+torch.eye(4),rhs),rtol=1e-8,atol=1e-8)
-    mean_delta,_=solve_gif_system(lambda v:hvp(v)/3,rhs/3,iterations=300,scale=10./3,damp=.1,rtol=1e-9)
+    assert info['relative_residual'] < 1e-9
+    mean_delta,_=solve_gif_system(lambda v:hvp(v)/3,rhs/3,iterations=300,scale=10./3,damp=.1)
     torch.testing.assert_close(mean_delta,delta)

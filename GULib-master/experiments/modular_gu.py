@@ -92,9 +92,9 @@ def gu_producer(method, model_config):
         functions += [gnndelete, GNNDeleteTrainer, GCNDelete, DeletionLayer, gnndelete_node]
     elif method == 'GIF':
         from unlearning.unlearning_methods.GIF.gif import gif
-        from unlearning.unlearning_methods.GIF.solver import solve_gif_system, GIFConvergenceError
+        from unlearning.unlearning_methods.GIF.solver import solve_gif_system, GIFNumericalError
         from task.GIFTrainer import GIFTrainer
-        functions += [gif, solve_gif_system, GIFConvergenceError, GIFTrainer, gif_node,
+        functions += [gif, solve_gif_system, GIFNumericalError, GIFTrainer, gif_node,
                       model_class.reason_once, model_class.reason_once_unlearn]
     elif method == 'MEGU':
         from unlearning.unlearning_methods.MEGU.megu import megu

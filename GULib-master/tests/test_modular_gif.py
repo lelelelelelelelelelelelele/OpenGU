@@ -43,10 +43,10 @@ def test_gif_update_label_boundary(tables, population):
     assert any(not torch.equal(value, model.state_dict()[name]) for name, value in first.state_dict().items())
 
 
-def test_failed_solve_leaves_actual_model_untouched():
+def test_nonfinite_hvp_leaves_actual_model_untouched():
     from types import SimpleNamespace
     from unlearning.unlearning_methods.GIF.gif import gif
-    from unlearning.unlearning_methods.GIF.solver import GIFConvergenceError
+    from unlearning.unlearning_methods.GIF.solver import GIFNumericalError
     model = torch.nn.Linear(2, 1, bias=False).double()
     original = copy.deepcopy(model.state_dict())
     params = list(model.parameters())
@@ -54,10 +54,10 @@ def test_failed_solve_leaves_actual_model_untouched():
     instance = gif.__new__(gif)
     instance.args = dict(iteration=1, scale=1e9, damp=0., dataset_name='fixture', GIF_method='GIF')
     instance.target_model = SimpleNamespace(model=model, eval_unlearn=lambda _: pytest.fail('evaluated failed update'))
-    with pytest.raises(GIFConvergenceError):
-        # A zero Hessian and nonzero RHS have no solution.
-        instance.approxi((tuple(g*0 for g in gradient), tuple(torch.ones_like(p) for p in params), tuple(torch.zeros_like(p) for p in params)))
-    assert instance.solver_diagnostics['status'] == 'not_converged'
+    with pytest.raises(GIFNumericalError):
+        # A numerical failure must never mutate the target model.
+        instance.approxi((tuple(g*float("nan") for g in gradient), tuple(torch.ones_like(p) for p in params), tuple(torch.zeros_like(p) for p in params)))
+    assert instance.solver_diagnostics['status'] == 'nonfinite'
     for name, value in model.state_dict().items():
         assert torch.equal(value, original[name])
 
@@ -89,7 +89,7 @@ def test_first_hvp_treats_gradient_derived_rhs_as_a_fixed_vector():
 def test_finite_solve_cannot_write_overflowed_parameters():
     from types import SimpleNamespace
     from unlearning.unlearning_methods.GIF.gif import gif
-    from unlearning.unlearning_methods.GIF.solver import GIFConvergenceError
+    from unlearning.unlearning_methods.GIF.solver import GIFNumericalError
     model = torch.nn.Linear(1, 1, bias=False)
     with torch.no_grad():
         model.weight.fill_(3e38)
@@ -97,8 +97,8 @@ def test_finite_solve_cannot_write_overflowed_parameters():
     instance = gif.__new__(gif)
     instance.args = dict(iteration=1, scale=1., damp=0., dataset_name='fixture', GIF_method='GIF')
     instance.target_model = SimpleNamespace(model=model, eval_unlearn=lambda _: pytest.fail('nonfinite write'))
-    with pytest.raises(GIFConvergenceError):
-        instance.approxi(((model.weight,), (torch.full_like(model.weight, 2e38),),
+    with pytest.raises(GIFNumericalError):
+        instance.approxi(((model.weight,), (torch.full_like(model.weight, 1e38),),
                          (torch.zeros_like(model.weight),)))
     assert instance.solver_diagnostics['status'] == 'nonfinite_parameters'
     assert torch.equal(model.weight, original)
@@ -116,21 +116,44 @@ def test_node_deletion_removes_exact_incident_edges_independent_of_order():
         assert torch.equal(instance.update_edge_index_unlearn([1]), expected)
 
 
-def test_insufficient_iteration_budget_cannot_publish_output(tables):
+def test_finite_truncated_update_publishes_output_with_honest_diagnostics(tables):
     from test_modular_consumers import run, write_yaml
-    from unlearning.unlearning_methods.GIF.solver import GIFConvergenceError
     root,_,gu=tables
     gu['method']='GIF'
     gu['parameters']={'iteration': 1}
     write_yaml(root/'gif-default.yaml',gu)
-    with pytest.raises(GIFConvergenceError):
-        run(tables,'gif-default-experiment',stage='unlearning',selector_refs=['degree.yaml'],unlearning_refs=['gif-default.yaml'])
-    assert not list((root/'results/cache_v2/artifacts/prediction').glob('*/payload.npz'))
-    receipts = list(root.rglob('gif-solver.json'))
-    assert len(receipts) == 1
-    diagnostics = json.loads(receipts[0].read_text())
-    assert diagnostics['status'] == 'not_converged'
+    run(tables,'gif-default-experiment',stage='unlearning',selector_refs=['degree.yaml'],unlearning_refs=['gif-default.yaml'])
+    assert list((root/'results/cache_v2/artifacts/prediction').glob('*/payload.npz'))
+    receipts=list(root.rglob('gif-solver.json'))
+    assert len(receipts)==1
+    diagnostics=json.loads(receipts[0].read_text())
+    assert diagnostics['status']=='finite_truncation'
     assert diagnostics['relative_residual'] > diagnostics['rtol']
+    assert not diagnostics['residual_within_tolerance']
+
+
+def test_nonfinite_update_cannot_publish_output(tables, monkeypatch):
+    from test_modular_consumers import run, write_yaml
+    import unlearning.unlearning_methods.GIF.solver as solver
+    from unlearning.unlearning_methods.GIF.solver import GIFNumericalError
+    original=solver.solve_gif_system
+    def broken_hvp(matvec, rhs, **kwargs):
+        return original(lambda v:v*float('nan'), rhs, **kwargs)
+    monkeypatch.setattr(solver, 'solve_gif_system', broken_hvp)
+    # gif imports the function directly, so patch the actual adapter consumer.
+    import importlib
+    module=importlib.import_module('unlearning.unlearning_methods.GIF.gif')
+    monkeypatch.setattr(module, 'solve_gif_system', broken_hvp)
+    root,_,gu=tables
+    gu['method']='GIF'
+    gu['parameters']={'iteration':1}
+    write_yaml(root/'gif-failure.yaml',gu)
+    with pytest.raises(GIFNumericalError):
+        run(tables,'gif-failure-experiment',stage='unlearning',selector_refs=['degree.yaml'],unlearning_refs=['gif-failure.yaml'])
+    assert not list((root/'results/cache_v2/artifacts/prediction').glob('*/payload.npz'))
+    receipts=list(root.rglob('gif-solver.json'))
+    assert len(receipts)==1
+    assert json.loads(receipts[0].read_text())['status']=='nonfinite'
 
 
 def solver_variant(*args, **kwargs):

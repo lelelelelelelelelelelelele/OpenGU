@@ -97,8 +97,8 @@ def main():
             with seeded_execution(seed):
                 sys.settrace(trace)
                 model,elapsed=adapter.gif_node(args,model,data.clone(),nodes,destination)
-            row.update(status='converged',seconds=elapsed)
-        except solver.GIFConvergenceError as error:
+            row.update(status='finite_truncation',seconds=elapsed)
+        except solver.GIFNumericalError as error:
             row.update(status='rejected',solver=error.diagnostics)
             assert state_hash(model.state_dict())==ck['state_hash']
         finally:sys.settrace(None)

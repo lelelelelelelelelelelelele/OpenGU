@@ -135,6 +135,15 @@ EXPERIMENT_RECIPES['opengu-aagu048-gpa-gate-v1'].update({
 })
 
 
+# AAGU-052: same table/configuration, new immutable runs for repaired GIF.
+EXPERIMENT_RECIPES['opengu-aagu052-gif-gate-v1'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-gate-v1'])
+EXPERIMENT_RECIPES['opengu-aagu052-gif-gate-v1']['run_identity']['run_id'] = 'aagu052-gif-gate-v1'
+EXPERIMENT_RECIPES['opengu-aagu011-table01-v3'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-table01-v2'])
+EXPERIMENT_RECIPES['opengu-aagu011-table01-v3']['run_identity']['run_id'] = 'aagu011-table01-v3'
+EXPERIMENT_RECIPES['opengu-aagu011-references-v2'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-references-v1'])
+EXPERIMENT_RECIPES['opengu-aagu011-references-v2']['run_identity']['run_id'] = 'aagu011-references-v2'
+
+
 def recipe_definitions():
     from pathlib import Path
     from experiments.modular_config import load_experiment

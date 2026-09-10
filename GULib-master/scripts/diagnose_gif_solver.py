@@ -239,7 +239,7 @@ def main():
                 sys.settrace(trace)
                 obj.approxi(gradients)
                 row['status']='returned'
-            except solver.GIFConvergenceError as error:
+            except solver.GIFNumericalError as error:
                 row['status']='rejected'
                 row['solver']=error.diagnostics
                 assert state_hash(obj.target_model.model.state_dict())==previous['checkpoint']['state_hash']
