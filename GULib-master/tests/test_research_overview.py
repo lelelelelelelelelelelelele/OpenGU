@@ -15,7 +15,7 @@ def test_framework_has_phases_families_and_all_core_questions():
     frame,sheets=gen.load()
     assert {p['id'] for p in frame['phases']}=={'phase-1','phase-2','im-track'}
     assert {t['id'] for t in frame['topics']}=={f'X{i}' for i in range(1,9)}
-    assert sum(s['family']=='if' for s in sheets)==4
+    assert sum(s['family']=='if' for s in sheets)==3
     assert sum(s['phase']=='im-track' for s in sheets)==1
     assert all(s['question'] and s['comparison'] and s['narrative'] and s['metrics'] and s['outputs'] for s in sheets)
     assert not any('WORKITEM.md' in c['path'] for s in sheets for c in s['configs'])

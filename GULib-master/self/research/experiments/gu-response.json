@@ -1,0 +1,65 @@
+{
+  "id": "gu-response",
+  "title": "策略性删除 × GU 响应",
+  "phase": "phase-2",
+  "family": "main",
+  "topics": [
+    "X3"
+  ],
+  "question": "不同选点策略产生的删除请求，会怎样改变各图遗忘方法的结果？",
+  "comparison": "跨IF、IM等策略比较实际GU结果，并用共同基线与匹配Retrain解释差异；当前执行表覆盖IF代表策略及Degree、Random、PageRank，IM部分尚未补全。",
+  "metrics": "各GU自身before/after、匹配Retrain差异；保留符号。",
+  "outputs": "逐条件GU指标与Selection，独立Retrain参照和严格配对证据。",
+  "limits": "表01含失败、恢复及GIF/IDEA诊断历史；原表范围不是当前全方法启动许可。",
+  "configs": [
+    {
+      "label": "执行配置",
+      "path": "experiments/configs/aagu011/table01.yaml"
+    },
+    {
+      "label": "执行配置",
+      "path": "experiments/configs/aagu011/references.yaml"
+    }
+  ],
+  "sources": [
+    {
+      "label": "表01定义与恢复边界",
+      "path": "experiments/configs/aagu011/README.md"
+    },
+    {
+      "label": "原始讨论与记录",
+      "path": ".workblock/items/AAGU-030/WORKITEM.md"
+    },
+    {
+      "label": "原始讨论与记录",
+      "path": ".workblock/items/AAGU-049/WORKITEM.md"
+    }
+  ],
+  "preparation": {
+    "state": "review",
+    "gaps": [
+      "主实验已开展IF部分与基线；IM部分尚未补全，需形成对应执行配置",
+      "确认本次恢复要执行的有效方法范围及版本",
+      "逐批核对已运行结果，不能将旧270格直接标完"
+    ]
+  },
+  "execution": {
+    "state": "unknown",
+    "total": 270,
+    "completed": null,
+    "runs": [],
+    "links": []
+  },
+  "analysis": {
+    "state": "not_started",
+    "inputs": [],
+    "links": []
+  },
+  "reviewed_at": "2026-09-11",
+  "kind": "experiment",
+  "narrative": [
+    "这是跨策略的GU主实验：把不同策略选出的节点交给图遗忘方法实际运行，观察策略性删除会怎样改变结果，以及不同方法是否呈现不同反应。IF和IM是需要覆盖的策略部分，共同基线与匹配的完整重训练帮助解释观察到的变化；主实验不属于某一个选点簇。",
+    "当前已经开展的是IF部分与基线。IM在当时尚未形成，所以主实验中的IM部分尚未补全。这是执行覆盖的缺口，不表示主实验的科研范围只有IF；IM簇内已有的效果实验也不能自动算成这里的IM部分已完成。",
+    "下面直接展示当前关联的table01.yaml和references.yaml。它们记录现有执行范围，不是补全后的完整主矩阵。已有运行需要按实际结果逐批核对覆盖，因此本页暂不填写已完成条件数；后续补全IM时，应更新这张主实验单的配置与证据关联。"
+  ]
+}

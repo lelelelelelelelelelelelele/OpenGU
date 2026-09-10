@@ -136,7 +136,7 @@ def shell(title,body,script=''):
 def diagram(frame,sheets,prefix):
     family=frame['families'];byphase={p['id']:[s for s in sheets if s['phase']==p['id']] for p in frame['phases']}
     svg=['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 590" role="img" aria-labelledby="map-title map-desc">','<title id="map-title">研究阶段与实验配置单</title><desc id="map-desc">Phase 1和Phase 2中的IF研究与共同参照，以及独立IM研究线。点击每张配置单查看准备、运行和分析。</desc>', '<defs><pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#223138" stroke-width=".5"/></pattern><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#82b6b6"/></marker></defs>', '<style>text{font-family:"Microsoft YaHei","Noto Sans SC",sans-serif}a rect{transition:stroke .15s}a:hover rect,a:focus rect{stroke:#f4e6c3;stroke-width:2}a:focus{outline:none}</style>', '<rect width="1440" height="590" rx="12" fill="#111e26"/><rect width="1440" height="590" fill="url(#grid)"/>','<text x="30" y="38" fill="#b9cbd0" font-size="16">研究阶段 × 方法分组</text>','<path d="M462 286 H498" stroke="#82b6b6" fill="none" stroke-width="2" marker-end="url(#arrow)"/>']
-    colors={'if':'#80d4c1','im':'#e3ba79','baseline':'#9bbde9','shared':'#bdb4da'}
+    colors={'if':'#80d4c1','im':'#e3ba79','baseline':'#9bbde9','shared':'#bdb4da','main':'#a7c8ed'}
     for i,phase in enumerate(frame['phases']):
         x=30+i*480;w=420
         svg.append(f'<rect x="{x}" y="68" width="{w}" height="410" rx="10" fill="#14232b" stroke="#3b535d"/>')
@@ -222,7 +222,7 @@ def index_page(frame,sheets,sources,page):
     body+='</div></section>'
     questions=body
     body=header
-    body+='<nav class="cluster-nav" aria-label="研究入口"><a href="#cluster-if">IF 簇</a><a href="#cluster-im">IM 簇</a><a href="#research-questions">按问题找实验</a><a href="#stage-map">阶段框图</a></nav>'
+    body+='<nav class="cluster-nav" aria-label="研究入口"><a href="#cluster-if">IF 簇</a><a href="#cluster-im">IM 簇</a><a href="#cluster-main">GU 主实验</a><a href="#research-questions">按问题找实验</a><a href="#stage-map">阶段框图</a></nav>'
     body+='<section class="sheet-list" id="sheets"><div class="list-heading"><h2>按研究簇查看实验</h2><span id="count" role="status" aria-live="polite"></span></div><div class="filters"><label>阶段<select id="phase"><option value="all">全部阶段 / 研究线</option>'+''.join(f'<option value="{p["id"]}">{esc(p["name"])}</option>' for p in frame['phases'])+'</select></label><label>方法组<select id="family"><option value="all">全部分组</option>'+''.join(f'<option value="{id}">{esc(name)}</option>' for id,name in frame['families'].items())+'</select></label><label>工作视图<select id="view"><option value="all">全部配置单</option><option value="prepare">准备实验</option><option value="run">待运行 / 运行中</option><option value="analysis">待分析 / 待复核</option></select></label><label class="search">搜索<input id="search" type="search" placeholder="研究问题、配置单…"></label><button id="clear">清除筛选</button></div><p id="filter-note" class="muted">准备、运行、分析是独立状态。配置已定不等于已运行；缺失结果不自动计为零。</p><div class="cluster-list">'
     current_family=None
     for s in sorted(sheets,key=lambda item:list(frame['families']).index(item['family'])):
