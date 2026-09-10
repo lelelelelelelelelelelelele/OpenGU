@@ -8,36 +8,6 @@
   ],
   "question": "graph轨迹累积与final D-full是否形成有价值的不同选点？",
   "comparison": "CP3 ↔ CP6，并分别与D-full末层两跳比较。",
-  "controls": [
-    [
-      "数据 / 划分",
-      "Cora、CiteSeer、PubMed；持久化70/10/20，split seed 2024"
-    ],
-    [
-      "评价边界",
-      "原始图、固定test节点与标签；test不参与选择器调参"
-    ],
-    [
-      "预算分母",
-      "原训练候选节点池；记录实际K"
-    ],
-    [
-      "配对要求",
-      "共享最终模型、训练seed、候选池与预算"
-    ]
-  ],
-  "variables": [
-    [
-      "变化轴",
-      "graph轨迹与final；checkpoint数量"
-    ]
-  ],
-  "scope": [
-    [
-      "执行范围",
-      "尚未冻结新的独立组合表；不能拿旧015全表直接代替"
-    ]
-  ],
   "metrics": "完整排名相关性、同K重合、已有总评分时间；若主张效果改善需匹配f1_after。",
   "outputs": "独立对照表、身份与时间；可复用匹配P-graph final作解释。",
   "limits": "CP不是逐checkpoint累积逆Hessian D-full；不按test结果挑checkpoint。",
@@ -72,5 +42,9 @@
     "links": []
   },
   "reviewed_at": "2026-09-11",
-  "kind": "experiment"
+  "kind": "experiment",
+  "narrative": [
+    "已有IF对照之后，还留下一个具体问题：只看训练结束时的模型，和累积多个训练时刻的信息，会不会选出不同而有价值的节点？这项实验单独比较Graph CP3、CP6与最终时刻的D-full，不重新展开已经完成的全部IF组合。",
+    "先在共享最终模型、候选池和删除数量的条件下比较完整排名与选集；如果要声称效果改善，再补上匹配的删除后评价。轨迹方法与D-full还涉及曲率处理的差别，所以不能把所有变化归因于checkpoint数量。目前研究问题已保留，独立执行表尚未形成。"
+  ]
 }

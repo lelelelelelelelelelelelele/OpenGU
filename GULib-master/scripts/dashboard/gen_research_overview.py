@@ -10,6 +10,7 @@ import html
 import json
 import os
 import re
+import yaml
 from pathlib import Path
 from urllib.parse import quote
 
@@ -45,7 +46,7 @@ def validate(frame,sheets):
     if len(phases)!=len(frame['phases']) or len(topics)!=len(frame['topics']):raise ValueError('Duplicate phase/topic')
     for s in sheets:
         if s['phase'] not in phases or s['family'] not in frame['families'] or not set(s['topics']).issubset(topics):raise ValueError('Invalid phase/family/topic')
-        for key in ['title','question','comparison','controls','variables','scope','metrics','outputs','limits','sources']:
+        for key in ['title','question','comparison','narrative','metrics','outputs','limits','sources']:
             if not s.get(key):raise ValueError('Incomplete experiment definition: '+key)
         if s['preparation']['state'] not in PREP or s['execution']['state'] not in RUN or s['analysis']['state'] not in ANALYSIS:raise ValueError('Unknown progress state')
         if s['kind'] not in {'experiment','analysis'}:raise ValueError('Unknown sheet kind')
@@ -149,15 +150,35 @@ def diagram(frame,sheets,prefix):
     return ''.join(svg)
 
 
+def config_preview(config,sources,page):
+    path=sources.resolve(config['path'])
+    try:
+        parsed=yaml.safe_load(path.read_text(encoding='utf-8'))
+    except yaml.YAMLError as exc:
+        raise ValueError('Invalid YAML: '+config['path']) from exc
+    if not isinstance(parsed,dict):raise ValueError('Experiment config must be a mapping: '+config['path'])
+    content=yaml.safe_dump(parsed,allow_unicode=True,sort_keys=False,width=100)
+    return '<section class="yaml-file"><h3>'+sources.anchor({'label':path.name,'path':config['path']},page)+'</h3><p class="config-path">'+esc(config['path'])+'</p><pre class="yaml-content"><code>'+esc(content)+'</code></pre></section>'
+
+
+def question_links(s,frame,prefix):
+    return '<div class="question-links">'+''.join(f'<a href="{prefix}#question-{t["id"]}">{esc(t["question"])}</a>' for t in frame['topics'] if t['id'] in s['topics'])+'</div>'
+
+
 def sheet_page(s,frame,sources,page):
     a=lambda r:sources.anchor(r,page)
     phase=next(p for p in frame['phases'] if p['id']==s['phase'])
     run=s['execution'];analysis=s['analysis'];count='未核对覆盖' if run['completed'] is None else f'{run["completed"]} / {run["total"]} 条件'
     if run['state']=='not_required':count='复用既有结果'
     def table(rows):return '<dl class="definition">'+''.join(f'<dt>{esc(k)}</dt><dd>{esc(v)}</dd>' for k,v in rows)+'</dl>'
-    body=f'<div class="shell sheet"><nav class="top"><a href="../index.html">← 研究总览</a><span>实验配置单 · {esc(s["id"])}</span></nav><header class="sheet-hero"><div class="eyebrow">{esc(phase["name"])} / {esc(frame["families"][s["family"]])}</div><h1>{esc(s["title"])}</h1><p class="question">{esc(s["question"])}</p></header><div class="status-grid"><div><label>准备</label>{badge(s["preparation"]["state"],PREP)}</div><div><label>运行</label>{badge(run["state"],RUN)}<small>{esc(count)}</small></div><div><label>分析</label>{badge(analysis["state"],ANALYSIS)}</div></div><nav class="section-nav"><a href="#design">实验设计</a><a href="#preparation">配置与准备</a><a href="#results">运行与结果</a><a href="#analysis">结果分析</a></nav>'
-    body+=f'<section id="design" class="panel"><div class="section-head"><span>01</span><h2>实验设计</h2></div><h3>比较什么</h3><p>{esc(s["comparison"])}</p><div class="two-col"><div><h3>固定条件</h3>{table(s["controls"])}</div><div><h3>变化的因素</h3>{table(s["variables"])}<h3>范围</h3>{table(s["scope"])}</div></div><div class="two-col"><div><h3>怎样评价</h3><p>{esc(s["metrics"])}</p></div><div><h3>预期产物</h3><p>{esc(s["outputs"])}</p></div></div><p class="boundary">解释边界：{esc(s["limits"])}</p></section>'
-    body+=f'<section id="preparation" class="panel"><div class="section-head"><span>02</span><h2>配置与准备</h2></div><div class="source-list">'+(''.join(a(c) for c in s['configs']) or '<p class="muted">离线分析无需新执行表。</p>' if s['kind']=='analysis' else ''.join(a(c) for c in s['configs']) or '<p class="muted">尚未形成独立执行表，研究问题已保留。</p>')+'</div>'
+    body=f'<div class="shell sheet"><nav class="top"><a href="../index.html#cluster-{s["family"]}">← {esc(frame["families"][s["family"]])} · 研究总览</a><span>实验配置单 · {esc(s["id"])}</span></nav><header class="sheet-hero"><div class="eyebrow">{esc(phase["name"])} / {esc(frame["families"][s["family"]])}</div><h1>{esc(s["title"])}</h1><p class="question">{esc(s["question"])}</p></header><div class="status-grid"><div><label>准备</label>{badge(s["preparation"]["state"],PREP)}</div><div><label>运行</label>{badge(run["state"],RUN)}<small>{esc(count)}</small></div><div><label>分析</label>{badge(analysis["state"],ANALYSIS)}</div></div><nav class="section-nav"><a href="#design">实验设计</a><a href="#preparation">配置与准备</a><a href="#results">运行与结果</a><a href="#analysis">结果分析</a></nav>'
+    body+='<section id="design" class="panel"><h2>实验设计</h2>'+''.join('<p class="experiment-story">'+esc(paragraph)+'</p>' for paragraph in s['narrative'])+'<h3>这项实验对应的研究问题</h3>'+question_links(s,frame,'../index.html')+'<p>'+esc(s['metrics'])+'</p><p class="boundary">'+esc(s['limits'])+'</p></section>'
+    body+='<section id="preparation" class="panel"><h2>配置与准备</h2>'
+    if s['configs']:
+        body+='<p class="muted">以下内容在生成页面时直接读取并解析所链接的YAML文件。文件改动后重新生成页面即可更新；引用的文件名保持原样。</p>'
+        body+=''.join(config_preview(c,sources,page) for c in s['configs'])
+    else:
+        body+='<p class="muted">离线分析无需新执行表。</p>' if s['kind']=='analysis' else '<p class="muted">尚未形成独立执行表，研究问题已保留。</p>'
     body+=('<ul>'+''.join('<li>'+esc(g)+'</li>' for g in s['preparation']['gaps'])+'</ul>' if s['preparation']['gaps'] else '<p class="muted">已有关联的执行定义；重新运行仍需核对对应版本、数据身份和运行前置。</p>')+'</section>'
     body+='<section id="results" class="panel"><div class="section-head"><span>03</span><h2>运行与结果</h2></div>'+badge(run['state'],RUN)
     for r in run['runs']:
@@ -174,8 +195,12 @@ def sheet_page(s,frame,sources,page):
 def index_page(frame,sheets,sources,page):
     a=lambda r:sources.anchor(r,page)
     phase_names={p['id']:p['name'] for p in frame['phases']}
-    body='<div class="shell"><nav class="top"><span class="brand">OPENGU / EXPERIMENTS</span><div>'+a(frame['sources'][0])+a(frame['sources'][2])+'</div></nav><header class="hero"><div><div class="eyebrow">研究框架与实验配置单</div><h1>实验研究总览</h1><p>策略性删除会怎样影响图遗忘？<br>从选点机制到结果解释，逐部分查看研究设计与当前证据。</p></div><div class="hero-aside"><strong>'+str(len(sheets))+'</strong> 张配置与分析单<br><span>Phase 1 / Phase 2 / IM 独立线</span></div></header><section class="map-panel" aria-label="研究框图"><div class="map-heading"><h2>研究框架</h2><a href="diagram/research-framework.svg">打开完整 SVG ↗</a></div><p class="muted">点击框内配置单查看详情；窄屏可横向滚动框图。</p><div class="map-scroll" tabindex="0">'+diagram(frame,sheets,'experiments/')+'</div></section>'
-    body+='<section class="topics" aria-label="研究问题与当前进度"><h2>我们要回答什么，目前做到哪里</h2><p class="research-intro">我们想知道：刻意选择删除节点，能否改变图遗忘的结果？如果改变了，原因是什么，又在哪些条件下成立？下面逐部分展开研究思路；点击问题可以展开或收起说明。</p><div class="topic-grid">'
+    body='<div class="shell"><nav class="top"><span class="brand">OPENGU / EXPERIMENTS</span><div>'+a(frame['sources'][0])+a(frame['sources'][2])+'</div></nav><header class="hero"><div><div class="eyebrow">研究框架与实验配置单</div><h1>实验研究总览</h1><p>策略性删除会怎样影响图遗忘？<br>从选点机制到结果解释，逐部分查看研究设计与当前证据。</p></div><div class="hero-aside"><strong>'+str(len(sheets))+'</strong> 张配置与分析单<br><span>IF 簇 / IM 簇</span></div></header><section class="map-panel" aria-label="研究框图"><div class="map-heading"><h2>研究框架</h2><a href="diagram/research-framework.svg">打开完整 SVG ↗</a></div><p class="muted">点击框内配置单查看详情；窄屏可横向滚动框图。</p><div class="map-scroll" tabindex="0">'+diagram(frame,sheets,'experiments/')+'</div></section>'
+    map_start=body.index('<section class="map-panel"')
+    overview_map=body[map_start:]
+    header=body[:map_start]
+    body=''
+    body+='<section id="research-questions" class="topics" aria-label="研究问题与当前进度"><h2>我们要回答什么，目前做到哪里</h2><p class="research-intro">我们想知道：刻意选择删除节点，能否改变图遗忘的结果？如果改变了，原因是什么，又在哪些条件下成立？下面逐部分展开研究思路；点击问题可以展开或收起说明。</p><div class="topic-grid">'
     for i,t in enumerate(frame['topics']):
         related=[s for s in sheets if t['id'] in s['topics']]
         ready=sum((s['execution']['completed'] or 0)>0 for s in related)
@@ -194,8 +219,17 @@ def index_page(frame,sheets,sources,page):
         else:
             body+='<p class="research-empty">这里目前只有研究方向，尚未关联执行配置或结果。需要先明确比较条件，再建立实验配置单。</p>'
         body+='</div></details>'
-    body+='</div></section><section class="sheet-list" id="sheets"><div class="list-heading"><h2>实验配置单</h2><span id="count" role="status" aria-live="polite"></span></div><div class="filters"><label>阶段<select id="phase"><option value="all">全部阶段 / 研究线</option>'+''.join(f'<option value="{p["id"]}">{esc(p["name"])}</option>' for p in frame['phases'])+'</select></label><label>方法组<select id="family"><option value="all">全部分组</option>'+''.join(f'<option value="{id}">{esc(name)}</option>' for id,name in frame['families'].items())+'</select></label><label>工作视图<select id="view"><option value="all">全部配置单</option><option value="prepare">准备实验</option><option value="run">待运行 / 运行中</option><option value="analysis">待分析 / 待复核</option></select></label><label class="search">搜索<input id="search" type="search" placeholder="研究问题、配置单…"></label><button id="clear">清除筛选</button></div><p id="filter-note" class="muted">准备、运行、分析是独立状态。配置已定不等于已运行；缺失结果不自动计为零。</p><div class="cards">'
-    for s in sheets:
+    body+='</div></section>'
+    questions=body
+    body=header
+    body+='<nav class="cluster-nav" aria-label="研究入口"><a href="#cluster-if">IF 簇</a><a href="#cluster-im">IM 簇</a><a href="#research-questions">按问题找实验</a><a href="#stage-map">阶段框图</a></nav>'
+    body+='<section class="sheet-list" id="sheets"><div class="list-heading"><h2>按研究簇查看实验</h2><span id="count" role="status" aria-live="polite"></span></div><div class="filters"><label>阶段<select id="phase"><option value="all">全部阶段 / 研究线</option>'+''.join(f'<option value="{p["id"]}">{esc(p["name"])}</option>' for p in frame['phases'])+'</select></label><label>方法组<select id="family"><option value="all">全部分组</option>'+''.join(f'<option value="{id}">{esc(name)}</option>' for id,name in frame['families'].items())+'</select></label><label>工作视图<select id="view"><option value="all">全部配置单</option><option value="prepare">准备实验</option><option value="run">待运行 / 运行中</option><option value="analysis">待分析 / 待复核</option></select></label><label class="search">搜索<input id="search" type="search" placeholder="研究问题、配置单…"></label><button id="clear">清除筛选</button></div><p id="filter-note" class="muted">准备、运行、分析是独立状态。配置已定不等于已运行；缺失结果不自动计为零。</p><div class="cluster-list">'
+    current_family=None
+    for s in sorted(sheets,key=lambda item:list(frame['families']).index(item['family'])):
+        if s['family']!=current_family:
+            if current_family is not None:body+='</div></section>'
+            current_family=s['family']
+            body+=f'<section class="cluster" id="cluster-{current_family}"><h2>{esc(frame["families"][current_family])}</h2><p class="cluster-story">{esc(frame["family_stories"][current_family])}</p><div class="cards">'
         ex=s['execution'];an=s['analysis'];prep=s['preparation']['state']
         # Analysis-only sheets enter the queue when at least one explicitly linked input has usable results.
         has_results=(ex['completed'] or 0)>0 or (s['kind']=='analysis' and any((x['execution']['completed'] or 0)>0 for x in sheets if x['id'] in an['inputs']))
@@ -203,8 +237,10 @@ def index_page(frame,sheets,sources,page):
         if prep!='defined':scopes.append('prepare')
         if ex['state'] in {'pending','running','partial','failed'}:scopes.append('run')
         if has_results and an['state']!='complete':scopes.append('analysis')
-        body+=f'<article class="card family-{s["family"]}" data-phase="{s["phase"]}" data-family="{s["family"]}" data-topics="{" ".join(s["topics"])}" data-views="{" ".join(scopes)}"><div class="card-meta">{esc(phase_names[s["phase"]])} · {esc(frame["families"][s["family"]])}</div><h3><a href="experiments/{s["id"]}.html">{esc(s["title"])} <span aria-hidden="true">↗</span></a></h3><p>{esc(s["question"])}</p><div class="card-status"><div><small>准备</small>{badge(prep,PREP)}</div><div><small>运行</small>{badge(ex["state"],RUN)}</div><div><small>分析</small>{badge(an["state"],ANALYSIS)}</div></div></article>'
-    body+='</div><p id="empty" class="empty" hidden>当前筛选没有配置单。该研究问题仍保留；可清除筛选查看已有设计。</p></section><footer><div class="source-list">'+''.join(a(r) for r in frame['sources'][1:])+'</div><p>来源整理：'+frame['reviewed_at']+'。大框图表达研究结构，不生成Block任务状态或调度队列。旧覆盖CSV仅作为历史链接，不驱动本页。</p></footer></div>'
+        story_html=''.join('<p>'+esc(paragraph)+'</p>' for paragraph in s['narrative'])
+        related_questions=question_links(s,frame,'')
+        body+=f'<article class="card family-{s["family"]}" data-phase="{s["phase"]}" data-family="{s["family"]}" data-topics="{" ".join(s["topics"])}" data-views="{" ".join(scopes)}"><div class="card-meta">{esc(phase_names[s["phase"]])} · {esc(frame["families"][s["family"]])}</div><h3><a href="experiments/{s["id"]}.html">{esc(s["title"])} <span aria-hidden="true">↗</span></a></h3><p>{esc(s["question"])}</p><details class="experiment-explanation"><summary>这项实验为什么做，怎样回答问题</summary>{story_html}<h4>对应研究问题</h4>{related_questions}</details><div class="card-status"><div><small>准备</small>{badge(prep,PREP)}</div><div><small>运行</small>{badge(ex["state"],RUN)}</div><div><small>分析</small>{badge(an["state"],ANALYSIS)}</div></div></article>'
+    body+='</div></section></div><p id="empty" class="empty" hidden>当前筛选没有配置单。该研究问题仍保留；可清除筛选查看已有设计。</p></section>'+questions+'<details id="stage-map" class="stage-map"><summary>查看 Phase 1 / Phase 2 阶段框图</summary>'+overview_map+'</details><footer><div class="source-list">'+''.join(a(r) for r in frame['sources'][1:])+'</div><p>来源整理：'+frame['reviewed_at']+'。大框图表达研究结构，不生成Block任务状态或调度队列。旧覆盖CSV仅作为历史链接，不驱动本页。</p></footer></div>'
     return shell(frame['title'],body,SCRIPT.read_text(encoding='utf-8'))
 
 
