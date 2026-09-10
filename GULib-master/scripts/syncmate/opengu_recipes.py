@@ -135,12 +135,12 @@ EXPERIMENT_RECIPES['opengu-aagu048-gpa-gate-v1'].update({
 })
 
 
-# AAGU-052: same table/configuration, new immutable runs for repaired GIF.
+# AAGU-052: same table conditions, calibrated GIF and new immutable runs.
 EXPERIMENT_RECIPES['opengu-aagu052-gif-gate-v1'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-gate-v1'])
-EXPERIMENT_RECIPES['opengu-aagu052-gif-gate-v1'].update({'config_path': 'experiments/configs/aagu052/gate.yaml', 'config_sha256': '6c51eb5a9578616ada2d086f951e618372927d748d0f609212e5c0dfe50c1520', 'configuration_fingerprint': 'b3c6250d7ba6d37ccbe58e314ec4d4144a27cdbaac63c8c2d47d9fd46437a5cb'})
+EXPERIMENT_RECIPES['opengu-aagu052-gif-gate-v1'].update({'config_path': 'experiments/configs/aagu052/gate.yaml', 'config_sha256': '53b55195c93f594eaf62a661b8d9c3b34e104f95141c52cd7e35a8bb745c03c2', 'configuration_fingerprint': 'b3c6250d7ba6d37ccbe58e314ec4d4144a27cdbaac63c8c2d47d9fd46437a5cb'})
 EXPERIMENT_RECIPES['opengu-aagu052-gif-gate-v1']['run_identity']['run_id'] = 'aagu052-gif-gate-v1'
 EXPERIMENT_RECIPES['opengu-aagu011-table01-v3'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-table01-v2'])
-EXPERIMENT_RECIPES['opengu-aagu011-table01-v3'].update({'config_path': 'experiments/configs/aagu052/table01.yaml', 'config_sha256': 'b0096a52f64658e535dfb9e7fcf93fefde69b18e3c078515ab603492ea577085', 'configuration_fingerprint': '4bd80a3896ef1e1272954b11f32d07e6cedfbc60e618dcd169fa26c22354b669'})
+EXPERIMENT_RECIPES['opengu-aagu011-table01-v3'].update({'config_path': 'experiments/configs/aagu052/table01.yaml', 'config_sha256': '25df2f2d46f10774e16f9d2827935f9278abc272f63001444694438d7bdf19be', 'configuration_fingerprint': '4bd80a3896ef1e1272954b11f32d07e6cedfbc60e618dcd169fa26c22354b669'})
 EXPERIMENT_RECIPES['opengu-aagu011-table01-v3']['run_identity']['run_id'] = 'aagu011-table01-v3'
 EXPERIMENT_RECIPES['opengu-aagu011-references-v2'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-references-v1'])
 EXPERIMENT_RECIPES['opengu-aagu011-references-v2']['run_identity']['run_id'] = 'aagu011-references-v2'
