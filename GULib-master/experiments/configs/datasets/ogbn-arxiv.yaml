@@ -1,0 +1,18 @@
+kind: dataset_split
+schema_version: 1
+dataset:
+  name: ogbn-arxiv
+  family: OGB
+preprocessing:
+  adapter: OpenGU_persisted_processed_pair
+split:
+  profile: random_70_10_20_seed2024
+  train_ratio: 0.7
+  val_ratio: 0.1
+  test_ratio: 0.2
+  seed: 2024
+artifacts:
+  manifest: ../../../data/processed/transductive/ogbn-arxiv__random_70_10_20_seed2024.modular.json
+  manifest_sha256: 9baeca1abc92f8ad8ffb4fe0d6b4a91d0506f0c2a0dd5e3b9b2c0e8352e9921c
+  split_hash: a0a368b381eff13cfe9cf0d66e329d3f7ae29c8336fa6f10b1cd4937fa4af2e3
+  node_id_space: pyg-global-node-index-v1

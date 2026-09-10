@@ -10,6 +10,7 @@ from syncmate_core.identity import sha256_recipe_config
 
 @pytest.mark.parametrize('recipe_id', [
     'opengu-aagu007-v2', 'opengu-aagu031-stage-s-v2', 'opengu-aagu032-extend-v2',
+    'opengu-aagu056-rr1024-v1',
 ])
 def test_pending_registration_matches_ordinary_entry(recipe_id):
     recipe = recipe_definitions()[recipe_id]
