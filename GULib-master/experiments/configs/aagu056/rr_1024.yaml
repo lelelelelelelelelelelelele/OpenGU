@@ -1,0 +1,15 @@
+# AAGU-056 first gate: verified arxiv split, RR-1024, budget 5%.
+kind: experiment
+schema_version: 1
+experiment_id: aagu056-arxiv-rr1024-budget05
+stage: selector
+dataset_refs:
+- ogbn-arxiv.yaml
+selector_refs:
+- ./selector_rr_1024.yaml
+matrix: cartesian_product
+im_selector_seeds:
+- 11
+budget_ratios:
+- 0.05
+return_scores: false

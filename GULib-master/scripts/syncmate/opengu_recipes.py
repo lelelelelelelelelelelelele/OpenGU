@@ -249,6 +249,19 @@ EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-pubmed-s33-v1'] = {'config_path':
  'stage': 'selector',
  'expected_datasets': [{'num_nodes': 19717, 'candidate_count': 13801}]}
 
+EXPERIMENT_RECIPES['opengu-aagu056-rr1024-v1'] = {
+    'config_path': 'experiments/configs/aagu056/rr_1024.yaml',
+    'config_sha256': '0f7c7806c1e4ca168a713d682dbdbe8130c0e30c1eb8c9f86563f94bf8c7d55a',
+    'configuration_fingerprint': '2094d1c119bd6c7170cdfe9ae40d6637f4b6a24a10e9abb8d8d8da3243e523ea',
+    'run_identity': {'experiment_id': 'aagu056-arxiv-rr1024-budget05',
+                     'run_id': 'aagu056-rr1024-v1'},
+    'timeout_seconds': 21600,
+    'logical_cells': 1,
+    'stage': 'selector',
+    'expected_datasets': [{'num_nodes': 169343, 'candidate_count': 118540}],
+}
+
+
 def recipe_definitions():
     from pathlib import Path
     from experiments.modular_config import load_experiment
