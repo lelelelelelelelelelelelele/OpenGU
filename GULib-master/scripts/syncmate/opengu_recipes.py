@@ -194,6 +194,61 @@ EXPERIMENT_RECIPES['opengu-aagu053-selection05-v1'] = {'config_path': 'experimen
                        {'num_nodes': 19717, 'candidate_count': 13801}]}
 
 
+EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-cora-s22-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_cora_s22.yaml',
+ 'config_sha256': '74238be764f8bbf0aaf03555952dd6ac3790f3596812dc987e82113d9321da44',
+ 'configuration_fingerprint': 'aa998ba3f7efac60ec7522c88949874e03d1b24d3faae675e104d886cbf2f882',
+ 'run_identity': {'experiment_id': 'aagu053-celf-warmup-cora-s22',
+                  'run_id': 'aagu053-celf-warmup-cora-s22-v1'},
+ 'timeout_seconds': 21600,
+ 'logical_cells': 1,
+ 'stage': 'selector',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}]}
+EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-cora-s33-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_cora_s33.yaml',
+ 'config_sha256': '499699e065c40bed35ed74ab5ded7d42d4d86b6ddd55fd3e07a6b6174e706e6e',
+ 'configuration_fingerprint': '7250f94f63492c59f68146ea0f398270b5f6e95dcd2462f9e7b41baff74066c8',
+ 'run_identity': {'experiment_id': 'aagu053-celf-warmup-cora-s33',
+                  'run_id': 'aagu053-celf-warmup-cora-s33-v1'},
+ 'timeout_seconds': 21600,
+ 'logical_cells': 1,
+ 'stage': 'selector',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}]}
+EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-citeseer-s22-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_citeseer_s22.yaml',
+ 'config_sha256': '55723b79038e23c7d4217d2aed09302828c4fe50d5f20a8d003e5b42a5f95c21',
+ 'configuration_fingerprint': '75f193e93b723c59a0021cd007488025e854ffbcbe6330a1f56bad33dba01d97',
+ 'run_identity': {'experiment_id': 'aagu053-celf-warmup-citeseer-s22',
+                  'run_id': 'aagu053-celf-warmup-citeseer-s22-v1'},
+ 'timeout_seconds': 21600,
+ 'logical_cells': 1,
+ 'stage': 'selector',
+ 'expected_datasets': [{'num_nodes': 3327, 'candidate_count': 2328}]}
+EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-citeseer-s33-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_citeseer_s33.yaml',
+ 'config_sha256': 'c2d36863f36fc2fccc62e48345ba1f0028a354ae1756c1152ecd7aa03afb3fbf',
+ 'configuration_fingerprint': 'f6ff71d740501dc77be3cb29b3f47378f81f14406bc7de57791bcd12c2088174',
+ 'run_identity': {'experiment_id': 'aagu053-celf-warmup-citeseer-s33',
+                  'run_id': 'aagu053-celf-warmup-citeseer-s33-v1'},
+ 'timeout_seconds': 21600,
+ 'logical_cells': 1,
+ 'stage': 'selector',
+ 'expected_datasets': [{'num_nodes': 3327, 'candidate_count': 2328}]}
+EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-pubmed-s22-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_pubmed_s22.yaml',
+ 'config_sha256': 'f7f2506510230b57df9a004013f787c085dd4313e955f88d9746f68a55d72e85',
+ 'configuration_fingerprint': 'a9fefe5333e8791e5b4aa23257326b5c93491e7793cdeb205bf79ec96b3d5114',
+ 'run_identity': {'experiment_id': 'aagu053-celf-warmup-pubmed-s22',
+                  'run_id': 'aagu053-celf-warmup-pubmed-s22-v1'},
+ 'timeout_seconds': 21600,
+ 'logical_cells': 1,
+ 'stage': 'selector',
+ 'expected_datasets': [{'num_nodes': 19717, 'candidate_count': 13801}]}
+EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-pubmed-s33-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_pubmed_s33.yaml',
+ 'config_sha256': '91d473d01cb7c90598d77075899d0d09facd982c9b4a58e01ba3a346d1f920e2',
+ 'configuration_fingerprint': '542e600b038ea4c6a4c0a7b7a20c6cbc1983971bc959be749cfaca139c7acb94',
+ 'run_identity': {'experiment_id': 'aagu053-celf-warmup-pubmed-s33',
+                  'run_id': 'aagu053-celf-warmup-pubmed-s33-v1'},
+ 'timeout_seconds': 21600,
+ 'logical_cells': 1,
+ 'stage': 'selector',
+ 'expected_datasets': [{'num_nodes': 19717, 'candidate_count': 13801}]}
+
 def recipe_definitions():
     from pathlib import Path
     from experiments.modular_config import load_experiment

@@ -1,0 +1,15 @@
+# Single CELF selection prewarm for the unchanged 10% full table.
+kind: experiment
+schema_version: 1
+experiment_id: aagu053-celf-warmup-citeseer-s22
+stage: selector
+dataset_refs:
+- citeseer.yaml
+selector_refs:
+- im_celf.yaml
+matrix: cartesian_product
+im_selector_seeds:
+- 22
+budget_ratios:
+- 0.1
+return_scores: false
