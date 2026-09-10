@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "title": "实验研究总览",
+  "reviewed_at": "2026-09-11",
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "Phase 1",
+      "subtitle": "选择机制与近似",
+      "description": "先理解选点行为与近似，再形成有证据支持的方法代表。"
+    },
+    {
+      "id": "phase-2",
+      "name": "Phase 2",
+      "subtitle": "GU响应与结果分析",
+      "description": "进入GU比较，并用Random参照与效应分解解释响应。"
+    },
+    {
+      "id": "im-track",
+      "name": "IM 组",
+      "subtitle": "独立研究线",
+      "description": "组内效果、稳定性与预算复用；不以IF阶段完成作为前置。"
+    }
+  ],
+  "families": {
+    "if": "IF 组",
+    "im": "IM 组",
+    "baseline": "共同参照",
+    "shared": "综合分析"
+  },
+  "topics": [
+    {
+      "id": "X1",
+      "title": "选择机制",
+      "description": "评分、排名、选集的差异"
+    },
+    {
+      "id": "X2",
+      "title": "近似有效性",
+      "description": "reference / proxy与轨迹"
+    },
+    {
+      "id": "X3",
+      "title": "GU响应",
+      "description": "同选集GU / Retrain对照"
+    },
+    {
+      "id": "X4",
+      "title": "效应与副作用",
+      "description": "分解效应与预测变化"
+    },
+    {
+      "id": "X5",
+      "title": "预算与消融",
+      "description": "剂量响应与单因素对照"
+    },
+    {
+      "id": "X6",
+      "title": "泛化与规模",
+      "description": "backbone与大图适用范围"
+    },
+    {
+      "id": "X7",
+      "title": "代理迁移",
+      "description": "surrogate → victim"
+    },
+    {
+      "id": "X8",
+      "title": "成本与复用",
+      "description": "时间、缓存与容量"
+    }
+  ],
+  "sheets": [
+    "if-ranking",
+    "if-retrain",
+    "if-trajectory",
+    "if-gu",
+    "random-response",
+    "response-analysis",
+    "im-effects",
+    "im-prefix"
+  ],
+  "sources": [
+    {
+      "label": "核心研究框架",
+      "path": "../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md"
+    },
+    {
+      "label": "已接受阶段结论",
+      "path": "../../OpenGU-DocMap/10_实验矩阵/24_AAGU-032_GT有效性与extension-v2对照.md"
+    },
+    {
+      "label": "任务合同与状态",
+      "path": ".workblock/items"
+    },
+    {
+      "label": "阶段与依赖事实",
+      "path": ".workblock/graph.json"
+    },
+    {
+      "label": "历史覆盖原始清单",
+      "path": "self/dashboard/config_inventory.csv"
+    }
+  ]
+}

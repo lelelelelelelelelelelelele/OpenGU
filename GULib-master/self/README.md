@@ -10,7 +10,7 @@
 | 你要做什么 | 入口 | 如何使用 |
 |---|---|---|
 | 看下一步、优先级与依赖 | [WorkBlock / Companion 记录](../.workblock/items/) | 从 Companion 查看阶段与依赖；进入对应 WorkItem |
-| 看配置单、结果、分析与覆盖热图 | [Config Inventory](dashboard/config_inventory.html) | 按研究部分查看本轮记录和历史覆盖 |
+| 看研究框架、配置单、结果与分析 | [实验研究总览](research/index.html) | 按Phase与IF/IM分组进入独立配置单 |
 | 看研究问题、实验矩阵和论文论证 | [OpenGU DocMap](../../../OpenGU-DocMap/_文档地图.md) | 使用独立研究文档库的当前入口 |
 | 修改 dashboard | [AGENTS.md](dashboard/AGENTS.md) | 区分研究清单、运行证据和历史覆盖 |
 | 查代码合同与设计 | [docs 入口](../docs/README.md) | 区分合同、实现说明与历史验收报告 |

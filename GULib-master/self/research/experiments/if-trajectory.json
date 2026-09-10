@@ -1,0 +1,76 @@
+{
+  "id": "if-trajectory",
+  "title": "Graph CP3 / CP6 独立对照",
+  "phase": "phase-1",
+  "family": "if",
+  "topics": [
+    "X2"
+  ],
+  "question": "graph轨迹累积与final D-full是否形成有价值的不同选点？",
+  "comparison": "CP3 ↔ CP6，并分别与D-full末层两跳比较。",
+  "controls": [
+    [
+      "数据 / 划分",
+      "Cora、CiteSeer、PubMed；持久化70/10/20，split seed 2024"
+    ],
+    [
+      "评价边界",
+      "原始图、固定test节点与标签；test不参与选择器调参"
+    ],
+    [
+      "预算分母",
+      "原训练候选节点池；记录实际K"
+    ],
+    [
+      "配对要求",
+      "共享最终模型、训练seed、候选池与预算"
+    ]
+  ],
+  "variables": [
+    [
+      "变化轴",
+      "graph轨迹与final；checkpoint数量"
+    ]
+  ],
+  "scope": [
+    [
+      "执行范围",
+      "尚未冻结新的独立组合表；不能拿旧015全表直接代替"
+    ]
+  ],
+  "metrics": "完整排名相关性、同K重合、已有总评分时间；若主张效果改善需匹配f1_after。",
+  "outputs": "独立对照表、身份与时间；可复用匹配P-graph final作解释。",
+  "limits": "CP不是逐checkpoint累积逆Hessian D-full；不按test结果挑checkpoint。",
+  "configs": [],
+  "sources": [
+    {
+      "label": "原始讨论与记录",
+      "path": ".workblock/items/AAGU-039/WORKITEM.md"
+    },
+    {
+      "label": "已接受阶段结论",
+      "path": "../../OpenGU-DocMap/10_实验矩阵/24_AAGU-032_GT有效性与extension-v2对照.md"
+    }
+  ],
+  "preparation": {
+    "state": "draft",
+    "gaps": [
+      "冻结实际数据/模型/预算和checkpoint绑定",
+      "形成独立可执行组合表及核验要求"
+    ]
+  },
+  "execution": {
+    "state": "unbound",
+    "total": null,
+    "completed": null,
+    "runs": [],
+    "links": []
+  },
+  "analysis": {
+    "state": "not_started",
+    "inputs": [],
+    "links": []
+  },
+  "reviewed_at": "2026-09-11",
+  "kind": "experiment"
+}

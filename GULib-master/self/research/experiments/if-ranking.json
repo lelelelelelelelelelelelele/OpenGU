@@ -1,0 +1,106 @@
+{
+  "id": "if-ranking",
+  "title": "IF 选择机制与完整排名",
+  "phase": "phase-1",
+  "family": "if",
+  "topics": [
+    "X1",
+    "X8"
+  ],
+  "question": "不同评分目标是否选到不同节点，Degree预筛是否保留IF目标？",
+  "comparison": "八组Selector逐条件比较；Degree作为拓扑参照。",
+  "controls": [
+    [
+      "数据 / 划分",
+      "Cora、CiteSeer、PubMed；持久化70/10/20，split seed 2024"
+    ],
+    [
+      "评价边界",
+      "原始图、固定test节点与标签；test不参与选择器调参"
+    ],
+    [
+      "预算分母",
+      "原训练候选节点池；记录实际K"
+    ],
+    [
+      "训练",
+      "两层GCN；seed 42/212/2024"
+    ]
+  ],
+  "variables": [
+    [
+      "Selector",
+      "A、B、Degree、D-full两跳/三跳、参数范围与两个三跳辅助对照"
+    ]
+  ],
+  "scope": [
+    [
+      "规模",
+      "3数据集 × 8组 × 3seed × 10% = 72逻辑条件"
+    ]
+  ],
+  "metrics": "完整排名相关性、同K选集重合、Degree包含率；已有评分/排序时间。",
+  "outputs": "Score、ranking、Selection、逐条件身份及计时；供后续对照复用。",
+  "limits": "逻辑条件数不等于独立评分次数；包含率不直接证明实际加速或攻击效果。",
+  "configs": [
+    {
+      "label": "执行配置",
+      "path": "experiments/configs/aagu031/stage_s.yaml"
+    }
+  ],
+  "sources": [
+    {
+      "label": "已确认八组设计",
+      "path": "experiments/configs/aagu031/README.md"
+    },
+    {
+      "label": "已接受阶段结论",
+      "path": "../../OpenGU-DocMap/10_实验矩阵/24_AAGU-032_GT有效性与extension-v2对照.md"
+    },
+    {
+      "label": "原始讨论与记录",
+      "path": ".workblock/items/AAGU-031/WORKITEM.md"
+    }
+  ],
+  "preparation": {
+    "state": "defined",
+    "gaps": []
+  },
+  "execution": {
+    "state": "completed",
+    "total": 72,
+    "completed": 72,
+    "runs": [
+      {
+        "label": "指定运行及逐条件产物",
+        "path": "results/runs/gpu4090/aagu031-selector-stage-s-v2/aagu031-stage-s-v2/run.json",
+        "experiment_id": "aagu031-selector-stage-s-v2",
+        "run_id": "aagu031-stage-s-v2",
+        "commit": "53daf4806fbb83c7ebd3a0967fc847a78994b057",
+        "sha256": "50ecf44495dec4d4c509fe188df953cb10486be59454634050721b670fed0336"
+      }
+    ],
+    "links": [
+      {
+        "label": "本轮结果与接受范围",
+        "path": ".workblock/items/AAGU-033/REPORT.html"
+      }
+    ]
+  },
+  "analysis": {
+    "state": "complete",
+    "inputs": [],
+    "links": [
+      {
+        "label": "排名、相似度与时间分析",
+        "path": ".workblock/items/AAGU-031/analysis/20260908/REPORT.html"
+      },
+      {
+        "label": "本轮结果与接受范围",
+        "path": ".workblock/items/AAGU-033/REPORT.html"
+      }
+    ]
+  },
+  "reviewed_at": "2026-09-11",
+  "kind": "experiment"
+}
