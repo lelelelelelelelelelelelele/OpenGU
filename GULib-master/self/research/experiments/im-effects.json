@@ -30,33 +30,44 @@
     }
   ],
   "preparation": {
-    "state": "preparing",
-    "gaps": [
-      "既有053任务正在完成预热/正式执行链；本页不接管",
-      "96格结果按实际收集核验后关联"
-    ]
+    "state": "defined",
+    "gaps": []
   },
   "execution": {
-    "state": "unknown",
+    "state": "completed",
     "total": 96,
-    "completed": null,
-    "runs": [],
+    "completed": 96,
+    "runs": [
+      {
+        "label": "96条件指定运行与产物",
+        "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-table-v1/run.json",
+        "experiment_id": "aagu053-im-group-budget10",
+        "run_id": "aagu053-table-v1",
+        "commit": "9a366d516b43cf046b56b1669cc8163517b3cfe4",
+        "sha256": "6d0be2b17b9ba86b099f0818b90ce8bbcbf63ef82461c4cb1f2e878cfdf5d883"
+      }
+    ],
     "links": [
       {
-        "label": "已有预热核验",
-        "path": ".workblock/items/AAGU-053/evidence/warmup-cora-s33-verification.json"
+        "label": "96条件与48组严格配对核验",
+        "path": ".workblock/items/AAGU-053/evidence/table-final-verification.json"
       }
     ]
   },
   "analysis": {
-    "state": "not_started",
+    "state": "review",
     "inputs": [],
-    "links": []
+    "links": [
+      {
+        "label": "已完成分析报告 · 待科学复核",
+        "path": ".workblock/items/AAGU-053/REPORT.html"
+      }
+    ]
   },
   "reviewed_at": "2026-09-11",
   "kind": "experiment",
   "narrative": [
     "IM簇沿另一条选点思路展开：根据图上的传播覆盖选择删除节点，而不是沿用IF的梯度目标。这个实验把RR的不同采样规模、CELF、Degree和Random放在一起，既看选集是否稳定、是否重合，也看这些选择进入GNNDelete与完整重训练之后的实际效果。",
-    "它同时回答两个相连的问题：传播覆盖策略是否形成稳定而不同的选择，以及这些选择是否带来不同的删除结果。配置中的IM选点种子与Random选点种子用于观察选集随机性，不能充当独立训练种子。运行准备与主实验结果分别核对，预热完成不等于主实验完成。"
+    "它同时回答两个相连的问题：传播覆盖策略是否形成稳定而不同的选择，以及这些选择是否带来不同的删除结果。配置中的IM选点种子与Random选点种子用于观察选集随机性，不能充当独立训练种子。运行准备与主实验结果分别核对，预热完成不等于主实验完成。 当前96个运行条件已完成可信回传与核验，48组GU／Retrain严格配对和选集稳定性分析已形成报告，待科学复核。"
   ]
 }
