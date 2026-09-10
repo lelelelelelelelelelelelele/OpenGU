@@ -181,19 +181,6 @@ EXPERIMENT_RECIPES['opengu-aagu053-table-v1'] = {'config_path': 'experiments/con
  'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
                        {'num_nodes': 3327, 'candidate_count': 2328},
                        {'num_nodes': 19717, 'candidate_count': 13801}]}
-EXPERIMENT_RECIPES['opengu-aagu053-selection05-v1'] = {'config_path': 'experiments/configs/im_group_discussion/selection_05.yaml',
- 'config_sha256': '0e295f1c655bf1a5c2a59f46fadb40bd25e29e7be5fe41c877d8d7c6141f1623',
- 'configuration_fingerprint': '57c2384784f3e8d6660d69567f641f25f53a541e929e8ae44c041eab35bca2d4',
- 'run_identity': {'experiment_id': 'aagu053-im-group-selection05',
-                  'run_id': 'aagu053-selection05-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 48,
- 'stage': 'selector',
- 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                       {'num_nodes': 3327, 'candidate_count': 2328},
-                       {'num_nodes': 19717, 'candidate_count': 13801}]}
-
-
 EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-cora-s22-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_cora_s22.yaml',
  'config_sha256': '74238be764f8bbf0aaf03555952dd6ac3790f3596812dc987e82113d9321da44',
  'configuration_fingerprint': 'aa998ba3f7efac60ec7522c88949874e03d1b24d3faae675e104d886cbf2f882',
