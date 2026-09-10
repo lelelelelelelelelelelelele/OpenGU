@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import logging
+import json
 import time
 from pathlib import Path
+import numpy as np
 import torch
 from cache_v2 import ProducerVersion
 from cache_v2.formal_artifacts import ordered_int_hash
@@ -41,7 +43,14 @@ def gif_node(args, model, data, nodes, runtime_root):
     method.target_model_name = args['base_model']
     model.eval()
     method.unlearning_request(nodes)
-    method.unlearn()
+    # Reused from AAGU-049 candidate 47282e6: supervised losses use train labels only.
+    method.influence_nodes = np.intersect1d(method.influence_nodes, data.train_indices)
+    try:
+        method.unlearn()
+    finally:
+        if hasattr(method, 'solver_diagnostics'):
+            (Path(runtime_root) / 'gif-solver.json').write_text(
+                json.dumps(method.solver_diagnostics, indent=2, allow_nan=False), encoding='utf-8')
     return method.target_model.model, float(method.avg_unlearning_time[0])
 
 
@@ -83,8 +92,10 @@ def gu_producer(method, model_config):
         functions += [gnndelete, GNNDeleteTrainer, GCNDelete, DeletionLayer, gnndelete_node]
     elif method == 'GIF':
         from unlearning.unlearning_methods.GIF.gif import gif
+        from unlearning.unlearning_methods.GIF.solver import solve_gif_system, GIFNumericalError
         from task.GIFTrainer import GIFTrainer
-        functions += [gif, GIFTrainer, gif_node, model_class.reason_once, model_class.reason_once_unlearn]
+        functions += [gif, solve_gif_system, GIFNumericalError, GIFTrainer, gif_node,
+                      model_class.reason_once, model_class.reason_once_unlearn]
     elif method == 'MEGU':
         from unlearning.unlearning_methods.MEGU.megu import megu
         from task.MEGUTrainer import MEGUTrainer, GATE

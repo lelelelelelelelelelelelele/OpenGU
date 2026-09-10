@@ -1,0 +1,9 @@
+# Fixed before selector comparison using nine original checkpoints' curvature.
+# Actual regularization: scale*damp = 256; same parameters for all cells.
+kind: unlearning
+schema_version: 1
+method: GIF
+parameters:
+  iteration: 2000
+  scale: 65536
+  damp: 0.00390625

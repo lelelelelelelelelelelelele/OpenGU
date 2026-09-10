@@ -18,6 +18,7 @@ from config import root_path,unlearning_path,unlearning_edge_path
 from task.edge_prediction import EdgePredictor
 from task import get_trainer
 from pipeline.IF_based_pipeline import IF_based_pipeline
+from unlearning.unlearning_methods.GIF.solver import solve_gif_system, GIFNumericalError
 class gif(IF_based_pipeline):
     """
     GIF (Graph Influence Function) class implements a IF-based pipeline for performing unlearning tasks on GNNs, enabling efficient removal of specific data points, edges, or features from
@@ -674,6 +675,11 @@ class gif(IF_based_pipeline):
         Updates the edge index by removing specified edges or edges connected to specified nodes based on the unlearning task.
         Depending on the 'unlearn_task' parameter, this function either deletes specific edges provided in `delete_edge_index` or removes all edges connected to nodes listed in `delete_nodes`. The updated edge index is returned as a PyTorch tensor.
         """
+        if self.args['unlearn_task'] == 'node':
+            edges = self.data.edge_index
+            deleted = torch.as_tensor(delete_nodes, dtype=torch.long, device=edges.device)
+            keep = ~(torch.isin(edges[0], deleted) | torch.isin(edges[1], deleted))
+            return edges[:, keep].clone()
         edge_index = self.data.edge_index.cpu().numpy()
 
         unique_indices = np.where(edge_index[0] < edge_index[1])[0]
@@ -787,17 +793,25 @@ class gif(IF_based_pipeline):
             v = tuple(grad1 - grad2 for grad1, grad2 in zip(res_tuple[1], res_tuple[2]))
         if self.args["GIF_method"] =="IF":
             v = res_tuple[1]
-        h_estimate = tuple(grad1 - grad2 for grad1, grad2 in zip(res_tuple[1], res_tuple[2]))
-        for _ in range(iteration):
-
-            model_params  = [p for p in self.target_model.model.parameters() if p.requires_grad]
-            hv            = self.hvps(res_tuple[0], model_params, h_estimate)
-            with torch.no_grad():
-                h_estimate    = [ v1 + (1-damp)*h_estimate1 - hv1/scale
-                            for v1, h_estimate1, hv1 in zip(v, h_estimate, hv)]
-
-        params_change = [h_est / scale for h_est in h_estimate]
+        model_params = [p for p in self.target_model.model.parameters() if p.requires_grad]
+        sizes = [p.numel() for p in model_params]
+        def matvec(vector):
+            pieces = [part.reshape_as(p) for part, p in zip(vector.split(sizes), model_params)]
+            product = sum((g * part).sum() for g, part in zip(res_tuple[0], pieces))
+            values = grad(product, model_params, retain_graph=True)
+            return torch.cat([value.reshape(-1) for value in values])
+        try:
+            delta, self.solver_diagnostics = solve_gif_system(
+                matvec, torch.cat([part.detach().reshape(-1) for part in v]),
+                iterations=iteration, scale=scale, damp=damp)
+        except GIFNumericalError as error:
+            self.solver_diagnostics = error.diagnostics
+            raise
+        params_change = [part.reshape_as(p) for part, p in zip(delta.split(sizes), model_params)]
         params_esti   = [p1 + p2 for p1, p2 in zip(params_change, model_params)]
+        if not all(torch.isfinite(p).all() for p in params_esti):
+            self.solver_diagnostics['status'] = 'nonfinite_parameters'
+            raise GIFNumericalError(self.solver_diagnostics)
 
         test_F1 = self.target_model.eval_unlearn(params_esti)
 
@@ -813,14 +827,6 @@ class gif(IF_based_pipeline):
 
         return time.time() - start_time, test_F1
 
-    def hvps(self, grad_all, model_params, h_estimate):
-        element_product = 0
-        for grad_elem, v_elem in zip(grad_all, h_estimate):
-            element_product += torch.sum(grad_elem * v_elem)
-
-        return_grads = grad(element_product, model_params, create_graph=True)
-        return return_grads
-    
     def unlearn(self):
         """
         Perform the unlearning process by calculating the gradient influence and approximating the unlearning metrics.

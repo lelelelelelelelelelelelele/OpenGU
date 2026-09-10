@@ -1,0 +1,23 @@
+# Minimal real lanes on all three datasets before the full 270-cell table.
+kind: experiment
+schema_version: 1
+experiment_id: aagu011-table01-gate
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- pagerank.yaml
+unlearning_refs:
+- ./gif.yaml
+- gnndelete.yaml
+- megu.yaml
+- idea.yaml
+- grapheraser.yaml
+- graphrevoker.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds: [42]
+budget_ratios: [0.10]
