@@ -10,9 +10,9 @@ The framework connects OpenGU's data processing, model training, and graph-unlea
 
 This repository is both a codebase and an experiment/evidence repository: source code and YAML define executable experiments; datasets and splits, cache identities, result artifacts, and reports support conclusions. Every experiment conclusion must be traceable to an explicit configuration, dataset and split, code version, and artifact evidence.
 
-Current research framing, experiment design, and review thinking start in the sibling [OpenGU DocMap](../../OpenGU-DocMap/_文档地图.md) repository. Current tasks, priorities, and dependencies have one live source: `self/dashboard/WORKPLAN.md`.
+Current research framing, experiment design, and review thinking start in the sibling [OpenGU DocMap](../../OpenGU-DocMap/_文档地图.md) repository. Task contracts and lifecycle belong to canonical `.workblock/items/*/WORKITEM.md`; stages and dependencies belong to `.workblock/graph.json`, viewed through Companion. Research questions, experiment configurations, results and analysis are linked by [Config Inventory](self/dashboard/config_inventory.html).
 
-Do not duplicate live dashboard state into other documents; link to its owning source instead. If provenance, dataset or split identity, cache or artifact identity, or metric semantics are ambiguous, fail closed: do not treat the result as trusted evidence.
+Do not duplicate task or experiment state into other documents; link to its owning source instead. Ordinary Block edits do not require a code-repository dashboard refresh or commit. If provenance, dataset or split identity, cache or artifact identity, or metric semantics are ambiguous, fail closed: do not treat the result as trusted evidence.
 
 ## 2. Execution Locations
 

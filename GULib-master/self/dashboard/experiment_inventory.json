@@ -1,0 +1,381 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-09-11",
+  "groups": [
+    {
+      "id": "selector",
+      "title": "选择策略与预筛选",
+      "question": "不同选择策略的排名、选集和计算成本有什么差异？",
+      "note": "八组、三数据集、三 seed；10% 预算。本轮 72 个逻辑条件，不能解释为 72 次独立评分。",
+      "links": [
+        {
+          "label": "本轮研究结论",
+          "path": "../../OpenGU-DocMap/10_实验矩阵/24_AAGU-032_GT有效性与extension-v2对照.md"
+        }
+      ],
+      "configs": [
+        {
+          "id": "selector-stage-s",
+          "title": "八组 Selector · Stage S",
+          "plan": {
+            "label": "实验配置单",
+            "path": "experiments/configs/aagu031/README.md"
+          },
+          "configs": [
+            {
+              "label": "可执行配置",
+              "path": "experiments/configs/aagu031/stage_s.yaml"
+            }
+          ],
+          "run_state": "completed",
+          "expected": 72,
+          "completed": 72,
+          "runs": [
+            {
+              "path": "results/runs/gpu4090/aagu031-selector-stage-s-v2/aagu031-stage-s-v2/run.json",
+              "label": "运行记录与逐条件结果",
+              "experiment_id": "aagu031-selector-stage-s-v2",
+              "run_id": "aagu031-stage-s-v2",
+              "commit": "53daf4806fbb83c7ebd3a0967fc847a78994b057",
+              "sha256": "50ecf44495dec4d4c509fe188df953cb10486be59454634050721b670fed0336",
+              "verified_files": 72
+            }
+          ],
+          "note": "截至 2026-09-11 核对的指定运行；不代表后续新配置已运行。",
+          "result_links": [
+            {
+              "label": "本轮结果与接受范围",
+              "path": ".workblock/items/AAGU-033/REPORT.md"
+            }
+          ]
+        }
+      ],
+      "analyses": [
+        {
+          "title": "排名、跨 seed 重合与时间",
+          "state": "complete",
+          "inputs": [
+            "selector-stage-s"
+          ],
+          "links": [
+            {
+              "label": "排名与时间分析",
+              "path": ".workblock/items/AAGU-031/analysis/20260908/REPORT.html"
+            },
+            {
+              "label": "接受范围",
+              "path": ".workblock/items/AAGU-033/REPORT.md"
+            }
+          ]
+        }
+      ],
+      "legacy_categories": []
+    },
+    {
+      "id": "retrain",
+      "title": "删除效果与近似对照",
+      "question": "相同预算下，不同选点与近似方式如何影响 Retrain 的 F1？",
+      "note": "三数据集 × 十配置 × 四预算 × 三 seed；本轮独立 Retrain 360 格。分析可联合 Selector 排名和选集。",
+      "links": [],
+      "configs": [
+        {
+          "id": "retrain-v2",
+          "title": "Extension v2 · 独立 Retrain",
+          "plan": {
+            "label": "实验配置单",
+            "path": ".workblock/items/AAGU-032/WORKITEM.md"
+          },
+          "configs": [
+            {
+              "label": "可执行配置",
+              "path": "experiments/configs/aagu032_extend_v2/experiment.yaml"
+            }
+          ],
+          "run_state": "completed",
+          "expected": 360,
+          "completed": 360,
+          "runs": [
+            {
+              "path": "results/runs/gpu4090/aagu032-extended-v2-multi-gcn-retrain/aagu032-extend-v2/run.json",
+              "label": "运行记录与逐条件结果",
+              "experiment_id": "aagu032-extended-v2-multi-gcn-retrain",
+              "run_id": "aagu032-extend-v2",
+              "commit": "53daf4806fbb83c7ebd3a0967fc847a78994b057",
+              "sha256": "f880bff245ece52de5dfc640af7e263452eafeb49bd989785dbcdde7ca6ee2b5",
+              "verified_files": 720
+            }
+          ],
+          "note": "截至 2026-09-11 核对的指定运行；不代表后续新配置已运行。",
+          "result_links": [
+            {
+              "label": "本轮结果与接受范围",
+              "path": ".workblock/items/AAGU-033/REPORT.md"
+            }
+          ]
+        }
+      ],
+      "analyses": [
+        {
+          "title": "效果、相似度、包含率与计时",
+          "state": "complete",
+          "inputs": [
+            "selector-stage-s",
+            "retrain-v2"
+          ],
+          "links": [
+            {
+              "label": "跨配置综合分析",
+              "path": ".workblock/items/AAGU-033/analysis/20260908/REPORT.html"
+            },
+            {
+              "label": "结论与局限",
+              "path": ".workblock/items/AAGU-033/REPORT.md"
+            }
+          ]
+        }
+      ],
+      "legacy_categories": []
+    },
+    {
+      "id": "cp",
+      "title": "CP3 / CP6 独立检验",
+      "question": "graph 轨迹 CP3、CP6 与 D-full 末层两跳的比较是否支持新的结论？",
+      "note": "独立后续问题，不回填成上一轮尚未完成的实验。具体范围以配置单为准。",
+      "links": [],
+      "configs": [
+        {
+          "id": "cp-plan",
+          "title": "CP3 / CP6 方案",
+          "plan": {
+            "label": "实验配置单",
+            "path": ".workblock/items/AAGU-039/WORKITEM.md"
+          },
+          "configs": [],
+          "run_state": "unknown",
+          "expected": null,
+          "completed": null,
+          "runs": [],
+          "note": "已登记后续问题；尚未在本清单绑定可执行配置及运行证据。"
+        }
+      ],
+      "analyses": [],
+      "legacy_categories": []
+    },
+    {
+      "id": "im",
+      "title": "IM 效果与稳定性",
+      "question": "IM 的效果、选集重叠与 selector seed 稳定性如何？",
+      "note": "IM 是独立研究方向；软件实现与科研运行分别查看。此处不根据软件 Block 状态推断实验完成。",
+      "links": [
+        {
+          "label": "IM 研究计划",
+          "path": "../../OpenGU-DocMap/10_实验矩阵/22_IM成熟算法可用性与Degree超越实验计划.md"
+        },
+        {
+          "label": "软件前提",
+          "path": ".workblock/items/AAGU-040/WORKITEM.md"
+        }
+      ],
+      "configs": [
+        {
+          "id": "im-plan",
+          "title": "IM 研究配置范围",
+          "plan": {
+            "label": "实验配置单",
+            "path": "../../OpenGU-DocMap/10_实验矩阵/22_IM成熟算法可用性与Degree超越实验计划.md"
+          },
+          "configs": [],
+          "run_state": "unknown",
+          "expected": null,
+          "completed": null,
+          "runs": [],
+          "note": "当前运行范围与证据尚待核对。"
+        }
+      ],
+      "analyses": [],
+      "legacy_categories": []
+    },
+    {
+      "id": "gu",
+      "title": "GU 主矩阵与副作用",
+      "question": "策略性删除是否使近似遗忘出现异常退化、retrain-gap 或副作用？",
+      "note": "本轮完整配置映射由已有方案承接；历史 Cora 主矩阵的覆盖数单列，不计入本轮进度。",
+      "links": [
+        {
+          "label": "完整实验表与映射",
+          "path": ".workblock/items/AAGU-030/WORKITEM.md"
+        }
+      ],
+      "configs": [
+        {
+          "id": "gu-main",
+          "title": "Table 01 · IF / naive × GU",
+          "plan": {
+            "label": "实验配置单",
+            "path": "experiments/configs/aagu011/README.md"
+          },
+          "configs": [
+            {
+              "label": "可执行配置",
+              "path": "experiments/configs/aagu011/table01.yaml"
+            }
+          ],
+          "run_state": "unknown",
+          "expected": 270,
+          "completed": null,
+          "runs": [],
+          "note": "270 个 GU 条件，另有 45 个独立 Retrain 参照；已有失败及恢复历史，本清单尚未核对本轮最终运行覆盖。"
+        }
+      ],
+      "analyses": [
+        {
+          "title": "X4 · 退化分解与副作用",
+          "state": "unknown",
+          "inputs": [
+            "gu-main"
+          ],
+          "links": [
+            {
+              "label": "分析方案",
+              "path": ".workblock/items/AAGU-012/WORKITEM.md"
+            }
+          ]
+        }
+      ],
+      "legacy_categories": [
+        "main-matrix (cora)"
+      ]
+    },
+    {
+      "id": "validity",
+      "title": "有效性与噪声参照",
+      "question": "选择策略信号、近似有效性与噪声能否区分？",
+      "note": "保留 K5、collateral 与 supplementary 的来源；历史完成数不等于当前科研结论。",
+      "links": [
+        {
+          "label": "K5 范围",
+          "path": ".workblock/items/AAGU-008/WORKITEM.md"
+        },
+        {
+          "label": "Collateral 证据范围",
+          "path": ".workblock/items/AAGU-027/WORKITEM.md"
+        }
+      ],
+      "configs": [],
+      "analyses": [],
+      "legacy_categories": [
+        "supplementary overlap/validity"
+      ]
+    },
+    {
+      "id": "ablation",
+      "title": "预算、数据集与消融",
+      "question": "删除预算、数据集、融合比例和模型变化是否改变观察？",
+      "note": "A5 的预算与数据集维度保留；A3 融合和 A6 backbone 扩展仍按已有研究范围判断，不能把覆盖缺口自动变成启动授权。",
+      "links": [
+        {
+          "label": "实验表映射",
+          "path": ".workblock/items/AAGU-030/WORKITEM.md"
+        }
+      ],
+      "configs": [],
+      "analyses": [],
+      "legacy_categories": [
+        "ablation A3 (alpha)",
+        "ablation A5 (ratio/dataset)",
+        "ablation A6 (backbone)"
+      ]
+    },
+    {
+      "id": "scale",
+      "title": "规模与代理迁移",
+      "question": "已有观察能否扩展到大图和代理选集迁移？",
+      "note": "保留 arXiv 与 surrogate 的独立范围；运行前须满足正式实验条件。",
+      "links": [
+        {
+          "label": "arXiv 范围",
+          "path": ".workblock/items/AAGU-014/WORKITEM.md"
+        },
+        {
+          "label": "代理迁移配置单",
+          "path": "../../OpenGU-DocMap/10_实验矩阵/24_E7代理选集迁移实验计划.md"
+        }
+      ],
+      "configs": [],
+      "analyses": [],
+      "legacy_categories": [
+        "main-matrix (arxiv)"
+      ]
+    },
+    {
+      "id": "timing",
+      "title": "D-full 计时与容量",
+      "question": "从小图实测到大图探针，哪些成本能够可靠测量或外推？",
+      "note": "计算原语 → 小图计时 → 大图容量探针；这是原有研究路线，不在此复制 Block 依赖或设备状态。",
+      "links": [
+        {
+          "label": "计算原语与计时范围",
+          "path": ".workblock/items/AAGU-020/WORKITEM.md"
+        },
+        {
+          "label": "小图拟合方案",
+          "path": ".workblock/items/AAGU-021/WORKITEM.md"
+        },
+        {
+          "label": "大图探针方案",
+          "path": ".workblock/items/AAGU-022/WORKITEM.md"
+        }
+      ],
+      "configs": [],
+      "analyses": [],
+      "legacy_categories": []
+    },
+    {
+      "id": "sanity",
+      "title": "运行准备与最小验证",
+      "question": "执行与回传链路是否具备承接正式实验的条件？",
+      "note": "保留最小实验与历史 sanity；历史检查不能替代目标范围当前的运行前置核验。",
+      "links": [
+        {
+          "label": "最小实验配置单",
+          "path": "experiments/configs/aagu007/README.md"
+        },
+        {
+          "label": "正式执行规则",
+          "path": "experiments/AGENTS.md"
+        }
+      ],
+      "configs": [],
+      "analyses": [],
+      "legacy_categories": [
+        "sanity"
+      ]
+    }
+  ],
+  "navigation": [
+    {
+      "label": "研究文档地图",
+      "path": "../../OpenGU-DocMap/_文档地图.md"
+    },
+    {
+      "label": "WorkBlock 任务记录",
+      "path": ".workblock/items"
+    },
+    {
+      "label": "阶段与依赖源",
+      "path": ".workblock/graph.json"
+    },
+    {
+      "label": "写作入口",
+      "path": ".workblock/items/AAGU-016/WORKITEM.md"
+    },
+    {
+      "label": "作图入口",
+      "path": ".workblock/items/AAGU-017/WORKITEM.md"
+    },
+    {
+      "label": "历史覆盖与缺陷档案",
+      "path": "self/dashboard/EXPERIMENT_DASHBOARD.md"
+    }
+  ]
+}

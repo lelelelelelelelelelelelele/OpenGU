@@ -1,50 +1,35 @@
-# Dashboard — 编排与投影边界
+# Dashboard — 实验清单与证据入口
 
-本文件管理 `self/dashboard/`，仓库级规则见 [根 AGENTS.md](../../AGENTS.md)。
+仓库级规则见 [根 AGENTS.md](../../AGENTS.md)。
 
 ## 文件分工
 
-| 文件 | 权威内容 | 维护方式 |
+| 文件 | 拥有的内容 | 维护方式 |
 |---|---|---|
-| [WORKPLAN.md](WORKPLAN.md) | 做什么、优先级、依赖、当前唯一执行线、下一步 | 节点表手写；状态区由生成器重建 |
-| [WorkItems](../../.workblock/items/) | Todo/Block 身份与生命周期状态 | WorkBlock workflow；不要从旧报告或分支名推断状态 |
-| `progress.html` | WORKPLAN + WorkItem 的可视化投影 | [refresh.py](../../scripts/dashboard/refresh.py) 生成，禁止手改 |
-| [EXPERIMENT_DASHBOARD.md](EXPERIMENT_DASHBOARD.md) | 2026-05-07 冻结的历史覆盖与缺陷档案 | 只读，不承担当前状态 |
-| [VALIDATION_LOG.md](VALIDATION_LOG.md) | append-only 验证 finding | 只追加；纠错用新的 superseded 记录，不重写、重排或删除旧条目 |
-| `config_inventory.csv` | 配置与证据状态清单 | 只根据已核对的证据更新，再重建 HTML |
-| `config_inventory.html` | CSV 的派生视图 | [gen_config_inventory.py](../../scripts/dashboard/gen_config_inventory.py) 生成，禁止手改 |
+| [experiment_inventory.json](experiment_inventory.json) | 研究部分、配置单/结果/分析链接及明确核对日期的实验快照 | 按已核对来源显式更新；不读取 Block 生命周期推断运行或分析 |
+| [config_inventory.csv](config_inventory.csv) | 历史配置覆盖与证据计数 | 保留历史口径，不混入本轮运行完成数 |
+| [config_inventory.html](config_inventory.html) | 以上两源的实验清单与 Coverage Heatmap | [gen_config_inventory.py](../../scripts/dashboard/gen_config_inventory.py) 与 [模板](../../scripts/dashboard/inventory.html) 生成，禁止手改 |
+| [WorkItems](../../.workblock/items/) / [graph](../../.workblock/graph.json) | 任务合同/生命周期及协议定义的阶段与依赖 | 由 WorkBlock / Companion 维护，不生成 tracked 任务看板 |
+| [EXPERIMENT_DASHBOARD.md](EXPERIMENT_DASHBOARD.md) | 冻结的历史覆盖与缺陷档案 | 不承担当前状态 |
+| [VALIDATION_LOG.md](VALIDATION_LOG.md) | append-only 验证 finding | 只追加，纠错用 superseded，不重写历史 |
 
-## 事实归属
+## 维护边界
 
-- 科学问题、实验计划、selector/metrics 论证、矩阵解释和论文内容由
-  [OpenGU DocMap](../../../../OpenGU-DocMap/_文档地图.md) 及对应论文入口拥有；
-  WORKPLAN 只保留短节点与唯一 owner 链接。
-- YAML/recipe 只保存最终可执行配置，不承担人类实验计划或运行结论。
-- 正式运行事实归 evidence、journal、acceptance/report；不得倒灌到 WORKPLAN。
-  AutoReport 的事件与投影分工见 [V3 设计](../../docs/auto_report_v3_DESIGN.md)。
-- 修复节点关闭后从活动投影隐藏，历史由 WorkItem、验收记录与 Git 保留。
-- 任务涉及当前编排时读取 WORKPLAN，不恢复旧的每次会话强制通读看板要求。
-
-## 修改范围
-
-- 通过事实源或生成器修改派生文件，审查重建后的 diff。
-- 目录说明只定义维护规则，不抄写当前任务清单、实验定义、指标结论或运行状态。
-- 文档与生成器不一致时，先核对事实源、生成器及其验证；不能因整理文档就改变
-  WORKPLAN 的任务内容、生命周期事实、实验定义或历史验证记录。
-- 历史资料保留其适用日期和版本；不要把某次验收报告解释成当前实验已经完成。
+- 科学论证与正式分析由 [OpenGU DocMap](../../../../OpenGU-DocMap/_文档地图.md) 和对应报告拥有；实验清单只组织短问题和源链接。YAML 仍拥有可执行定义。
+- 运行快照必须绑定明确 experiment_id、run_id、代码版本、manifest 摘要与条件数。结果存在不等于有效，运行结束不等于分析完成或科学接受。
+- 已关联记录可以覆盖多次尝试；重试按同一逻辑条件去重，不能累加成额外完成数。新的配置/数据/代码身份需要重新核对，不能沿用旧的完成声明。
+- `unknown` 表示未核对，不能当成零；只有已绑定配置、显式零完成的条目可登记 pending。分析可综合多张配置；其状态来自分析来源，不来自 Block 状态。
+- 历史 CSV 缺失 valid 等字段表示未登记，不以 done 填充可用数；历史配置重叠，不汇总成独立 cell 总数或本轮总完成率。
+- 普通 Block 新增、编辑、推进状态不需要修改或刷新本清单，不触发代码仓库提交。这里没有 pre-commit 自动刷新/暂存步骤，也不调用执行器或连接实时队列。
+- WORKPLAN、progress.html、PROGRESS.md 与旧 refresh.py 已移除，历史在 Git。任务入口是现有 WorkBlock / Companion；研究入口是 config inventory 和 DocMap。旧报告中的路径按其日期阅读，不恢复旧权威。
 
 ## 重建与验证
 
-从 `GULib-master/` 使用项目 Python 运行：
-
 ```powershell
-python -B -X utf8 scripts/dashboard/refresh.py
-python -B -X utf8 scripts/dashboard/refresh.py --check
-python -B -X utf8 -m unittest tests.test_dashboard_refresh -v
+python -B -X utf8 scripts/dashboard/gen_config_inventory.py
+python -B -X utf8 scripts/dashboard/gen_config_inventory.py --check
+python -B -X utf8 scripts/dashboard/gen_config_inventory.py --check --check-links --verify-evidence
+python -B -X utf8 -m pytest -q tests/test_config_inventory_dashboard.py
 ```
 
-生成器必须从 WorkItem 读取状态，并检测失效链接、重复映射、未映射 WorkItem、关闭节点占用当前线、未满足依赖和 Todo stale-blocked 漂移。修改事实源或生成器后重建派生物；不要手改 `progress.html` 或 WORKPLAN 的生成状态区。
-
-配置清单变更使用其对应生成器，并运行
-`python -B -X utf8 -m pytest -q tests/test_config_inventory_dashboard.py`。
-仅修改说明文件时检查链接与规则一致性，不为此改写生成物。
+常规重建只读取清单与历史配置路径，不读取 WorkItem 正文或运行结果；没有日期自动变动。`--check-links` 核对当前设备源路径；`--verify-evidence` 额外核验明确绑定的运行身份与结果哈希，不扫描猜测其他运行，也不启动实验。没有本地证据包的设备不能宣称已完成这项核验。

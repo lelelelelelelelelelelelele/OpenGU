@@ -5,7 +5,7 @@ presentation deliverables.
 
 It is not the project planning/MOC hub. Use the sibling OpenGU DocMap for
 project-wide document navigation
-and `self/dashboard/WORKPLAN.md` for the current operational state.
+and canonical `.workblock/items/` and Companion for the current operational state.
 
 New report convention:
 

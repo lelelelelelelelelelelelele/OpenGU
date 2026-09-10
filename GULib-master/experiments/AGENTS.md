@@ -12,7 +12,7 @@
 
 根级上下文及其信息入口已经生效，不在本文件重复。
 
-- 需要确认当前注册、准备状态或阻塞项时，只读取 WORKPLAN 中与目标实验相关的条目及其计划链接。
+- 需要确认实验配置、结果与分析时，只读取 config inventory 中目标研究部分及来源链接；任务注册、生命周期与依赖读取对应 canonical WorkItem、graph / Companion，运行准备状态核对实际 receipt，不从看板推断启动许可。
 - 准备正式启动或收集结果时，只读取 OpenGU DocMap 实验部分中与当前 launcher 对应的运行说明。
 - 出现 Selection/selector 或 GU method 缺陷，以及相关 Cache、Artifact、结果或证据的失效与恢复问题时，先读取 OpenGU DocMap 实验部分的重跑与缓存修复说明，确认影响范围和证据边界；只有范围明确后，才执行其中指向的机器端操作规范。
 - 仅做源码阅读或局部测试时，不加载正式运行和修复材料；dry-run 或 disposable smoke 只加载当前配置与 launcher 所需的相邻验证材料，不加载失败恢复材料。
