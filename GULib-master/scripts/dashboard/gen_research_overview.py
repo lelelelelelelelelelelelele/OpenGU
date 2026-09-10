@@ -143,7 +143,7 @@ def diagram(frame,sheets,prefix):
         for j,s in enumerate(byphase[phase['id']]):
             y=152+j*98;color=colors[s['family']]
             svg.append(f'<a href="{prefix}{s["id"]}.html" tabindex="0" aria-label="{esc(s["title"])}"><rect x="{x+18}" y="{y}" width="384" height="80" rx="6" fill="#1a2e37" stroke="{color}"/><text x="{x+34}" y="{y+25}" fill="{color}" font-size="12">{esc(family[s["family"]])} · {esc(PREP[s["preparation"]["state"]])}</text><text x="{x+34}" y="{y+52}" fill="#edf0e9" font-size="18">{esc(s["title"])}</text></a>')
-        if phase['id']=='im-track':svg.append(f'<text x="{x+22}" y="400" fill="#aebfc4" font-size="14">10%效果结果 → 5%选集复用核验</text><text x="{x+22}" y="427" fill="#aebfc4" font-size="14">不以IF阶段完成作为前置</text>')
+        if phase['id']=='im-track':svg.append(f'<text x="{x+22}" y="400" fill="#aebfc4" font-size="14">组内删除效果与选集稳定性</text><text x="{x+22}" y="427" fill="#aebfc4" font-size="14">不以IF阶段完成作为前置</text>')
     svg.append('<text x="30" y="516" fill="#e7e0cf" font-size="17">保留的核心研究问题</text>')
     for i,t in enumerate(frame['topics']):
         x=30+i*175

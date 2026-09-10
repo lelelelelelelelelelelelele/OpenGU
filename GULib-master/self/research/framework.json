@@ -19,7 +19,7 @@
       "id": "im-track",
       "name": "IM 组",
       "subtitle": "独立研究线",
-      "description": "组内效果、稳定性与预算复用；不以IF阶段完成作为前置。"
+      "description": "组内删除效果与选集稳定性；不以IF阶段完成作为前置。"
     }
   ],
   "families": {
@@ -77,8 +77,7 @@
     "if-gu",
     "random-response",
     "response-analysis",
-    "im-effects",
-    "im-prefix"
+    "im-effects"
   ],
   "sources": [
     {

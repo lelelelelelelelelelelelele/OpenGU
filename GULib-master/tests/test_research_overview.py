@@ -16,7 +16,7 @@ def test_framework_has_phases_families_and_all_core_questions():
     assert {p['id'] for p in frame['phases']}=={'phase-1','phase-2','im-track'}
     assert {t['id'] for t in frame['topics']}=={f'X{i}' for i in range(1,9)}
     assert sum(s['family']=='if' for s in sheets)==4
-    assert sum(s['phase']=='im-track' for s in sheets)==2
+    assert sum(s['phase']=='im-track' for s in sheets)==1
     assert all(s['question'] and s['comparison'] and s['controls'] and s['variables'] and s['scope'] and s['metrics'] and s['outputs'] for s in sheets)
     assert not any('WORKITEM.md' in c['path'] for s in sheets for c in s['configs'])
 
@@ -54,7 +54,7 @@ def test_configured_axes_match_existing_yaml_without_running_experiments():
 
 def test_diagram_and_pages_have_same_sheet_navigation(tmp_path):
     frame,sheets=gen.load();built=gen.outputs(frame,sheets,gen.Sources(gen.ROOT,gen.ROOT),tmp_path)
-    assert len(built)==10
+    assert len(built)==9
     svg=ET.fromstring(built[tmp_path/'diagram/research-framework.svg'])
     targets=[x.attrib['href'] for x in svg.iter() if x.tag.endswith('}a')]
     assert targets==['../experiments/'+s['id']+'.html' for s in sheets]
