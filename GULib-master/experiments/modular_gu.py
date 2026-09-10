@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import json
 import time
 from pathlib import Path
 import numpy as np
@@ -44,7 +45,12 @@ def gif_node(args, model, data, nodes, runtime_root):
     method.unlearning_request(nodes)
     # Reused from AAGU-049 candidate 47282e6: supervised losses use train labels only.
     method.influence_nodes = np.intersect1d(method.influence_nodes, data.train_indices)
-    method.unlearn()
+    try:
+        method.unlearn()
+    finally:
+        if hasattr(method, 'solver_diagnostics'):
+            (Path(runtime_root) / 'gif-solver.json').write_text(
+                json.dumps(method.solver_diagnostics, indent=2, allow_nan=False), encoding='utf-8')
     return method.target_model.model, float(method.avg_unlearning_time[0])
 
 

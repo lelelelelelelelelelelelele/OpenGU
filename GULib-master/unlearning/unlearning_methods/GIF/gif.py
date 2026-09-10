@@ -809,6 +809,9 @@ class gif(IF_based_pipeline):
             raise
         params_change = [part.reshape_as(p) for part, p in zip(delta.split(sizes), model_params)]
         params_esti   = [p1 + p2 for p1, p2 in zip(params_change, model_params)]
+        if not all(torch.isfinite(p).all() for p in params_esti):
+            self.solver_diagnostics['status'] = 'nonfinite_parameters'
+            raise GIFConvergenceError(self.solver_diagnostics)
 
         test_F1 = self.target_model.eval_unlearn(params_esti)
 
@@ -824,14 +827,6 @@ class gif(IF_based_pipeline):
 
         return time.time() - start_time, test_F1
 
-    def hvps(self, grad_all, model_params, h_estimate):
-        element_product = 0
-        for grad_elem, v_elem in zip(grad_all, h_estimate):
-            element_product += torch.sum(grad_elem * v_elem)
-
-        return_grads = grad(element_product, model_params, create_graph=True)
-        return return_grads
-    
     def unlearn(self):
         """
         Perform the unlearning process by calculating the gradient influence and approximating the unlearning metrics.

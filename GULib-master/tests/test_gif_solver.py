@@ -23,20 +23,29 @@ def test_autograd_hvp_and_solution_match_explicit_reference(damp):
         assert float((h @ solution-v).norm()/v.norm()) > .1
 
 
-def test_old_scale_rejected_despite_finite_tiny_update():
-    with pytest.raises(GIFConvergenceError) as error:
-        solve_gif_system(lambda v: 2*v, torch.ones(2), iterations=100, scale=1e9, damp=0.)
-    assert error.value.diagnostics['relative_residual'] > .999
+def test_large_scale_does_not_prevent_solving_the_undamped_equation():
+    delta, info = solve_gif_system(lambda v: 2*v, torch.ones(2), iterations=100, scale=1e9, damp=0.)
+    torch.testing.assert_close(delta, torch.full((2,), .5))
+    assert info['relative_residual'] <= 1e-3
 
 
-def test_negative_curvature_needs_explicit_shift():
+def test_indefinite_hessian_is_solved_without_an_implicit_shift():
     h = torch.diag(torch.tensor([-1., 3.], dtype=torch.double))
     rhs = torch.ones(2, dtype=torch.double)
-    with pytest.raises(GIFConvergenceError):
-        solve_gif_system(lambda v: h@v, rhs, iterations=100, scale=5., damp=0.)
+    delta, info = solve_gif_system(lambda v: h@v, rhs, iterations=100, scale=5., damp=0.)
+    torch.testing.assert_close(delta, torch.linalg.solve(h, rhs))
+    assert info['shift'] == 0.
     delta, info = solve_gif_system(lambda v: h@v, rhs, iterations=100, scale=5., damp=.4)
     torch.testing.assert_close(delta, torch.linalg.solve(h+2*torch.eye(2),rhs), rtol=.002, atol=.002)
     assert info['shift'] == 2.
+
+
+def test_inconsistent_singular_system_is_rejected_even_if_library_stops():
+    h = torch.diag(torch.tensor([0., 2.], dtype=torch.double))
+    with pytest.raises(GIFConvergenceError) as error:
+        solve_gif_system(lambda v: h@v, torch.ones(2, dtype=torch.double),
+                         iterations=20, scale=5., damp=0.)
+    assert error.value.diagnostics['relative_residual'] > .5
 
 
 def test_nonfinite_and_zero_rhs():
