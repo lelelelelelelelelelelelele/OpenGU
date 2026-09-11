@@ -35,6 +35,10 @@ log/
 logs/
 report/daily-log/
 
+# AAGU-052 local diagnostic datasets and method traces stay device-local;
+# reviewed summaries and hashes live in the canonical WorkItem evidence.
+results/diagnostics/AAGU-052/
+
 # Archives — paper template downloads, overleaf bundles, scp 回收 tar 等
 *.zip
 *.tar
