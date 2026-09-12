@@ -449,63 +449,50 @@ class idea(IF_based_pipeline):
         return train_time, res
     
     def approxi(self, res_tuple):
-        """
-        Approximates parameter changes for model unlearning using gradient information.
-        This function processes a tuple of gradients based on the specified unlearning method ('GIF' or 'IF')
-        and iteratively updates an estimated parameter change. It adjusts the model's parameters accordingly
-        and evaluates the unlearned model's performance by calculating the test F1 score.
-        """
-        '''
-        res_tuple == (grad_all, grad1, grad2)
-        '''
+        """Apply the declared finite influence series, then explicit IDEA noise."""
+        from unlearning.unlearning_methods.GIF.solver import solve_gif_system, GIFNumericalError
 
         start_time = time.time()
-        iteration, damp, scale = self.args['iteration'], self.args['damp'], self.args['scale']
-        if self.args["dataset_name"] in ["Photo","Computers","Physics","Amazon-ratings","Questions"]:
-            iteration =int(iteration/10)
-        v = tuple(grad1 - grad2 for grad1, grad2 in zip(res_tuple[1], res_tuple[2]))
-        h_estimate = tuple(grad1 - grad2 for grad1, grad2 in zip(res_tuple[1], res_tuple[2]))
-        for _ in range(iteration):
+        model_params = [p for p in self.target_model.model.parameters() if p.requires_grad]
+        sizes = [p.numel() for p in model_params]
+        rhs = torch.cat([(a - b).detach().reshape(-1)
+                         for a, b in zip(res_tuple[1], res_tuple[2])])
 
-            model_params  = [p for p in self.target_model.model.parameters() if p.requires_grad]
-            hv            = self.hvps(res_tuple[0], model_params, h_estimate)
-            with torch.no_grad():
-                h_estimate    = [ v1 + (1-damp)*h_estimate1 - hv1/scale
-                            for v1, h_estimate1, hv1 in zip(v, h_estimate, hv)]
+        def matvec(vector):
+            pieces = [part.reshape_as(p) for part, p in zip(vector.split(sizes), model_params)]
+            return torch.cat([v.reshape(-1) for v in self.hvps(res_tuple[0], model_params, pieces)])
 
-        params_change = [h_est / scale for h_est in h_estimate]
-        params_esti   = [p1 + p2 for p1, p2 in zip(params_change, model_params)]
-
-        self.params_esti = params_esti
-
-        end_time = time.time()
-
-        # add Gaussian Noise
-        gaussian_noise = [(torch.randn(item.size()) * self.args['gaussian_std'] + self.args['gaussian_mean']).to(item.device) for item in params_esti]
-        params_esti = [item1 + item2 for item1, item2 in zip(gaussian_noise, params_esti)]
-    
-        test_F1 = self.target_model.evaluate_unlearn_F1(params_esti,edge_weight_unlearn=self.edge_weight_unlearn)
-
-        # Write params_esti back into target_model.model so downstream consumers
-        # (eval_collateral perf_unlearn / hop_decay / predictions.npz) see the
-        # actual post-unlearn weights instead of the stale baseline. Without this
-        # AttackPipeline._get_trained_model returns the originally-trained model
-        # for IF-family methods, identical across GIF/IDEA, masking the unlearn.
+        try:
+            delta, self.solver_diagnostics = solve_gif_system(
+                matvec, rhs, iterations=self.args['iteration'],
+                scale=self.args['scale'], damp=self.args['damp'])
+        except GIFNumericalError as error:
+            self.solver_diagnostics = error.diagnostics
+            raise
+        self.solver_diagnostics['solver'] = 'IDEA.truncated_neumann'
+        changes = [part.reshape_as(p) for part, p in zip(delta.split(sizes), model_params)]
         with torch.no_grad():
-            trainable_params = [p for p in self.target_model.model.parameters() if p.requires_grad]
-            for p, new_p in zip(trainable_params, params_esti):
-                p.data.copy_(new_p.detach().to(p.device))
+            params_esti = [p + change + torch.randn_like(p) * self.args['gaussian_std']
+                           + self.args['gaussian_mean'] for p, change in zip(model_params, changes)]
+        if not all(torch.isfinite(p).all() for p in params_esti):
+            self.solver_diagnostics['status'] = 'nonfinite_parameters'
+            raise GIFNumericalError(self.solver_diagnostics)
+        self.params_esti = params_esti
+        # Validate before the trainer's evaluation, which itself installs weights.
+        test_F1 = self.target_model.evaluate_unlearn_F1(
+            params_esti, edge_weight_unlearn=self.edge_weight_unlearn)
+        with torch.no_grad():
+            for p, new_p in zip(model_params, params_esti):
+                p.copy_(new_p)
+        return time.time() - start_time, test_F1
 
-        # return end_time - start_time, test_F1, params_change
-        return end_time - start_time, test_F1
     def hvps(self, grad_all, model_params, h_estimate):
-        element_product = 0
-        for grad_elem, v_elem in zip(grad_all, h_estimate):
-            element_product += torch.sum(grad_elem * v_elem)
-        
-        return_grads = grad(element_product,model_params,create_graph=True)
-        return return_grads
-    
+        # A Hessian-vector product holds its vector fixed, including the first
+        # gradient-derived RHS. Differentiating it adds an unwanted product term.
+        return grad(grad_all, model_params,
+                    grad_outputs=tuple(v.detach() for v in h_estimate),
+                    retain_graph=True)
+
     # def mia_attack(self):
     #     shadow_model = GCNShadowModel(self.data.num_features,64 ,self.data.num_classes)
     #     train_shadow_model(shadow_model,self.data)

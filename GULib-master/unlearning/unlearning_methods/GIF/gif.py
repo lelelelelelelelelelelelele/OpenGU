@@ -786,9 +786,6 @@ class gif(IF_based_pipeline):
         '''
         start_time = time.time()
         iteration, damp, scale = self.args['iteration'], self.args['damp'], self.args['scale']
-        if self.args["dataset_name"] in ["Photo","Computers","Physics","Questions"]:
-            iteration =int(iteration/10)
-            # scale *=10
         if self.args["GIF_method"] =="GIF":
             v = tuple(grad1 - grad2 for grad1, grad2 in zip(res_tuple[1], res_tuple[2]))
         if self.args["GIF_method"] =="IF":

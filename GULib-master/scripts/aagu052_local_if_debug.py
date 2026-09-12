@@ -131,60 +131,24 @@ def run_gif(args, base_model, data, nodes, before_state, before_logits, root, la
 
 
 def run_idea(args, base_model, data, nodes, before_state, before_logits, root, label):
-    """Run the real IDEA adapter while tracing its existing recurrence."""
+    """Observe the production IDEA adapter; never replace its update function."""
     from experiments.modular_idea import idea_node
-    from unlearning.unlearning_methods.IDEA.idea import idea
 
-    original_approxi = idea.approxi
-    trace_holder = {}
-
-    def traced_approxi(self, res_tuple):
-        iteration, damp, scale = self.args['iteration'], self.args['damp'], self.args['scale']
-        model_params = [p for p in self.target_model.model.parameters() if p.requires_grad]
-        v = [grad1 - grad2 for grad1, grad2 in zip(res_tuple[1], res_tuple[2])]
-        h_estimate = [value.clone() for value in v]
-        for _ in range(iteration):
-            hv = self.hvps(res_tuple[0], model_params, h_estimate)
-            with torch.no_grad():
-                h_estimate = [v1 + (1 - damp) * h1 - hv1 / scale
-                              for v1, h1, hv1 in zip(v, h_estimate, hv)]
-        delta_parts = [value / scale for value in h_estimate]
-        rhs = flatten(v)
-        delta = flatten(delta_parts)
-        hv_delta = flatten(self.hvps(res_tuple[0], model_params, delta_parts))
-        shift = scale * damp
-        trace_holder.update(
-            rhs=rhs.detach().cpu(), delta=delta.detach().cpu(),
-            matched_residual=float((hv_delta + shift * delta - rhs).norm() / rhs.norm()),
-            undamped_residual=float((hv_delta - rhs).norm() / rhs.norm()),
-        )
-        params_esti = [p + change for p, change in zip(model_params, delta_parts)]
-        test_f1 = self.target_model.evaluate_unlearn_F1(
-            params_esti, edge_weight_unlearn=self.edge_weight_unlearn)
-        with torch.no_grad():
-            for parameter, new_parameter in zip(model_params, params_esti):
-                parameter.data.copy_(new_parameter.detach().to(parameter.device))
-        return 0.0, test_f1
-
-    idea.approxi = traced_approxi
+    model = copy.deepcopy(base_model)
+    model.load_state_dict(before_state)
+    runtime_root = root / ('idea-' + label)
+    runtime_root.mkdir(parents=True, exist_ok=False)
+    started = time.perf_counter()
     try:
-        model = copy.deepcopy(base_model)
-        model.load_state_dict(before_state)
-        working = data.clone()
-        started = time.perf_counter()
         with torch.random.fork_rng(devices=[]):
             torch.manual_seed(42)
-            output, _ = idea_node(args, model, working, nodes, root / ('idea-' + label))
-        result = metrics(output, data, before_state, before_logits,
-                         trace_holder.get('rhs'), trace_holder.get('delta'))
+            output, _ = idea_node(args, model, data.clone(), nodes, runtime_root)
+        result = metrics(output, data, before_state, before_logits)
         result.update(status='returned', seconds=time.perf_counter() - started,
-                      matched_residual=trace_holder.get('matched_residual'),
-                      undamped_residual=trace_holder.get('undamped_residual'))
+                      solver=json.loads((runtime_root / 'idea-solver.json').read_text()))
     except Exception as error:
         result = {'status': 'failed', 'seconds': time.perf_counter() - started,
                   'error_type': type(error).__name__, 'error': str(error)}
-    finally:
-        idea.approxi = original_approxi
     return result
 
 
