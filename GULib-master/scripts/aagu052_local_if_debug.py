@@ -230,6 +230,8 @@ def main():
         ('old_scale_1e9', {'iteration': 100, 'scale': 1000000000, 'damp': 0.0}),
         ('reference_scale_500', {'iteration': 100, 'scale': 500, 'damp': 0.0}),
         ('reference_scale_5000', {'iteration': 100, 'scale': 5000, 'damp': 0.0}),
+        ('same_scale_no_damp', {'iteration': args_cli.current_iterations, 'scale': 65536,
+                                'damp': 0.0}),
         ('current_shifted', {'iteration': args_cli.current_iterations, 'scale': 65536,
                              'damp': 0.00390625}),
     ]
