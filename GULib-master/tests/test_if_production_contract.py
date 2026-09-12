@@ -44,7 +44,7 @@ def test_idea_nonfinite_rejected_before_evaluation_or_write():
     initial = model.weight.detach().clone()
     gradient = torch.autograd.grad(model.weight.square().sum(), [model.weight], create_graph=True)
     instance = idea.__new__(idea)
-    instance.args = dict(iteration=1, scale=1., damp=0., gaussian_mean=0., gaussian_std=0.)
+    instance.args = dict(iteration=1, scale=1., damp=0., gaussian_mean=0., gaussian_std=0., dataset_name='fixture')
     instance.target_model = SimpleNamespace(model=model,
         evaluate_unlearn_F1=lambda *a, **kw: pytest.fail('evaluated failed update'))
     with pytest.raises(GIFNumericalError):
