@@ -1,8 +1,8 @@
-# AAGU-053: 5% RR selection inspection, 3 datasets x 3 R values x 3 seeds = 27 cells.
-# Selection output alone does not certify sampling sufficiency; see rr_sufficiency_05.md.
+# AAGU-053: 10% RR-family sufficiency study, 3 datasets x 4 R values x 3 seeds = 36 cells.
+# Selection output alone does not certify sampling sufficiency; see rr_sufficiency_10.md.
 kind: experiment
 schema_version: 1
-experiment_id: aagu053-rr-sufficiency-budget05
+experiment_id: aagu053-rr-sufficiency-budget10
 stage: selector
 dataset_refs:
 - cora.yaml
@@ -12,11 +12,12 @@ selector_refs:
 - ./rr_1024.yaml
 - ./rr_4096.yaml
 - ./rr_16384.yaml
+- ./rr_65536.yaml
 matrix: cartesian_product
 im_selector_seeds:
 - 11
 - 22
 - 33
 budget_ratios:
-- 0.05
+- 0.1
 return_scores: false

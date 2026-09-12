@@ -2,10 +2,11 @@
 
 ## Additional Table 02 (2026-09-13)
 
-[Table 02](table02.md) adds a separate 5% IF / RR / naive comparison owned by
-AAGU-011: `table02.yaml` (828 GU cells) and `table02_references.yaml`
-(207 matched Retrain cells). It retains three training seeds, uses three
-RR sampling seeds per R and ten Random sampling seeds, and excludes GIF/IDEA.
+[Table 02](table02.md) adds a 10% IF / RR / naive comparison owned by
+AAGU-011. A single `table02.yaml` expands the 207 selection conditions across
+four GU methods plus the matched Retrain reference, for 1035 method cells.
+It retains three training seeds, uses three RR sampling seeds per R and ten
+Random sampling seeds, and excludes GIF/IDEA.
 The Table 01 description and historical execution evidence below remain scoped
 to Table 01; the old “No IM” statement does not describe Table 02.
 

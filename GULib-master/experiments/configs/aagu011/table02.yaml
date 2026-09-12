@@ -1,7 +1,7 @@
-# Table 02: IF / RR / naive, 5%, four GU methods, 828 cells.
+# Table 02: IF / RR / naive, 10%, four GU methods plus Retrain, 1035 cells.
 kind: experiment
 schema_version: 1
-experiment_id: aagu011-table02-gu-budget05
+experiment_id: aagu011-table02-budget10
 stage: unlearning
 dataset_refs:
 - cora.yaml
@@ -13,19 +13,20 @@ selector_refs:
 - degree.yaml
 - random.yaml
 - pagerank.yaml
-- ../im_group_discussion/rr_1024.yaml
 - ../im_group_discussion/rr_4096.yaml
 - ../im_group_discussion/rr_16384.yaml
+- ../im_group_discussion/rr_65536.yaml
 unlearning_refs:
 - gnndelete.yaml
 - megu.yaml
 - grapheraser.yaml
 - graphrevoker.yaml
+- retrain.yaml
 evaluation_refs:
 - post_method_metrics.yaml
 matrix: cartesian_product
 seeds: [42, 212, 2024]
 im_selector_seeds: [11, 22, 33]
 random_selector_seeds: [11, 22, 33, 44, 55, 66, 77, 88, 99, 104245]
-budget_ratios: [0.05]
+budget_ratios: [0.10]
 return_scores: false

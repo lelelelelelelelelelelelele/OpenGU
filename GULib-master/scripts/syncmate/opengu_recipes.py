@@ -11,6 +11,29 @@ RUNNER_RECIPE_ALLOWED_TOOL_DELTA = ("GULib-master/scripts/syncmate/", "GULib-mas
 # These fingerprints are reviewed constants, not recomputed expected values.
 # Changing any referenced table requires a new review and updated registration.
 EXPERIMENT_RECIPES = {
+    'opengu-aagu053-rr10-v1': {'config_path': 'experiments/configs/im_group_discussion/rr_sufficiency_10.yaml',
+ 'config_sha256': '37604a22aa959b5bfe074eca3270f76d1b82a304fbf77ec2f8b35796782b3bfd',
+ 'configuration_fingerprint': '2a76b12a6d255927bbba44efec52ea249d289cc8c4d91db4fc92297ee66fa3a7',
+ 'run_identity': {'experiment_id': 'aagu053-rr-sufficiency-budget10',
+                  'run_id': 'aagu053-rr10-v1'},
+ 'timeout_seconds': 21600,
+ 'logical_cells': 36,
+ 'stage': 'selector',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
+                       {'num_nodes': 3327, 'candidate_count': 2328},
+                       {'num_nodes': 19717, 'candidate_count': 13801}]},
+    'opengu-aagu011-table02-v1': {'config_path': 'experiments/configs/aagu011/table02.yaml',
+ 'config_sha256': '671414dcf557cfde2f9bc1e2351acfdd72e0ebb70c5de6150e986b3fcf064c6e',
+ 'configuration_fingerprint': '8c9945d0048873303da0ce5acd04677af0c83489fb9b3de832a6147d00443103',
+ 'run_identity': {'experiment_id': 'aagu011-table02-budget10',
+                  'run_id': 'aagu011-table02-v1'},
+ 'timeout_seconds': 21600,
+ 'logical_cells': 1035,
+ 'stage': 'unlearning',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
+                       {'num_nodes': 3327, 'candidate_count': 2328},
+                       {'num_nodes': 19717, 'candidate_count': 13801}]},
+
     'opengu-aagu031-stage-s-v2': {
         'config_path': 'experiments/configs/aagu031/stage_s.yaml',
         'config_sha256': 'b996e5f654ce14e3924cf384931336568ccb5957e615be9dcddf68fd2d6767f3',
