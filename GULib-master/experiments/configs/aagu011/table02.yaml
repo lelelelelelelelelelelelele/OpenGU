@@ -1,0 +1,31 @@
+# Table 02: IF / RR / naive, 5%, four GU methods, 828 cells.
+kind: experiment
+schema_version: 1
+experiment_id: aagu011-table02-gu-budget05
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- r_point.yaml
+- gt_full.yaml
+- degree.yaml
+- random.yaml
+- pagerank.yaml
+- ../im_group_discussion/rr_1024.yaml
+- ../im_group_discussion/rr_4096.yaml
+- ../im_group_discussion/rr_16384.yaml
+unlearning_refs:
+- gnndelete.yaml
+- megu.yaml
+- grapheraser.yaml
+- graphrevoker.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds: [42, 212, 2024]
+im_selector_seeds: [11, 22, 33]
+random_selector_seeds: [11, 22, 33, 44, 55, 66, 77, 88, 99, 104245]
+budget_ratios: [0.05]
+return_scores: false

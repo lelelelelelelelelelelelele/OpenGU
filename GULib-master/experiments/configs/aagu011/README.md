@@ -1,5 +1,14 @@
 # Table 01: IF / naive selectors across GU methods
 
+## Additional Table 02 (2026-09-13)
+
+[Table 02](table02.md) adds a separate 5% IF / RR / naive comparison owned by
+AAGU-011: `table02.yaml` (828 GU cells) and `table02_references.yaml`
+(207 matched Retrain cells). It retains three training seeds, uses three
+RR sampling seeds per R and ten Random sampling seeds, and excludes GIF/IDEA.
+The Table 01 description and historical execution evidence below remain scoped
+to Table 01; the old “No IM” statement does not describe Table 02.
+
 User-approved 2026-09-09. One scientific table, 270 GU cells:
 Cora/CiteSeer/PubMed × R-point/D-full(last-layer, two-hop)/Degree/Random/PageRank
 × GIF/GNNDelete/MEGU/IDEA/GraphEraser/GraphRevoker × seeds 42/212/2024 × 10%.
