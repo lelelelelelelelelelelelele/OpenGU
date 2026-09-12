@@ -453,6 +453,9 @@ class idea(IF_based_pipeline):
         from unlearning.unlearning_methods.GIF.solver import solve_gif_system, GIFNumericalError
 
         start_time = time.time()
+        iteration = self.args['iteration']
+        if self.args["dataset_name"] in ["Photo","Computers","Physics","Amazon-ratings","Questions"]:
+            iteration = int(iteration / 10)
         model_params = [p for p in self.target_model.model.parameters() if p.requires_grad]
         sizes = [p.numel() for p in model_params]
         rhs = torch.cat([(a - b).detach().reshape(-1)
@@ -464,7 +467,7 @@ class idea(IF_based_pipeline):
 
         try:
             delta, self.solver_diagnostics = solve_gif_system(
-                matvec, rhs, iterations=self.args['iteration'],
+                matvec, rhs, iterations=iteration,
                 scale=self.args['scale'], damp=self.args['damp'])
         except GIFNumericalError as error:
             self.solver_diagnostics = error.diagnostics

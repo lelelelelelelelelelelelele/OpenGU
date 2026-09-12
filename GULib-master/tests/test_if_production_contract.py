@@ -24,7 +24,7 @@ def test_production_matches_matrix_polynomial(method, dataset, steps):
     gradient = torch.autograd.grad(loss, [theta], create_graph=True)
     rhs = torch.autograd.grad(.5 * theta.square().sum(), [theta], create_graph=True)
     instance = (gif if method == 'GIF' else idea).__new__(gif if method == 'GIF' else idea)
-    instance.args = dict(iteration=steps, scale=6., damp=0., dataset_name=dataset,
+    instance.args = dict(iteration=steps * (10 if dataset == 'Photo' else 1), scale=6., damp=0., dataset_name=dataset,
                          GIF_method='GIF', gaussian_mean=0., gaussian_std=0.)
     instance.edge_weight_unlearn = None
     instance.target_model = SimpleNamespace(model=model, eval_unlearn=lambda _: 0.,
