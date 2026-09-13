@@ -26,6 +26,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--data', type=Path, required=True)
+    parser.add_argument('--checkpoint', type=Path, required=True)
+    parser.add_argument('--calibration', type=Path, required=True)
     opts = parser.parse_args()
     assert (opts.data / 'Cora/processed/data.pt').is_file(), 'existing local diagnostic graph required'
     out = opts.output.resolve()
@@ -34,7 +36,7 @@ def main():
     sys.argv = ['verify_if_production']
     torch.set_num_threads(2)
     from attack.cache_identity import seeded_execution
-    from experiments.modular_model import create_model, runtime_defaults, train_supervised
+    from experiments.modular_model import create_model, runtime_defaults
     from experiments.modular_gu import gif_node, gu_producer
     from experiments.modular_idea import idea_node
     from unlearning.unlearning_methods.GIF.gif import gif
@@ -46,8 +48,12 @@ def main():
     training = dict(epochs=30, optimizer='Adam', lr=.005, weight_decay=.000001, seed=42)
     with seeded_execution(42):
         model = create_model(config, 'Cora', data, torch.device('cpu'))
-    with seeded_execution(42):
-        train_supervised(model, data, training, ())
+    model.load_state_dict(torch.load(opts.checkpoint, map_location='cpu', weights_only=True))
+    calibration = json.loads(opts.calibration.read_text())
+    assert hashlib.sha256(opts.checkpoint.read_bytes()).hexdigest() == calibration['checkpoint_sha256']
+    parameters = calibration['parameters']
+    budget = parameters['iteration']
+    scale, damp = parameters['scale'], parameters['damp']
     state = state_copy(model)
     _, logits = f1_and_logits(model, data)
     torch.save(state, out / 'checkpoint.pt')
@@ -58,14 +64,14 @@ def main():
         y_hash=tensor_hash(data.y), train_mask_hash=tensor_hash(data.train_mask),
         test_mask_hash=tensor_hash(data.test_mask), checkpoint_hash=tensor_hash(parameter_vector(model)),
         normalization='sum CE on original supervised population; raw graph normalized by trained model',
-        standard_parameters=dict(iteration=100, scale=65536, damp=0),
+        standard_parameters=parameters, calibration=calibration,
         noise='IDEA mean=std=0 for deterministic update verification; no certification claim', cases=[])
     for name, cls, adapter in [('GIF', gif, gif_node), ('IDEA', idea, idea_node)]:
         outputs = []
-        for request_index, steps in [(0,100),(1,100),(0,200)]:
+        for request_index, steps in [(0,budget),(1,budget),(0,2*budget)]:
             selected = requests[request_index]
             args = common_args(runtime_defaults, method=name,
-                parameters=dict(iteration=steps, scale=65536, damp=0),
+                parameters=dict(iteration=steps, scale=scale, damp=damp),
                 model_config=config, training=training, k=len(selected))
             runtime = out / f'{name}-{request_index}-{steps}'
             runtime.mkdir()
@@ -89,9 +95,9 @@ def main():
                 for _ in range(steps):
                     hv = torch.autograd.grad(train_grad, params,
                         grad_outputs=tuple(h), retain_graph=True)
-                    h = [(v + old - curvature / 65536).detach()
+                    h = [(v + (1-damp)*old - curvature / scale).detach()
                          for v,old,curvature in zip(rhs,h,hv)]
-                expected = [p.detach()+v/65536 for p,v in zip(params,h)]
+                expected = [p.detach()+v/scale for p,v in zip(params,h)]
                 expected_vector = torch.cat([p.flatten() for p in expected])
                 result = original(self, gradients)
                 actual_vector = parameter_vector(self.target_model.model)
@@ -109,17 +115,24 @@ def main():
             info = json.loads((runtime / f'{name.lower()}-solver.json').read_text())
             delta = parameter_vector(updated)-initial
             assert torch.isfinite(delta).all() and delta.norm() > 0
-            row = dict(method=name, request=selected, iterations=steps, scale=65536, damp=0,
+            row = dict(method=name, request=selected, iterations=steps, scale=scale, damp=damp,
                 seconds=time.perf_counter()-started, verification=verification,
                 metrics=metrics(updated,data,state,logits), solver=info,
                 producer=gu_producer(name,config).to_dict())
             report['cases'].append(row)
-            if steps == 100:
+            if steps == budget:
                 outputs.append(delta)
             (out/'result.json').write_text(json.dumps(report,indent=2,allow_nan=False),encoding='utf-8')
             print(json.dumps(dict(method=name,request=request_index,steps=steps,
                 delta=float(delta.norm()),residual=info['relative_residual'],verification=verification)),flush=True)
         assert not torch.equal(*outputs), 'update must respond to the deletion request'
+        first, _, doubled = report['cases'][-3:]
+        for row in report['cases'][-3:]:
+            assert row['solver']['relative_residual'] < 1e-3
+        standard_delta = outputs[0]
+        stability = float((delta-standard_delta).norm()/standard_delta.norm())
+        assert stability < 1e-3, stability
+        doubled['budget_doubling_relative_update_difference'] = stability
     report['status']='PASS'
     (out/'result.json').write_text(json.dumps(report,indent=2,allow_nan=False),encoding='utf-8')
 

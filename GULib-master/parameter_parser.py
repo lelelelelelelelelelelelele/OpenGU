@@ -231,9 +231,9 @@ def parameter_parser():
     parser.add_argument('--GIF_method', type=str, default="GIF", choices=["GIF", "Retrain", "IF"])
     parser.add_argument('--GIF_exp', type=str, default='unlearning')
     parser.add_argument('--is_split', type=str2bool, default=True, help='splitting train/test data')
-    parser.add_argument('--iteration', type=int, default=100)
-    parser.add_argument('--scale', type=int, default=65536)
-    parser.add_argument('--damp', type=float, default=0.0)
+    parser.add_argument('--iteration', type=int, default=128)
+    parser.add_argument('--scale', type=int, default=4096)
+    parser.add_argument('--damp', type=float, default=0.125)
 
 
     #SGU

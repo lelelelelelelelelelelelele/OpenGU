@@ -74,3 +74,15 @@ def test_cross_entropy_hvp_and_long_convergent_series_match_exact_solve():
     assert info['relative_residual'] < 1e-9
     mean_delta,_=solve_gif_system(lambda v:hvp(v)/3,rhs/3,iterations=300,scale=10./3,damp=.1)
     torch.testing.assert_close(mean_delta,delta)
+
+
+def test_explicit_damping_reports_curvature_and_gradient_only_limit():
+    rhs=torch.tensor([1.,2.],dtype=torch.double)
+    delta,info=solve_gif_system(lambda v:2*v,rhs,iterations=100,scale=8.,damp=.5)
+    torch.testing.assert_close(delta,rhs/6)
+    assert info['shift']==4.
+    assert info['curvature_delta_l2']==pytest.approx(float((2*delta).norm()))
+    assert info['damping_delta_l2']==pytest.approx(float((4*delta).norm()))
+    assert info['damping_only_relative_difference']==pytest.approx(.5)
+    assert info['relative_residual']<1e-10
+    assert info['undamped_relative_residual']==pytest.approx(2/3)

@@ -61,6 +61,13 @@ def solve_gif_system(matvec, rhs, *, iterations, scale, damp, rtol=1e-3):
         undamped = float(torch.linalg.vector_norm((rhs-curvature).double())) / denominator
         trace.append(dict(iteration=step, relative_residual=relative,
                           undamped_relative_residual=undamped))
+        delta_norm = float(torch.linalg.vector_norm(delta.double()))
+        diagnostics.update(delta_l2=delta_norm,
+                           curvature_delta_l2=float(torch.linalg.vector_norm(curvature.double())),
+                           damping_delta_l2=shift * delta_norm,
+                           damping_only_relative_difference=(
+                               float(torch.linalg.vector_norm((delta-rhs/shift).double())) / delta_norm
+                               if shift > 0 and delta_norm > 0 else None))
         diagnostics.update(iterations=step, relative_residual=relative,
                            undamped_relative_residual=undamped,
                            residual_within_tolerance=relative <= rtol)
