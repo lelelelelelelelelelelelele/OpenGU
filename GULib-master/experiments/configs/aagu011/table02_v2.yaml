@@ -1,0 +1,35 @@
+# Table 02: six GU methods plus Retrain, 1449 cells.
+kind: experiment
+schema_version: 1
+experiment_id: aagu011-table02-v2
+stage: unlearning
+
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- r_point.yaml
+- gt_full.yaml
+- degree.yaml
+- random.yaml
+- pagerank.yaml
+- ../im_group_discussion/rr_4096.yaml
+- ../im_group_discussion/rr_16384.yaml
+- ../im_group_discussion/rr_65536.yaml
+unlearning_refs:
+- gif.yaml
+- idea.yaml
+- gnndelete.yaml
+- megu.yaml
+- grapheraser.yaml
+- graphrevoker.yaml
+- retrain.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds: [42, 212, 2024]
+im_selector_seeds: [11, 22, 33]
+random_selector_seeds: [11, 22, 33, 44, 55, 66, 77, 88, 99, 104245]
+budget_ratios: [0.10]
+return_scores: false
