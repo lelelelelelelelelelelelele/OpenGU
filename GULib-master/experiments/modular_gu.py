@@ -104,7 +104,9 @@ def gu_producer(method, model_config):
     elif method == 'IDEA':
         from unlearning.unlearning_methods.IDEA.idea import idea
         from task.IDEATrainer import IDEATrainer
-        functions += [idea, IDEATrainer, idea_node, model_class.forward_once, model_class.forward_once_unlearn]
+        from unlearning.unlearning_methods.GIF.solver import solve_gif_system, GIFNumericalError
+        functions += [idea, IDEATrainer, idea_node, solve_gif_system, GIFNumericalError,
+                      model_class.forward_once, model_class.forward_once_unlearn]
     elif method == 'Retrain':
         functions += [run_retrain, train_supervised]
     else:
