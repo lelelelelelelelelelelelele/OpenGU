@@ -1,0 +1,9 @@
+{
+  "selection": {
+    "artifact_id": "sel_16547ced_0d5d45d8",
+    "recipe_hash": "16547cedd305c23fefb6ea1762457d022008aecc398070616038d9fcc6f528ab",
+    "content_hash": "0d5d45d8e4fea0aaaf6c70e344e23e35e6ee8d24a58c7a54cbfc768d4c7cc2fe"
+  },
+  "source_run": "aagu011-table02-v2-gate",
+  "source_score_artifact_id": "score_e6bd7f67_a6fcfa8b"
+}

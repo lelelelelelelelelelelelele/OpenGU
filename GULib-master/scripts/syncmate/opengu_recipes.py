@@ -351,4 +351,23 @@ def recipe_definitions():
             'preflight_profile': 'modular-project-v1', 'collector_profile': 'modular-output-v1',
             'collector_acceptance': True, 'execution_validator': 'exact-artifacts-json-v1',
             'success_predicate': 'json.passed == true and all reviewed artifacts exist'}
+    # AAGU-059 reuses ordinary YAML expansion with a read-only diagnostic consumer.
+    # Core verifies transfer; the Block's numerical evidence is reviewed separately.
+    base = 'results/runs/aagu059-table01/aagu059-table01-v1'
+    names = ['run.json', 'inputs.json', 'gif-curvature.json', 'idea-curvature.json']
+    names += [f'{method}-{budget}.json' for method in ('gif', 'idea') for budget in (100, 200, 400)]
+    definitions['opengu-aagu059-table01-v1'] = {
+        'id': 'opengu-aagu059-table01-v1',
+        'config_path': 'experiments/configs/aagu059/table01.yaml',
+        'config_sha256': 'b8992258568ec48d5fca889cf0c7e4600960bca690bb25a2f3c23fdc5e28f869',
+        'configuration_fingerprint': 'd51161eaf54fb5a290ce01a48f002329b0d956ad7080770ae24daafac6dd22dc',
+        'logical_cells': 6, 'run_identity': {'experiment_id': 'aagu059-table01', 'run_id': 'aagu059-table01-v1'},
+        'argv': ('{python}', 'experiments/aagu059_diagnostic.py', 'experiments/configs/aagu059/table01.yaml', '--run-id', 'aagu059-table01-v1'),
+        'git_binding_policy': 'job-exact-main-v1', 'requires_job_expected_git_sha': True,
+        'timeout_seconds': 1800, 'expected_artifact_paths': tuple(sorted(base+'/'+n for n in names)),
+        'collector_result_roots': (base,), 'collector_artifact_names': tuple(names),
+        'preflight_profile': 'modular-project-v1', 'collector_acceptance': False,
+        'execution_validator': 'exact-artifacts-json-v1',
+        'success_predicate': 'json.passed == true and all reviewed diagnostic artifacts exist',
+    }
     return definitions

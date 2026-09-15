@@ -1,0 +1,23 @@
+# Fixed request: binding.json; SHA-256 a4a33a86e86f5d50320d85fdfbca0a7e8c7ebc61f92edf6851f09ce308303cc1
+# Execute via the registered opengu-aagu059-table01-v1 diagnostic recipe.
+# Ordinary schema provides the six fixed conditions; no GU Output is published.
+kind: experiment
+schema_version: 1
+experiment_id: aagu059-table01
+stage: unlearning
+dataset_refs:
+- cora.yaml
+selector_refs:
+- pagerank.yaml
+unlearning_refs:
+- ./gif_100.yaml
+- ./gif_200.yaml
+- ./gif_400.yaml
+- ./idea_100.yaml
+- ./idea_200.yaml
+- ./idea_400.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+budget_ratios: [0.1]
+return_scores: false
