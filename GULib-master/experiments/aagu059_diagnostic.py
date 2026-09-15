@@ -163,7 +163,7 @@ def main():
         configuration_fingerprint=configuration_fingerprint(args.config), status='running',
         context=context.receipt(), cells=[dict(c, status='not_executed') for c in cells])
     write(context.output, run)
-    if sha256_file(args.config.parent/'binding.json') != 'c69b8208541fa3d45500aef7abfaf345fc78dc6574d5c5648258c67d70568e5d':
+    if sha256_file(args.config.parent/'binding.json') != '6d034bb3176505b55e68abf6f39816c13f26671e4aa3ef671b0957fff136c4ac':
         raise ValueError('reviewed request binding changed')
     binding = json.loads((args.config.parent/'binding.json').read_text())
     data_ref = bind_input(batch['dataset'],batch['dataset_directory'],ROOT)
