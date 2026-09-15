@@ -151,7 +151,8 @@ def main():
     if len(widths) != 1 or not widths <= {64, 16}:
         raise ValueError('each table must bind one registered hidden width')
     width = next(iter(widths))
-    if config['experiment_id'] != f'aagu059-table01-h{width}' or args.run_id != f'aagu059-table01-h{width}-v3':
+    version=3 if width==64 else 4
+    if config['experiment_id'] != f'aagu059-table01-h{width}' or args.run_id != f'aagu059-table01-h{width}-v{version}':
         raise ValueError('unregistered run identity')
     context = device_context(config['experiment_id'], run_id=args.run_id, device_file=ROOT/'.syncmate/device.yaml')
     if subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=ROOT,text=True).strip():
@@ -202,7 +203,8 @@ def main():
             elif width != 16:
                 raise ValueError('unregistered hidden width')
             preparation_start = time.perf_counter()
-            model, _, cp = prepare_model(bound_instance,data=data,dataset_name='Cora',checkpoint_root=context.checkpoint_root,
+            training_data=data.clone().to(context.request_device) if width==16 else data
+            model, _, cp = prepare_model(bound_instance,data=training_data,dataset_name='Cora',checkpoint_root=context.checkpoint_root,
                 device=context.request_device,reference_directory=args.config.parent)
             row['model_preparation_seconds'] = time.perf_counter()-preparation_start
             if width == 64 and not cp['hit']:
