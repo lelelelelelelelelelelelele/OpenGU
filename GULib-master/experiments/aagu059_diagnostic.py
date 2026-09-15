@@ -173,7 +173,7 @@ def main():
     for selector in batch['selectors']:
         selector['budget'] = resolve_budget(selector['budget'],int(data.train_mask.sum()))
     selected_ref = {k:binding['selection'][k] for k in ('artifact_id','recipe_hash','content_hash')}
-    inputs = make_dataset_selection_inputs(data,dataset_name='Cora')
+    inputs = make_dataset_selection_inputs(data,dataset_name=batch['dataset']['dataset']['name'].lower())
     selection = verified_selection(selected_ref,store_root=context.store_root,data=data,inputs=inputs,
                                    expected_selector='random',expected_k=189)
     if batch['selectors'][0]['parameters']['seed'] != binding['random_seed']:
