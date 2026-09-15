@@ -15,4 +15,4 @@ YAML 使用公共 Cora persisted split，训练为 Adam、100 epoch、lr=0.005�
 
 曲率使用同一保存权重提升 float64，各方法独立起点 173/941、80 步 Lanczos、双重重正交，保存极端 Ritz 值及向量残差；不构成全谱正定认证。递推仍使用 checkpoint 的 float32 精度。
 
-执行入口是注册 recipes `opengu-aagu059-table01-h64-v1` 与 `opengu-aagu059-table01-h16-v1`，分别消费 table01.yaml 和 table01_hidden16.yaml，每份六格，总计十二格。输出独立数值诊断 JSON，通过 SyncMate Core 传输和 SHA-256 索引验证，随后执行项目诊断检查。它不发布 GU Cache Output；运行完成不代表收敛、科研接受或用户验收。
+执行入口是注册 recipes `opengu-aagu059-table01-h64-v2` 与 `opengu-aagu059-table01-h16-v2`，分别消费 table01.yaml 和 table01_hidden16.yaml，每份六格，总计十二格。输出独立数值诊断 JSON，通过 SyncMate Core 传输和 SHA-256 索引验证，随后执行项目诊断检查。它不发布 GU Cache Output；运行完成不代表收敛、科研接受或用户验收。

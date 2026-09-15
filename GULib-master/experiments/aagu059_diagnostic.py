@@ -133,6 +133,9 @@ def main():
     parser.add_argument('config', type=Path)
     parser.add_argument('--run-id', required=True)
     args = parser.parse_args()
+    # Legacy config.py parses process argv on first import during data/model loading.
+    # This entry owns the YAML CLI; effective model/method args are supplied explicitly.
+    sys.argv[:] = sys.argv[:1]
     import torch
     from experiments.modular_config import load_experiment, experiment_batches, resolve_budget, configuration_fingerprint
     from experiments.modular_artifacts import planned_cells
@@ -148,7 +151,7 @@ def main():
     if len(widths) != 1 or not widths <= {64, 16}:
         raise ValueError('each table must bind one registered hidden width')
     width = next(iter(widths))
-    if config['experiment_id'] != f'aagu059-table01-h{width}' or args.run_id != f'aagu059-table01-h{width}-v1':
+    if config['experiment_id'] != f'aagu059-table01-h{width}' or args.run_id != f'aagu059-table01-h{width}-v2':
         raise ValueError('unregistered run identity')
     context = device_context(config['experiment_id'], run_id=args.run_id, device_file=ROOT/'.syncmate/device.yaml')
     if subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=ROOT,text=True).strip():

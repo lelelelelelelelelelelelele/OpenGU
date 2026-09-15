@@ -7213,7 +7213,7 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
                         'opengu-aagu056-rr1024-v1',
                         'opengu-aagu052-gif-gate-v1', 'opengu-aagu011-table01-v3',
                         'opengu-aagu011-references-v2',
-                        'opengu-aagu059-table01-h64-v1', 'opengu-aagu059-table01-h16-v1']
+                        'opengu-aagu059-table01-h64-v2', 'opengu-aagu059-table01-h16-v2']
     assert contract["execution"]["allowlisted_recipes"] == expected_recipes
     assert contract["execution"]["single_shot_flag"] == "--once"
     assert "runner-agent serve" in contract["state_machine"]["owner"]

@@ -353,13 +353,13 @@ def recipe_definitions():
             'success_predicate': 'json.passed == true and all reviewed artifacts exist'}
     # Each width is a separate ordinary YAML and immutable diagnostic run.
     for width, filename, config_sha, fingerprint in (
-        (64, 'table01.yaml', '013bca710842148e7342d1be865ea3200ea3239fdd25a57a76b708e64e369b26',
+        (64, 'table01.yaml', '3eaeb9a19aac0934f4673b451b0e9e44399ab0ff358b3ed406d29b9d88d1a6b3',
          '452d1dde7b8bf600898d83a0adf304df58a56afe4442f17b08ef7acb2371aac7'),
-        (16, 'table01_hidden16.yaml', 'a9f5a48fb1669a5a1ea62e9e2f2fb0f0fb85cc35d32089d54fb349fe248f8e5d',
+        (16, 'table01_hidden16.yaml', 'a3c48ba0584070beceb577cec82ed99a200f03fabfec15d09108983baf1a76a6',
          '70d87cb0f16b4ad02ff48634b2c1fb795a7c112fd3a24c1bd6fa756c2da4e41a'),
     ):
         experiment_id = f'aagu059-table01-h{width}'
-        run_id = experiment_id+'-v1'
+        run_id = experiment_id+'-v2'
         recipe_id = 'opengu-'+run_id
         config_path = 'experiments/configs/aagu059/'+filename
         base = f'results/runs/{experiment_id}/{run_id}'
