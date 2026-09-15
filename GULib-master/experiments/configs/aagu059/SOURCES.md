@@ -11,8 +11,8 @@ YAML 使用公共 Cora persisted split，训练为 Adam、100 epoch、lr=0.005�
 
 诊断通过现有 GIF/IDEA adapter 截获其实际 solver 输入，在模型更新前停止 adapter。H 为 eval 模式原图 train_mask 上 sum cross-entropy 的 Hessian，v 为受影响训练节点删除前后的 loss 梯度差。GIF reason_once 输出 logits；IDEA forward_once 输出 log_softmax 再传 CE。通过独立原图 logits/CE HVP 在随机向量及梯度来源 RHS 上检查数学等价与固定向量语义；邻域监督限制在 train_mask，原图指标只使用固定 test_mask。
 
-作者原始 hvps 对内积再次求导，首次 h 含梯度图时可能引入额外导数项；当前 OpenGU 将 HVP 向量 detach。这里验证当前框架的真实固定 HVP，不声称逐位复刻该作者源码细节。每行另调用未修改的生产 solver 对照，有限 delta 应相同；非有限要两边均失败。诊断逐步记录不做 residual 早停，也不加移位。
+作者原始 hvps 对内积再次求导，首次 h 含梯度图时可能引入额外导数项；当前 OpenGU 将 HVP 向量 detach。这里验证当前框架的真实固定 HVP，不声称逐位复刻该作者源码细节。每行另调用未修改的生产 solver 对照，有限 delta 的相对差异须不超过 1e-5，并保存实际误差（CUDA 浮点归约不保证逐位一致）；非有限要两边均失败。诊断逐步记录不做 residual 早停，也不加移位。
 
 曲率使用同一保存权重提升 float64，各方法独立起点 173/941、80 步 Lanczos、双重重正交，保存极端 Ritz 值及向量残差；不构成全谱正定认证。递推仍使用 checkpoint 的 float32 精度。
 
-执行入口是注册 recipes `opengu-aagu059-table01-h64-v2` 与 `opengu-aagu059-table01-h16-v2`，分别消费 table01.yaml 和 table01_hidden16.yaml，每份六格，总计十二格。输出独立数值诊断 JSON，通过 SyncMate Core 传输和 SHA-256 索引验证，随后执行项目诊断检查。它不发布 GU Cache Output；运行完成不代表收敛、科研接受或用户验收。
+执行入口是注册 recipes `opengu-aagu059-table01-h64-v3` 与 `opengu-aagu059-table01-h16-v3`，分别消费 table01.yaml 和 table01_hidden16.yaml，每份六格，总计十二格。输出独立数值诊断 JSON，通过 SyncMate Core 传输和 SHA-256 索引验证，随后执行项目诊断检查。它不发布 GU Cache Output；运行完成不代表收敛、科研接受或用户验收。

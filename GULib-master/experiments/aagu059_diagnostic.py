@@ -151,7 +151,7 @@ def main():
     if len(widths) != 1 or not widths <= {64, 16}:
         raise ValueError('each table must bind one registered hidden width')
     width = next(iter(widths))
-    if config['experiment_id'] != f'aagu059-table01-h{width}' or args.run_id != f'aagu059-table01-h{width}-v2':
+    if config['experiment_id'] != f'aagu059-table01-h{width}' or args.run_id != f'aagu059-table01-h{width}-v3':
         raise ValueError('unregistered run identity')
     context = device_context(config['experiment_id'], run_id=args.run_id, device_file=ROOT/'.syncmate/device.yaml')
     if subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=ROOT,text=True).strip():
@@ -242,11 +242,14 @@ def main():
             delta,trace,steps,status,seconds=measured_series(mv,rhs,budget,row['scale'],0.)
             # Independently execute the unchanged production solver as a recurrence check.
             from unlearning.unlearning_methods.GIF.solver import solve_gif_system,GIFNumericalError
+            recurrence_relative_error=None
             try:
                 production,diagnostics=solve_gif_system(mv,rhs,iterations=budget,scale=row['scale'],damp=0.)
-                if delta is None or not torch.equal(production,delta):
+                if delta is not None:
+                    recurrence_relative_error=norm(production-delta)/max(norm(production),1e-30)
+                if delta is None or recurrence_relative_error>1e-5:
                     raise ValueError('instrumentation changed the production recurrence')
-                production_check='identical_delta'
+                production_check='delta_agrees_within_float32_tolerance'
             except GIFNumericalError as exc:
                 diagnostics=exc.diagnostics
                 if delta is not None:
@@ -257,7 +260,7 @@ def main():
                 last_finite=trace[-1] if trace else None,delta_l2=norm(delta) if delta is not None else None,
                 f1_before=before,checkpoint=cp,model=instance['model'],training=instance['training'],parameters=instance['parameters'],effective_parameters=captured['effective_parameters'],
                 hvp_check=dict(random_relative_error=agreement,rhs_relative_error=rhs_agreement,repeat_relative_error=repeat),
-                recurrence_check=production_check,production_diagnostics=diagnostics,solver_seconds=seconds,
+                recurrence_check=production_check,recurrence_relative_error=recurrence_relative_error,recurrence_tolerance=1e-5,production_diagnostics=diagnostics,solver_seconds=seconds,
                 rhs_l2=norm(rhs),curvature=curvature_path,trace=trace)
             if delta is not None:
                 if budget==100: baselines[key]=delta.clone()
