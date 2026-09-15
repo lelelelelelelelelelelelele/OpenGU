@@ -1,4 +1,4 @@
-"""AAGU-059 fixed-checkpoint diagnostic. Never publishes a GU Output or trains."""
+"""AAGU-059 diagnostics. Reuse hidden64; prepare one hidden16 model if absent."""
 from __future__ import annotations
 
 import argparse
@@ -14,7 +14,6 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-RUN_ID = 'aagu059-table01-v1'
 
 
 def write(path, value):
@@ -110,7 +109,7 @@ def capture_system(instance, model, data, nodes, root):
     args.update(instance=instance, dataset_name='Cora', base_model='GCN',
         downstream_task='node', unlearn_task='node', unlearning_methods=instance['method'],
         num_epochs=100, num_runs=1, run_update_detection_auc=False, random_seed=42,
-        gcn_num_layers=2, gcn_hidden=64, formal_expected_k=len(nodes),
+        gcn_num_layers=2, gcn_hidden=instance['model']['hidden_channels'], formal_expected_k=len(nodes),
         num_unlearned_nodes=len(nodes), formal_fail_closed=True, test_freq=1,
         device=str(data.x.device))
     captured = {}
@@ -134,8 +133,6 @@ def main():
     parser.add_argument('config', type=Path)
     parser.add_argument('--run-id', required=True)
     args = parser.parse_args()
-    if args.run_id != RUN_ID:
-        raise ValueError('unregistered run identity')
     import torch
     from experiments.modular_config import load_experiment, experiment_batches, resolve_budget, configuration_fingerprint
     from experiments.modular_artifacts import planned_cells
@@ -147,6 +144,12 @@ def main():
     from utils.target_checkpoint import state_hash, sha256_file, data_identity
     torch.set_num_threads(2)
     config = load_experiment(args.config)
+    widths = {u['model']['hidden_channels'] for u in config['unlearnings']}
+    if len(widths) != 1 or not widths <= {64, 16}:
+        raise ValueError('each table must bind one registered hidden width')
+    width = next(iter(widths))
+    if config['experiment_id'] != f'aagu059-table01-h{width}' or args.run_id != f'aagu059-table01-h{width}-v1':
+        raise ValueError('unregistered run identity')
     context = device_context(config['experiment_id'], run_id=args.run_id, device_file=ROOT/'.syncmate/device.yaml')
     if subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=ROOT,text=True).strip():
         raise ValueError('tracked source is dirty')
@@ -160,7 +163,7 @@ def main():
         configuration_fingerprint=configuration_fingerprint(args.config), status='running',
         context=context.receipt(), cells=[dict(c, status='not_executed') for c in cells])
     write(context.output, run)
-    if sha256_file(args.config.parent/'binding.json') != 'a4a33a86e86f5d50320d85fdfbca0a7e8c7ebc61f92edf6851f09ce308303cc1':
+    if sha256_file(args.config.parent/'binding.json') != 'c69b8208541fa3d45500aef7abfaf345fc78dc6574d5c5648258c67d70568e5d':
         raise ValueError('reviewed request binding changed')
     binding = json.loads((args.config.parent/'binding.json').read_text())
     data_ref = bind_input(batch['dataset'],batch['dataset_directory'],ROOT)
@@ -172,24 +175,35 @@ def main():
     selected_ref = {k:binding['selection'][k] for k in ('artifact_id','recipe_hash','content_hash')}
     inputs = make_dataset_selection_inputs(data,dataset_name='Cora')
     selection = verified_selection(selected_ref,store_root=context.store_root,data=data,inputs=inputs,
-                                   expected_selector='pagerank',expected_k=189)
+                                   expected_selector='random',expected_k=189)
+    if batch['selectors'][0]['parameters']['seed'] != binding['random_seed']:
+        raise ValueError('Random seed differs from sealed request')
     materialized = binding['selection']
     nodes = list(selection.selected_nodes)
     original_data_identity = data_identity(data)
     common = dict(dataset_input=data_ref, data_identity=original_data_identity, selection=materialized,
-        selected_nodes=nodes, source_score_artifact_id=binding['source_score_artifact_id'], binding_sha256=sha256_file(args.config.parent/'binding.json'))
+        selected_nodes=nodes, selector_parameters=batch['selectors'][0]['parameters'], source_score_artifact_id=binding['source_score_artifact_id'], binding_sha256=sha256_file(args.config.parent/'binding.json'))
     baselines = {}
     for index, (cell, instance) in enumerate(zip(run['cells'],batch['unlearnings'])):
         name = instance['method']
+        width = instance['model']['hidden_channels']
+        key = (name, width)
         budget = instance['parameters']['iteration']
         cell_start = time.perf_counter()
-        row = dict(method=name, budget=budget, scale=instance['parameters']['scale'], damp=0,
+        row = dict(method=name, hidden_channels=width, budget=budget, scale=instance['parameters']['scale'], damp=0,
                    status='not_executed', failure_reason=None, f1_after=None, update_vs_T=None)
         try:
-            model, _, cp = prepare_model(instance,data=data,dataset_name='Cora',checkpoint_root=context.checkpoint_root,
+            bound_instance = copy.deepcopy(instance)
+            if width == 64:
+                bound_instance['checkpoint'] = binding['checkpoints']['64']
+            elif width != 16:
+                raise ValueError('unregistered hidden width')
+            preparation_start = time.perf_counter()
+            model, _, cp = prepare_model(bound_instance,data=data,dataset_name='Cora',checkpoint_root=context.checkpoint_root,
                 device=context.request_device,reference_directory=args.config.parent)
-            if not cp['hit']:
-                raise ValueError('checkpoint was not reused')
+            row['model_preparation_seconds'] = time.perf_counter()-preparation_start
+            if width == 64 and not cp['hit']:
+                raise ValueError('hidden64 checkpoint was not reused')
             working = data.clone().to(context.request_device)
             working.num_classes=int(data.y.max())+1
             for split in ('train','val','test'):
@@ -214,7 +228,7 @@ def main():
             repeat=norm(mv(probe)-mv(probe))/max(norm(expected_probe),1e-30)
             if max(agreement,rhs_agreement,repeat)>1e-5:
                 raise ValueError('actual HVP differs from fixed expected Hessian')
-            curvature_path=f'{name.lower()}-curvature.json'
+            curvature_path=f'h{width}-{name.lower()}-curvature.json'
             if budget==100:
                 double_model=copy.deepcopy(model).double().eval()
                 double_data=working.clone();double_data.x=double_data.x.double()
@@ -238,14 +252,14 @@ def main():
             row.update(status=status,actual_iterations=steps,finite=delta is not None,
                 failure_reason=None if delta is not None else status,relative_residual=trace[-1]['relative_residual'] if delta is not None else None,
                 last_finite=trace[-1] if trace else None,delta_l2=norm(delta) if delta is not None else None,
-                f1_before=before,checkpoint=cp,parameters=instance['parameters'],effective_parameters=captured['effective_parameters'],
+                f1_before=before,checkpoint=cp,model=instance['model'],training=instance['training'],parameters=instance['parameters'],effective_parameters=captured['effective_parameters'],
                 hvp_check=dict(random_relative_error=agreement,rhs_relative_error=rhs_agreement,repeat_relative_error=repeat),
                 recurrence_check=production_check,production_diagnostics=diagnostics,solver_seconds=seconds,
                 rhs_l2=norm(rhs),curvature=curvature_path,trace=trace)
             if delta is not None:
-                if budget==100: baselines[name]=delta.clone()
+                if budget==100: baselines[key]=delta.clone()
                 else:
-                    base=baselines.get(name)
+                    base=baselines.get(key)
                     row['update_vs_T']=norm(delta-base)/max(norm(base),1e-30) if base is not None else None
                 candidate=copy.deepcopy(model)
                 with torch.no_grad():
@@ -262,11 +276,11 @@ def main():
             import traceback
             row.update(status='diagnostic_error',failure_reason=f'{type(exc).__name__}: {exc}',error_traceback=traceback.format_exc())
         row['total_seconds']=time.perf_counter()-cell_start
-        filename=f'{name.lower()}-{budget}.json'
+        filename=f'h{width}-{name.lower()}-{budget}.json'
         write(output/filename,row)
         cell.update(status=row['status'],diagnostic=filename,sha256=sha256_file(output/filename))
         write(context.output,run)
-        print(f'{name} {budget}: {row["status"]}',file=sys.stderr,flush=True)
+        print(f'h{width} {name} {budget}: {row["status"]}',file=sys.stderr,flush=True)
         if row['status']=='diagnostic_error':
             break
     write(output/'inputs.json',common)

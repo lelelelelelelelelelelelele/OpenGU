@@ -26,7 +26,8 @@ def test_trace_matches_explicit_polynomial_and_nonfinite_failure():
 
 
 @pytest.mark.parametrize('method',['GIF','IDEA'])
-def test_real_adapter_capture_preserves_model_and_fixed_hessian(tables, method):
+@pytest.mark.parametrize('width',[64,16])
+def test_real_adapter_capture_preserves_model_and_fixed_hessian(tables, method, width):
     from experiments.modular_run import read_dataset
     from experiments.modular_config import load_instance,unlearning
     from experiments.modular_model import create_model
@@ -37,6 +38,7 @@ def test_real_adapter_capture_preserves_model_and_fixed_hessian(tables, method):
     for split in ('train','val','test'):
         setattr(data,split+'_indices',getattr(data,split+'_mask').nonzero().flatten().numpy())
     instance=unlearning(dict(kind='unlearning',schema_version=1,method=method,
+        model={'hidden_channels':width},
         parameters=dict(iteration=2,scale=1000,damp=0)))
     model=create_model(instance['model'],'Cora',data,'cpu').eval()
     before=state_hash(model.state_dict())

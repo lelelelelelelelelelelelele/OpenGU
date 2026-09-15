@@ -1,6 +1,10 @@
 kind: unlearning
 schema_version: 1
 method: IDEA
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
 training:
   seed: 42
 parameters:
@@ -9,7 +13,3 @@ parameters:
   damp: 0.0
   gaussian_mean: 0.0
   gaussian_std: 0.0
-checkpoint:
-  path: ../../../results/runtime/modular/checkpoints/feb9de1d7f11c19f646defefb4fbfdac83e0282adcfe42ca9d25779660ec3925.pt
-  file_sha256: b5c1587e33eef2badcfe08e44daf5983256a80d1efd84f6e16b6cdb3efe3b3ca
-  state_hash: d780bc65c9e5ba44879ffa12c5fb48d1f483f86c4cfe0e3b0553407a5bb92712
