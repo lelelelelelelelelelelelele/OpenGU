@@ -42,7 +42,7 @@ def resolve_reference(field, reference, source_directory):
     return path.resolve()
 
 
-def model_training(value):
+def model_training(value, *, pretrained=False):
     """Resolve the OpenGU model defaults without copying them into every method file."""
     fields(value, {'model', 'training'}, (), 'model/training')
     model = value.get('model', {})
@@ -60,6 +60,15 @@ def model_training(value):
         raise ConfigurationError('model shape/dropout is outside the supported OpenGU implementation')
     if architecture == 'OpenGU.SGCNet' and model['hidden_channels'] != 64:
         raise ConfigurationError('OpenGU SGC has no hidden_channels override')
+    if pretrained:
+        supplied = value.get('training', {})
+        unused = ('epochs', 'optimizer', 'lr', 'weight_decay', 'scheduler')
+        fields(supplied, {'seed', *unused}, (), 'training')
+        seed = effective({k: v for k, v in supplied.items() if k == 'seed'}, {'seed': 42}, 'training')['seed']
+        if seed < 0:
+            raise ConfigurationError('invalid training seed')
+        # These settings describe no executed training in the external-weight lane.
+        return model, {**dict.fromkeys(unused), 'seed': seed}
     props = read_yaml(ROOT / 'model/properties' / ('GCN.yaml' if architecture.endswith('GCNNet') else 'SGC.yaml'))
     training = effective(value.get('training', {}), {'epochs': 100, 'optimizer': 'Adam', 'lr': float(props['lr']),
         'weight_decay': float(props['decay']), 'scheduler': 'none', 'seed': 42}, 'training')
@@ -164,7 +173,14 @@ def unlearning(value):
                 or not math.isfinite(params['gaussian_mean'])
                 or not math.isfinite(params['gaussian_std']) or params['gaussian_std'] < 0):
             raise ConfigurationError('invalid IDEA parameters')
-    model, training = model_training({k: value[k] for k in ('model', 'training') if k in value})
+    checkpoint = value.get('checkpoint')
+    if checkpoint is not None:
+        if value['method'] not in ('GIF', 'IDEA'):
+            raise ConfigurationError('external checkpoint is supported for GIF and IDEA only')
+        if not isinstance(checkpoint, str) or not checkpoint.strip():
+            raise ConfigurationError('checkpoint must be a nonempty pure state_dict file path')
+    model, training = model_training({k: value[k] for k in ('model', 'training') if k in value},
+                                     pretrained=checkpoint is not None)
     if value['method'] == 'GraphEraser' and model['architecture'] != 'OpenGU.GCNNet':
         raise ConfigurationError('GraphEraser modular node consumer currently supports GCN')
     if value['method'] == 'GNNDelete' and model['architecture'] != 'OpenGU.GCNNet':
@@ -182,7 +198,15 @@ def load_instance(path, expected_kind):
     value = read_yaml(path)
     if value.get('kind') != expected_kind or type(value.get('schema_version')) is not int or value.get('schema_version') != 1:
         raise ConfigurationError(f'{path}: expected {expected_kind} schema_version 1')
-    if value.get('checkpoint'):
+    if expected_kind == 'unlearning' and 'checkpoint' in value:
+        checkpoint = value['checkpoint']
+        if checkpoint is None:
+            del value['checkpoint']
+        elif not isinstance(checkpoint, str) or not checkpoint.strip():
+            raise ConfigurationError('checkpoint must be a nonempty pure state_dict file path')
+        else:
+            value['checkpoint'] = str((Path(path).resolve().parent / checkpoint).resolve())
+    elif value.get('checkpoint'):
         fields(value['checkpoint'], {'path', 'file_sha256', 'state_hash'},
                {'path', 'file_sha256', 'state_hash'}, 'checkpoint')
         if any(not isinstance(v, str) or not v for v in value['checkpoint'].values()):
@@ -222,6 +246,9 @@ def configuration_sources(path, resolved):
             name = prefix + key
             if isinstance(item, dict):
                 visit(item, supplied.get(key, {}), name + '.')
+            elif name in ('training.lr', 'training.weight_decay', 'training.epochs',
+                          'training.optimizer', 'training.scheduler') and item is None and resolved.get('checkpoint'):
+                sources[name] = 'not_applicable:external_checkpoint'
             elif key in supplied:
                 sources[name] = 'instance:' + str(Path(path).resolve())
             elif name.startswith('parameters.') and resolved.get('method') in IM_METHODS:

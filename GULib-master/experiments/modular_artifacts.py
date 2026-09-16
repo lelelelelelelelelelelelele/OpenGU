@@ -155,7 +155,8 @@ def export_outputs(summary, *, config, context, run):
                 'method': ('hit' if row['hit'] else 'miss') if config['stage'] == 'unlearning' else 'not_applicable'}
             for name, checkpoint in (('selector_checkpoint', selected.get('checkpoint')),
                     ('method_checkpoint', row.get('checkpoint') if config['stage'] == 'unlearning' else None)):
-                cell['cache'][name] = ('hit' if checkpoint['hit'] else 'miss') if checkpoint else 'not_applicable'
+                cell['cache'][name] = ('hit' if checkpoint['hit'] else 'miss') if (
+                    checkpoint and checkpoint.get('source') != 'external_state_dict') else 'not_applicable'
             cell['producer_called'] = {'score': selected['score']['producer_called'],
                 'selection': selection['cache']['producer_called'], 'method': row.get('producer_called')}
         cell['selection_id'] = selection_id

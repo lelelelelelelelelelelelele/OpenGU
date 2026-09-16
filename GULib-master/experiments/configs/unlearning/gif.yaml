@@ -1,3 +1,8 @@
 kind: unlearning
 schema_version: 1
 method: GIF
+checkpoint: null
+# Optional: pure model.state_dict() PT; relative paths resolve from this YAML.
+# checkpoint: ../../../checkpoints/gcn.pt
+# With checkpoint set, only training.seed remains effective (default: 42).
+# training.lr/weight_decay/epochs/optimizer/scheduler may be omitted or null.

@@ -140,11 +140,12 @@ def main():
     from experiments.modular_config import load_experiment, experiment_batches, resolve_budget, configuration_fingerprint
     from experiments.modular_artifacts import planned_cells
     from experiments.modular_execution import device_context
-    from experiments.modular_model import prepare_model
+    from experiments.modular_model import prepare_model, create_model, training_metadata
     from experiments.dataset_inputs import bind_input, resolve_input
     from experiments.modular_run import verified_selection
     from experiments.selection_inputs import make_dataset_selection_inputs
-    from utils.target_checkpoint import state_hash, sha256_file, data_identity
+    from utils.target_checkpoint import state_hash, sha256_file, data_identity, load_target_checkpoint
+    from attack.cache_identity import seeded_execution
     torch.set_num_threads(2)
     config = load_experiment(args.config)
     widths = {u['model']['hidden_channels'] for u in config['unlearnings']}
@@ -198,14 +199,26 @@ def main():
                    status='not_executed', failure_reason=None, f1_after=None, update_vs_T=None)
         try:
             bound_instance = copy.deepcopy(instance)
-            if width == 64:
-                bound_instance['checkpoint'] = binding['checkpoints']['64']
-            elif width != 16:
+            if width not in (64, 16):
                 raise ValueError('unregistered hidden width')
             preparation_start = time.perf_counter()
             training_data=data.clone().to(context.request_device) if width==16 else data
-            model, _, cp = prepare_model(bound_instance,data=training_data,dataset_name='Cora',checkpoint_root=context.checkpoint_root,
-                device=context.request_device,reference_directory=args.config.parent)
+            if width == 64:
+                # Historical diagnostic binds an exact internal training artifact;
+                # it does not use the public pure-weight checkpoint configuration.
+                fixed = binding['checkpoints']['64']
+                path = (args.config.parent / fixed['path']).resolve()
+                with seeded_execution(instance['training']['seed']):
+                    model = create_model(instance['model'], 'Cora', training_data, context.request_device)
+                metadata = training_metadata(model, instance, training_data)
+                loaded = load_target_checkpoint(path, expected_file_sha256=fixed['file_sha256'],
+                    expected_state_hash=fixed['state_hash'], expected_metadata=metadata)
+                model.load_state_dict(loaded['state_dict'], strict=True)
+                cp = dict(path=str(path), file_sha256=loaded['file_sha256'], state_hash=loaded['state_hash'],
+                          hit=True, effective_identity=metadata)
+            else:
+                model, _, cp = prepare_model(bound_instance,data=training_data,dataset_name='Cora',checkpoint_root=context.checkpoint_root,
+                    device=context.request_device,reference_directory=args.config.parent)
             row['model_preparation_seconds'] = time.perf_counter()-preparation_start
             if width == 64 and not cp['hit']:
                 raise ValueError('hidden64 checkpoint was not reused')
