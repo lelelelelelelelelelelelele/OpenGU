@@ -1,5 +1,47 @@
 # 公共实验配置
 
+## GIF / IDEA 指定纯权重 checkpoint
+
+在独立方法小表中填写 `checkpoint` 文件路径，可直接使用 `torch.save(model.state_dict(), path)`
+保存的纯权重 PT。相对路径以该方法 YAML 所在目录为起点；绝对路径属于执行机器的文件系统。
+公共 [GIF](unlearning/gif.yaml) 和 [IDEA](unlearning/idea.yaml) 小表默认 `checkpoint: null`，
+表示沿用自动查训练缓存、未命中再训练的流程。
+
+以下为填写实际权重路径后的方法配置示例（IDEA 将 `method` 改为 `IDEA`）：
+
+```yaml
+kind: unlearning
+schema_version: 1
+method: GIF
+checkpoint: ./weights/gcn.pt
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 16
+training:
+  seed: 42
+parameters:
+  iteration: 100
+  scale: 1000
+  damp: 0.0
+```
+
+指定文件时，`training.lr`、`weight_decay`、`epochs`、`optimizer`、`scheduler` 可省略或写
+`null`；即使填写了值也不参与执行，有效配置统一记录为 `null`，来源标为
+`not_applicable:external_checkpoint`。`training.seed` 仍用于运行随机性，默认 42，不允许置空；
+整个 `training: null` 也不合法。无 checkpoint 时训练参数按既有默认值解析，不允许这五项置空。
+
+模型结构与前向实现必须匹配权重；加载严格检查参数名、形状、dtype 和有限性，不自动猜测或转换
+作者模型。指定文件缺失、损坏或不匹配时直接失败，不回退到缓存或新训。
+`damp`、`scale`、`iteration` 以及 IDEA 的噪声参数仍按方法配置生效。
+文件哈希和加载后状态哈希自动写入运行结果，训练缓存状态标为 `not_applicable`；同一路径替换权重
+后按实际模型状态重新确定 GU 输出身份。纯权重不提供原训练参数、训练轨迹或数据划分来源。
+
+本入口支持 GIF/IDEA，不接受旧的 `{path, file_sha256, state_hash}` 方法配置。
+模型型 Selector 的内部训练轨迹 checkpoint 合同保持独立；不能用单份纯权重冒充 TracIn 训练轨迹。
+组合表的 `seeds` 仍不允许给显式 checkpoint 展开训练重复；需要改变遗忘随机性时在独立方法表设置
+`training.seed`。实际数据、split、删除请求、评估图继续由对应配置决定。
+
 活动配置只有一种规范：`kind: experiment` 组合表引用四类公共小表。解析与真实执行均经过 `experiments/run.py` → `modular_config` → `modular_run`。
 
 数据轴统一写作 `dataset_refs: [cora.yaml, citeseer.yaml, pubmed.yaml]`，单数据集写作 `dataset_refs: [cora.yaml]`。同一表内不能重复同一个 Dataset/Split 实例。每个数据集独立绑定 manifest、划分和候选空间；加入或重排其他数据集不改变原有计算身份。

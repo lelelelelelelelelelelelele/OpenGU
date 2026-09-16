@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+from collections.abc import Mapping
+import hashlib
+import io
 import sys
 import torch
 from cache_v2 import canonical_sha256
 from experiments.c_target_v1.core import train_trajectory
 from experiments.implementation_identity import implementation_fingerprint, model_functions
-from utils.target_checkpoint import data_identity, capture_state, load_target_checkpoint, save_target_checkpoint
+from utils.target_checkpoint import data_identity, capture_state, load_target_checkpoint, save_target_checkpoint, state_hash
 
 
 def runtime_defaults():
@@ -44,14 +47,39 @@ def train_supervised(model, data, training, checkpoint_epochs):
         milestones=(), gamma=1.0, optimizer_name=training['optimizer'])
 
 
+def training_metadata(model, instance, data):
+    return {'data_identity': data_identity(data), 'model': instance['model'], 'training': instance['training'],
+            'numerics': numerical_environment(data),
+            'implementation': implementation_fingerprint(*model_functions(model), train_supervised)}
+
+
 def prepare_model(instance, *, data, dataset_name, checkpoint_root, device, reference_directory):
     from attack.cache_identity import seeded_execution
     model_config, training = instance['model'], instance['training']
     with seeded_execution(training['seed']):
         model = create_model(model_config, dataset_name, data, device)
-    metadata = {'data_identity': data_identity(data), 'model': model_config, 'training': training,
-                'numerics': numerical_environment(data),
-                'implementation': implementation_fingerprint(*model_functions(model), train_supervised)}
+    if instance.get('kind') == 'unlearning' and instance.get('checkpoint') is not None:
+        path = (Path(reference_directory) / instance['checkpoint']).resolve()
+        # Hash exactly the bytes loaded, even if a caller replaces the path later.
+        contents = path.read_bytes()
+        weights = torch.load(io.BytesIO(contents), map_location='cpu', weights_only=True)
+        if not isinstance(weights, Mapping) or not weights or any(
+                not isinstance(k, str) or not isinstance(v, torch.Tensor) for k, v in weights.items()):
+            raise ValueError('checkpoint must contain only a nonempty state_dict (tensor weights)')
+        for name, tensor in weights.items():
+            if not torch.isfinite(tensor).all():
+                raise ValueError('checkpoint contains non-finite weights: ' + name)
+            target = model.state_dict().get(name)
+            if target is not None and tensor.dtype != target.dtype:
+                raise ValueError('checkpoint dtype differs from model: ' + name)
+        model.load_state_dict(weights, strict=True)
+        model.eval()
+        return model, [], {'path': str(path), 'file_sha256': hashlib.sha256(contents).hexdigest(),
+            'state_hash': state_hash(model.state_dict()), 'hit': False, 'source': 'external_state_dict',
+            'effective_identity': {'data_identity': data_identity(data), 'model': model_config,
+                'execution_seed': training['seed'], 'numerics': numerical_environment(data),
+                'implementation': implementation_fingerprint(*model_functions(model))}}
+    metadata = training_metadata(model, instance, data)
     checkpoint = instance.get('checkpoint')
     if checkpoint:
         from experiments.effective_config import fields
