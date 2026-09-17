@@ -35,7 +35,7 @@ def main():
     from experiments.dataset_inputs import resolve_input
     from experiments.node_deletion import retained_graph
     from experiments.implementation_identity import implementation_fingerprint,model_functions
-    from utils.target_checkpoint import data_identity,load_target_checkpoint,state_hash
+    from utils.target_checkpoint import data_identity,load_cached_weights,state_hash
     from cache_v2 import canonical_sha256
     from attack.cache_identity import seeded_execution
     runpath=root/'results/runs/aagu011-table01-gu/aagu011-table01-v2/run.json'
@@ -62,10 +62,11 @@ def main():
         data=resolve_input(output.identity['dataset_input'],root)
         assert (root/output.identity['dataset_input']['graph']).resolve().is_relative_to(root/'data/processed')
         original=create_model(pair['model'],'Cora',data,'cpu')
-        metadata=dict(data_identity=data_identity(data),model=pair['model'],training=pair['training'],
+        metadata=dict(format='pure-state-dict-v1',data_identity=data_identity(data),model=pair['model'],training=pair['training'],
                       numerics=numerical_environment(data),implementation=implementation_fingerprint(*model_functions(original),train_supervised))
         checkpoint=root/'results/runtime/modular/checkpoints'/(canonical_sha256(metadata)+'.pt')
-        ck=load_target_checkpoint(checkpoint,expected_state_hash=output.identity['target']['checkpoint_state_hash'],expected_metadata=metadata)
+        ck=load_cached_weights(checkpoint,metadata)
+        assert ck['state_hash']==output.identity['target']['checkpoint_state_hash']
         original.load_state_dict(ck['state_dict']);original=original.cuda().eval();data=data.cuda()
         for name in ('train','val','test'):
             setattr(data,name+'_indices',getattr(data,name+'_mask').nonzero().flatten().cpu().numpy())

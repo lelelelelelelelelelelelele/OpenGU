@@ -1,0 +1,25 @@
+kind: checkpoint_training
+schema_version: 1
+experiment_id: aagu063-paired-pt
+dataset_ref: cora.yaml
+models:
+- architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 16
+- architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+seeds: [42]
+groups:
+  old:
+    epochs: 100
+    optimizer: Adam
+    lr: 0.005
+    weight_decay: 0.000001
+    scheduler: none
+  new:
+    epochs: 3000
+    optimizer: Adam
+    lr: 0.05
+    weight_decay: 0.0001
+    scheduler: none

@@ -9,9 +9,10 @@ from torch_geometric.data import Data
 from experiments.c_target_v1.core import state_hash as experiment_state_hash
 from utils.target_checkpoint import (
     TargetCheckpointError,
-    build_payload,
-    load_target_checkpoint,
-    save_target_checkpoint,
+    load_weights,
+    load_cached_weights,
+    save_cached_weights,
+    save_weights,
     state_hash,
     data_identity,
 )
@@ -24,62 +25,18 @@ def _state(offset: float):
     }
 
 
-def test_target_checkpoint_round_trip_and_hash_compatibility(tmp_path: Path):
-    first = _state(0.0)
-    final = _state(1.0)
-    path = tmp_path / "target.pt"
-    manifest = save_target_checkpoint(
-        path,
-        state_dict=final,
-        metadata={"dataset_name": "cora", "seed": 42},
-        checkpoints=(
-            {"global_step": 1, "update_lr": 0.01, "state": first},
-            {"global_step": 2, "update_lr": 0.01, "state": final},
-        ),
-    )
-
-    assert manifest["state_hash"] == state_hash(final)
-    assert manifest["state_hash"] == experiment_state_hash(final)
-    loaded = load_target_checkpoint(
-        path,
-        expected_file_sha256=manifest["file_sha256"],
-        expected_state_hash=manifest["state_hash"],
-        expected_metadata={"dataset_name": "cora", "seed": 42},
-    )
-    assert loaded["state_hash"] == manifest["state_hash"]
-    assert len(loaded["checkpoints"]) == 2
-
-
-def test_target_checkpoint_rejects_wrong_identity(tmp_path: Path):
-    path = tmp_path / "target.pt"
-    manifest = save_target_checkpoint(
-        path,
-        state_dict=_state(1.0),
-        metadata={"dataset_name": "cora"},
-        checkpoints=(
-            {"global_step": 1, "update_lr": 0.01, "state": _state(1.0)},
-        ),
-    )
-    with pytest.raises(TargetCheckpointError, match="file SHA-256"):
-        load_target_checkpoint(path, expected_file_sha256="0" * 64)
-    with pytest.raises(TargetCheckpointError, match="state identity"):
-        load_target_checkpoint(path, expected_state_hash="0" * 64)
-    with pytest.raises(TargetCheckpointError, match="dataset_name mismatch"):
-        load_target_checkpoint(
-            path, expected_metadata={"dataset_name": "citeseer"}
-        )
-    assert manifest["checkpoint_count"] == 1
-
-
-def test_target_checkpoint_rejects_final_trajectory_mismatch():
-    with pytest.raises(TargetCheckpointError, match="final trajectory"):
-        build_payload(
-            state_dict=_state(2.0),
-            metadata={},
-            checkpoints=(
-                {"global_step": 1, "update_lr": 0.01, "state": _state(1.0)},
-            ),
-        )
+def test_pure_weight_roundtrip_and_cache_provenance(tmp_path):
+    path = tmp_path / 'model.pt'
+    final = _state(1.)
+    saved = save_cached_weights(path, final, {'seed': 42})
+    assert set(torch.load(path, weights_only=True)) == set(final)
+    assert saved['state_hash'] == experiment_state_hash(final)
+    assert load_cached_weights(path, {'seed': 42})['state_hash'] == saved['state_hash']
+    with pytest.raises(TargetCheckpointError, match='metadata'):
+        load_cached_weights(path, {'seed': 43})
+    torch.save(_state(2.), path)
+    with pytest.raises(TargetCheckpointError, match='provenance'):
+        load_cached_weights(path, {'seed': 42})
 
 
 class _TwoInputModel(nn.Module):
@@ -125,23 +82,7 @@ def test_gnndelete_loads_exact_target_checkpoint_without_training(tmp_path: Path
         source.linear.bias.fill_(1.0)
     state = {name: value.detach().clone() for name, value in source.state_dict().items()}
     checkpoint_path = tmp_path / "target.pt"
-    manifest = save_target_checkpoint(
-        checkpoint_path,
-        state_dict=state,
-        metadata={
-            "dataset_name": "cora",
-            "base_model": "GCN",
-            "seed": 42,
-            "processed_profile": "planetoid_70_10_20_seed2024",
-            "num_epochs": 100,
-            "gcn_num_layers": 2,
-            "gcn_hidden": 64,
-            "data_identity": data_identity(data),
-        },
-        checkpoints=(
-            {"global_step": 100, "update_lr": 0.01, "state": state},
-        ),
-    )
+    manifest = save_weights(checkpoint_path, state)
     target = _TwoInputModel()
     method = object.__new__(gnndelete)
     method.args = {
@@ -153,8 +94,6 @@ def test_gnndelete_loads_exact_target_checkpoint_without_training(tmp_path: Path
         "gcn_num_layers": 2,
         "gcn_hidden": 64,
         "target_checkpoint_path": str(checkpoint_path),
-        "target_checkpoint_sha256": manifest["file_sha256"],
-        "target_checkpoint_state_hash": manifest["state_hash"],
         "formal_fail_closed": True,
     }
     method.data = data
@@ -187,3 +126,14 @@ def test_attack_pipeline_formal_selection_validation():
         pipeline._validate_formal_selected_nodes(torch.tensor([0, 0]))
     with pytest.raises(ValueError, match="outside the candidate"):
         pipeline._validate_formal_selected_nodes(torch.tensor([0, 3]))
+
+
+def test_plain_cli_cache_identity_tracks_weights_not_path(tmp_path):
+    from attack.cache_identity import target_parameters
+    path = tmp_path / 'same.pt'
+    save_weights(path, _state(0.))
+    first = target_parameters({'target_checkpoint_path': str(path), 'num_epochs': 100, 'opt_lr': .01})
+    torch.save(_state(1.), path)
+    second = target_parameters({'target_checkpoint_path': str(path), 'num_epochs': 100, 'opt_lr': .01})
+    assert first['checkpoint_state_hash'] != second['checkpoint_state_hash']
+    assert 'num_epochs' not in first and 'opt_lr' not in first

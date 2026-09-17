@@ -256,6 +256,8 @@ def test_all_active_methods_match_pre_refactor_formulas(tables, record_property)
     data, inputs = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
     instance = load_instance(root / 'r_point.yaml', 'selector')
     instance['training']['epochs'] = 6
+    instance['method'] = 'tracin_cp_point_6'
+    instance['parameters'] = resolve_parameters('tracin_cp_point_6')
     model, checkpoints, _ = prepare_model(instance, data=data, dataset_name=inputs.dataset_name,
         checkpoint_root=root / 'checkpoints', device=torch.device('cpu'), reference_directory=root)
     candidates, targets = data.train_mask.nonzero().flatten(), data.val_mask.nonzero().flatten()
@@ -348,7 +350,7 @@ def test_mismatched_persisted_data_and_checkpoint_rejected(tables):
     item['checkpoint'] = {k: checkpoint[k] for k in ('path', 'file_sha256', 'state_hash')}
     item['training']['lr'] = .02
     write_yaml(root / 'mismatch.yaml', item)
-    with pytest.raises(RuntimeError, match='metadata'):
+    with pytest.raises(ValueError, match='pure state_dict'):
         run(tables, 'checkpoint_mismatch', selector_refs=['mismatch.yaml'])
     raw = (root / 'graph.pkl').read_bytes()
     (root / 'graph.pkl').write_bytes(raw + b'tampered disposable input')

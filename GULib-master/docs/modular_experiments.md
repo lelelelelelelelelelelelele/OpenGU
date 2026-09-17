@@ -31,3 +31,13 @@ summary v3 的 `datasets` 按声明顺序记录各实例、真实 data identity�
 `configuration_fingerprint` 绑定整组引用 YAML，供注册、预检和结果核验。计算缓存仍只读取已展开的实际有效输入和 producer，不使用公共文件路径作为计算键。仅预算变化复用预算无关评分并产生不同 Selection；模型训练 seed 影响模型型 Selector 与方法 Output，不改变 Degree/Random。实现指纹变化导致 MISS 时保留旧 Artifact，并如实记录。
 
 保留共享计算：`target_direct_v1/{methods,scoring,recipe,method_cache}`、`c_target_v1/{core,score_store}`、`modular_model`、`modular_gu`、`unlearning_outputs`。旧专用调度与扁平解析已退役；无活跃消费者的旧 manifest 装配器与 adapter 同步删除；Dataset/Split profile 工具及历史数据/证据保留。
+
+## 纯权重输入与训练缓存
+
+GIF、IDEA、MEGU、GNNDelete 以及无需轨迹的模型型 Selector 可以声明 `checkpoint: <path.pt>`。相对路径以小表目录为基准。PT 只包含非空 `state_dict`；严格核对键、shape、dtype与有限性。显式路径直接加载，不查询基础训练缓存、不训练，不要求 SHA、元数据或 sidecar。基础训练 epochs/optimizer/lr/weight_decay/scheduler 被标为不适用；seed仅用于本次执行，不被认作该PT的训练seed。
+
+未指定PT时根据实际数据/split、结构、训练参数和实现查缓存，MISS只保存最终纯权重及独立来源JSON。文件身份由框架计算，替换同路径权重会改变下游计算身份。内部缓存来源记录损坏会明确失败，不回退训练。旧封装不再支持，也不自动迁移。
+
+MEGU 的遗忘 SGD 设置由 `parameters.unlearn_lr` 和 `parameters.unlearn_weight_decay` 独立控制，不再借用基础训练参数。TracIn按自己的checkpoint_steps/view管理独立轨迹；普通GU不读写全epoch。GraphEraser/GraphRevoker保留分片模型、分配和聚合状态，不接受单模型PT替换ensemble；Retrain仍从头训练。
+
+新旧训练参数对照和正式运行命令见[063配置](../experiments/configs/aagu063/README.md)。

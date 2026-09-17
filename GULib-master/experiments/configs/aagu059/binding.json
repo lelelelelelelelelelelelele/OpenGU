@@ -6,16 +6,5 @@
   },
   "source": "existing Random Selection with score seed104245",
   "source_score_artifact_id": "score_33e9a895_6453024b",
-  "random_seed": 104245,
-  "checkpoints": {
-    "64": {
-      "path": "../../../results/runtime/modular/checkpoints/feb9de1d7f11c19f646defefb4fbfdac83e0282adcfe42ca9d25779660ec3925.pt",
-      "file_sha256": "b5c1587e33eef2badcfe08e44daf5983256a80d1efd84f6e16b6cdb3efe3b3ca",
-      "state_hash": "d780bc65c9e5ba44879ffa12c5fb48d1f483f86c4cfe0e3b0553407a5bb92712"
-    }
-  },
-  "training_policy": {
-    "64": "exact_existing_only",
-    "16": "reuse_matching_or_train_once"
-  }
+  "random_seed": 104245
 }

@@ -1,3 +1,6 @@
 kind: unlearning
 schema_version: 1
 method: MEGU
+
+# Optional pure state_dict path; initial training settings are inactive when set.
+checkpoint: null

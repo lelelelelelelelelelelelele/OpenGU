@@ -1,0 +1,22 @@
+kind: experiment
+schema_version: 1
+experiment_id: aagu063-new-training-gu
+stage: unlearning
+dataset_refs:
+- cora.yaml
+selector_refs:
+- random.yaml
+unlearning_refs:
+- ./gif_h16_new.yaml
+- ./idea_h16_new.yaml
+- ./gif_h64_new.yaml
+- ./idea_h64_new.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds:
+- 42
+random_selector_seeds:
+- 104245
+budget_ratios:
+- 0.1
