@@ -1,6 +1,7 @@
 """Export paired training configurations through the shared pure-weight pipeline."""
 from __future__ import annotations
 import argparse
+import copy
 import json
 from pathlib import Path
 import sys
@@ -64,13 +65,19 @@ def train_matrix(plan, data, context):
             name = '{}-h{}-seed{}'.format(instance['group'], instance['model']['hidden_channels'], instance['training']['seed'])
             path = output_root / '{}-{}.pt'.format(index, name)
             exported = save_weights(path, capture_state(model))
-            restored = create_model(instance['model'], plan['dataset']['dataset']['name'], data, context.request_device)
+            restored = create_model(instance['model'], plan['dataset']['dataset']['name'], data, 'cpu')
             load_weights(path, restored)
             model.eval()
             with torch.no_grad():
                 logits = model(data.x, data.edge_index)
-                restored_logits = restored(data.x, data.edge_index)
-                if not torch.isfinite(logits).all() or not torch.equal(logits, restored_logits):
+                # CUDA scatter reductions can differ even on repeated forwards.
+                # Verify serialization exactly on CPU; keep metrics on the runner device.
+                reference = copy.deepcopy(model).cpu().eval()
+                cpu_x, cpu_edges = data.x.cpu(), data.edge_index.cpu()
+                reference_logits = reference(cpu_x, cpu_edges)
+                restored_logits = restored(cpu_x, cpu_edges)
+                if (not torch.isfinite(logits).all() or not torch.isfinite(reference_logits).all()
+                        or not torch.equal(reference_logits, restored_logits)):
                     raise ValueError('nonfinite logits or export changed fixed-input predictions')
                 metrics = {}
                 for split in ('train', 'val', 'test'):
@@ -83,7 +90,7 @@ def train_matrix(plan, data, context):
             result['cells'].append({'group': instance['group'], 'model': instance['model'],
                 'training': instance['training'], 'preparation': observation,
                 'output': {k: exported[k] for k in ('path', 'file_sha256', 'state_hash')},
-                'logits_max_abs_error': 0., 'metrics': metrics})
+                'logits_max_abs_error': 0., 'roundtrip_device': 'cpu', 'metrics': metrics})
             persist()
         result['status'] = 'completed'
         persist()
