@@ -14,8 +14,6 @@ unlearning_refs:
 evaluation_refs:
 - post_method_metrics.yaml
 matrix: cartesian_product
-seeds:
-- 42
 random_selector_seeds:
 - 104245
 budget_ratios:
