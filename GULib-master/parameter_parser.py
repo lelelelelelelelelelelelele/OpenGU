@@ -148,8 +148,6 @@ def parameter_parser():
         help='Reject target/checkpoint/candidate/count drift instead of warning and continuing.',
     )
     parser.add_argument('--target_checkpoint_path', type=str, default=None)
-    parser.add_argument('--target_checkpoint_sha256', type=str, default=None)
-    parser.add_argument('--target_checkpoint_state_hash', type=str, default=None)
     parser.add_argument('--proportion_unlearned_edges', type=float, default=0.1)
     parser.add_argument('--proportion_unlearned_edges_num', type=float, default=1e-4)
     parser.add_argument('--unlearn_ratio', type=float, default=0.1)

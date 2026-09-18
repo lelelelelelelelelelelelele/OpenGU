@@ -15,7 +15,7 @@ def test_megu_real_output_cache_and_parameters(tables, monkeypatch):
     gu = copy.deepcopy(gu)
     gu.update(method='MEGU', parameters={'unlearning_epochs': 2, 'kappa': 0.03,
         'alpha1': 0.6, 'alpha2': 0.4, 'GNN_layer': 2})
-    gu['training'].update(lr=0.015, weight_decay=0.001)
+    gu['parameters'].update(unlearn_lr=0.015, unlearn_weight_decay=0.001)
     write_yaml(root / 'megu.yaml', gu)
     observed = []
     original = MEGUTrainer.megu_unlearning

@@ -116,7 +116,7 @@ def test_bad_external_weights_never_fall_back_to_training(tables, monkeypatch, d
     def forbidden(*args, **kwargs):
         pytest.fail('explicit PT must not inspect training cache or train')
     monkeypatch.setattr('experiments.modular_model.train_supervised', forbidden)
-    monkeypatch.setattr('experiments.modular_model.load_target_checkpoint', forbidden)
+    monkeypatch.setattr('experiments.modular_model.load_cached_weights', forbidden)
     with pytest.raises(Exception):
         prepare_model(resolved, data=data, dataset_name='cpu_fixture', checkpoint_root=root / 'cached',
                       device='cpu', reference_directory=root)
@@ -134,7 +134,7 @@ def test_external_pt_reaches_real_solver_and_output_identity(tables, monkeypatch
     def forbidden(*args, **kwargs):
         pytest.fail('external weight execution trained or accessed training cache')
     monkeypatch.setattr('experiments.modular_model.train_supervised', forbidden)
-    monkeypatch.setattr('experiments.modular_model.load_target_checkpoint', forbidden)
+    monkeypatch.setattr('experiments.modular_model.load_cached_weights', forbidden)
     module = importlib.import_module('unlearning.unlearning_methods.GIF.' + ('gif' if method == 'GIF' else 'solver'))
     actual_solver = module.solve_gif_system
     calls = []
@@ -173,3 +173,70 @@ def test_external_pt_reaches_real_solver_and_output_identity(tables, monkeypatch
     replaced = run(tables, method + '-replaced', **opts)['unlearning'][0]
     assert not replaced['hit'] and replaced['recipe_hash'] != changed['recipe_hash']
     assert replaced['checkpoint']['state_hash'] == state_hash(weights)
+
+@pytest.mark.parametrize('method', ['MEGU', 'GNNDelete'])
+def test_external_pt_real_non_solver_consumers(tables, monkeypatch, method):
+    root, _, base = tables
+    data, _, _, weights = external(tables)
+    item = copy.deepcopy(base)
+    item.update(method=method, checkpoint='weights.pt', training={'seed': 17},
+                parameters={'unlearning_epochs': 2})
+    if method == 'MEGU':
+        item['parameters'].update(unlearn_lr=.015, unlearn_weight_decay=.001)
+    write_yaml(root / 'external.yaml', item)
+    def forbidden(*args, **kwargs):
+        pytest.fail('explicit weights must skip initial training and cache')
+    monkeypatch.setattr('experiments.modular_model.train_supervised', forbidden)
+    monkeypatch.setattr('experiments.modular_model.load_cached_weights', forbidden)
+    opts = dict(stage='unlearning', selector_refs=['degree.yaml'], unlearning_refs=['external.yaml'])
+    first = run(tables, method + '-pure', **opts)['unlearning'][0]
+    assert first['checkpoint']['state_hash'] == state_hash(weights)
+    assert not first['hit']
+    assert run(tables, method + '-warm', **opts)['unlearning'][0]['hit']
+    assert not (root / 'checkpoints').exists()
+    weights[next(iter(weights))].add_(.01)
+    torch.save(weights, root / 'weights.pt')
+    changed = run(tables, method + '-changed', **opts)['unlearning'][0]
+    assert not changed['hit'] and changed['recipe_hash'] != first['recipe_hash']
+
+
+def test_ordinary_cache_has_only_final_weights_and_external_needs_no_sidecar(tables):
+    root, _, base = tables
+    data, item, _, _ = external(tables)
+    item.pop('checkpoint')
+    item['training'] = {'epochs': 3, 'seed': 42}
+    write_yaml(root / 'ordinary.yaml', item)
+    resolved = load_instance(root / 'ordinary.yaml', 'unlearning')
+    _, trajectory, obs = prepare_model(resolved, data=data, dataset_name='fixture',
+        checkpoint_root=root / 'cached', device='cpu', reference_directory=root)
+    assert trajectory == []
+    assert all(isinstance(v, torch.Tensor) for v in torch.load(obs['path'], weights_only=True).values())
+    from pathlib import Path
+    Path(obs['path']).with_suffix('.json').unlink()
+    item['checkpoint'] = obs['path']
+    write_yaml(root / 'external.yaml', item)
+    resolved = load_instance(root / 'external.yaml', 'unlearning')
+    _, trajectory, explicit = prepare_model(resolved, data=data, dataset_name='fixture',
+        checkpoint_root=root / 'forbidden-cache', device='cpu', reference_directory=root)
+    assert explicit['state_hash'] == obs['state_hash'] and not trajectory
+
+
+def test_selector_trajectory_is_independent_and_cache_verified(tables):
+    from experiments.modular_config import selector
+    root = tables[0]
+    data, _, _, _ = external(tables)
+    instance = selector({'kind': 'selector', 'schema_version': 1, 'method': 'tracin_cp_point_3',
+        'candidate': {'pool': 'train_mask'}, 'budget': {'mode': 'k', 'value': 1},
+        'model': {'hidden_channels': 4}, 'training': {'epochs': 8},
+        'parameters': {'checkpoint_steps': [1, 3, 5]}})
+    kwargs = dict(data=data, dataset_name='fixture', checkpoint_root=root/'cached', device='cpu', reference_directory=root)
+    _, steps, cold = prepare_model(instance, **kwargs)
+    _, _, warm = prepare_model(instance, **kwargs)
+    assert [c['global_step'] for c in steps] == [1, 3, 5]
+    assert not cold['hit'] and warm['hit']
+    payload = torch.load(cold['path'], weights_only=True)
+    assert payload['final_state_hash'] != steps[-1]['state_hash']
+    payload['checkpoints'][0]['state'][next(iter(payload['checkpoints'][0]['state']))].add_(1.)
+    torch.save(payload, cold['path'])
+    with pytest.raises(ValueError, match='corrupt'):
+        prepare_model(instance, **kwargs)

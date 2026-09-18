@@ -95,6 +95,7 @@ class Computations:
     """One invocation can reuse equal point/graph/IHVP intermediates on MISS."""
     def __init__(self, model, data, checkpoints):
         self.model, self.data, self.checkpoints = model, data, checkpoints
+        self.final_state = {k: v.detach().clone() for k, v in model.state_dict().items()} if model is not None else None
         self.candidates = torch.where(data.train_mask)[0].sort().values
         self.targets = torch.where(data.val_mask)[0].sort().values
         self.memo = {}
@@ -103,7 +104,7 @@ class Computations:
         key = ('point', index, scope)
         if key not in self.memo:
             self.memo[key] = checkpoint_point_gradients(
-                self.model, self.data, state=self.checkpoints[index]['state'],
+                self.model, self.data, state=self.final_state if index is None else self.checkpoints[index]['state'],
                 candidate_ids=self.candidates, target_ids=self.targets, parameter_scope=scope)
         return self.memo[key]
 
@@ -111,7 +112,7 @@ class Computations:
         key = ('inverse', p['parameter_scope'], tuple(sorted(p['lissa'].items())))
         if key not in self.memo:
             self.memo[key] = inverse_hessian_target(
-                self.model, self.data, state=self.checkpoints[-1]['state'],
+                self.model, self.data, state=self.final_state,
                 hessian_train_ids=self.candidates, target_ids=self.targets,
                 parameter_scope=p['parameter_scope'], **p['lissa'])[1]
         return self.memo[key]
@@ -122,7 +123,7 @@ class Computations:
         if key not in self.memo:
             target = self.point(index, p['parameter_scope'])[1]
             self.memo[key] = graph_source_scores(
-                self.model, self.data, state=self.checkpoints[index]['state'],
+                self.model, self.data, state=self.final_state if index is None else self.checkpoints[index]['state'],
                 candidate_ids=self.candidates, source_ids=self.candidates,
                 parameter_scope=p['parameter_scope'], affected_hops=p['affected_hops'],
                 target_gradient=target, inverse_target=self.inverse(p) if inverse else target)[0]
@@ -143,31 +144,31 @@ def score_random(c, p):
 
 
 def score_a(c, p):
-    return c.point(len(c.checkpoints)-1, p['parameter_scope'])[0].norm(dim=1)
+    return c.point(None, p['parameter_scope'])[0].norm(dim=1)
 
 
 def score_b(c, p):
-    matrix = c.point(len(c.checkpoints)-1, p['parameter_scope'])[0]
+    matrix = c.point(None, p['parameter_scope'])[0]
     generator = torch.Generator(device='cpu').manual_seed(p['hutchinson']['seed'])
     probes = torch.randint(0, 2, (p['hutchinson']['probes'], matrix.shape[1]), generator=generator)
     probes = probes.to(dtype=matrix.dtype).mul(2).sub(1)
     inverse, _ = inverse_hessian_vectors(
-        c.model, c.data, state=c.checkpoints[-1]['state'], hessian_train_ids=c.candidates,
+        c.model, c.data, state=c.final_state, hessian_train_ids=c.candidates,
         parameter_scope=p['parameter_scope'], vectors=probes, **p['lissa'])
     return hutchinson_parameter_change_scores(matrix, inverse.to(matrix.device))
 
 
 def score_r(c, p):
-    return c.point(len(c.checkpoints)-1, p['parameter_scope'])[0].mv(c.inverse(p))
+    return c.point(None, p['parameter_scope'])[0].mv(c.inverse(p))
 
 
 def score_point(c, p):
-    matrix, target = c.point(len(c.checkpoints)-1, p['parameter_scope'])
+    matrix, target = c.point(None, p['parameter_scope'])
     return matrix.mv(target)
 
 
 def score_graph(c, p, *, name):
-    return c.graph(len(c.checkpoints)-1, p, name.startswith('gt_'))[name]
+    return c.graph(None, p, name.startswith('gt_'))[name]
 
 
 def checkpoint_indices(count, view):

@@ -103,7 +103,9 @@ def selector(value):
     result['numerics'] = effective(value.get('numerics', {}), {'dtype': 'float32'}, 'numerics')
     choice(result['numerics']['dtype'], ('float32',), 'dtype')
     if uses_model(value['method']):
-        result['model'], result['training'] = model_training({k: value[k] for k in ('model', 'training') if k in value})
+        if value.get('checkpoint') and value['method'].startswith('tracin_cp_'):
+            raise ConfigurationError('trajectory selectors train their own checkpoints; a final PT is insufficient')
+        result['model'], result['training'] = model_training({k: value[k] for k in ('model', 'training') if k in value}, pretrained=value.get('checkpoint') is not None)
         if 'checkpoint' in value:
             result['checkpoint'] = value['checkpoint']
     elif set(value) & {'model', 'training', 'checkpoint'}:
@@ -136,7 +138,9 @@ def gu_defaults(method):
     if method == 'GIF':
         return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'GIF_method')}
     if method == 'MEGU':
-        return {k: defaults[k] for k in ('unlearning_epochs', 'kappa', 'alpha1', 'alpha2', 'GNN_layer')}
+        props = read_yaml(ROOT / 'model/properties/GCN.yaml')
+        return {**{k: defaults[k] for k in ('unlearning_epochs', 'kappa', 'alpha1', 'alpha2', 'GNN_layer')},
+                'unlearn_lr': float(props['lr']), 'unlearn_weight_decay': float(props['decay'])}
 
     if method == 'IDEA':
         return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'gaussian_mean', 'gaussian_std')}
@@ -173,10 +177,13 @@ def unlearning(value):
                 or not math.isfinite(params['gaussian_mean'])
                 or not math.isfinite(params['gaussian_std']) or params['gaussian_std'] < 0):
             raise ConfigurationError('invalid IDEA parameters')
+    if value['method'] == 'MEGU' and (not math.isfinite(params['unlearn_lr']) or params['unlearn_lr'] <= 0
+            or not math.isfinite(params['unlearn_weight_decay']) or params['unlearn_weight_decay'] < 0):
+        raise ConfigurationError('invalid MEGU unlearning optimizer settings')
     checkpoint = value.get('checkpoint')
     if checkpoint is not None:
-        if value['method'] not in ('GIF', 'IDEA'):
-            raise ConfigurationError('external checkpoint is supported for GIF and IDEA only')
+        if value['method'] not in ('GIF', 'IDEA', 'MEGU', 'GNNDelete'):
+            raise ConfigurationError('external checkpoint requires a supported single-model GU method')
         if not isinstance(checkpoint, str) or not checkpoint.strip():
             raise ConfigurationError('checkpoint must be a nonempty pure state_dict file path')
     model, training = model_training({k: value[k] for k in ('model', 'training') if k in value},
@@ -198,7 +205,7 @@ def load_instance(path, expected_kind):
     value = read_yaml(path)
     if value.get('kind') != expected_kind or type(value.get('schema_version')) is not int or value.get('schema_version') != 1:
         raise ConfigurationError(f'{path}: expected {expected_kind} schema_version 1')
-    if expected_kind == 'unlearning' and 'checkpoint' in value:
+    if expected_kind in ('unlearning', 'selector') and 'checkpoint' in value:
         checkpoint = value['checkpoint']
         if checkpoint is None:
             del value['checkpoint']
@@ -206,14 +213,6 @@ def load_instance(path, expected_kind):
             raise ConfigurationError('checkpoint must be a nonempty pure state_dict file path')
         else:
             value['checkpoint'] = str((Path(path).resolve().parent / checkpoint).resolve())
-    elif value.get('checkpoint'):
-        fields(value['checkpoint'], {'path', 'file_sha256', 'state_hash'},
-               {'path', 'file_sha256', 'state_hash'}, 'checkpoint')
-        if any(not isinstance(v, str) or not v for v in value['checkpoint'].values()):
-            raise ConfigurationError('checkpoint needs nonempty path and exact hashes')
-        value['checkpoint'] = dict(value['checkpoint'])
-        if 'path' in value['checkpoint']:
-            value['checkpoint']['path'] = str((Path(path).resolve().parent / value['checkpoint']['path']).resolve())
     if expected_kind == 'selector':
         return selector(value)
     if expected_kind == 'unlearning':

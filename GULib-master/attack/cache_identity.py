@@ -81,7 +81,7 @@ gcn_hidden in_dim out_dim unlearning_model df df_idx df_size neg_sample_random
 loss_fct loss_type loss train_batch test_batch l2 early_stop patience feature
 feature_update emb_dim max_degree damping hidden approx depth GIF_method GIF_exp
 is_split iteration scale damp GNN_layer unlearning_epochs Budget lr dropout
-weight_decay target_checkpoint_sha256 target_checkpoint_state_hash
+weight_decay
 para1 para2 para3 para4 para5 folds J Q L remove_guo retrain GST_delta
 hop_neighbors dropout_times use_cross_entropy use_adapt_gcs x_iters y_iters
 require_linear_span regen_model parallel_unlearning train_mode train_sep
@@ -96,7 +96,14 @@ M lambda exp parameter_task dataset formal_expected_k formal_fail_closed
 
 
 def target_parameters(args):
-    return {key: args[key] for key in sorted(TARGET_PARAMETER_NAMES) if key in args}
+    parameters = {key: args[key] for key in sorted(TARGET_PARAMETER_NAMES) if key in args}
+    if args.get('target_checkpoint_path'):
+        from utils.target_checkpoint import load_weights
+        weights = load_weights(args['target_checkpoint_path'])
+        parameters['checkpoint_state_hash'] = weights['state_hash']
+        for key in ('num_epochs', 'optimizer', 'opt_lr', 'opt_decay'):
+            parameters.pop(key, None)
+    return parameters
 
 
 def selector_training_parameters(args, model):

@@ -86,70 +86,11 @@ class gnndelete(Learning_based_pipeline):
         """
         checkpoint_path = self.args.get("target_checkpoint_path")
         if checkpoint_path:
-            if not self.args.get("formal_fail_closed", False):
-                raise RuntimeError(
-                    "target checkpoint reuse requires formal_fail_closed"
-                )
-            from utils.target_checkpoint import (
-                TargetCheckpointError,
-                data_identity,
-                load_target_checkpoint,
-                state_hash,
-            )
-
-            required = (
-                self.args.get("target_checkpoint_sha256"),
-                self.args.get("target_checkpoint_state_hash"),
-            )
-            if any(value in (None, "") for value in required):
-                raise TargetCheckpointError(
-                    "target checkpoint file and state hashes are required"
-                )
-            expected_metadata = {
-                "dataset_name": str(self.args["dataset_name"]),
-                "base_model": str(self.args["base_model"]),
-                "seed": int(self.args["random_seed"]),
-                "processed_profile": str(
-                    self.args.get("processed_profile") or ""
-                ),
-                "num_epochs": int(self.args["num_epochs"]),
-                "gcn_num_layers": int(self.args.get("gcn_num_layers", 2)),
-                "gcn_hidden": int(self.args.get("gcn_hidden", 64)),
-            }
-            checkpoint = load_target_checkpoint(
-                checkpoint_path,
-                expected_file_sha256=self.args["target_checkpoint_sha256"],
-                expected_state_hash=self.args["target_checkpoint_state_hash"],
-                expected_metadata=expected_metadata,
-                map_location=self.device,
-            )
-            if checkpoint["metadata"].get("data_identity") != data_identity(
-                self.data
-            ):
-                raise TargetCheckpointError(
-                    "target checkpoint dataset/split identity mismatch"
-                )
-            self.target_model.model.load_state_dict(
-                checkpoint["state_dict"], strict=True
-            )
-            observed_state_hash = state_hash(
-                self.target_model.model.state_dict()
-            )
-            if observed_state_hash != checkpoint["state_hash"]:
-                raise TargetCheckpointError(
-                    "loaded target model state identity mismatch"
-                )
+            from utils.target_checkpoint import load_weights
+            checkpoint = load_weights(checkpoint_path, self.target_model.model)
             self.target_checkpoint_observation = {
-                "path": checkpoint["path"],
-                "file_sha256": checkpoint["file_sha256"],
-                "state_hash": checkpoint["state_hash"],
-                "checkpoint_count": len(checkpoint["checkpoints"]),
-            }
-            self.logger.info(
-                "Loaded target-direct checkpoint state_hash={0}".format(
-                    checkpoint["state_hash"]
-                )
-            )
+                key: checkpoint[key] for key in ('path', 'file_sha256', 'state_hash')}
+            self.logger.info('Loaded pure target weights: %s', checkpoint['path'])
         else:
             self.target_model.train(save=False)
         self.data = self.data.to(self.device)

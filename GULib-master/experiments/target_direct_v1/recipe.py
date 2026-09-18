@@ -50,7 +50,7 @@ def build_recipe(*, name, computations, parameters, model_config=None, training=
                  'state_hash': state_hash(c.checkpoints[i]['state']),
                  'weight': float(c.checkpoints[i]['update_lr'])} for i in indices]
         else:
-            fields['final_state_hash'] = state_hash(c.checkpoints[-1]['state'])
+            fields['final_state_hash'] = state_hash(c.final_state)
     if uses_target(name):
         fields['target_ids_hash'] = ids_hash(c.targets)
     return ArtifactRecipe(fields), producer

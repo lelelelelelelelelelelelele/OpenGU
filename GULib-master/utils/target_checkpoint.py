@@ -1,19 +1,17 @@
-"""Fail-closed persistence for a target-direct pre-unlearning checkpoint."""
+"""Strict pure state_dict persistence and optional cache provenance."""
 
 from __future__ import annotations
 
+import io
 import hashlib
 import json
-import os
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional, Sequence
+from typing import Any, Dict, Mapping
 
 import torch
 from torch import Tensor
 
 
-SCHEMA = "opengu.target_direct_checkpoint"
-VERSION = 1
 
 
 class TargetCheckpointError(RuntimeError):
@@ -90,158 +88,52 @@ def _normalized_state(state: Mapping[str, Tensor]) -> Dict[str, Tensor]:
             raise TargetCheckpointError(
                 "state_dict must map string names to tensors"
             )
+        if not torch.isfinite(value).all():
+            raise TargetCheckpointError("checkpoint contains non-finite weights: " + name)
         result[name] = value.detach().cpu().clone()
     return result
 
 
-def build_payload(
-    *,
-    state_dict: Mapping[str, Tensor],
-    metadata: Mapping[str, Any],
-    checkpoints: Sequence[Mapping[str, Any]],
-) -> Dict[str, Any]:
-    final_state = _normalized_state(state_dict)
-    normalized_checkpoints = []
-    previous_step = None
-    for item in checkpoints:
-        step = int(item["global_step"])
-        if step <= 0 or (previous_step is not None and step <= previous_step):
-            raise TargetCheckpointError(
-                "checkpoint global steps must be positive and increasing"
-            )
-        state = _normalized_state(item["state"])
-        observed_hash = state_hash(state)
-        declared_hash = item.get("state_hash")
-        if declared_hash not in (None, observed_hash):
-            raise TargetCheckpointError(
-                "checkpoint state hash differs from its tensors"
-            )
-        normalized_checkpoints.append(
-            {
-                "global_step": step,
-                "update_lr": float(item["update_lr"]),
-                "state_hash": observed_hash,
-                "state": state,
-            }
-        )
-        previous_step = step
-    if not normalized_checkpoints:
-        raise TargetCheckpointError("at least one trajectory checkpoint is required")
-    final_hash = state_hash(final_state)
-    if normalized_checkpoints[-1]["state_hash"] != final_hash:
-        raise TargetCheckpointError(
-            "final trajectory checkpoint differs from target state"
-        )
-    return {
-        "schema": SCHEMA,
-        "version": VERSION,
-        "state_hash": final_hash,
-        "state_dict": final_state,
-        "metadata": dict(metadata),
-        "checkpoints": normalized_checkpoints,
-    }
-
-
-def save_target_checkpoint(
-    path: Path,
-    *,
-    state_dict: Mapping[str, Tensor],
-    metadata: Mapping[str, Any],
-    checkpoints: Sequence[Mapping[str, Any]],
-    overwrite: bool = False,
-) -> Dict[str, Any]:
+def load_weights(path, model=None):
+    """Read pure weights once; identity describes the exact bytes consumed."""
     target = Path(path).expanduser().resolve()
-    if target.exists() and not overwrite:
-        raise FileExistsError("target checkpoint already exists: {0}".format(target))
+    contents = target.read_bytes()
+    state = _normalized_state(torch.load(io.BytesIO(contents), map_location='cpu', weights_only=True))
+    if model is not None:
+        expected = model.state_dict()
+        if set(state) != set(expected):
+            raise TargetCheckpointError('checkpoint keys differ from model')
+        for name, value in state.items():
+            if value.shape != expected[name].shape or value.dtype != expected[name].dtype:
+                raise TargetCheckpointError('checkpoint shape/dtype differs from model: ' + name)
+        model.load_state_dict(state, strict=True)
+        model.eval()
+    return {'path': str(target), 'state_dict': state,
+            'file_sha256': hashlib.sha256(contents).hexdigest(), 'state_hash': state_hash(state)}
+
+
+def save_weights(path, state):
+    target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    payload = build_payload(
-        state_dict=state_dict,
-        metadata=metadata,
-        checkpoints=checkpoints,
-    )
-    temporary = target.with_name(target.name + ".tmp-{0}".format(os.getpid()))
-    try:
-        torch.save(payload, temporary)
-        os.replace(str(temporary), str(target))
-    finally:
-        if temporary.exists():
-            temporary.unlink()
-    return {
-        "path": str(target),
-        "file_sha256": sha256_file(target),
-        "state_hash": payload["state_hash"],
-        "checkpoint_count": len(payload["checkpoints"]),
-        "metadata": dict(payload["metadata"]),
-    }
+    # Exclusive creation: never silently replace an existing trained model.
+    with target.open('xb') as stream:
+        torch.save(_normalized_state(state), stream)
+    return load_weights(target)
 
 
-def _torch_load(path: Path, map_location: Any) -> Any:
-    try:
-        return torch.load(path, map_location=map_location, weights_only=True)
-    except TypeError:  # PyTorch versions before weights_only support.
-        return torch.load(path, map_location=map_location)
+def save_cached_weights(path, state, metadata):
+    loaded = save_weights(path, state)
+    record = {'metadata': metadata, 'file_sha256': loaded['file_sha256'], 'state_hash': loaded['state_hash']}
+    with Path(path).with_suffix('.json').open('x', encoding='utf-8') as stream:
+        json.dump(record, stream, sort_keys=True, allow_nan=False)
+    return loaded
 
 
-def load_target_checkpoint(
-    path: Path,
-    *,
-    expected_file_sha256: Optional[str] = None,
-    expected_state_hash: Optional[str] = None,
-    expected_metadata: Optional[Mapping[str, Any]] = None,
-    map_location: Any = "cpu",
-) -> Dict[str, Any]:
-    target = Path(path).expanduser().resolve()
-    if not target.is_file():
-        raise TargetCheckpointError(
-            "target checkpoint is missing: {0}".format(target)
-        )
-    observed_file_hash = sha256_file(target)
-    if (
-        expected_file_sha256 is not None
-        and observed_file_hash != str(expected_file_sha256)
-    ):
-        raise TargetCheckpointError("target checkpoint file SHA-256 mismatch")
-    payload = _torch_load(target, map_location)
-    if not isinstance(payload, dict):
-        raise TargetCheckpointError("target checkpoint payload must be a mapping")
-    if payload.get("schema") != SCHEMA or payload.get("version") != VERSION:
-        raise TargetCheckpointError("target checkpoint schema/version mismatch")
-    state = _normalized_state(payload.get("state_dict"))
-    observed_state_hash = state_hash(state)
-    if payload.get("state_hash") != observed_state_hash:
-        raise TargetCheckpointError("target checkpoint state hash is corrupt")
-    if expected_state_hash is not None and observed_state_hash != str(
-        expected_state_hash
-    ):
-        raise TargetCheckpointError("target checkpoint state identity mismatch")
-    metadata = payload.get("metadata")
-    if not isinstance(metadata, dict):
-        raise TargetCheckpointError("target checkpoint metadata must be a mapping")
-    for name, expected in dict(expected_metadata or {}).items():
-        if metadata.get(name) != expected:
-            raise TargetCheckpointError(
-                "target checkpoint metadata {0} mismatch".format(name)
-            )
-    checkpoints = payload.get("checkpoints")
-    if not isinstance(checkpoints, list) or not checkpoints:
-        raise TargetCheckpointError("target checkpoint trajectory is empty")
-    previous_step = None
-    for item in checkpoints:
-        if not isinstance(item, dict):
-            raise TargetCheckpointError("trajectory checkpoint must be a mapping")
-        step = int(item.get("global_step", -1))
-        if step <= 0 or (previous_step is not None and step <= previous_step):
-            raise TargetCheckpointError("trajectory checkpoint steps are invalid")
-        checkpoint_state = _normalized_state(item.get("state"))
-        if item.get("state_hash") != state_hash(checkpoint_state):
-            raise TargetCheckpointError("trajectory checkpoint state hash is corrupt")
-        item["state"] = checkpoint_state
-        previous_step = step
-    if checkpoints[-1].get("state_hash") != observed_state_hash:
-        raise TargetCheckpointError(
-            "final trajectory checkpoint differs from target state"
-        )
-    payload["state_dict"] = state
-    payload["file_sha256"] = observed_file_hash
-    payload["path"] = str(target)
-    return payload
+def load_cached_weights(path, metadata, model=None):
+    record = json.loads(Path(path).with_suffix('.json').read_text(encoding='utf-8'))
+    if record['metadata'] != metadata:
+        raise TargetCheckpointError('cached weight metadata mismatch')
+    loaded = load_weights(path, model)
+    if any(record[key] != loaded[key] for key in ('file_sha256', 'state_hash')):
+        raise TargetCheckpointError('cached weight contents differ from provenance')
+    return loaded

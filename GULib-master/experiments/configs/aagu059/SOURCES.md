@@ -7,7 +7,7 @@
 
 ## 当前实际实现
 
-YAML 使用公共 Cora persisted split，训练为 Adam、100 epoch、lr=0.005、weight_decay=1e-6、seed42，GCN 两层 hidden64/16、dropout0.5。YAML 只声明模型、训练与算法设置。hidden64 的既有 checkpoint 精确身份由执行 binding.json 封存；hidden16 若无匹配缓存，按用户授权训练一次。实际路径、文件哈希、state hash 和训练/命中事实写入运行证据。
+YAML 使用公共 Cora persisted split，训练为 Adam、100 epoch、lr=0.005、weight_decay=1e-6、seed42，GCN 两层 hidden64/16、dropout0.5。YAML 只声明模型、训练与算法设置。模型准备统一使用纯 PT 接口：显式路径直接加载，未指定时按有效训练配置复用或训练。binding.json 只保留固定 Selection 的身份，不再绑定旧 checkpoint。实际路径、文件哈希、state hash 和训练/命中事实写入运行证据。
 
 诊断通过现有 GIF/IDEA adapter 截获其实际 solver 输入，在模型更新前停止 adapter。H 为 eval 模式原图 train_mask 上 sum cross-entropy 的 Hessian，v 为受影响训练节点删除前后的 loss 梯度差。GIF reason_once 输出 logits；IDEA forward_once 输出 log_softmax 再传 CE。通过独立原图 logits/CE HVP 在随机向量及梯度来源 RHS 上检查数学等价与固定向量语义；邻域监督限制在 train_mask，原图指标只使用固定 test_mask。
 
