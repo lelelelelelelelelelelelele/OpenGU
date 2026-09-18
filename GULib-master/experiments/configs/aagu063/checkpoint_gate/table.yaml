@@ -8,13 +8,13 @@ dataset_refs:
 selector_refs:
 - random.yaml
 unlearning_refs:
-- ./gif_pt.yaml
+- ./gif_defaults.yaml
 - ./gif_training.yaml
-- ./idea_pt.yaml
+- ./idea_defaults.yaml
 - ./idea_training.yaml
-- ./megu_pt.yaml
+- ./megu_defaults.yaml
 - ./megu_training.yaml
-- ./gnndelete_pt.yaml
+- ./gnndelete_defaults.yaml
 - ./gnndelete_training.yaml
 evaluation_refs:
 - post_method_metrics.yaml

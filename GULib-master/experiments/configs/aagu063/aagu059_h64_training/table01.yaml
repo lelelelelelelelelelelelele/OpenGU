@@ -1,7 +1,7 @@
 # Based on AAGU-059 Table01 hidden64; only the model input and experiment ID change.
 kind: experiment
 schema_version: 1
-experiment_id: aagu063-aagu059-table01-h64-new-pt
+experiment_id: aagu063-aagu059-table01-h64-new-training
 stage: unlearning
 dataset_refs:
 - cora.yaml
