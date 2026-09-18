@@ -11,9 +11,6 @@ model:
   architecture: OpenGU.SGCNet
   layers: 2
   dropout: 0.0
-training:
-  # Match the GCN selector instead of inheriting SGC's different learning rate.
-  lr: 0.005
 parameters:
   parameter_scope: all_trainable
   affected_hops: 3

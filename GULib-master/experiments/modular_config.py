@@ -70,7 +70,7 @@ def model_training(value, *, pretrained=False):
         # These settings describe no executed training in the external-weight lane.
         return model, {**dict.fromkeys(unused), 'seed': seed}
     props = read_yaml(ROOT / 'model/properties' / ('GCN.yaml' if architecture.endswith('GCNNet') else 'SGC.yaml'))
-    training = effective(value.get('training', {}), {'epochs': 100, 'optimizer': 'Adam', 'lr': float(props['lr']),
+    training = effective(value.get('training', {}), {'epochs': 3000, 'optimizer': 'Adam', 'lr': float(props['lr']),
         'weight_decay': float(props['decay']), 'scheduler': 'none', 'seed': 42}, 'training')
     choice(training['optimizer'], ('Adam', 'SGD'), 'optimizer')
     choice(training['scheduler'], ('none',), 'scheduler')

@@ -9,4 +9,3 @@ training:
   seed: 42
 parameters:
   unlearning_epochs: 2
-checkpoint: ../../../../results/runs/aagu063-paired-pt/aagu063-paired-pt-v2/3-new-h64-seed42.pt

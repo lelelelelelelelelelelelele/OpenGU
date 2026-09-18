@@ -417,7 +417,7 @@ def test_minimal_method_files_expand_real_defaults(tables):
     write_yaml(root / 'minimal-b-hutch.yaml', minimal)
     resolved = load_instance(root / 'minimal-b-hutch.yaml', 'selector')
     assert resolved['model']['architecture'] == 'OpenGU.GCNNet'
-    assert resolved['training']['epochs'] == 100
+    assert resolved['training']['epochs'] == 3000
     assert resolved['parameters']['parameter_scope'] == 'last_layer'
     assert resolved['parameters']['hutchinson']['probes'] == 32
     minimal_gu = {'kind': 'unlearning', 'schema_version': 1, 'method': 'GNNDelete'}
@@ -530,3 +530,28 @@ def test_unlearning_consumes_requested_prefix(tables, record_property):
             ProducerVersion(**identity['producer_version']))
         with pytest.raises(ArtifactIntegrityError, match='Selection dependency'):
             store_formal_artifact(root / 'results' / 'cache_v2', request, invalid, compute_seconds=0)
+
+
+def test_new_default_training_reuses_explicit_cache_across_consumers(tables):
+    from experiments.modular_config import unlearning, selector
+    from experiments import modular_model
+    from cache_v2 import canonical_sha256
+    root = tables[0]
+    data = pickle.loads((root / 'graph.pkl').read_bytes())
+    settings = dict(epochs=3000, optimizer='Adam', lr=.05, weight_decay=.0001, scheduler='none', seed=42)
+    explicit = unlearning(dict(kind='unlearning', schema_version=1, method='GIF', training=settings))
+    args = dict(data=data, dataset_name='cpu_fixture', checkpoint_root=root/'defaults-cache',
+                device='cpu', reference_directory=root)
+    _, _, first = modular_model.prepare_model(explicit, **args)
+    assert not first['hit']
+    consumers = [unlearning(dict(kind='unlearning', schema_version=1, method=method))
+                 for method in ('GIF', 'IDEA', 'MEGU', 'GNNDelete', 'Retrain')]
+    consumers.append(selector(dict(kind='selector', schema_version=1, method='gt_full',
+                     candidate={'pool':'train_mask'}, budget={'mode':'ratio','value':.01})))
+    for item in consumers:
+        assert item['training'] == settings
+        _, _, observed = modular_model.prepare_model(item, **args)
+        assert observed['hit'] and observed['state_hash'] == first['state_hash']
+        assert observed['path'] == first['path']
+    # Retrain's execution still initializes its own retained-graph model;
+    # the above checks only its parsed training settings and model identity.
