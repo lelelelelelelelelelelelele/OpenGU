@@ -1,0 +1,25 @@
+# Interface feasibility only: 2 solver steps or 2 unlearning epochs, not a convergence experiment.
+kind: experiment
+schema_version: 1
+experiment_id: aagu063-checkpoint-interface-gate
+stage: unlearning
+dataset_refs:
+- cora.yaml
+selector_refs:
+- random.yaml
+unlearning_refs:
+- ./gif_pt.yaml
+- ./gif_training.yaml
+- ./idea_pt.yaml
+- ./idea_training.yaml
+- ./megu_pt.yaml
+- ./megu_training.yaml
+- ./gnndelete_pt.yaml
+- ./gnndelete_training.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+random_selector_seeds:
+- 104245
+budget_ratios:
+- 0.1

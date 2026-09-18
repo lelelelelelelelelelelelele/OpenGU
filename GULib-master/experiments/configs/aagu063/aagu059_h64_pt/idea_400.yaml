@@ -1,0 +1,16 @@
+kind: unlearning
+schema_version: 1
+method: IDEA
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  seed: 42
+parameters:
+  iteration: 400
+  scale: 500
+  damp: 0.0
+  gaussian_mean: 0.0
+  gaussian_std: 0.0
+checkpoint: ../../../../results/runs/aagu063-paired-pt/aagu063-paired-pt-v2/3-new-h64-seed42.pt

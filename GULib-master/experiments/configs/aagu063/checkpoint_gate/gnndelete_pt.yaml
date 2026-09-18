@@ -1,0 +1,12 @@
+kind: unlearning
+schema_version: 1
+method: GNNDelete
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  seed: 42
+parameters:
+  unlearning_epochs: 2
+checkpoint: ../../../../results/runs/aagu063-paired-pt/aagu063-paired-pt-v2/3-new-h64-seed42.pt

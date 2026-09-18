@@ -17,3 +17,41 @@ python experiments/run.py experiments/configs/aagu063/new_training_gu.yaml --run
 ```
 
 两批先训练导出，再执行新参数GU；同样的基础训练身份可命中纯PT缓存。支持在 paired_pt.yaml 的 `seeds` 中声明多seed，扩展正式范围仍需登记。现有旧大表参数可保留；清理哪些历史运行和缓存以063的精确清理清单为准。
+
+## 用 AAGU-059 旧表替换 PT 的示例
+
+`aagu059_h64_pt/table01.yaml` 来自 AAGU-059 的
+`experiments/configs/aagu059/table01.yaml`，保留完整6格：
+GIF/IDEA × 100/200/400步，Cora、两层GCN hidden64、执行seed42、
+Random seed104245、10%删除，GIF scale1000、IDEA scale500、damp0。
+数据/split、评估引用和方法参数均沿用旧表。
+
+六个方法小表统一指定已完成的
+`aagu063-paired-pt-v2/3-new-h64-seed42.pt`（新训练参数、训练seed42）。
+原小表未指定checkpoint且training只有seed，现在显式加载新PT，
+跳过基础训练及缓存，不要求用户填写SHA或sidecar。
+路径相对于大表目录，指向SSH正式导出位置；本地回传副本在
+`results/runs/gpu4090/` 下。
+
+新experiment_id为 `aagu063-aagu059-table01-h64-new-pt`。
+这是旧Block完整矩阵的配置改写示例，不修改059历史结果或绑定记录；
+未提交、未运行GU，也没有生成新的Hessian/收敛诊断证据。
+原059专属diagnostic runner及注册recipe不能直接拿来执行这张新表。
+
+```sh
+python experiments/run.py experiments/configs/aagu063/aagu059_h64_pt/table01.yaml --dry_run
+```
+
+仍用于后续执行的错误PT引用应换成经核验且结构、数据/split匹配的PT。
+历史run.json和缓存身份不能通过改路径或摘要变成新实验结果。
+`checkpoint: null` 表示未显式指定权重，Selector的 `checkpoint_steps`
+表示轨迹采样点，都不是旧PT文件路径。
+
+## 四方法 checkpoint 接口最小验证
+
+`checkpoint_gate/table.yaml`：Cora/GCN hidden64、新参数seed42的已验证PT，
+GIF/IDEA/MEGU/GNNDelete × 显式PT/完整training参数，共8格。
+GIF/IDEA仅2步（保留scale1000/500、damp0），MEGU/GNNDelete仅2个遗忘epoch。
+固定Random seed104245、10%请求；只验证两种基础权重入口和实际消费者连通，
+不证明收敛、完整遗忘效果或默认预算的数值稳定性。
+相同权重和GU配置应复用同一Output；第二入口仍须记录基础训练缓存HIT。

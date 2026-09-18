@@ -1,0 +1,16 @@
+kind: unlearning
+schema_version: 1
+method: GNNDelete
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  seed: 42
+  epochs: 3000
+  optimizer: Adam
+  lr: 0.05
+  weight_decay: 0.0001
+  scheduler: none
+parameters:
+  unlearning_epochs: 2
