@@ -118,7 +118,7 @@ def parameter_parser():
 
     
     #train#
-    parser.add_argument('--num_epochs', type=int, default=100)
+    parser.add_argument('--num_epochs', type=int, default=3000)
     parser.add_argument('--test_freq', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=1024)
     parser.add_argument('--opt_lr', type=float, default=0.001,help = "used for GraphEraser aggregating,GST and Projector and CGU")
@@ -353,7 +353,7 @@ def parameter_parser():
                         help="Use optuna to optimize hyperparameters.",)
     parser.add_argument("--del_postfix", type=str, default="")
     parser.add_argument("--del_only", default=False, action="store_true")
-    parser.add_argument("--lr", default=0.005, type=float)
+    parser.add_argument("--lr", default=0.05, type=float)
     parser.add_argument("--num_batch_removes", default=5, type=int)
     parser.add_argument("--no_retrain", action="store_true", default=True)
     parser.add_argument("--edge_idx_start", default=0, type=int)

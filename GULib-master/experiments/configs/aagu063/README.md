@@ -57,3 +57,9 @@ GIF/IDEA仅2步（保留scale1000/500、damp0），MEGU/GNNDelete仅2个遗忘ep
 验收两入口加载相同state_hash，training入口记录基础训练缓存HIT。
 当前GU Output身份仍包含training配对元数据，因此两入口不共享GU输出缓存；
 不能把基础权重HIT解释为GU输出HIT。
+
+## 统一基础训练默认值
+
+基础训练默认采用 Adam、3000 epochs、lr=0.05、weight_decay=0.0001、无 scheduler；seed默认42。模型 properties 的学习率与衰减、CLI基础训练epochs及普通实验解析器一致。Selector和Unlearning分别解析，省略training与显式填写同值等价。Retrain也使用这一训练配置，但在删后图从头训练，不加载原始图PT。
+
+已有新参数Cora/GCN hidden16/64 seed42 PT仅在完整数据、结构和训练身份相同的消费者中复用；其他模型、seed或数据不能保证HIT。方法自身遗忘步数、学习率和求解器参数独立。paired_pt.yaml的old组保留旧参数用于明确的对照；已产生的历史运行配置与证据不回写成新参数结果。
