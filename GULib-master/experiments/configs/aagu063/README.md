@@ -54,4 +54,6 @@ GIF/IDEA/MEGU/GNNDelete × 显式PT/完整training参数，共8格。
 GIF/IDEA仅2步（保留scale1000/500、damp0），MEGU/GNNDelete仅2个遗忘epoch。
 固定Random seed104245、10%请求；只验证两种基础权重入口和实际消费者连通，
 不证明收敛、完整遗忘效果或默认预算的数值稳定性。
-相同权重和GU配置应复用同一Output；第二入口仍须记录基础训练缓存HIT。
+验收两入口加载相同state_hash，training入口记录基础训练缓存HIT。
+当前GU Output身份仍包含training配对元数据，因此两入口不共享GU输出缓存；
+不能把基础权重HIT解释为GU输出HIT。
