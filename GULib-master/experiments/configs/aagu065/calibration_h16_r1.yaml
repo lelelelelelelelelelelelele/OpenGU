@@ -1,0 +1,26 @@
+# AAGU-065 rework: H16 curvature-derived scale candidates, fixed mu=20.48.
+kind: experiment
+schema_version: 1
+experiment_id: aagu065-calibration-h16-r1
+stage: unlearning
+dataset_refs:
+- ../datasets/cora.yaml
+selector_refs:
+- ../selectors/random.yaml
+unlearning_refs:
+- ./gif_h16_r1_s8192_100.yaml
+- ./gif_h16_r1_s8192_200.yaml
+- ./gif_h16_r1_s8192_400.yaml
+- ./gif_h16_r1_s16384_100.yaml
+- ./gif_h16_r1_s16384_200.yaml
+- ./gif_h16_r1_s16384_400.yaml
+- ./idea_h16_r1_s8192_100.yaml
+- ./idea_h16_r1_s8192_200.yaml
+- ./idea_h16_r1_s8192_400.yaml
+- ./idea_h16_r1_s16384_100.yaml
+- ./idea_h16_r1_s16384_200.yaml
+- ./idea_h16_r1_s16384_400.yaml
+matrix: cartesian_product
+random_selector_seeds: [104245]
+budget_ratios: [0.1]
+return_scores: false

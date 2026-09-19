@@ -23,3 +23,9 @@ is a calibration probe, not a promise of convergence or a Table parameter.
 
 Run only from the SSH active checkout with the registered AAGU-065 runner;
 local use is limited to parser dry-runs and review.
+
+The H16 rework generation `calibration_h16_r1.yaml` is derived from the first
+production HVP/Ritz measurement. It keeps the previous shifted target
+`mu=20.48` and tests `(scale=8192,damp=0.0025)` and
+`(scale=16384,damp=0.00125)` for both GIF and IDEA over 100/200/400
+iterations. These are new calibration candidates, not frozen settings.
