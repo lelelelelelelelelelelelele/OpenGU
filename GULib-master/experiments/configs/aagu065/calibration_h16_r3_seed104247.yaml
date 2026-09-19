@@ -1,7 +1,7 @@
-# AAGU-065 generation 3: cross-request Random validation of the preferred H16 pair.
+# AAGU-065 generation 3: one independent Random request.
 kind: experiment
 schema_version: 1
-experiment_id: aagu065-calibration-h16-r3-random
+experiment_id: aagu065-calibration-h16-r3-seed104247
 stage: unlearning
 dataset_refs:
 - ../datasets/cora.yaml
@@ -15,6 +15,6 @@ unlearning_refs:
 - ./idea_h16_r2_s9000_200.yaml
 - ./idea_h16_r2_s9000_400.yaml
 matrix: cartesian_product
-random_selector_seeds: [104245, 104246, 104247]
+random_selector_seeds: [104247]
 budget_ratios: [0.1]
 return_scores: false

@@ -38,8 +38,10 @@ damp=0.5461333333333334)` (`mu=8192`) for both GIF and IDEA over 100/200/400
 iterations. These are stability/convergence candidates, not F1-selected
 production parameters.
 
-The H16 r3 generation `calibration_h16_r3_random.yaml` fixes the preferred
-r2 pair `(scale=9000,damp=0.22755555555555556)` (`mu=2048`) and varies only
-the Random selector seed across `104245`, `104246`, and `104247`. It runs both
-GIF and IDEA at 100/200/400 iterations to test request-to-request stability;
-it does not retune parameters by seed or by F1.
+The H16 r3 generation fixes the preferred r2 pair
+`(scale=9000,damp=0.22755555555555556)` (`mu=2048`) and varies only the
+Random selector seed. Because the calibration runner accepts one independent
+Random request per invocation, `calibration_h16_r3_seed104246.yaml` and
+`calibration_h16_r3_seed104247.yaml` are two separate SSH runs; the existing
+r2 seed `104245` is the anchor. Both runs test GIF and IDEA at 100/200/400
+iterations and do not retune parameters by seed or by F1.
