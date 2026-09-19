@@ -1,7 +1,7 @@
 # AAGU-065 generation 3: one independent Random request.
 kind: experiment
 schema_version: 1
-experiment_id: aagu065-calibration-h16-r3-seed104247
+experiment_id: aagu065-calibration-h16-r3-seed104247-retry
 stage: unlearning
 dataset_refs:
 - ../datasets/cora.yaml

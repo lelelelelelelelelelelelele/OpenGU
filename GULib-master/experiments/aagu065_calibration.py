@@ -168,8 +168,11 @@ def main():
 
     selector = batch['selectors'][0]
     selector['budget'] = resolve_budget(selector['budget'], int(data.train_mask.sum()))
-    if selector['method'] != 'random' or selector['parameters']['seed'] != 104245:
-        raise ValueError('AAGU-065 fixes Random selector seed 104245')
+    if selector['method'] != 'random':
+        raise ValueError('AAGU-065 requires a Random selector')
+    random_seed = selector['parameters'].get('seed')
+    if not isinstance(random_seed, int):
+        raise ValueError('AAGU-065 requires an integer Random selector seed')
     if selector['budget']['k'] != int(0.1 * int(data.train_mask.sum())):
         raise ValueError('AAGU-065 fixes exactly 10% of train_mask')
 
@@ -205,7 +208,7 @@ def main():
             'split': 'persisted OpenGU public fixed split',
             'model': 'OpenGU.GCNNet, two layers',
             'training': {'seed': 42, 'epochs': 3000},
-            'selector': {'method': 'random', 'seed': 104245, 'budget_ratio': 0.1,
+            'selector': {'method': 'random', 'seed': random_seed, 'budget_ratio': 0.1,
                          'requested_k': len(nodes)},
             'residual_reference_threshold': RESIDUAL_REFERENCE_THRESHOLD,
             'near_zero_policy': {
