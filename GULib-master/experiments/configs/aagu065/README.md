@@ -45,3 +45,8 @@ Random request per invocation, `calibration_h16_r3_seed104246.yaml` and
 `calibration_h16_r3_seed104247.yaml` are two separate SSH runs; the existing
 r2 seed `104245` is the anchor. Both runs test GIF and IDEA at 100/200/400
 iterations and do not retune parameters by seed or by F1.
+
+The accepted canonical H16/Cora fixed-PT method files are now promoted to
+`../unlearning/gif_cora_gcn_h16_fixed_pt.yaml` and
+`../unlearning/idea_cora_gcn_h16_fixed_pt.yaml`. The AAGU-065 files remain
+calibration evidence and are not deleted.
