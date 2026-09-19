@@ -1,0 +1,7 @@
+kind: unlearning
+schema_version: 1
+method: GIF
+model: {architecture: OpenGU.GCNNet, layers: 2, hidden_channels: 16}
+training: {seed: 42, epochs: 3000, optimizer: Adam, lr: 0.05, weight_decay: 0.0001, scheduler: none}
+checkpoint: ../../../results/runs/aagu063-paired-pt/aagu063-paired-pt-v2/2-new-h16-seed42.pt
+parameters: {iteration: 100, scale: 1000, damp: 0.0, GIF_method: GIF}
