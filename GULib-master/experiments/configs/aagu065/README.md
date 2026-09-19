@@ -29,3 +29,11 @@ production HVP/Ritz measurement. It keeps the previous shifted target
 `mu=20.48` and tests `(scale=8192,damp=0.0025)` and
 `(scale=16384,damp=0.00125)` for both GIF and IDEA over 100/200/400
 iterations. These are new calibration candidates, not frozen settings.
+
+The H16 rework generation `calibration_h16_r2.yaml` uses the measured
+`lambda_min=-2.492925` and `lambda_max=13919.159832` to reduce the spectral
+radius of the shifted Richardson recurrence. It tests `(scale=9000,
+damp=0.22755555555555556)` (`mu=2048`) and `(scale=15000,
+damp=0.5461333333333334)` (`mu=8192`) for both GIF and IDEA over 100/200/400
+iterations. These are stability/convergence candidates, not F1-selected
+production parameters.
