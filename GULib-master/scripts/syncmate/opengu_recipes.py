@@ -125,9 +125,9 @@ EXPERIMENT_RECIPES = {
 
     'opengu-aagu031-stage-s-v2': {
         'config_path': 'experiments/configs/aagu031/stage_s.yaml',
-        'config_sha256': 'b996e5f654ce14e3924cf384931336568ccb5957e615be9dcddf68fd2d6767f3',
-        'configuration_fingerprint': '5ee2ab0b879f20e6b0eb24b37a6cbe351fee641c4b501fdbff7955fa5498ad44',
-        'run_identity': {'experiment_id': 'aagu031-selector-stage-s-v2', 'run_id': 'aagu031-stage-s-v2'},
+        'config_sha256': 'b151f44fc7c73f1ae3f8916a94c2562e79cc1ea33eac5f84fed83749b783c58d',
+        'configuration_fingerprint': '00c0711fee1ba5364d27f54555de58c0c56af3b28bbf1136a8b4acb0aaee35c7',
+        'run_identity': {'experiment_id': 'aagu031-selector-stage-s-v2', 'run_id': 'aagu031-newtraining-20260920'},
         'timeout_seconds': 21600, 'logical_cells': 72, 'stage': 'selector',
         'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
                               {'num_nodes': 3327, 'candidate_count': 2328},
