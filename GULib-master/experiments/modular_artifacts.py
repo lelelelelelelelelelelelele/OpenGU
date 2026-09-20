@@ -112,11 +112,33 @@ def update_run(run, output):
     temp.replace(output)
 
 
+def ordered_execution_rows(cells, rows):
+    """Bind results by complete execution coordinates, never execution position."""
+    ordered, used = [], set()
+    for cell in cells:
+        conditions = cell['conditions']
+        matches = [(index, row) for index, row in enumerate(rows)
+                   if row['selector_ref'] == conditions['selector_ref']
+                   and row.get('unlearning_ref') == conditions.get('unlearning_ref')
+                   and all(conditions.get(key) == value
+                           for key, value in row['matrix_values'].items())]
+        if len(matches) != 1 or matches[0][0] in used:
+            raise ValueError('execution coordinate missing, duplicated or ambiguous')
+        index, row = matches[0]
+        used.add(index)
+        ordered.append(row)
+    if len(used) != len(rows):
+        raise ValueError('execution contains unplanned coordinates')
+    return ordered
+
+
 def export_outputs(summary, *, config, context, run):
     """Serialize measured values and actual requested selections, never payload bytes."""
     rows = summary['unlearning'] if config['stage'] == 'unlearning' else summary['selectors']
     if config['stage'] == 'metrics':
         rows = [summary['metric_sources'][c['cell_id']] for c in run['cells']]
+    else:
+        rows = ordered_execution_rows(run['cells'], rows)
     if len(rows) != len(run['cells']):
         raise ValueError('execution rows differ from planned result cells')
     for cell, row in zip(run['cells'], rows):
