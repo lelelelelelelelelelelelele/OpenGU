@@ -181,8 +181,8 @@ EXPERIMENT_RECIPES = {
     'opengu-aagu032-extend-v2': {
         'config_path': 'experiments/configs/aagu032_extend_v2/experiment.yaml',
         'config_sha256': 'c6032e4d5ed8a9d3ac02b5366eb42a018bfa09b16a08e1f671a6810005f62aa8',
-        'configuration_fingerprint': 'a98b63a0bf2ee0377edc031e21b9db992d45123243fbe32d2b68330a21354842',
-        'run_identity': {'experiment_id': 'aagu032-extended-v2-multi-gcn-retrain', 'run_id': 'aagu032-extend-v2'},
+        'configuration_fingerprint': '32303d685536f8cc7c304280072f264950a61dbd4cf54998e4b6102ec3267ff1',
+        'run_identity': {'experiment_id': 'aagu032-extended-v2-multi-gcn-retrain', 'run_id': 'aagu032-newtraining-20260920'},
         'timeout_seconds': 21600, 'logical_cells': 360, 'stage': 'unlearning',
         'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
                               {'num_nodes': 3327, 'candidate_count': 2328},
