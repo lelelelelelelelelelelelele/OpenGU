@@ -1,0 +1,10 @@
+{
+  "selection": {
+    "artifact_id": "sel_0e6b18f1_8c32a4c4",
+    "recipe_hash": "0e6b18f1e60ddee8b9ecfb2043d675a9b9f109a2e26c4a0d221f8b1ed2dcbe9f",
+    "content_hash": "8c32a4c4ca226512f1e3ad2f71fad4ce610e4e3ea49a61e921c54176ad1ceb4b"
+  },
+  "source": "existing Random Selection with score seed104245",
+  "source_score_artifact_id": "score_33e9a895_6453024b",
+  "random_seed": 104245
+}

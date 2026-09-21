@@ -1,0 +1,20 @@
+# AAGU-065 generation 3: one independent Random request.
+kind: experiment
+schema_version: 1
+experiment_id: aagu065-calibration-h16-r3-seed104246-retry
+stage: unlearning
+dataset_refs:
+- ../datasets/cora.yaml
+selector_refs:
+- ../selectors/random.yaml
+unlearning_refs:
+- ./gif_h16_r2_s9000_100.yaml
+- ./gif_h16_r2_s9000_200.yaml
+- ./gif_h16_r2_s9000_400.yaml
+- ./idea_h16_r2_s9000_100.yaml
+- ./idea_h16_r2_s9000_200.yaml
+- ./idea_h16_r2_s9000_400.yaml
+matrix: cartesian_product
+random_selector_seeds: [104246]
+budget_ratios: [0.1]
+return_scores: false

@@ -1,0 +1,22 @@
+# GIF/IDEA author-parameter diagnostics: hidden=64, one fixed Random request.
+# Execute with registered recipe opengu-aagu059-table01-h64-v3.
+kind: experiment
+schema_version: 1
+experiment_id: aagu059-table01-h64
+stage: unlearning
+dataset_refs:
+- cora.yaml
+selector_refs:
+- random.yaml
+unlearning_refs:
+- ./gif_100.yaml
+- ./gif_200.yaml
+- ./gif_400.yaml
+- ./idea_100.yaml
+- ./idea_200.yaml
+- ./idea_400.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+budget_ratios: [0.1]
+return_scores: false

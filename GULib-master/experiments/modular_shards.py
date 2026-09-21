@@ -138,14 +138,14 @@ def initial_ensemble(instance, data):
 
 def prepare_ensemble(instance, data, checkpoint_root):
     from cache_v2 import canonical_sha256
-    from utils.target_checkpoint import data_identity, load_target_checkpoint, save_target_checkpoint, capture_state
+    from utils.target_checkpoint import data_identity, load_cached_weights, save_cached_weights, capture_state
     from experiments.modular_model import create_model, train_supervised
     from experiments.implementation_identity import implementation_fingerprint
     from unlearning.unlearning_methods.GraphEraser.partition.constrained_lpa_base import ConstrainedLPABase
     from unlearning.unlearning_methods.GraphEraser.aggregation.optimal_aggregator import OptimalAggregator
     from model.base_gnn.gcn import GCNNet
     from attack.cache_identity import seeded_execution
-    metadata = {'method': 'GraphEraser', 'data_identity': data_identity(data),
+    metadata = {'format': 'ensemble-state-dict-v1', 'method': 'GraphEraser', 'data_identity': data_identity(data),
         'model': instance['model'], 'training': instance['training'], 'parameters': instance['parameters'],
         'numerics': str(data.x.dtype),
         'implementation': implementation_fingerprint(initial_ensemble, partition_nodes, ConstrainedLPABase,
@@ -156,9 +156,8 @@ def prepare_ensemble(instance, data, checkpoint_root):
         with seeded_execution(instance['training']['seed']):
             ensemble = initial_ensemble(instance, data)
         state = capture_state(ensemble)
-        save_target_checkpoint(path, state_dict=state, metadata=metadata, checkpoints=[{
-            'global_step': instance['training']['epochs'], 'update_lr': instance['training']['lr'], 'state': state}])
-    loaded = load_target_checkpoint(path, expected_metadata=metadata)
+        save_cached_weights(path, state, metadata)
+    loaded = load_cached_weights(path, metadata)
     state = loaded['state_dict']
     models = [create_model(instance['model'], 'shard', data, data.x.device) for _ in state['weights']]
     ensemble = ShardEnsemble(models, state['assignment'].to(data.x.device), state['weights'].to(data.x.device))

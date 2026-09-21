@@ -28,8 +28,8 @@ def megu_node(args, model, data, nodes, runtime_root):
     trainer.device = device
     method.target_model = trainer
     # The historical trainer takes its SGD settings from model.config.
-    model.config.lr = args['instance']['training']['lr']
-    model.config.decay = args['instance']['training']['weight_decay']
+    model.config.lr = args['instance']['parameters']['unlearn_lr']
+    model.config.decay = args['instance']['parameters']['unlearn_weight_decay']
     method.adj = sparse_mx_to_torch_sparse_tensor(normalize_adj(
         to_scipy_sparse_matrix(data.edge_index, num_nodes=data.num_nodes))).to(device)
     neighbors = method.neighbor_select(data.x).to(device)

@@ -18,7 +18,7 @@
 | 数据集 | Cora、CiteSeer、PubMed；公共 Dataset/Split |
 | 划分 | 持久化 70/10/20，split seed 2024 |
 | 模型 | 两层 GCN，hidden 64、dropout 0.5 |
-| 训练 | seeds 42/212/2024；100 epochs；Adam；lr 0.005；weight decay 1e-6 |
+| 训练 | seeds 42/212/2024；3000 epochs；Adam；lr 0.05；weight decay 0.0001 |
 | 参数范围 | A/B、D-full 两跳/三跳、GT-simple、P-graph 使用 last_layer；另有一组 D-full 三跳使用 all_trainable；Degree 不使用模型 |
 | 候选与目标 | train_mask 候选；目标条件方法用 val_mask；test 不参与选点 |
 | 数值设置 | 消费逆 Hessian 的方法：LiSSA iterations 20、scale 25、damp 0.01；B 为 32 probes、seed 1729 |
@@ -42,4 +42,4 @@ Cache 按实际配置、输入、producer 与依赖身份判断 HIT/MISS。Degre
 & E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/aagu031/stage_s.yaml --dry_run
 ```
 
-队列注册为 `opengu-aagu031-stage-s-v2`，run ID 为 `aagu031-stage-s-v2`，由普通 `experiments/run.py` 消费本表；绑定配置及全部引用指纹、72 条件、三数据集候选数和 Selector summary 产物。超时上限为 21600 秒（6 小时），沿用现有矩阵上限，不是完成时间估计。正式运行仍需落地版本及运行前置审验；注册不提交作业。
+队列注册为 `opengu-aagu031-stage-s-v2`，run ID 为 `aagu031-newtraining-20260920`，由普通 `experiments/run.py` 消费本表；绑定配置及全部引用指纹、72 条件、三数据集候选数和 145 个回传文件（run.json、72 个 Selection、72 个 scores.npz；return_scores: true）。超时上限为 21600 秒（6 小时），沿用现有矩阵上限，不是完成时间估计。正式运行仍需落地版本及运行前置审验；注册不提交作业。

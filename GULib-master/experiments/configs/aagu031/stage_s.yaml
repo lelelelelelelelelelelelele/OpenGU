@@ -22,3 +22,4 @@ seeds:
 budget_ratios:
 - 0.10
 matrix: cartesian_product
+return_scores: true

@@ -7,7 +7,7 @@ import torch
 from cache_v2 import canonical_sha256
 from experiments.c_target_v1.core import train_trajectory
 from experiments.implementation_identity import implementation_fingerprint, model_functions
-from utils.target_checkpoint import data_identity, capture_state, load_target_checkpoint, save_target_checkpoint
+from utils.target_checkpoint import data_identity, capture_state, load_weights, load_cached_weights, save_cached_weights
 
 
 def runtime_defaults():
@@ -44,39 +44,38 @@ def train_supervised(model, data, training, checkpoint_epochs):
         milestones=(), gamma=1.0, optimizer_name=training['optimizer'])
 
 
+def training_metadata(model, instance, data):
+    return {'format': 'pure-state-dict-v1', 'data_identity': data_identity(data), 'model': instance['model'], 'training': instance['training'],
+            'numerics': numerical_environment(data),
+            'implementation': implementation_fingerprint(*model_functions(model), train_supervised)}
+
+
 def prepare_model(instance, *, data, dataset_name, checkpoint_root, device, reference_directory):
     from attack.cache_identity import seeded_execution
     model_config, training = instance['model'], instance['training']
     with seeded_execution(training['seed']):
         model = create_model(model_config, dataset_name, data, device)
-    metadata = {'data_identity': data_identity(data), 'model': model_config, 'training': training,
-                'numerics': numerical_environment(data),
-                'implementation': implementation_fingerprint(*model_functions(model), train_supervised)}
-    checkpoint = instance.get('checkpoint')
-    if checkpoint:
-        from experiments.effective_config import fields
-        fields(checkpoint, {'path', 'file_sha256', 'state_hash'}, {'path', 'file_sha256', 'state_hash'}, 'checkpoint')
-        path = (Path(reference_directory) / checkpoint['path']).resolve()
-        loaded = load_target_checkpoint(path, expected_file_sha256=checkpoint['file_sha256'],
-            expected_state_hash=checkpoint['state_hash'], expected_metadata=metadata)
-        hit = True
-    else:
-        identity = canonical_sha256(metadata)
-        path = Path(checkpoint_root) / (identity + '.pt')
-        if path.exists():
-            loaded = load_target_checkpoint(path, expected_metadata=metadata)
-            hit = True
-        else:
-            # Capture every epoch once. A selector's view selects only its actual
-            # dependencies; asking for another view does not change training.
-            with seeded_execution(training['seed']):
-                checkpoints, _ = train_supervised(model, data, training, tuple(range(1, training['epochs'] + 1)))
-            save_target_checkpoint(path, state_dict=capture_state(model), metadata=metadata, checkpoints=checkpoints)
-            loaded = load_target_checkpoint(path, expected_metadata=metadata)
-            hit = False
-    model.load_state_dict(loaded['state_dict'], strict=True)
-    return model, loaded['checkpoints'], {'path': str(path), 'file_sha256': loaded['file_sha256'],
-        'state_hash': loaded['state_hash'], 'hit': hit, 'effective_identity': metadata}
+    if instance.get('checkpoint') is not None:
+        path = (Path(reference_directory) / instance['checkpoint']).resolve()
+        loaded = load_weights(path, model)
+        return model, [], {**{key: loaded[key] for key in ('path', 'file_sha256', 'state_hash')},
+            'hit': False, 'source': 'external_state_dict',
+            'effective_identity': {'data_identity': data_identity(data), 'model': model_config,
+                'execution_seed': training['seed'], 'numerics': numerical_environment(data),
+                'implementation': implementation_fingerprint(*model_functions(model))}}
+    if instance.get('kind') == 'selector' and instance['method'].startswith('tracin_cp_'):
+        from experiments.model_trajectory import prepare_trajectory
+        return prepare_trajectory(model, instance, data, checkpoint_root)
+    metadata = training_metadata(model, instance, data)
+    path = Path(checkpoint_root) / (canonical_sha256(metadata) + '.pt')
+    hit = path.exists()
+    if not hit:
+        with seeded_execution(training['seed']):
+            train_supervised(model, data, training, ())
+        save_cached_weights(path, capture_state(model), metadata)
+    loaded = load_cached_weights(path, metadata, model)
+    return model, [], {**{key: loaded[key] for key in ('path', 'file_sha256', 'state_hash')},
+        'hit': hit, 'source': 'training_cache', 'effective_identity': metadata}
 
 
 def numerical_environment(data):

@@ -1,5 +1,24 @@
 # Table 01: IF / naive selectors across GU methods
 
+## Table 02 v2 (configuration review)
+
+[table02_v2.yaml](table02_v2.yaml) defines the complete 1449-cell matrix:
+207 selection conditions across GIF, IDEA, GNNDelete, MEGU, GraphEraser,
+GraphRevoker and Retrain. All methods use the current public instances and
+production code. Its experiment ID is `aagu011-table02-v2`; each execution
+requires a fresh run ID. Existing artifacts are reused only on exact identity.
+Formal execution awaits user approval.
+
+## Additional Table 02 (2026-09-13)
+
+[Table 02](table02.md) adds a 10% IF / RR / naive comparison owned by
+AAGU-011. A single `table02.yaml` expands the 207 selection conditions across
+four GU methods plus the matched Retrain reference, for 1035 method cells.
+It retains three training seeds, uses three RR sampling seeds per R and ten
+Random sampling seeds, and excludes GIF/IDEA.
+The Table 01 description and historical execution evidence below remain scoped
+to Table 01; the old “No IM” statement does not describe Table 02.
+
 User-approved 2026-09-09. One scientific table, 270 GU cells:
 Cora/CiteSeer/PubMed × R-point/D-full(last-layer, two-hop)/Degree/Random/PageRank
 × GIF/GNNDelete/MEGU/IDEA/GraphEraser/GraphRevoker × seeds 42/212/2024 × 10%.

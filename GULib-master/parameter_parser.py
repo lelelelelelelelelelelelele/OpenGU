@@ -118,7 +118,7 @@ def parameter_parser():
 
     
     #train#
-    parser.add_argument('--num_epochs', type=int, default=100)
+    parser.add_argument('--num_epochs', type=int, default=3000)
     parser.add_argument('--test_freq', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=1024)
     parser.add_argument('--opt_lr', type=float, default=0.001,help = "used for GraphEraser aggregating,GST and Projector and CGU")
@@ -148,8 +148,6 @@ def parameter_parser():
         help='Reject target/checkpoint/candidate/count drift instead of warning and continuing.',
     )
     parser.add_argument('--target_checkpoint_path', type=str, default=None)
-    parser.add_argument('--target_checkpoint_sha256', type=str, default=None)
-    parser.add_argument('--target_checkpoint_state_hash', type=str, default=None)
     parser.add_argument('--proportion_unlearned_edges', type=float, default=0.1)
     parser.add_argument('--proportion_unlearned_edges_num', type=float, default=1e-4)
     parser.add_argument('--unlearn_ratio', type=float, default=0.1)
@@ -231,9 +229,9 @@ def parameter_parser():
     parser.add_argument('--GIF_method', type=str, default="GIF", choices=["GIF", "Retrain", "IF"])
     parser.add_argument('--GIF_exp', type=str, default='unlearning')
     parser.add_argument('--is_split', type=str2bool, default=True, help='splitting train/test data')
-    parser.add_argument('--iteration', type=int, default=100)
-    parser.add_argument('--scale', type=int, default=1000000000)
-    parser.add_argument('--damp', type=float, default=0.0)
+    parser.add_argument('--iteration', type=int, default=128)
+    parser.add_argument('--scale', type=int, default=4096)
+    parser.add_argument('--damp', type=float, default=0.125)
 
 
     #SGU
@@ -355,7 +353,7 @@ def parameter_parser():
                         help="Use optuna to optimize hyperparameters.",)
     parser.add_argument("--del_postfix", type=str, default="")
     parser.add_argument("--del_only", default=False, action="store_true")
-    parser.add_argument("--lr", default=0.005, type=float)
+    parser.add_argument("--lr", default=0.05, type=float)
     parser.add_argument("--num_batch_removes", default=5, type=int)
     parser.add_argument("--no_retrain", action="store_true", default=True)
     parser.add_argument("--edge_idx_start", default=0, type=int)

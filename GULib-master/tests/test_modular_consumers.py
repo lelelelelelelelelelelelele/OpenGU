@@ -164,7 +164,7 @@ def test_real_gu_method_and_default_equivalence(tables):
     assert identities(first) == identities(explicit)
     assert explicit['unlearning'][0]['hit'] is True
     gu['method'] = 'GIF'
-    gu['parameters'] = {'iteration': 2}
+    gu['parameters'] = {'iteration': 100, 'scale': 100, 'damp': .5}
     write_yaml(root / 'gif.yaml', gu)
     gif = run(tables, 'gif_run', stage='unlearning', selector_refs=['degree.yaml'], unlearning_refs=['gif.yaml'])
     assert identities(first) == identities(gif)
@@ -256,6 +256,8 @@ def test_all_active_methods_match_pre_refactor_formulas(tables, record_property)
     data, inputs = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
     instance = load_instance(root / 'r_point.yaml', 'selector')
     instance['training']['epochs'] = 6
+    instance['method'] = 'tracin_cp_point_6'
+    instance['parameters'] = resolve_parameters('tracin_cp_point_6')
     model, checkpoints, _ = prepare_model(instance, data=data, dataset_name=inputs.dataset_name,
         checkpoint_root=root / 'checkpoints', device=torch.device('cpu'), reference_directory=root)
     candidates, targets = data.train_mask.nonzero().flatten(), data.val_mask.nonzero().flatten()
@@ -322,7 +324,7 @@ def test_actual_dependency_implementation_changes(tables, monkeypatch):
     global ORIGINAL_REASON_ONCE
     ORIGINAL_REASON_ONCE = GCNNet.reason_once
     root, _, gu = tables
-    gu['method'], gu['parameters'] = 'GIF', {'iteration': 2}
+    gu['method'], gu['parameters'] = 'GIF', {'iteration': 100, 'scale': 100, 'damp': .5}
     write_yaml(root / 'gif.yaml', gu)
     kwargs = dict(selector_refs=['degree.yaml', 'b_param_hutch.yaml'], stage='unlearning', unlearning_refs=['gif.yaml'])
     first = run(tables, 'code_cold', **kwargs)
@@ -348,7 +350,7 @@ def test_mismatched_persisted_data_and_checkpoint_rejected(tables):
     item['checkpoint'] = {k: checkpoint[k] for k in ('path', 'file_sha256', 'state_hash')}
     item['training']['lr'] = .02
     write_yaml(root / 'mismatch.yaml', item)
-    with pytest.raises(RuntimeError, match='metadata'):
+    with pytest.raises(ValueError, match='pure state_dict'):
         run(tables, 'checkpoint_mismatch', selector_refs=['mismatch.yaml'])
     raw = (root / 'graph.pkl').read_bytes()
     (root / 'graph.pkl').write_bytes(raw + b'tampered disposable input')
@@ -415,7 +417,7 @@ def test_minimal_method_files_expand_real_defaults(tables):
     write_yaml(root / 'minimal-b-hutch.yaml', minimal)
     resolved = load_instance(root / 'minimal-b-hutch.yaml', 'selector')
     assert resolved['model']['architecture'] == 'OpenGU.GCNNet'
-    assert resolved['training']['epochs'] == 100
+    assert resolved['training']['epochs'] == 3000
     assert resolved['parameters']['parameter_scope'] == 'last_layer'
     assert resolved['parameters']['hutchinson']['probes'] == 32
     minimal_gu = {'kind': 'unlearning', 'schema_version': 1, 'method': 'GNNDelete'}
@@ -528,3 +530,28 @@ def test_unlearning_consumes_requested_prefix(tables, record_property):
             ProducerVersion(**identity['producer_version']))
         with pytest.raises(ArtifactIntegrityError, match='Selection dependency'):
             store_formal_artifact(root / 'results' / 'cache_v2', request, invalid, compute_seconds=0)
+
+
+def test_new_default_training_reuses_explicit_cache_across_consumers(tables):
+    from experiments.modular_config import unlearning, selector
+    from experiments import modular_model
+    from cache_v2 import canonical_sha256
+    root = tables[0]
+    data = pickle.loads((root / 'graph.pkl').read_bytes())
+    settings = dict(epochs=3000, optimizer='Adam', lr=.05, weight_decay=.0001, scheduler='none', seed=42)
+    explicit = unlearning(dict(kind='unlearning', schema_version=1, method='GIF', training=settings))
+    args = dict(data=data, dataset_name='cpu_fixture', checkpoint_root=root/'defaults-cache',
+                device='cpu', reference_directory=root)
+    _, _, first = modular_model.prepare_model(explicit, **args)
+    assert not first['hit']
+    consumers = [unlearning(dict(kind='unlearning', schema_version=1, method=method))
+                 for method in ('GIF', 'IDEA', 'MEGU', 'GNNDelete', 'Retrain')]
+    consumers.append(selector(dict(kind='selector', schema_version=1, method='gt_full',
+                     candidate={'pool':'train_mask'}, budget={'mode':'ratio','value':.01})))
+    for item in consumers:
+        assert item['training'] == settings
+        _, _, observed = modular_model.prepare_model(item, **args)
+        assert observed['hit'] and observed['state_hash'] == first['state_hash']
+        assert observed['path'] == first['path']
+    # Retrain's execution still initializes its own retained-graph model;
+    # the above checks only its parsed training settings and model identity.

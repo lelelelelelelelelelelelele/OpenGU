@@ -1,0 +1,22 @@
+# Based on AAGU-059 Table01 hidden64; only the model input and experiment ID change.
+kind: experiment
+schema_version: 1
+experiment_id: aagu063-aagu059-table01-h64-new-training
+stage: unlearning
+dataset_refs:
+- cora.yaml
+selector_refs:
+- random.yaml
+unlearning_refs:
+- ./gif_100.yaml
+- ./gif_200.yaml
+- ./gif_400.yaml
+- ./idea_100.yaml
+- ./idea_200.yaml
+- ./idea_400.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+budget_ratios:
+- 0.1
+return_scores: false

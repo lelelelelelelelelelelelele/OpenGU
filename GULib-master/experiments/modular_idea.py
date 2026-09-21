@@ -1,13 +1,14 @@
 """Explicit Selection adapter for the existing IDEA influence update."""
 from __future__ import annotations
 
+import json
+from pathlib import Path
 import logging
 import time
 from types import SimpleNamespace
 
 import numpy as np
 import torch
-from torch_geometric.nn.conv.gcn_conv import gcn_norm
 
 from experiments.node_deletion import retained_graph
 
@@ -33,13 +34,18 @@ def idea_node(args, model, data, nodes, runtime_root):
     # Neighborhood discovery uses structure from all nodes, but influence
     # losses must use only the persisted supervised training population.
     method.influence_nodes = np.intersect1d(method.influence_nodes, data.train_indices)
-    # Same normalization as IDEA._gen_train_loader. The legacy sampler is not
-    # consumed by get_grad; no sampled or synthetic edge graph is necessary.
-    _, method.edge_weight = gcn_norm(data.edge_index, num_nodes=data.num_nodes, add_self_loops=False)
-    _, method.edge_weight_unlearn = gcn_norm(data.edge_index_unlearn, num_nodes=data.num_nodes, add_self_loops=False)
+    # The trained GCN/SGC already normalizes raw edges internally. Passing
+    # gcn_norm weights here normalizes twice and changes the loss/Hessian.
+    method.edge_weight = None
+    method.edge_weight_unlearn = None
     model.eval()
     gradients = method.get_grad((method.deleted_nodes, method.feature_nodes, method.influence_nodes))
-    method.approxi(gradients)
+    try:
+        method.approxi(gradients)
+    finally:
+        if hasattr(method, 'solver_diagnostics'):
+            (Path(runtime_root) / 'idea-solver.json').write_text(
+                json.dumps(method.solver_diagnostics, indent=2, allow_nan=False), encoding='utf-8')
     if not all(torch.isfinite(p).all() for p in model.parameters()):
         raise ValueError('IDEA produced non-finite model parameters')
     return method.target_model.model, time.perf_counter() - started

@@ -263,22 +263,6 @@ class GNNDeleteTrainer(BaseTrainer):
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model.config.lr, weight_decay=self.model.config.decay)
-        requested_checkpoint_epochs = tuple(
-            int(value)
-            for value in (self.args.get("target_direct_checkpoint_epochs") or ())
-        )
-        if requested_checkpoint_epochs:
-            if (
-                tuple(sorted(set(requested_checkpoint_epochs)))
-                != requested_checkpoint_epochs
-                or requested_checkpoint_epochs[0] <= 0
-                or requested_checkpoint_epochs[-1] != int(self.args['num_epochs'])
-            ):
-                raise ValueError(
-                    "target_direct_checkpoint_epochs must be unique, increasing, "
-                    "positive, and end at num_epochs"
-                )
-        self.target_direct_checkpoints = []
         for epoch in tqdm(range(self.args['num_epochs']), desc="BaseTraining", unit="epoch"):
             start_time = time.time()
             self.model.train()
@@ -289,20 +273,8 @@ class GNNDeleteTrainer(BaseTrainer):
                 out = self.model(self.data.x, self.data.edge_index)
             loss = F.cross_entropy(out[self.data.train_mask], self.data.y[self.data.train_mask]).to(self.device)
             loss.backward()
-            update_lr = float(self.optimizer.param_groups[0]["lr"])
             self.optimizer.step()
             time_sum += time.time() - start_time
-
-            if (epoch + 1) in requested_checkpoint_epochs:
-                from utils.target_checkpoint import capture_state, state_hash
-
-                state = capture_state(self.model)
-                self.target_direct_checkpoints.append({
-                    "global_step": int(epoch + 1),
-                    "update_lr": update_lr,
-                    "state_hash": state_hash(state),
-                    "state": state,
-                })
 
             #test#
             if (epoch + 1) % self.args["test_freq"] == 0:
@@ -314,16 +286,6 @@ class GNNDeleteTrainer(BaseTrainer):
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, f1, loss))
 
         avg_training_time = time_sum / self.args['num_epochs']
-        if requested_checkpoint_epochs:
-            observed = tuple(
-                int(item["global_step"])
-                for item in self.target_direct_checkpoints
-            )
-            if observed != requested_checkpoint_epochs:
-                raise RuntimeError(
-                    "target-direct checkpoint capture mismatch: expected {0}, "
-                    "observed {1}".format(requested_checkpoint_epochs, observed)
-                )
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
         if save:
             if not model_path:
@@ -479,7 +441,7 @@ class GNNDeleteTrainer(BaseTrainer):
             }
             msg = [f'{i}: {j:>4d}' if isinstance(j, int) else f'{i}: {j:.4f}' for i, j in step_log.items()]
             tqdm.write(' | '.join(msg))
-            self.logger.info("time:{}".format(epoch_time/self.args["num_epochs"]))
+            self.logger.info("time:{}".format(epoch_time/self.args["unlearning_epochs"]))
             if (epoch + 1) % self.args["test_freq"] == 0:
                 valid_loss, dt_acc,recall, dt_f1, valid_log = self.eval_node_fullbatch_del('val')
                 valid_log['epoch'] = epoch

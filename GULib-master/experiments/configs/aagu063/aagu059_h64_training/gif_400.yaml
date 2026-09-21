@@ -1,0 +1,14 @@
+kind: unlearning
+schema_version: 1
+method: GIF
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  seed: 42
+parameters:
+  iteration: 400
+  scale: 1000
+  damp: 0.0
+  GIF_method: GIF

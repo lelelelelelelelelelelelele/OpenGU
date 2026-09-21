@@ -7193,7 +7193,16 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
     assert contract["job_schema"]["additional_fields"] is False
     assert "expected_git_sha" in contract["job_schema"]["required"]
     assert contract["job_schema"]["expected_git_sha_pattern"] == "[0-9a-fA-F]{40}"
-    expected_recipes = ['smoke', 'opengu-preflight-v1', 'opengu-aagu031-stage-s-v2', 'opengu-aagu007-v2', 'opengu-aagu032-v1',
+    expected_recipes = ['smoke', 'opengu-preflight-v1',
+                        'opengu-aagu011-v1-recovery-full',
+                        'opengu-aagu011-v1-recovery-citeseer-s212',
+                        'opengu-aagu011-v1-recovery-citeseer-s2024',
+                        'opengu-aagu011-v1-recovery-pubmed-s42',
+                        'opengu-aagu011-v1-recovery-pubmed-s212',
+                        'opengu-aagu011-v1-recovery-pubmed-s2024',
+                        'opengu-aagu011-table02-v2', 'opengu-aagu011-table02-v2-gate',
+                        'opengu-aagu053-rr10-v1', 'opengu-aagu011-table02-v1',
+                        'opengu-aagu031-stage-s-v2', 'opengu-aagu007-v2', 'opengu-aagu032-v1',
                         'opengu-aagu032-extend-cora-v1', 'opengu-aagu032-extend-citeseer-v1',
                         'opengu-aagu032-extend-pubmed-v1', 'opengu-aagu032-extend-v2',
                         'opengu-aagu011-gate-v1', 'opengu-aagu011-references-v1',
@@ -7201,7 +7210,16 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
                         'opengu-aagu011-table01-v2', 'opengu-aagu048-gpa-gate-v1',
                         'opengu-aagu051-gate-v1', 'opengu-aagu051-table-v1',
                         'opengu-aagu053-gate-v1', 'opengu-aagu053-table-v1',
-                        'opengu-aagu053-selection05-v1']
+                        'opengu-aagu053-celf-warmup-cora-s22-v1',
+                        'opengu-aagu053-celf-warmup-cora-s33-v1',
+                        'opengu-aagu053-celf-warmup-citeseer-s22-v1',
+                        'opengu-aagu053-celf-warmup-citeseer-s33-v1',
+                        'opengu-aagu053-celf-warmup-pubmed-s22-v1',
+                        'opengu-aagu053-celf-warmup-pubmed-s33-v1',
+                        'opengu-aagu056-rr1024-v1',
+                        'opengu-aagu052-gif-gate-v1', 'opengu-aagu011-table01-v3',
+                        'opengu-aagu011-references-v2',
+                        'opengu-aagu059-table01-h64-v3', 'opengu-aagu059-table01-h16-v4']
     assert contract["execution"]["allowlisted_recipes"] == expected_recipes
     assert contract["execution"]["single_shot_flag"] == "--once"
     assert "runner-agent serve" in contract["state_machine"]["owner"]

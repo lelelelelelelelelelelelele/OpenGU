@@ -1,0 +1,15 @@
+kind: unlearning
+schema_version: 1
+method: IDEA
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 16
+training:
+  seed: 42
+parameters:
+  iteration: 400
+  scale: 500
+  damp: 0.0
+  gaussian_mean: 0.0
+  gaussian_std: 0.0
