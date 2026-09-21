@@ -148,7 +148,7 @@ def test_remote_status_and_manifest_use_quoted_commands(monkeypatch):
 
     def fake_check_output(cmd, stderr=None, **process_options):
         calls.append((cmd, stderr))
-        if "manifest" in cmd[2]:
+        if "manifest" in cmd[-1]:
             return b'{"items": [], "count": 0}'
         return b'{"device": {"id": "remote"}}'
 
@@ -165,9 +165,9 @@ def test_remote_status_and_manifest_use_quoted_commands(monkeypatch):
     assert status["device"]["id"] == "remote"
     assert manifest["count"] == 0
     assert calls[0][0][0:2] == ["ssh", "ssh-host"]
-    assert "cd '/tmp/Open GU/repo'\"'\"'s copy'" in calls[0][0][2]
-    assert "'results/runs/cora GCN'" in calls[1][0][2]
-    assert "--include attack.json predictions.npz" in calls[1][0][2]
+    assert "cd '/tmp/Open GU/repo'\"'\"'s copy'" in calls[0][0][-1]
+    assert "'results/runs/cora GCN'" in calls[1][0][-1]
+    assert "--include attack.json predictions.npz" in calls[1][0][-1]
     assert calls[0][1] == subprocess.STDOUT
 
 
@@ -176,7 +176,7 @@ def test_remote_status_and_manifest_use_configured_python_executable(monkeypatch
 
     def fake_check_output(cmd, stderr=None, **process_options):
         calls.append(cmd)
-        if "manifest" in cmd[2]:
+        if "manifest" in cmd[-1]:
             return b'{"items": [], "count": 0}'
         return b'{"device": {"id": "remote"}}'
 
@@ -192,8 +192,8 @@ def test_remote_status_and_manifest_use_configured_python_executable(monkeypatch
         python_executable,
     )
 
-    assert "/root/miniconda3/bin/python scripts/syncmate/syncmate.py status" in calls[0][2]
-    assert "/root/miniconda3/bin/python scripts/syncmate/syncmate.py manifest" in calls[1][2]
+    assert "/root/miniconda3/bin/python scripts/syncmate/syncmate.py status" in calls[0][-1]
+    assert "/root/miniconda3/bin/python scripts/syncmate/syncmate.py manifest" in calls[1][-1]
 
 
 def test_remote_status_plan_uses_peer_python_executable(tmp_path, monkeypatch, capsys):
@@ -7204,7 +7204,7 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
     assert contract["job_schema"]["expected_git_sha_pattern"] == "[0-9a-fA-F]{40}"
     expected_recipes = sorted(p.stem for p in
         (sm.PROJECT_ROOT / 'scripts/syncmate/recipes').glob('*.yaml'))
-    assert contract["execution"]["allowlisted_recipes"] == expected_recipes
+    assert sorted(contract["execution"]["allowlisted_recipes"]) == expected_recipes
     assert contract["execution"]["single_shot_flag"] == "--once"
     assert "runner-agent serve" in contract["state_machine"]["owner"]
     assert "bypassing SyncMate collection, checksum verification, or gate evidence" in contract["integration"]["forbidden"]
