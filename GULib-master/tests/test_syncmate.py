@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import copy
 import json
 import subprocess
 import sys
@@ -16,9 +17,17 @@ from opengu_adapter import OpenGUProjectExtension
 from syncmate_core import artifacts as _artifacts, brief as _brief, bundles as _bundles, cli as _cli, collection as _collection, constants as _constants, context as _context, dashboard as _dashboard, devices as _devices, diagnostics as _diagnostics, dispatch as _dispatch, evidence as _evidence, fingerprints as _fingerprints, gates as _gates, handoff as _handoff, history as _history, identity as _identity, index as _index, next_steps as _next_steps, preflight as _preflight, queue as _queue, receipts as _receipts, recipes as _recipes, saved_reports as _saved_reports, snapshot as _snapshot, storage as _storage, worker as _worker, workflow as _workflow
 
 
+@pytest.fixture(scope="session")
+def registered_recipe_data():
+    return _project_recipes.recipe_definitions(sm.PROJECT_ROOT)
+
+
 @pytest.fixture(autouse=True)
-def scoped_project(tmp_path):
-    with _context.use(tmp_path, extension=OpenGUProjectExtension(), require_origin_main=True):
+def scoped_project(tmp_path, registered_recipe_data):
+    class FixtureProject(OpenGUProjectExtension):
+        def recipes(self, project_root):
+            return copy.deepcopy(registered_recipe_data)
+    with _context.use(tmp_path, extension=FixtureProject(), require_origin_main=True):
         yield
 
 

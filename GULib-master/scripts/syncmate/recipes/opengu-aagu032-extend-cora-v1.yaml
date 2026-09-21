@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu032-extend-cora-v1
+runner: experiment
+config_path: experiments/configs/aagu032_extend/experiment.yaml
+config_sha256: 5090c06dccf5f734ba4b6433e86e01bae402cbdd10da8686555af6a9b5fcd6a4
+configuration_fingerprint: 7075a0ba26f01fc1fef8ab4d86e28f65f5032203755c0a8c65a2ef6c9c6d2150
+run_identity:
+  experiment_id: aagu032-extended-cora-gcn-retrain
+  run_id: aagu032-extend-v1
+timeout_seconds: 21600
+logical_cells: 96
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

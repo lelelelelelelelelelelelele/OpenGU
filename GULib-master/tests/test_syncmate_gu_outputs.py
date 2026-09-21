@@ -33,8 +33,8 @@ def exported(workspace):
     runner, path, config = workspace
     config.update(stage='unlearning', unlearning_refs=['gu.yaml', 'retrain.yaml'])
     write_yaml(path, config)
-    sha = commit(runner)
     definition = declaration(runner, path, 'unlearning')
+    sha = commit(runner)
     with context.use(runner, extension=FixtureRegistration(definition)):
         submitted = queue.runner_queue_submit('cpu-job', definition['id'], expected_git_sha=sha)
         assert submitted['submitted'], submitted

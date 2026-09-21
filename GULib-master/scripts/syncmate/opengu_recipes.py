@@ -1,455 +1,170 @@
-"""Reviewed project recipes; scientific configuration has one ordinary YAML schema."""
+"""Read declarative project recipes and assemble the existing Core contract."""
 from __future__ import annotations
+
 import copy
+from pathlib import Path
+import re
+
+import yaml
 from experiments.modular_artifacts import ARTIFACT_NAMES, output_paths
 from scripts.syncmate.opengu_layout import modular_output_path
+from syncmate_core.contracts import Recipe, resolve_repo_path
 
-RUNNER_AGENT_MAX_TIMEOUT_SECONDS = 21600
-RUNNER_RECIPE_INTRODUCED_SHA = "3331c641ce16d0d7a3def66b0e302dd4a39a919c"
-RUNNER_RECIPE_ALLOWED_TOOL_DELTA = ("GULib-master/scripts/syncmate/", "GULib-master/tests/test_syncmate.py")
-
-# These fingerprints are reviewed constants, not recomputed expected values.
-# Changing any referenced table requires a new review and updated registration.
-EXPERIMENT_RECIPES = {
-# Final full-table export reuses exact outputs from the bounded recovery runs.
-'opengu-aagu011-v1-recovery-full': {
-    'config_path': 'experiments/configs/aagu011/table02.yaml',
-    'config_sha256': '671414dcf557cfde2f9bc1e2351acfdd72e0ebb70c5de6150e986b3fcf064c6e',
-    'configuration_fingerprint': '8c9945d0048873303da0ce5acd04677af0c83489fb9b3de832a6147d00443103',
-    'run_identity': {'experiment_id': 'aagu011-table02-budget10',
-                     'run_id': 'aagu011-v1-recovery-full-20260919'},
-    'timeout_seconds': 21600, 'logical_cells': 1035, 'stage': 'unlearning',
-    'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                          {'num_nodes': 3327, 'candidate_count': 2328},
-                          {'num_nodes': 19717, 'candidate_count': 13801}],
-},
-# Bounded recovery of the authorized V1 matrix after its six-hour timeout.
-'opengu-aagu011-v1-recovery-citeseer-s212': {'config_path': 'experiments/configs/aagu011/table02_recovery_citeseer_s212.yaml',
-                                              'config_sha256': '5c9387272cae9449a076c4db4657acfa4b51db7c8d290cb2477ee44e1d695572',
-                                              'configuration_fingerprint': '4747e3476ce294976af448f0ad3bdbf59b26813b72459f3b9d5e9abbdb22f3c6',
-                                              'run_identity': {'experiment_id': 'aagu011-v1-recovery-citeseer-s212',
-                                                               'run_id': 'aagu011-v1-recovery-citeseer-s212-20260919'},
-                                              'timeout_seconds': 21600,
-                                              'logical_cells': 115,
-                                              'stage': 'unlearning',
-                                              'expected_datasets': [{'num_nodes': 3327,
-                                                                     'candidate_count': 2328}]},
- 'opengu-aagu011-v1-recovery-citeseer-s2024': {'config_path': 'experiments/configs/aagu011/table02_recovery_citeseer_s2024.yaml',
-                                               'config_sha256': 'db3a450f7ff2e0832676a9da816e82276fca65e8391383dbdb2e07d759577e1d',
-                                               'configuration_fingerprint': '5009c692f2bc176eed4ce00ce0275fe11e80debe03aece3b5587d8ec6c74e242',
-                                               'run_identity': {'experiment_id': 'aagu011-v1-recovery-citeseer-s2024',
-                                                                'run_id': 'aagu011-v1-recovery-citeseer-s2024-20260919'},
-                                               'timeout_seconds': 21600,
-                                               'logical_cells': 115,
-                                               'stage': 'unlearning',
-                                               'expected_datasets': [{'num_nodes': 3327,
-                                                                      'candidate_count': 2328}]},
- 'opengu-aagu011-v1-recovery-pubmed-s42': {'config_path': 'experiments/configs/aagu011/table02_recovery_pubmed_s42.yaml',
-                                           'config_sha256': 'b56bc6952bc6b0a9a146dc54a9f8ebbf0a6735dddf82cc28fc3ea03fb05a3863',
-                                           'configuration_fingerprint': '4f157f5c3c676da3615be7ebafee7157fc7afcd317217ec048d3f0bc8a4d43e1',
-                                           'run_identity': {'experiment_id': 'aagu011-v1-recovery-pubmed-s42',
-                                                            'run_id': 'aagu011-v1-recovery-pubmed-s42-20260919'},
-                                           'timeout_seconds': 21600,
-                                           'logical_cells': 115,
-                                           'stage': 'unlearning',
-                                           'expected_datasets': [{'num_nodes': 19717,
-                                                                  'candidate_count': 13801}]},
- 'opengu-aagu011-v1-recovery-pubmed-s212': {'config_path': 'experiments/configs/aagu011/table02_recovery_pubmed_s212.yaml',
-                                            'config_sha256': '1c769255ae43c1f15532bcdaafbbd8f5d237900566eb4f51687b69cb98de8bd7',
-                                            'configuration_fingerprint': 'e1ddc1368e2a43cb0d3198b8a02f3fc8104fb90c71d7721bae766b32ec4c1546',
-                                            'run_identity': {'experiment_id': 'aagu011-v1-recovery-pubmed-s212',
-                                                             'run_id': 'aagu011-v1-recovery-pubmed-s212-20260919'},
-                                            'timeout_seconds': 21600,
-                                            'logical_cells': 115,
-                                            'stage': 'unlearning',
-                                            'expected_datasets': [{'num_nodes': 19717,
-                                                                   'candidate_count': 13801}]},
- 'opengu-aagu011-v1-recovery-pubmed-s2024': {'config_path': 'experiments/configs/aagu011/table02_recovery_pubmed_s2024.yaml',
-                                             'config_sha256': '3f65615a96ea8f44243c39a145f91cbe5402e9ca656f9a4788a80978dd6bdf8f',
-                                             'configuration_fingerprint': 'df85e3cc1748625c86a0155fc95c89c8323db149980d817d74aac92e682be921',
-                                             'run_identity': {'experiment_id': 'aagu011-v1-recovery-pubmed-s2024',
-                                                              'run_id': 'aagu011-v1-recovery-pubmed-s2024-20260919'},
-                                             'timeout_seconds': 21600,
-                                             'logical_cells': 115,
-                                             'stage': 'unlearning',
-                                             'expected_datasets': [{'num_nodes': 19717,
-                                                                    'candidate_count': 13801}]},
-'opengu-aagu011-table02-v2': {'config_path': 'experiments/configs/aagu011/table02_v2.yaml',
-                               'config_sha256': 'd5ea32a93866482ffbcd4e72978fc08a66ac04eac28c0ceede7ba0e8c93f350a',
-                               'configuration_fingerprint': '96fea1fcb60bb9298780cdd03f470c6535974b85628255f8370fbea70bd21cbd',
-                               'run_identity': {'experiment_id': 'aagu011-table02-v2',
-                                                'run_id': 'aagu011-table02-v2'},
-                               'timeout_seconds': 21600,
-                               'logical_cells': 1449,
-                               'stage': 'unlearning',
-                               'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                                                     {'num_nodes': 3327, 'candidate_count': 2328},
-                                                     {'num_nodes': 19717,
-                                                      'candidate_count': 13801}]},
- 'opengu-aagu011-table02-v2-gate': {'config_path': 'experiments/configs/aagu011/table02_v2_gate.yaml',
-                                    'config_sha256': '95e628e3ce14e31689a3cb02b47fa6b4dfc736489233796249a9b56a687c2b1a',
-                                    'configuration_fingerprint': '587e1990889a866778a752bf62c2b1e1d7debf8d882d4c89a6f813d41f4d2c90',
-                                    'run_identity': {'experiment_id': 'aagu011-table02-v2-gate',
-                                                     'run_id': 'aagu011-table02-v2-gate'},
-                                    'timeout_seconds': 21600,
-                                    'logical_cells': 6,
-                                    'stage': 'unlearning',
-                                    'expected_datasets': [{'num_nodes': 2708,
-                                                           'candidate_count': 1895},
-                                                          {'num_nodes': 3327,
-                                                           'candidate_count': 2328},
-                                                          {'num_nodes': 19717,
-                                                           'candidate_count': 13801}]},
-    'opengu-aagu053-rr10-v1': {'config_path': 'experiments/configs/im_group_discussion/rr_sufficiency_10.yaml',
- 'config_sha256': '37604a22aa959b5bfe074eca3270f76d1b82a304fbf77ec2f8b35796782b3bfd',
- 'configuration_fingerprint': '2a76b12a6d255927bbba44efec52ea249d289cc8c4d91db4fc92297ee66fa3a7',
- 'run_identity': {'experiment_id': 'aagu053-rr-sufficiency-budget10',
-                  'run_id': 'aagu053-rr10-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 36,
- 'stage': 'selector',
- 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                       {'num_nodes': 3327, 'candidate_count': 2328},
-                       {'num_nodes': 19717, 'candidate_count': 13801}]},
-    'opengu-aagu011-table02-v1': {'config_path': 'experiments/configs/aagu011/table02.yaml',
- 'config_sha256': '671414dcf557cfde2f9bc1e2351acfdd72e0ebb70c5de6150e986b3fcf064c6e',
- 'configuration_fingerprint': '8c9945d0048873303da0ce5acd04677af0c83489fb9b3de832a6147d00443103',
- 'run_identity': {'experiment_id': 'aagu011-table02-budget10',
-                  'run_id': 'aagu011-table02-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 1035,
- 'stage': 'unlearning',
- 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                       {'num_nodes': 3327, 'candidate_count': 2328},
-                       {'num_nodes': 19717, 'candidate_count': 13801}]},
-
-    'opengu-aagu031-stage-s-v2': {
-        'config_path': 'experiments/configs/aagu031/stage_s.yaml',
-        'config_sha256': 'b151f44fc7c73f1ae3f8916a94c2562e79cc1ea33eac5f84fed83749b783c58d',
-        'configuration_fingerprint': '00c0711fee1ba5364d27f54555de58c0c56af3b28bbf1136a8b4acb0aaee35c7',
-        'run_identity': {'experiment_id': 'aagu031-selector-stage-s-v2', 'run_id': 'aagu031-newtraining-20260920'},
-        'timeout_seconds': 21600, 'logical_cells': 72, 'stage': 'selector',
-        'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                              {'num_nodes': 3327, 'candidate_count': 2328},
-                              {'num_nodes': 19717, 'candidate_count': 13801}],
-    },
-    'opengu-aagu007-v2': {
-        'config_path': 'experiments/configs/aagu007/experiment.yaml',
-        'config_sha256': 'e0fb680d39efd67e6cdadab1ed45b4e87e52a963da02638c77ce0baf53584521',
-        'configuration_fingerprint': '18a5bcc0a8fdfe7e8293d4a32800af3c0c5bf1281025d31ede88980dd274f97a',
-        'run_identity': {'experiment_id': 'aagu007-cora-degree-r001-v1', 'run_id': 'aagu007-v2'},
-        'timeout_seconds': 1800,
-        'logical_cells': 4,
-        'stage': 'unlearning',
-        'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}],
-    },
-    'opengu-aagu032-v1': {
-        'config_path': 'experiments/configs/aagu032/experiment.yaml',
-        'config_sha256': '772458db81fc6dd64bcbe69d450de0c43228e8943fdf70b108059f6f1e0bec97',
-        'configuration_fingerprint': '45d89594f8e4b644714ab8a7ff26da6b99980d6cfa93259d378685f6b6381108',
-        'run_identity': {'experiment_id': 'aagu032-cora-gcn-retrain', 'run_id': 'aagu032-v1'},
-        'timeout_seconds': 21600,
-        'logical_cells': 42,
-        'stage': 'unlearning',
-        'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}],
-    },
-    'opengu-aagu032-extend-cora-v1': {'config_path': 'experiments/configs/aagu032_extend/experiment.yaml',
-     'config_sha256': '5090c06dccf5f734ba4b6433e86e01bae402cbdd10da8686555af6a9b5fcd6a4',
-     'configuration_fingerprint': '7075a0ba26f01fc1fef8ab4d86e28f65f5032203755c0a8c65a2ef6c9c6d2150',
-     'run_identity': {'experiment_id': 'aagu032-extended-cora-gcn-retrain', 'run_id': 'aagu032-extend-v1'},
-     'timeout_seconds': 21600,
-     'logical_cells': 96,
-     'stage': 'unlearning',
-     'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}]},
-    'opengu-aagu032-extend-citeseer-v1': {'config_path': 'experiments/configs/aagu032_extend/experiment.citeseer.yaml',
-     'config_sha256': '3f329e347363283fd9bb00a695435be8070179ac7d77b71eb8b0251b3404035f',
-     'configuration_fingerprint': 'b21fa4aa5e4a8795ad1d0232ca607b0c6cc894a90e3ae8174ddfb702a63ce2d6',
-     'run_identity': {'experiment_id': 'aagu032-extended-citeseer-gcn-retrain',
-                      'run_id': 'aagu032-extend-v1'},
-     'timeout_seconds': 21600,
-     'logical_cells': 96,
-     'stage': 'unlearning',
-     'expected_datasets': [{'num_nodes': 3327, 'candidate_count': 2328}]},
-    'opengu-aagu032-extend-pubmed-v1': {'config_path': 'experiments/configs/aagu032_extend/experiment.pubmed.yaml',
-     'config_sha256': '59f323e0c1f07dbfcd43243c6d194094130636b1bc324a5b36394baf99439a76',
-     'configuration_fingerprint': '6499d4cba056700c7895db6db3b29a63daf09922d8b0f4e8a6bfd13f65845a28',
-     'run_identity': {'experiment_id': 'aagu032-extended-pubmed-gcn-retrain', 'run_id': 'aagu032-extend-v1'},
-     'timeout_seconds': 21600,
-     'logical_cells': 96,
-     'stage': 'unlearning',
-     'expected_datasets': [{'num_nodes': 19717, 'candidate_count': 13801}]},
-    'opengu-aagu032-extend-v2': {
-        'config_path': 'experiments/configs/aagu032_extend_v2/experiment.yaml',
-        'config_sha256': 'c6032e4d5ed8a9d3ac02b5366eb42a018bfa09b16a08e1f671a6810005f62aa8',
-        'configuration_fingerprint': '32303d685536f8cc7c304280072f264950a61dbd4cf54998e4b6102ec3267ff1',
-        'run_identity': {'experiment_id': 'aagu032-extended-v2-multi-gcn-retrain', 'run_id': 'aagu032-recovery-full-20260920'},
-        'timeout_seconds': 21600, 'logical_cells': 360, 'stage': 'unlearning',
-        'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                              {'num_nodes': 3327, 'candidate_count': 2328},
-                              {'num_nodes': 19717, 'candidate_count': 13801}],
-    },
-'opengu-aagu011-gate-v1': {'config_path': 'experiments/configs/aagu011/gate.yaml',
-                            'config_sha256': 'b1df26d4c473efa01e810e0f28bc43368f0bc98a763241ff2e957e6be64acf91',
-                            'configuration_fingerprint': '4116feb355938c619de9252ef571d5e855a725bc5ab2821b788117ed8be4611c',
-                            'run_identity': {'experiment_id': 'aagu011-table01-gate',
-                                             'run_id': 'aagu011-gate-v1'},
-                            'timeout_seconds': 21600,
-                            'logical_cells': 18,
-                            'stage': 'unlearning',
-                            'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                                                  {'num_nodes': 3327, 'candidate_count': 2328},
-                                                  {'num_nodes': 19717, 'candidate_count': 13801}]},
- 'opengu-aagu011-references-v1': {'config_path': 'experiments/configs/aagu011/references.yaml',
-                                  'config_sha256': '9967286dc86ba7b1da3e4a46b726153549008eb70baf73a427b25cf6600bc898',
-                                  'configuration_fingerprint': 'b705d04376544616ab6f5d83bd69daea79034965b27c15365a5a0c45a1c956fc',
-                                  'run_identity': {'experiment_id': 'aagu011-table01-retrain',
-                                                   'run_id': 'aagu011-references-v1'},
-                                  'timeout_seconds': 21600,
-                                  'logical_cells': 45,
-                                  'stage': 'unlearning',
-                                  'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                                                        {'num_nodes': 3327, 'candidate_count': 2328},
-                                                        {'num_nodes': 19717, 'candidate_count': 13801}]},
- 'opengu-aagu011-table01-v1': {'config_path': 'experiments/configs/aagu011/table01.yaml',
-                               'config_sha256': '65dd62ca4e0297765e36a7fc7ee81102dc5604a2686e3e50553fc5f7d7e51f33',
-                               'configuration_fingerprint': '4b97e59cb8cf0462f16353d1c10b88d967a84e6efb117911fe5d3d2f5fcc7cdf',
-                               'run_identity': {'experiment_id': 'aagu011-table01-gu',
-                                                'run_id': 'aagu011-table01-v1'},
-                               'timeout_seconds': 21600,
-                               'logical_cells': 270,
-                               'stage': 'unlearning',
-                               'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                                                     {'num_nodes': 3327, 'candidate_count': 2328},
-                                                     {'num_nodes': 19717, 'candidate_count': 13801}]},
-}
+ROOT = Path(__file__).resolve().parents[2]
+RECIPE_DIRECTORY = Path('scripts/syncmate/recipes')
+OUTPUT_ROOT = 'results/runs/{experiment_id}/{run_id}'
 
 
-EXPERIMENT_RECIPES['opengu-aagu032-recovery-gate'] = {'config_path': 'experiments/configs/aagu032_extend_v2/recovery_gate.yaml',
- 'config_sha256': '165d76e14f5599d47171c95a10cc1cd61bcfc8d51567e1f1a13705a6bf1abec4',
- 'configuration_fingerprint': '92eb36572c32680383b4dcad65aecd068337d0be08d20a537fdf5d592369a04d',
- 'run_identity': {'experiment_id': 'aagu032-multibudget-recovery-gate',
-                  'run_id': 'aagu032-recovery-gate-20260920'},
- 'timeout_seconds': 21600,
- 'logical_cells': 8,
- 'stage': 'unlearning',
- 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                       {'num_nodes': 3327, 'candidate_count': 2328}]}
-
-EXPERIMENT_RECIPES['opengu-aagu047-shard-gate-v1'] = {
-    'config_path': 'experiments/configs/aagu011/recovery_gate.yaml',
-    'config_sha256': '2a8970e305e0c314b2e32cdcf0227fd7e7baad1857e55346ca056fa8e438f568',
-    'configuration_fingerprint': 'cf3bc6e7083883d74ffbf88620df2d61d370864bfb85a792bc42f5c9b7550270',
-    'run_identity': {'experiment_id': 'aagu047-shard-numerics', 'run_id': 'aagu047-shard-gate-v1'},
-    'timeout_seconds': 21600, 'logical_cells': 12, 'stage': 'unlearning',
-    'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                          {'num_nodes': 3327, 'candidate_count': 2328},
-                          {'num_nodes': 19717, 'candidate_count': 13801}],
-}
-EXPERIMENT_RECIPES['opengu-aagu011-table01-v2'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-table01-v1'])
-EXPERIMENT_RECIPES['opengu-aagu011-table01-v2']['run_identity']['run_id'] = 'aagu011-table01-v2'
+class UniqueLoader(yaml.SafeLoader):
+    """Reject duplicate declaration fields rather than silently replacing them."""
 
 
-EXPERIMENT_RECIPES['opengu-aagu048-gpa-gate-v1'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu047-shard-gate-v1'])
-EXPERIMENT_RECIPES['opengu-aagu048-gpa-gate-v1'].update({
-    'config_path': 'experiments/configs/aagu011/recovery_gate_v2.yaml',
-    'config_sha256': '4424629c775f2e1d8274ab578a40ac51b1e377bf8ee84547783b8834e9b3a543',
-    'configuration_fingerprint': '97277ec53f40c7a10eb7ad2384a5fffb3dc2683ca1e573d57925bded0d335c3e',
-    'run_identity': {'experiment_id': 'aagu048-gpa-numerics', 'run_id': 'aagu048-gpa-gate-v1'},
-})
+def _mapping(loader, node):
+    result = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node)
+        if key in result:
+            raise ValueError('duplicate recipe field: ' + str(key))
+        result[key] = loader.construct_object(value_node)
+    return result
 
 
-EXPERIMENT_RECIPES['opengu-aagu051-gate-v1'] = {'config_path': 'experiments/configs/aagu051/gate.yaml',
- 'config_sha256': '4a739195862329bab803ff11a4730e325e3ca3159810c387beaf08b28ff11e19',
- 'configuration_fingerprint': '1cb3324c7d6deb81c5e0725e46c44443b6b6ba3de5a6f049f0a7cc1715335829',
- 'run_identity': {'experiment_id': 'aagu051-random-gate',
-                  'run_id': 'aagu051-gate-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 30,
- 'stage': 'unlearning',
- 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                       {'num_nodes': 3327, 'candidate_count': 2328},
-                       {'num_nodes': 19717, 'candidate_count': 13801}]}
-EXPERIMENT_RECIPES['opengu-aagu051-table-v1'] = {'config_path': 'experiments/configs/aagu051/table.yaml',
- 'config_sha256': '84fbe2d3e753870ef1d55a128498d4206f346f9c0b783f242bd49502790cdfa1',
- 'configuration_fingerprint': '34a2d4dd387f990a39daf4f4ed718428cce50ab84cce92b9f3586371cbc9d140',
- 'run_identity': {'experiment_id': 'aagu051-random-response',
-                  'run_id': 'aagu051-table-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 150,
- 'stage': 'unlearning',
- 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                       {'num_nodes': 3327, 'candidate_count': 2328},
-                       {'num_nodes': 19717, 'candidate_count': 13801}]}
+UniqueLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _mapping)
 
 
-EXPERIMENT_RECIPES['opengu-aagu053-gate-v1'] = {'config_path': 'experiments/configs/im_group_discussion/gate_10.yaml',
- 'config_sha256': '0264197ecb135798da8187c3250d6fbebbf68a7a97e3b8880c4bec9bec1f1f6c',
- 'configuration_fingerprint': 'f40d0751d691f3892b8980ca56836ec72216ea13e098968e31120d7bbe452315',
- 'run_identity': {'experiment_id': 'aagu053-im-group-gate10',
-                  'run_id': 'aagu053-newtraining-gate-20260920'},
- 'timeout_seconds': 21600,
- 'logical_cells': 36,
- 'stage': 'unlearning',
- 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                       {'num_nodes': 3327, 'candidate_count': 2328},
-                       {'num_nodes': 19717, 'candidate_count': 13801}]}
-EXPERIMENT_RECIPES['opengu-aagu053-table-v1'] = {'config_path': 'experiments/configs/im_group_discussion/Experiment.yaml',
- 'config_sha256': 'b44d131927bf822e008ac86a448dc7c9c60c5acd4d44b6d0f6aa50da6d4eee8b',
- 'configuration_fingerprint': 'd296c63caf0cae2950f3a4fb3f590c78f249911311883b8e25d3f68f67486a15',
- 'run_identity': {'experiment_id': 'aagu053-im-group-budget10',
-                  'run_id': 'aagu053-newtraining-full-20260920'},
- 'timeout_seconds': 21600,
- 'logical_cells': 96,
- 'stage': 'unlearning',
- 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895},
-                       {'num_nodes': 3327, 'candidate_count': 2328},
-                       {'num_nodes': 19717, 'candidate_count': 13801}]}
-EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-cora-s22-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_cora_s22.yaml',
- 'config_sha256': '74238be764f8bbf0aaf03555952dd6ac3790f3596812dc987e82113d9321da44',
- 'configuration_fingerprint': 'aa998ba3f7efac60ec7522c88949874e03d1b24d3faae675e104d886cbf2f882',
- 'run_identity': {'experiment_id': 'aagu053-celf-warmup-cora-s22',
-                  'run_id': 'aagu053-celf-warmup-cora-s22-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 1,
- 'stage': 'selector',
- 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}]}
-EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-cora-s33-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_cora_s33.yaml',
- 'config_sha256': '499699e065c40bed35ed74ab5ded7d42d4d86b6ddd55fd3e07a6b6174e706e6e',
- 'configuration_fingerprint': '7250f94f63492c59f68146ea0f398270b5f6e95dcd2462f9e7b41baff74066c8',
- 'run_identity': {'experiment_id': 'aagu053-celf-warmup-cora-s33',
-                  'run_id': 'aagu053-celf-warmup-cora-s33-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 1,
- 'stage': 'selector',
- 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}]}
-EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-citeseer-s22-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_citeseer_s22.yaml',
- 'config_sha256': '55723b79038e23c7d4217d2aed09302828c4fe50d5f20a8d003e5b42a5f95c21',
- 'configuration_fingerprint': '75f193e93b723c59a0021cd007488025e854ffbcbe6330a1f56bad33dba01d97',
- 'run_identity': {'experiment_id': 'aagu053-celf-warmup-citeseer-s22',
-                  'run_id': 'aagu053-celf-warmup-citeseer-s22-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 1,
- 'stage': 'selector',
- 'expected_datasets': [{'num_nodes': 3327, 'candidate_count': 2328}]}
-EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-citeseer-s33-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_citeseer_s33.yaml',
- 'config_sha256': 'c2d36863f36fc2fccc62e48345ba1f0028a354ae1756c1152ecd7aa03afb3fbf',
- 'configuration_fingerprint': 'f6ff71d740501dc77be3cb29b3f47378f81f14406bc7de57791bcd12c2088174',
- 'run_identity': {'experiment_id': 'aagu053-celf-warmup-citeseer-s33',
-                  'run_id': 'aagu053-celf-warmup-citeseer-s33-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 1,
- 'stage': 'selector',
- 'expected_datasets': [{'num_nodes': 3327, 'candidate_count': 2328}]}
-EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-pubmed-s22-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_pubmed_s22.yaml',
- 'config_sha256': 'f7f2506510230b57df9a004013f787c085dd4313e955f88d9746f68a55d72e85',
- 'configuration_fingerprint': 'a9fefe5333e8791e5b4aa23257326b5c93491e7793cdeb205bf79ec96b3d5114',
- 'run_identity': {'experiment_id': 'aagu053-celf-warmup-pubmed-s22',
-                  'run_id': 'aagu053-celf-warmup-pubmed-s22-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 1,
- 'stage': 'selector',
- 'expected_datasets': [{'num_nodes': 19717, 'candidate_count': 13801}]}
-EXPERIMENT_RECIPES['opengu-aagu053-celf-warmup-pubmed-s33-v1'] = {'config_path': 'experiments/configs/im_group_discussion/celf_warmup_pubmed_s33.yaml',
- 'config_sha256': '91d473d01cb7c90598d77075899d0d09facd982c9b4a58e01ba3a346d1f920e2',
- 'configuration_fingerprint': '542e600b038ea4c6a4c0a7b7a20c6cbc1983971bc959be749cfaca139c7acb94',
- 'run_identity': {'experiment_id': 'aagu053-celf-warmup-pubmed-s33',
-                  'run_id': 'aagu053-celf-warmup-pubmed-s33-v1'},
- 'timeout_seconds': 21600,
- 'logical_cells': 1,
- 'stage': 'selector',
- 'expected_datasets': [{'num_nodes': 19717, 'candidate_count': 13801}]}
-
-EXPERIMENT_RECIPES['opengu-aagu056-rr1024-v1'] = {
-    'config_path': 'experiments/configs/aagu056/rr_1024.yaml',
-    'config_sha256': '0f7c7806c1e4ca168a713d682dbdbe8130c0e30c1eb8c9f86563f94bf8c7d55a',
-    'configuration_fingerprint': '2094d1c119bd6c7170cdfe9ae40d6637f4b6a24a10e9abb8d8d8da3243e523ea',
-    'run_identity': {'experiment_id': 'aagu056-arxiv-rr1024-budget05',
-                     'run_id': 'aagu056-rr1024-v1'},
-    'timeout_seconds': 21600,
-    'logical_cells': 1,
-    'stage': 'selector',
-    'expected_datasets': [{'num_nodes': 169343, 'candidate_count': 118540}],
-}
-# AAGU-052: same table conditions, calibrated GIF and new immutable runs.
-EXPERIMENT_RECIPES['opengu-aagu052-gif-gate-v1'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-gate-v1'])
-EXPERIMENT_RECIPES['opengu-aagu052-gif-gate-v1'].update({'config_path': 'experiments/configs/aagu052/gate.yaml', 'config_sha256': '53b55195c93f594eaf62a661b8d9c3b34e104f95141c52cd7e35a8bb745c03c2', 'configuration_fingerprint': 'b3c6250d7ba6d37ccbe58e314ec4d4144a27cdbaac63c8c2d47d9fd46437a5cb'})
-EXPERIMENT_RECIPES['opengu-aagu052-gif-gate-v1']['run_identity']['run_id'] = 'aagu052-gif-gate-v1'
-EXPERIMENT_RECIPES['opengu-aagu011-table01-v3'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-table01-v2'])
-EXPERIMENT_RECIPES['opengu-aagu011-table01-v3'].update({'config_path': 'experiments/configs/aagu052/table01.yaml', 'config_sha256': '25df2f2d46f10774e16f9d2827935f9278abc272f63001444694438d7bdf19be', 'configuration_fingerprint': '4bd80a3896ef1e1272954b11f32d07e6cedfbc60e618dcd169fa26c22354b669'})
-EXPERIMENT_RECIPES['opengu-aagu011-table01-v3']['run_identity']['run_id'] = 'aagu011-table01-v3'
-EXPERIMENT_RECIPES['opengu-aagu011-references-v2'] = copy.deepcopy(EXPERIMENT_RECIPES['opengu-aagu011-references-v1'])
-EXPERIMENT_RECIPES['opengu-aagu011-references-v2']['run_identity']['run_id'] = 'aagu011-references-v2'
+def _fields(value, required, optional=()):
+    if not isinstance(value, dict) or set(value) - set(required) - set(optional) or set(required) - set(value):
+        raise ValueError('recipe declaration has missing or unsupported fields')
 
 
-def recipe_definitions():
-    from pathlib import Path
+def load_declaration(path):
+    path = Path(path)
+    if path.is_symlink():
+        raise ValueError('recipe declaration must be a regular file')
+    spec = yaml.load(path.read_text(encoding='utf-8'), Loader=UniqueLoader)
+    return validate_declaration(spec)
+
+
+def validate_declaration(spec):
+    common = {'schema_version', 'id', 'runner', 'config_path', 'config_sha256', 'timeout_seconds'}
+    experiment = {'configuration_fingerprint', 'run_identity', 'logical_cells', 'expected_datasets', 'stage', 'outputs'}
+    runner = spec.get('runner') if isinstance(spec, dict) else None
+    if runner not in ('smoke', 'opengu-preflight-v1', 'experiment', 'diagnostic'):
+        raise ValueError('unknown recipe runner')
+    required = common
+    if runner == 'experiment':
+        required = common | experiment
+    elif runner == 'diagnostic':
+        required = common | (experiment - {'stage', 'expected_datasets'}) | {'hidden_channels'}
+    _fields(spec, required)
+    if type(spec['schema_version']) is not int or spec['schema_version'] != 1:
+        raise ValueError('unsupported recipe schema_version')
+    if not isinstance(spec['id'], str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,80}', spec['id']):
+        raise ValueError('unsafe recipe id')
+    if runner in ('smoke', 'opengu-preflight-v1') and spec['id'] != runner:
+        raise ValueError('built-in runner identity mismatch')
+    if runner in ('experiment', 'diagnostic'):
+        _fields(spec['run_identity'], {'experiment_id', 'run_id'})
+        modular_output_path(**spec['run_identity'])
+        if not isinstance(spec['configuration_fingerprint'], str) or not re.fullmatch('[0-9a-f]{64}', spec['configuration_fingerprint']):
+            raise ValueError('invalid configuration fingerprint')
+        if type(spec['logical_cells']) is not int or spec['logical_cells'] < 1:
+            raise ValueError('logical_cells must be positive')
+        _fields(spec['outputs'], {'root', 'layout', 'files'})
+        layout = 'modular-cells-v1' if runner == 'experiment' else 'aagu059-curvature-v1'
+        files = ['run.json', *ARTIFACT_NAMES] if runner == 'experiment' else ['run.json', 'inputs.json', 'h{hidden_channels}-{method}-curvature.json', 'h{hidden_channels}-{method}-{budget}.json']
+        if spec['outputs'] != {'root': OUTPUT_ROOT, 'layout': layout, 'files': files}:
+            raise ValueError('outputs must match the ordinary executor layout and collection rules')
+        if runner == 'experiment':
+            if spec['stage'] not in ('selector', 'unlearning', 'metrics') or not isinstance(spec['expected_datasets'], list) or not spec['expected_datasets']:
+                raise ValueError('invalid experiment stage or dataset counts')
+            for counts in spec['expected_datasets']:
+                _fields(counts, {'num_nodes', 'candidate_count'})
+                if any(type(v) is not int for v in counts.values()) or not 0 < counts['candidate_count'] <= counts['num_nodes']:
+                    raise ValueError('invalid dataset counts')
+        elif type(spec['hidden_channels']) is not int or spec['hidden_channels'] not in (16, 64):
+            raise ValueError('diagnostic width must be 16 or 64')
+    return spec
+
+
+def assemble(spec, project_root=ROOT):
     from experiments.modular_config import load_experiment
-    root = Path(__file__).resolve().parents[2]
-    definitions = {
-        "smoke": {
-            "id": "smoke",
-            "argv": ("{python}", "scripts/syncmate/syncmate.py", "smoke", "--json"),
-            "config_path": "scripts/syncmate/setup.example.yaml",
-            "config_sha256": "a04773028a9045c929f6ac3635dd3cea5b17de89184095d3e396aeb19baf77c5",
-            "recipe_introduced_git_sha": RUNNER_RECIPE_INTRODUCED_SHA,
-            "git_binding_policy": "job-exact-main-v1", "timeout_seconds": 180,
-            "expected_artifact_paths": (), "success_predicate": "json.passed == true",
-            "collector_acceptance": False,
-        },
-        "opengu-preflight-v1": {
-            "id": "opengu-preflight-v1",
-            "argv": ("{python}", "scripts/syncmate/syncmate.py", "runner-preflight", "--recipe", "opengu-preflight-v1", "--json"),
-            "config_path": "scripts/syncmate/setup.example.yaml",
-            "config_sha256": "a04773028a9045c929f6ac3635dd3cea5b17de89184095d3e396aeb19baf77c5",
-            "recipe_introduced_git_sha": RUNNER_RECIPE_INTRODUCED_SHA,
-            "git_binding_policy": "job-exact-main-v1", "timeout_seconds": 180,
-            "expected_artifact_paths": (
-                "results/runs/__syncmate_preflight__/opengu_preflight/seed0/attack.json",
-                "results/runs/__syncmate_preflight__/opengu_preflight/seed0/collateral.json",
-                "results/runs/__syncmate_preflight__/opengu_preflight/seed0/_meta.json",
-            ),
-            "success_predicate": "json.passed == true and generated_artifacts == expected_artifact_paths",
-            "collector_acceptance": True,
-        },
-    }
-    for recipe_id, plan in EXPERIMENT_RECIPES.items():
-        summary = modular_output_path(**plan['run_identity'])
-        paths = (summary,) + output_paths(summary, load_experiment(root / plan['config_path']))
-        definitions[recipe_id] = {**copy.deepcopy(plan), 'id': recipe_id,
-            'argv': ('{python}', 'experiments/run.py', plan['config_path'],
-                     '--run-id', plan['run_identity']['run_id']),
-            'git_binding_policy': 'job-exact-main-v1', 'requires_job_expected_git_sha': True,
-            'timeout_seconds': plan['timeout_seconds'], 'expected_artifact_paths': paths,
-            'collector_result_roots': (summary.rsplit('/', 1)[0],),
-            'collector_artifact_names': ('run.json',) + ARTIFACT_NAMES,
-            'preflight_profile': 'modular-project-v1', 'collector_profile': 'modular-output-v1',
-            'collector_acceptance': True, 'execution_validator': 'exact-artifacts-json-v1',
-            'success_predicate': 'json.passed == true and all reviewed artifacts exist'}
-    # Each width is a separate ordinary YAML and immutable diagnostic run.
-    for width, filename, config_sha, fingerprint in (
-        (64, 'table01.yaml', '906eb8f787b8cd37344c2ed7fee414d73471a19e7f2bea65a307f636e8a4bf60',
-         '452d1dde7b8bf600898d83a0adf304df58a56afe4442f17b08ef7acb2371aac7'),
-        (16, 'table01_hidden16.yaml', 'd8e228dbb935707b8699df8f58db8cbbb02d988168f32aa6fba941678ac385c7',
-         '70d87cb0f16b4ad02ff48634b2c1fb795a7c112fd3a24c1bd6fa756c2da4e41a'),
-    ):
-        experiment_id = f'aagu059-table01-h{width}'
-        run_id = experiment_id+('-v3' if width==64 else '-v4')
-        recipe_id = 'opengu-'+run_id
-        config_path = 'experiments/configs/aagu059/'+filename
-        base = f'results/runs/{experiment_id}/{run_id}'
-        names = ['run.json', 'inputs.json']
-        names += [f'h{width}-{method}-curvature.json' for method in ('gif', 'idea')]
-        names += [f'h{width}-{method}-{budget}.json' for method in ('gif', 'idea') for budget in (100, 200, 400)]
-        definitions[recipe_id] = {
-            'id': recipe_id, 'config_path': config_path, 'config_sha256': config_sha,
-            'configuration_fingerprint': fingerprint, 'logical_cells': 6,
-            'run_identity': {'experiment_id': experiment_id, 'run_id': run_id},
-            'argv': ('{python}', 'experiments/aagu059_diagnostic.py', config_path, '--run-id', run_id),
-            'git_binding_policy': 'job-exact-main-v1', 'requires_job_expected_git_sha': True,
-            'timeout_seconds': 1800, 'expected_artifact_paths': tuple(sorted(base+'/'+n for n in names)),
-            'collector_result_roots': (base,), 'collector_artifact_names': tuple(names),
-            'preflight_profile': 'modular-project-v1', 'collector_acceptance': False,
-            'execution_validator': 'exact-artifacts-json-v1',
-            'success_predicate': 'json.passed == true and all reviewed diagnostic artifacts exist',
-        }
-    return definitions
+    root = Path(project_root)
+    config_path = resolve_repo_path(root, spec['config_path'])
+    if not config_path.is_file():
+        raise ValueError('recipe config is missing')
+    spec = validate_declaration(spec)
+    runner = spec['runner']
+    definition = {k: copy.deepcopy(v) for k, v in spec.items()
+                  if k not in ('schema_version', 'runner', 'outputs', 'hidden_channels')}
+    definition.update(git_binding_policy='job-exact-main-v1', collector_acceptance=False)
+    if runner in ('smoke', 'opengu-preflight-v1'):
+        definition.update(argv=('{python}', 'scripts/syncmate/syncmate.py', 'smoke', '--json'),
+            recipe_introduced_git_sha='3331c641ce16d0d7a3def66b0e302dd4a39a919c',
+            expected_artifact_paths=(), success_predicate='json.passed == true')
+        if runner == 'opengu-preflight-v1':
+            definition.update(argv=('{python}', 'scripts/syncmate/syncmate.py', 'runner-preflight', '--recipe', spec['id'], '--json'),
+                expected_artifact_paths=tuple('results/runs/__syncmate_preflight__/opengu_preflight/seed0/'+n
+                    for n in ('attack.json', 'collateral.json', '_meta.json')),
+                collector_acceptance=True,
+                success_predicate='json.passed == true and generated_artifacts == expected_artifact_paths')
+    else:
+        summary = modular_output_path(**spec['run_identity'])
+        base = summary.rsplit('/', 1)[0]
+        entry = 'experiments/run.py' if runner == 'experiment' else 'experiments/aagu059_diagnostic.py'
+        definition.update(argv=('{python}', entry, spec['config_path'], '--run-id', spec['run_identity']['run_id']),
+            requires_job_expected_git_sha=True, collector_result_roots=(base,),
+            preflight_profile='modular-project-v1', execution_validator='exact-artifacts-json-v1')
+        if runner == 'experiment':
+            config = load_experiment(config_path)
+            if config['experiment_id'] != spec['run_identity']['experiment_id'] or config['stage'] != spec['stage']:
+                raise ValueError('recipe identity or stage differs from experiment')
+            if len(config['datasets']) != len(spec['expected_datasets']):
+                raise ValueError('recipe dataset count differs from experiment')
+            definition.update(expected_artifact_paths=(summary,) + output_paths(summary, config),
+                collector_artifact_names=('run.json',) + ARTIFACT_NAMES,
+                collector_profile='modular-output-v1', collector_acceptance=True,
+                success_predicate='json.passed == true and all reviewed artifacts exist')
+        else:
+            width = spec['hidden_channels']
+            names = ['run.json', 'inputs.json']
+            names += [f'h{width}-{method}-curvature.json' for method in ('gif', 'idea')]
+            names += [f'h{width}-{method}-{budget}.json' for method in ('gif', 'idea') for budget in (100, 200, 400)]
+            definition.update(expected_artifact_paths=tuple(sorted(base+'/'+n for n in names)),
+                collector_artifact_names=tuple(names),
+                success_predicate='json.passed == true and all reviewed diagnostic artifacts exist')
+    Recipe(id=definition['id'], argv=definition['argv'], config_path=definition['config_path'],
+           config_sha256=definition['config_sha256'], timeout_seconds=definition['timeout_seconds'],
+           expected_artifact_paths=definition['expected_artifact_paths'],
+           execution_validator=definition.get('execution_validator', 'json-passed-v1'))
+    return definition
+
+
+def recipe_definitions(project_root=ROOT):
+    root = Path(project_root)
+    result = {}
+    for path in sorted((root / RECIPE_DIRECTORY).glob('*.yaml')):
+        path.resolve().relative_to(root.resolve())
+        spec = load_declaration(path)
+        if spec['id'] in result or path.stem != spec['id']:
+            raise ValueError('duplicate recipe id or filename/id mismatch: ' + str(path))
+        result[spec['id']] = assemble(spec, root)
+    if not result:
+        raise ValueError('no recipe declarations found')
+    return result
+
+
+def generate(config_path, *, recipe_id, run_id, expected_datasets, timeout_seconds=21600, project_root=ROOT):
+    """Explicit generation refreshes hashes; ordinary reads never refresh them."""
+    from experiments.modular_run import execute
+    from syncmate_core.identity import sha256_recipe_config
+    root = Path(project_root).resolve()
+    path = resolve_repo_path(root, config_path)
+    plan = execute(path, dry_run=True)
+    return {'schema_version': 1, 'id': recipe_id, 'runner': 'experiment',
+        'config_path': path.relative_to(root).as_posix(), 'config_sha256': sha256_recipe_config(path),
+        'configuration_fingerprint': plan['configuration_fingerprint'],
+        'run_identity': {'experiment_id': plan['experiment_id'], 'run_id': run_id},
+        'timeout_seconds': timeout_seconds, 'logical_cells': plan['logical_cells'],
+        'stage': plan['stage'], 'expected_datasets': expected_datasets,
+        'outputs': {'root': OUTPUT_ROOT, 'layout': 'modular-cells-v1', 'files': ['run.json', *ARTIFACT_NAMES]}}

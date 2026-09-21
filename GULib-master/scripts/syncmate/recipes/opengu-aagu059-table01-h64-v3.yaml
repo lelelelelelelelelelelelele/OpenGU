@@ -1,0 +1,20 @@
+schema_version: 1
+id: opengu-aagu059-table01-h64-v3
+runner: diagnostic
+config_path: experiments/configs/aagu059/table01.yaml
+config_sha256: 906eb8f787b8cd37344c2ed7fee414d73471a19e7f2bea65a307f636e8a4bf60
+configuration_fingerprint: 452d1dde7b8bf600898d83a0adf304df58a56afe4442f17b08ef7acb2371aac7
+run_identity:
+  experiment_id: aagu059-table01-h64
+  run_id: aagu059-table01-h64-v3
+timeout_seconds: 1800
+logical_cells: 6
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: aagu059-curvature-v1
+  files:
+  - run.json
+  - inputs.json
+  - h{hidden_channels}-{method}-curvature.json
+  - h{hidden_channels}-{method}-{budget}.json
+hidden_channels: 64

@@ -1,0 +1,27 @@
+schema_version: 1
+id: opengu-aagu031-stage-s-v2
+runner: experiment
+config_path: experiments/configs/aagu031/stage_s.yaml
+config_sha256: b151f44fc7c73f1ae3f8916a94c2562e79cc1ea33eac5f84fed83749b783c58d
+configuration_fingerprint: 00c0711fee1ba5364d27f54555de58c0c56af3b28bbf1136a8b4acb0aaee35c7
+run_identity:
+  experiment_id: aagu031-selector-stage-s-v2
+  run_id: aagu031-newtraining-20260920
+timeout_seconds: 21600
+logical_cells: 72
+stage: selector
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

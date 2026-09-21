@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu053-celf-warmup-pubmed-s22-v1
+runner: experiment
+config_path: experiments/configs/im_group_discussion/celf_warmup_pubmed_s22.yaml
+config_sha256: f7f2506510230b57df9a004013f787c085dd4313e955f88d9746f68a55d72e85
+configuration_fingerprint: a9fefe5333e8791e5b4aa23257326b5c93491e7793cdeb205bf79ec96b3d5114
+run_identity:
+  experiment_id: aagu053-celf-warmup-pubmed-s22
+  run_id: aagu053-celf-warmup-pubmed-s22-v1
+timeout_seconds: 21600
+logical_cells: 1
+stage: selector
+expected_datasets:
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
