@@ -50,3 +50,32 @@ The accepted canonical H16/Cora fixed-PT method files are now promoted to
 `../unlearning/gif_cora_gcn_h16_fixed_pt.yaml` and
 `../unlearning/idea_cora_gcn_h16_fixed_pt.yaml`. The AAGU-065 files remain
 calibration evidence and are not deleted.
+
+
+## Observer integration (AAGU-070)
+
+`observer_h16.yaml` uses the ordinary `experiments/run.py` entry and three named
+Observers: linear_solver_trace, same_graph_change, hessian_calibration.
+`observer_h16_control.yaml` uses identical fixed H16/PT/Random104245/10% conditions
+and GIF/IDEA budgets 100/200/400, without Observers. Both disable GU caching.
+These are new integration runs, not replacements for historical calibration evidence.
+
+Reviewed recipe IDs are `opengu-aagu070-065-h16-v1` and
+`opengu-aagu070-065-h16-control-v1`. They use the ordinary SyncMate execution and
+return contract. Candidate readiness does not authorize merging or deployment.
+After both runs complete on the same approved SSH code version, compare locally
+on that runner (model outputs remain remote):
+
+```sh
+python -m experiments.aagu065_observer_comparison \
+  --observed results/runs/aagu065-observer-h16/aagu070-065-h16-v1/run.json \
+  --control results/runs/aagu065-observer-h16-control/aagu070-065-h16-control-v1/run.json \
+  --dataset-root . --store-root results/cache_v2
+```
+
+This reader reports exact state/logit equality, HVP observations, production-dtype
+finite Ritz estimates with residuals, writeback differences and solver observations.
+It does not select parameters or certify scientific acceptance. Content analysis is
+owned by the Observer/consumer; runtime collection only checks declarations,
+identity and bytes. The older dedicated calibration entry above describes historical
+runs; it is not the launcher for the new Observer integration.

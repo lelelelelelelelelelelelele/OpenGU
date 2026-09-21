@@ -465,10 +465,15 @@ class idea(IF_based_pipeline):
             pieces = [part.reshape_as(p) for part, p in zip(vector.split(sizes), model_params)]
             return torch.cat([v.reshape(-1) for v in self.hvps(res_tuple[0], model_params, pieces)])
 
+        if getattr(self, 'observer', None) is not None:
+            self.observer(dict(method='IDEA', phase='solver_system_ready', step=None, values=dict(
+                matvec=matvec, rhs=rhs, parameters=model_params,
+                scale=self.args['scale'], damp=self.args['damp'], iterations=iteration)))
         try:
             delta, self.solver_diagnostics = solve_gif_system(
                 matvec, rhs, iterations=iteration,
-                scale=self.args['scale'], damp=self.args['damp'])
+                scale=self.args['scale'], damp=self.args['damp'],
+                observer=getattr(self, 'observer', None), method='IDEA')
         except GIFNumericalError as error:
             self.solver_diagnostics = error.diagnostics
             raise
@@ -487,6 +492,10 @@ class idea(IF_based_pipeline):
         with torch.no_grad():
             for p, new_p in zip(model_params, params_esti):
                 p.copy_(new_p)
+        if getattr(self, 'observer', None) is not None:
+            self.observer(dict(method='IDEA', phase='update_applied', step=iteration, values=dict(
+                parameters=model_params, expected_parameters=params_esti, update=delta)))
+
         return time.time() - start_time, test_F1
 
     def hvps(self, grad_all, model_params, h_estimate):
@@ -655,6 +664,10 @@ class idea(IF_based_pipeline):
         loss2 = F.cross_entropy(out2[mask2], self.data.y[mask2], reduction='sum')
 
         model_params = [p for p in self.target_model.model.parameters() if p.requires_grad]
+        if getattr(self, 'observer', None) is not None:
+            self.observer(dict(method='IDEA', phase='loss_ready', step=None, values=dict(
+                loss=loss, loss_reduction='sum', model=self.target_model.model,
+                data=self.data, parameters=model_params)))
         grad_all = grad(loss, model_params, retain_graph=True, create_graph=True,allow_unused=True)
         grad1 = grad(loss1, model_params, retain_graph=True, create_graph=True,allow_unused=True)
         grad2 = grad(loss2, model_params, retain_graph=True, create_graph=True,allow_unused=True)      

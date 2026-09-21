@@ -14,7 +14,7 @@ class GIFNumericalError(RuntimeError):
         super().__init__(f"GIF approximation {diagnostics['status']}; model was not updated")
 
 
-def solve_gif_system(matvec, rhs, *, iterations, scale, damp, rtol=1e-3):
+def solve_gif_system(matvec, rhs, *, iterations, scale, damp, rtol=1e-3, observer=None, method="GIF"):
     """Compute h_0=v, h_(t+1)=v+(1-damp)h_t-Hh_t/scale; delta=h_T/scale.
 
     The infinite-series target, when it converges, is (H+scale*damp I)delta=v.
@@ -51,6 +51,12 @@ def solve_gif_system(matvec, rhs, *, iterations, scale, damp, rtol=1e-3):
             fail(step)
         return value
 
+    def emit(update, step, curvature=None):
+        if observer is not None:
+            observer(dict(method=method, phase="solver_step", step=step, values=dict(
+                update=update, rhs=rhs, matvec=matvec, curvature=curvature,
+                scale=scale, damp=damp, iterations=iterations)))
+
     def record(estimate, step):
         delta = estimate / scale
         curvature = product(delta, step)
@@ -71,11 +77,13 @@ def solve_gif_system(matvec, rhs, *, iterations, scale, damp, rtol=1e-3):
         diagnostics.update(iterations=step, relative_residual=relative,
                            undamped_relative_residual=undamped,
                            residual_within_tolerance=relative <= rtol)
+        emit(delta.detach(), step, curvature)
         return delta.detach()
 
     if denominator == 0:
         diagnostics.update(status='zero_rhs', iterations=0, relative_residual=0.,
                            undamped_relative_residual=0., residual_within_tolerance=True)
+        emit(torch.zeros_like(rhs), 0, torch.zeros_like(rhs))
         return torch.zeros_like(rhs), diagnostics
     estimate = rhs.clone()
     record(estimate, 0)
@@ -87,5 +95,7 @@ def solve_gif_system(matvec, rhs, *, iterations, scale, damp, rtol=1e-3):
             fail(step)
         if step % 10 == 0 or step == iterations:
             delta = record(estimate, step)
+        elif observer is not None:
+            emit((estimate / scale).detach(), step)
     diagnostics['status'] = 'finite_truncation'
     return delta, diagnostics

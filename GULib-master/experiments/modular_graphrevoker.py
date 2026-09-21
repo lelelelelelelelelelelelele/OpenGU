@@ -151,7 +151,9 @@ def graphrevoker_implementation_functions():
 
 
 def run_graphrevoker_unlearning(instance, *, selection, model, data, dataset_name, checkpoint,
-                        store_root, runtime_root, dataset_input, dataset_root):
+                        store_root, runtime_root, dataset_input, dataset_root, observer=None):
+    if observer is not None:
+        raise ValueError('method does not provide Observer events')
     from cache_v2 import ArtifactRecipe, ArtifactType
     from cache_v2.unlearning_output import OUTPUT_CONTRACT, UnlearningOutputPayload
     from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact, store_formal_artifact

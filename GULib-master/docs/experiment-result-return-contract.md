@@ -60,14 +60,14 @@ Output 引用，不包含图或预测数组。其标量值含总体和 1/2/3/>3�
 - 是否回传由具体运行的交付需求确定，不因“本地可能分析”自动强制。未回传可以通过 SSH 分析远端已有产物。
 - 不为回传增加评分或扩大 K；不生成伪造的缺失排名。NPZ 仅是数值数组容器，不能直接复制 Cache payload 填充此文件。
 
-## 不在结果文件夹中
+## 不进入常规回传包
 
 | 内容 | 处理 |
 |---|---|
 | graph、边、特征、标签 | 留在远端正式输入；不新增 collect-inputs 收集 |
 | train/val/test masks、节点名单、划分说明副本 | 不单独回传；正式输入按既有配置及远端核验保证 |
-| logits / logits_before、逐节点概率与预测 | 留在远端 Output Cache，供 Metrics 重算或 SSH 分析 |
-| 模型 checkpoint、模型状态和方法张量 | 留在远端 Cache |
+| logits / logits_before、逐节点概率与预测 | 留在执行端 Output Cache 或 run-owned Output，供 Metrics 重算或 SSH 分析 |
+| 模型 checkpoint、模型状态和方法张量 | 留在执行端 Cache 或 run-owned Output |
 | 梯度、Hessian/逆近似、优化器和其他临时状态 | 留在计算/缓存端 |
 | 全量 experiment/子 YAML 展开副本、源码 | 不回传；已提交配置由 commit + 路径定位 |
 | 传输临时 manifest、checksum 文件 | 由 SyncMate 执行核验并管理，不作为实验结果文件；按现有机制清理临时物，不删除 Cache 自身校验/来源记录 |
@@ -91,3 +91,33 @@ Output 引用，不包含图或预测数组。其标量值含总体和 1/2/3/>3�
 独立 Metrics 表使用 `output_inputs: [{run: <已有run.json路径>, sha256: <文件SHA256>}]`，在持有正式输入和 Cache 的执行端重算。生成新 run 后走普通收集，既有 results 表按原实验和 cell 选择最新完成的指标；不把旧轮未请求指标混入新轮，也不改写历史 run。Metrics 的来源 run 以简要引用保存。没有通用运行时配置覆盖入口，因此不创建空 overrides 或配置副本。
 
 `read_run(path, sha256)` 读取已校验的结果目录。机器交付核验包含配置/身份/预算/文件集合与哈希检查，不以本地复算 logits 作为常规回传前提。软件验证、正式 SSH 实验和人的科研接受分别记录。
+
+## Observer 与无缓存 Output
+
+普通 experiment 直接声明 `observers: [{name: linear_solver_trace, methods: [GIF, IDEA]}]`，
+仅需要覆盖默认值时填写 `parameters`。名称在 `experiments.observers.OBSERVERS` 映射到类，
+没有独立 Observer YAML 引用。每个 Observer 位于 experiments/observers/ 下的同名 Python 文件；__init__.py 只负责注册与运行时管理。当前提供 linear_solver_trace、same_graph_change、hessian_calibration。
+
+调用点提供语义明确的上下文；Observer 在 Python 实现中声明 `requires`（事件到字段集合）和
+`files`（相对输出文件路径）。ObserverSession 按声明选取字段、调用、计时和结束保存。
+GIF/IDEA 提供 unlearning_start/end、loss_ready、solver_system_ready、solver_step、update_applied。
+缺字段属于接口错误；数值发散、NaN、残差大小属于 Observer 记录/分析的内容，不由公共层判定。
+
+运行时管理目录、完整运行/配置/Output 身份和文件哈希；这些信息保存在 run.json 的 Observer 引用中。
+文件内容不要求 JSON、固定 result.json 或仅标量，read_run 对 Observer 文件只核验哈希并返回 bytes。
+内容读取、格式解释和数值分析由 Observer 或它的消费者实现承担。公共层不调用科学判据。
+保存异常和算法失败保留已生成文件及失败引用，不能伪装成完成。
+
+请求运行期事件的方法必须使用 `execution.gu_cache: {GIF: disabled, IDEA: disabled}`，确保实际执行。
+可同时保留 `Retrain: reuse`；checkpoint、Score、Selection 的复用规则不变。
+禁用 GU 缓存时最终 Output 使用运行独立的 output.npz，统一 metrics 仍能读取。
+
+SyncMate 按 Observer 的文件声明收集、核验哈希和索引；Adapter 只核对引用身份、配置和文件集合，
+不读取 Observer 内容或理解数值。output.npz 与输入图/模型留在执行端。
+方法计时包含求解期 callback 开销；observer_seconds 包含全部回调额外计算，不能称为纯 GU 耗时。
+
+065 首个真实消费者配置是 `experiments/configs/aagu065/observer_h16.yaml` 及同目录
+`observer_h16_control.yaml`，固定 H16/PT/Random104245/10%删除/scale9000/damp2048÷9000，
+分别运行 GIF/IDEA 的100/200/400步。两表均禁用 GU 缓存，只有前者挂载 Observer。
+`python -m experiments.aagu065_observer_comparison` 只读比较两次 Output 并解释自己的观测文件，
+不启动实验、不修改方法预算、不进行科研验收。正式执行仍遵守 SSH 版本与部署边界。

@@ -473,6 +473,10 @@ class gif(IF_based_pipeline):
             loss2 = F.cross_entropy(out2[mask2], self.data.y[mask2], reduction='sum')
 
             model_params = [p for p in self.target_model.model.parameters() if p.requires_grad]
+            if getattr(self, 'observer', None) is not None:
+                self.observer(dict(method='GIF', phase='loss_ready', step=None, values=dict(
+                    loss=loss, loss_reduction='sum', model=self.target_model.model,
+                    data=self.data, parameters=model_params)))
             grad_all = grad(loss, model_params, retain_graph=True, create_graph=True)
             grad1 = grad(loss1, model_params, retain_graph=True, create_graph=True)
             grad2 = grad(loss2, model_params, retain_graph=True, create_graph=True)      
@@ -799,10 +803,16 @@ class gif(IF_based_pipeline):
             product = sum((g * part).sum() for g, part in zip(res_tuple[0], pieces))
             values = grad(product, model_params, retain_graph=True)
             return torch.cat([value.reshape(-1) for value in values])
+        rhs = torch.cat([part.detach().reshape(-1) for part in v])
+        if getattr(self, 'observer', None) is not None:
+            self.observer(dict(method='GIF', phase='solver_system_ready', step=None, values=dict(
+                matvec=matvec, rhs=rhs, parameters=model_params,
+                scale=scale, damp=damp, iterations=iteration)))
         try:
             delta, self.solver_diagnostics = solve_gif_system(
-                matvec, torch.cat([part.detach().reshape(-1) for part in v]),
-                iterations=iteration, scale=scale, damp=damp)
+                matvec, rhs,
+                iterations=iteration, scale=scale, damp=damp,
+                observer=getattr(self, "observer", None), method="GIF")
         except GIFNumericalError as error:
             self.solver_diagnostics = error.diagnostics
             raise
@@ -823,6 +833,10 @@ class gif(IF_based_pipeline):
             trainable_params = [p for p in self.target_model.model.parameters() if p.requires_grad]
             for p, new_p in zip(trainable_params, params_esti):
                 p.data.copy_(new_p.detach().to(p.device))
+
+        if getattr(self, 'observer', None) is not None:
+            self.observer(dict(method='GIF', phase='update_applied', step=iteration, values=dict(
+                parameters=model_params, expected_parameters=params_esti, update=delta)))
 
         return time.time() - start_time, test_F1
 

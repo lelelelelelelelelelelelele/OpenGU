@@ -70,11 +70,12 @@ def planned_cells(config):
 
 
 def output_paths(run_path, config):
+    from experiments.observers import observer_files
     names = ['selection.json'] if config['stage'] == 'selector' else ['metrics.json', 'selection.json']
     if config.get('return_scores'):
         names.append('scores.npz')
     return tuple((Path(run_path).parent / cell['path'] / name).as_posix()
-                 for cell in planned_cells(config) for name in names)
+                 for cell in planned_cells(config) for name in names + observer_files(config, cell['conditions']['method']))
 
 
 def generated_paths(summary, context):
@@ -169,13 +170,15 @@ def export_outputs(summary, *, config, context, run):
                     selection_reference={key: selection['artifact'][key]
                         for key in ('artifact_id', 'recipe_hash', 'content_hash')},
                     selector_seed_source=selected['configuration_sources']['parameters.im_selector_seed'])
-            cell['timing'] = {'selection_seconds': selected.get('selection_seconds'),
+            cell['timing'] = {'observer_seconds': row.get('observer_seconds', 0.0),
+                'method_timing_semantics': 'includes solver callback overhead; observer_seconds includes start/end callbacks',
+                'selection_seconds': selected.get('selection_seconds'),
                 'score_access_seconds': selected['score'].get('access_seconds'),
                 'method_compute_seconds': row.get('compute_seconds')}
             cell['cache'] = {'score': ('not_applicable' if selected['score']['hit'] is None else
                           'hit' if selected['score']['hit'] else 'miss'),
                 'selection': 'hit' if selection['cache']['hit'] else 'miss',
-                'method': ('hit' if row['hit'] else 'miss') if config['stage'] == 'unlearning' else 'not_applicable'}
+                'method': ('disabled' if row.get('cache_policy') == 'disabled' else 'hit' if row['hit'] else 'miss') if config['stage'] == 'unlearning' else 'not_applicable'}
             for name, checkpoint in (('selector_checkpoint', selected.get('checkpoint')),
                     ('method_checkpoint', row.get('checkpoint') if config['stage'] == 'unlearning' else None)):
                 cell['cache'][name] = ('hit' if checkpoint['hit'] else 'miss') if (
@@ -215,8 +218,8 @@ def export_outputs(summary, *, config, context, run):
             cell['scores'] = {'keys': list(arrays), 'selector_ref': cell['conditions']['selector_ref'],
                               'semantics': selected['score_semantics']}
             cell['results']['scores'] = 'completed'
-        cell['files'] = {name: {'sha256': hashlib.sha256((folder / name).read_bytes()).hexdigest()}
-                         for name in documents}
+        cell['files'].update({name: {'sha256': hashlib.sha256((folder / name).read_bytes()).hexdigest()}
+                         for name in documents})
         cell['status'] = 'completed'
         update_run(run, context.output)
     run['status'] = 'completed'
@@ -247,7 +250,7 @@ def read_run(path, expected_sha256):
     documents = []
     for cell in run['cells']:
         if set(cell) - {'cell_id', 'path', 'conditions', 'status', 'files', 'results', 'output',
-                        'selection_id', 'timing', 'cache', 'producer_called', 'scores', 'source'}:
+                        'selection_id', 'timing', 'cache', 'producer_called', 'scores', 'source', 'observers'}:
             raise ValueError('unexpected cell fields')
         if cell['status'] != 'completed' or cell['cell_id'] in seen or cell['path'] in seen:
             raise ValueError('duplicate or incomplete result cell')
@@ -257,14 +260,39 @@ def read_run(path, expected_sha256):
         for name in ('metrics', 'scores'):
             if cell['results'][name] == 'completed':
                 required.add(name + ('.npz' if name == 'scores' else '.json'))
-        if set(cell['files']) != required or required - set(ARTIFACT_NAMES):
+        observer_names = set()
+        for reference in cell.get('observers', []):
+            from experiments.observers import OBSERVERS, declared_files
+            name = reference['name']
+            if name in observer_names or name not in OBSERVERS or reference['status'] != 'completed':
+                raise ValueError('invalid Observer reference')
+            observer_names.add(name)
+            expected = {f'observers/{name}/{file}' for file in declared_files(OBSERVERS[name])}
+            if set(reference['files']) != expected or reference['semantic_version'] != OBSERVERS[name].version:
+                raise ValueError('Observer file or semantic declaration mismatch')
+            if any(cell['files'].get(k) != v for k, v in reference['files'].items()):
+                raise ValueError('Observer hashes differ from cell files')
+            identity = reference['identity']
+            if (identity['cell_id'] != cell['cell_id'] or identity['conditions'] != cell['conditions']
+                    or identity['run_id'] != run['run_id'] or identity['experiment_id'] != run['experiment_id']
+                    or identity['commit'] != run['commit']
+                    or identity['output_identity']['selection']['artifact_id'] != cell['selection_id']):
+                raise ValueError('Observer reference identity mismatch')
+            from cache_v2 import ArtifactRecipe
+            from cache_v2.unlearning_output import OUTPUT_CONTRACT
+            if ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **identity['output_identity']}).recipe_hash != cell['output']['recipe_hash']:
+                raise ValueError('Observer does not bind cell Output')
+            required.update(expected)
+        if set(cell['files']) != required:
             raise ValueError('result file declaration mismatch')
         values = {}
         for name, item in cell['files'].items():
-            target = folder / name
+            target = safe_path(folder, name)
             if hashlib.sha256(target.read_bytes()).hexdigest() != item['sha256']:
                 raise ValueError('result checksum mismatch: ' + name)
-            if name == 'scores.npz':
+            if name.startswith('observers/'):
+                values[name] = target.read_bytes()
+            elif name == 'scores.npz':
                 with np.load(target, allow_pickle=False) as arrays:
                     if set(arrays.files) != set(cell['scores']['keys']):
                         raise ValueError('score keys differ from declaration')

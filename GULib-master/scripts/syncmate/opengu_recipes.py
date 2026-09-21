@@ -6,7 +6,6 @@ from scripts.syncmate.opengu_layout import modular_output_path
 
 RUNNER_AGENT_MAX_TIMEOUT_SECONDS = 21600
 RUNNER_RECIPE_INTRODUCED_SHA = "3331c641ce16d0d7a3def66b0e302dd4a39a919c"
-RUNNER_RECIPE_ALLOWED_TOOL_DELTA = ("GULib-master/scripts/syncmate/", "GULib-master/tests/test_syncmate.py")
 
 # These fingerprints are reviewed constants, not recomputed expected values.
 # Changing any referenced table requires a new review and updated registration.
@@ -381,6 +380,27 @@ EXPERIMENT_RECIPES['opengu-aagu011-references-v2'] = copy.deepcopy(EXPERIMENT_RE
 EXPERIMENT_RECIPES['opengu-aagu011-references-v2']['run_identity']['run_id'] = 'aagu011-references-v2'
 
 
+# AAGU-070: first real consumer, frozen AAGU-065 H16 conditions.
+EXPERIMENT_RECIPES['opengu-aagu070-065-h16-v1'] = {'config_path': 'experiments/configs/aagu065/observer_h16.yaml',
+ 'config_sha256': 'fb43500b0e4d10bb79c4a8b25111b9b055290e0f8ce839f24ebd36a2d214728d',
+ 'configuration_fingerprint': 'ae69ddbbe640404a31576aea0c9bc69e40643d04d494549520223a0620f600c9',
+ 'run_identity': {'experiment_id': 'aagu065-observer-h16',
+                  'run_id': 'aagu070-065-h16-v1'},
+ 'timeout_seconds': 3600,
+ 'logical_cells': 6,
+ 'stage': 'unlearning',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}]}
+EXPERIMENT_RECIPES['opengu-aagu070-065-h16-control-v1'] = {'config_path': 'experiments/configs/aagu065/observer_h16_control.yaml',
+ 'config_sha256': '5d371a4d53837a923021e2a7aca7db1e901ff0fb94d04b3922f2ee54e6ac22be',
+ 'configuration_fingerprint': '7f714f40dbacd903e1aeb78f8e6537d496b7645384a28843276a819ffb49c78b',
+ 'run_identity': {'experiment_id': 'aagu065-observer-h16-control',
+                  'run_id': 'aagu070-065-h16-control-v1'},
+ 'timeout_seconds': 3600,
+ 'logical_cells': 6,
+ 'stage': 'unlearning',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}]}
+
+
 def recipe_definitions():
     from pathlib import Path
     from experiments.modular_config import load_experiment
@@ -421,7 +441,7 @@ def recipe_definitions():
             'git_binding_policy': 'job-exact-main-v1', 'requires_job_expected_git_sha': True,
             'timeout_seconds': plan['timeout_seconds'], 'expected_artifact_paths': paths,
             'collector_result_roots': (summary.rsplit('/', 1)[0],),
-            'collector_artifact_names': ('run.json',) + ARTIFACT_NAMES,
+            'collector_artifact_names': tuple(sorted({Path(p).name for p in paths})),
             'preflight_profile': 'modular-project-v1', 'collector_profile': 'modular-output-v1',
             'collector_acceptance': True, 'execution_validator': 'exact-artifacts-json-v1',
             'success_predicate': 'json.passed == true and all reviewed artifacts exist'}
