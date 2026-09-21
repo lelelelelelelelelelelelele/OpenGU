@@ -101,4 +101,6 @@ Historical Output v1 files are not converted, removed or automatically rerun.
 
 ## 实验管理入口
 
-正式运行、重跑、指标补算和分析统一从 [Work Plan Runbook](../self/research/RUNBOOK.md) 进入。实验过程不再使用Block Claim/分支生命周期；只有软件或正式配置变更由开发Block交付。历史材料中的WorkItem执行记录按其日期作为来源，不重新建立双份实验状态。
+正式运行、重跑、指标补算和分析统一从 [Work Plan Runbook](../self/research/RUNBOOK.md) 进入。该指引拥有“实验配置 → 独立 Recipe YAML → 只读预览 → 代码交付与同步 → SyncMate 提交 → 回执与回传”的操作流程，以及运行中修改配置的处理边界。新增或修改配置时同步审阅 `scripts/syncmate/recipes/<id>.yaml`；配置输入改变须显式重新生成 SHA/指纹，不编辑 Python 登记表，不改写旧任务或在运行中更新共享 SSH checkout。
+
+实验过程不再使用Block Claim/分支生命周期；只有软件或正式配置变更由开发Block交付。历史材料中的WorkItem执行记录按其日期作为来源，不重新建立双份实验状态。

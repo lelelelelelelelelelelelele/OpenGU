@@ -30,7 +30,7 @@ The declaration's `id` must equal its filename stem. Unknown/duplicate fields,
 unsafe paths, and unsupported output rules fail closed.
 
 ```powershell
-E:/conda_package/envs/gnn/python.exe scripts/syncmate/recipe.py preview opengu-example --node autodl-opengu --device-config .syncmate/device.yaml
+E:/conda_package/envs/gnn/python.exe scripts/syncmate/recipe.py preview opengu-example --node gpu4090 --device-config .syncmate/device.yaml
 ```
 
 Choose an actual peer ID from your device configuration. Preview is read-only:
@@ -1208,7 +1208,7 @@ inbox -> running -> done | failed | blocked
 
 Jobs select only a static recipe id. They cannot accept shell fragments,
 arguments, paths, configurations, environment values, cache operations, or
-expressions. Each code-defined recipe freezes its exact argv, fixed config path
+expressions. Each reviewed YAML recipe is assembled into its exact argv, fixed config path
 and SHA-256, expected OpenGU baseline/check-out policy, timeout, expected raw
 artifact paths, success predicate, and whether controller acceptance is
 eligible. Binding mismatch becomes `blocked` with expected/observed evidence.
@@ -1309,8 +1309,10 @@ OpenGU may submit declared jobs and inspect `manifest.json`, receipts, and
 results. It must not move files between queue states, add command/argument/path
 fields to job YAML, invalidate caches, or treat queue completion as trusted
 experiment evidence. Any future OpenGU recipe is a reviewed code-level
-allowlist addition with a frozen input schema and dedicated tests—not a YAML
-switch. The ready-to-use integration prompt is
+allowlist declaration in `recipes/` with a frozen input schema; YAML cannot
+supply arbitrary execution commands. See the [experiment runbook](../../self/research/RUNBOOK.md)
+for configuration changes, running jobs, preview, submission and receipts.
+The ready-to-use integration prompt is
 [`OPENGU_RUNNER_QUEUE_INTEGRATION_PROMPT.md`](OPENGU_RUNNER_QUEUE_INTEGRATION_PROMPT.md).
 
 ## Local Status Page
