@@ -468,7 +468,8 @@ class idea(IF_based_pipeline):
         try:
             delta, self.solver_diagnostics = solve_gif_system(
                 matvec, rhs, iterations=iteration,
-                scale=self.args['scale'], damp=self.args['damp'])
+                scale=self.args['scale'], damp=self.args['damp'],
+                observer=getattr(self, 'observer', None), method='IDEA')
         except GIFNumericalError as error:
             self.solver_diagnostics = error.diagnostics
             raise

@@ -113,6 +113,14 @@ def acceptance_payload(profile, definition, context):
                     expected_names.add('metrics.json')
                 if config.get('return_scores'):
                     expected_names.add('scores.npz')
+                from experiments.observers import observer_files
+                expected_names.update(observer_files(config, conditions['method']))
+                from experiments.observers import observer_specs
+                for spec in observer_specs(config, conditions['method']):
+                    observed = document[f'observers/{spec["name"]}/result.json']
+                    if (observed['parameters'] != spec['parameters']
+                            or observed['identity']['configuration_fingerprint'] != definition['configuration_fingerprint']):
+                        raise ValueError('Observer configuration differs from registration')
                 if set(cell['files']) != expected_names:
                     raise ValueError('missing or unexpected declared cell result')
                 if 'metrics.json' in document:

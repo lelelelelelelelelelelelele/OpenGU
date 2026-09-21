@@ -13,7 +13,7 @@ import torch
 from experiments.node_deletion import retained_graph
 
 
-def idea_node(args, model, data, nodes, runtime_root):
+def idea_node(args, model, data, nodes, runtime_root, observer=None):
     from unlearning.unlearning_methods.IDEA.idea import idea
     from task.IDEATrainer import IDEATrainer
 
@@ -21,6 +21,7 @@ def idea_node(args, model, data, nodes, runtime_root):
     logger = logging.getLogger('modular.IDEA')
     retained = retained_graph(data, nodes)
     method = idea(args, logger, SimpleNamespace(data=data, model=model))
+    method.observer = observer
     method.device = next(model.parameters()).device
     method.target_model = IDEATrainer(args, logger, model, data)
     method.target_model.device = method.device

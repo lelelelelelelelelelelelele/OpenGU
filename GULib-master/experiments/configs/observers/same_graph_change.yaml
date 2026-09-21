@@ -1,0 +1,4 @@
+kind: observer
+schema_version: 1
+name: same_graph_change
+parameters: {}

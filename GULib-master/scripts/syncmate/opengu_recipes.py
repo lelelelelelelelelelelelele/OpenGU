@@ -421,7 +421,7 @@ def recipe_definitions():
             'git_binding_policy': 'job-exact-main-v1', 'requires_job_expected_git_sha': True,
             'timeout_seconds': plan['timeout_seconds'], 'expected_artifact_paths': paths,
             'collector_result_roots': (summary.rsplit('/', 1)[0],),
-            'collector_artifact_names': ('run.json',) + ARTIFACT_NAMES,
+            'collector_artifact_names': tuple(sorted({Path(p).name for p in paths})),
             'preflight_profile': 'modular-project-v1', 'collector_profile': 'modular-output-v1',
             'collector_acceptance': True, 'execution_validator': 'exact-artifacts-json-v1',
             'success_predicate': 'json.passed == true and all reviewed artifacts exist'}

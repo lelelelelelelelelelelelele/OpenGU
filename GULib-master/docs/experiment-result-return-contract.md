@@ -85,3 +85,30 @@ Metrics、Selection 和可选 scores 位于各 cell 目录，不再将整次矩�
 独立 Metrics 表使用 `output_inputs: [{run: <已有run.json路径>, sha256: <文件SHA256>}]`，在持有正式输入和 Cache 的执行端重算。生成新 run 后走普通收集，既有 results 表按原实验和 cell 选择最新完成的指标；不把旧轮未请求指标混入新轮，也不改写历史 run。Metrics 的来源 run 以简要引用保存。没有通用运行时配置覆盖入口，因此不创建空 overrides 或配置副本。
 
 `read_run(path, sha256)` 读取已校验的结果目录。机器交付核验包含配置/身份/预算/文件集合与哈希检查，不以本地复算 logits 作为常规回传前提。软件验证、正式 SSH 实验和人的科研接受分别记录。
+
+## Observer 与无缓存 Output
+
+普通 experiment 可声明 `observers: [{ref: ../observers/linear_solver_trace.yaml, methods: [GIF, IDEA]}]`
+及 `execution.gu_cache: {GIF: disabled, IDEA: disabled, Retrain: reuse}`。
+公共实例位于 `experiments/configs/observers/`；当前提供 linear_solver_trace 与 same_graph_change。
+解析器在执行前核对方法的事件/字段能力；现阶段观测请求必须禁用对应 GU 缓存。
+Observer 不进入算法 parameters、Selection 或 checkpoint 身份，不增加矩阵轴。
+项目设计正文仍由 [OpenGU DocMap](../../OpenGU-DocMap/10_实验矩阵/25_跨方法Observer设计.md) 唯一维护。
+
+每个 cell 的 `observers/<name>/result.json` 与可选 `trace.jsonl` 独立保存标量观测。
+run.json 的 observers/files 登记实际文件哈希；result 绑定运行、配置摘要、提交、完整 Output
+计算身份、Observer 参数/实现/语义版本、覆盖及诊断耗时。异常终止仍保留已采轨迹和失败状态，
+不能通过 completed run 的核验。正常读取同时核验文件、身份、覆盖与数值有限性。
+
+`disabled` 同时禁止 GU Output 缓存读与写，最终 payload 保存到 cell 的 `output.npz`。
+标准引用为 `storage: run`、相对项目根的 path、recipe_hash 与 content_hash；它没有跨 run
+缓存注册。metrics 使用同一 load_output 接口核对完整 payload、当前 producer 和 Selection
+依赖，输入图仍由已绑定 manifest 解析。checkpoint、Score、Selection 和 reuse 方法的策略不变。
+
+通用 SyncMate 按配置声明 Observer 文件、收集并核验哈希和索引；output.npz 与输入图/模型
+仍留在执行端，不加入常规回传列表。回传集合由 output_paths 生成，不靠扫描文件夹推断。
+方法计时包含求解期 callback 的开销；独立 observer_seconds 包含全部开始/求解/结束 callback，
+不能将带观测总耗时称作纯 GU 时间。标量提取同步 CUDA；未做 GPU 性能结论。
+
+本公共接口不执行 066 的 T/2T/4T 汇总或科学验收，也不引用专属 runner/adapter。
+不同预算由普通方法小表指定；Observer 保存步数和对应范数，不改变生产预算。

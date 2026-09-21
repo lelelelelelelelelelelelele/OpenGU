@@ -11,6 +11,7 @@ from experiments.target_direct_v1.methods import resolve_parameters, uses_model,
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_DIRECTORIES = {
+    'observer_refs': 'observers',
     'dataset_refs': 'datasets',
     'selector_refs': 'selectors',
     'unlearning_refs': 'unlearning',
@@ -213,6 +214,9 @@ def load_instance(path, expected_kind):
             raise ConfigurationError('checkpoint must be a nonempty pure state_dict file path')
         else:
             value['checkpoint'] = str((Path(path).resolve().parent / checkpoint).resolve())
+    if expected_kind == 'observer':
+        from experiments.observers import resolve_observer
+        return resolve_observer(value)
     if expected_kind == 'selector':
         return selector(value)
     if expected_kind == 'unlearning':
@@ -288,7 +292,7 @@ def load_experiment(path):
     required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_refs', 'matrix'}
     fields(value, required | {'round',
         'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
-        'seeds', 'random_selector_seeds', 'budget_ratios', 'im_selector_seeds', 'return_scores'},
+        'seeds', 'random_selector_seeds', 'budget_ratios', 'im_selector_seeds', 'return_scores', 'execution', 'observers'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
@@ -336,6 +340,30 @@ def load_experiment(path):
         result[kind + 's'] = [load_instance(ref_path, kind) for ref_path in paths]
         result['configuration_sources'][kind + 's'] = [configuration_sources(ref_path, item)
             for ref_path, item in zip(paths, result[kind + 's'])]
+    from experiments.observers import observer_specs, validate_capabilities
+    execution = value.get('execution', {})
+    fields(execution, {'gu_cache'}, (), 'execution')
+    policies = execution.get('gu_cache', {})
+    methods = {item['method'] for item in result['unlearnings']}
+    fields(policies, methods, (), 'execution.gu_cache')
+    result['execution'] = {'gu_cache': policies}
+    result['observers'] = []
+    if not isinstance(value.get('observers', []), list):
+        raise ConfigurationError('observers must be a list')
+    for entry in value.get('observers', []):
+        fields(entry, {'ref', 'methods'}, {'ref', 'methods'}, 'observer attachment')
+        if (not isinstance(entry['methods'], list) or not entry['methods']
+                or len(set(entry['methods'])) != len(entry['methods']) or set(entry['methods']) - methods):
+            raise ConfigurationError('observer methods must select distinct configured methods')
+        ref = resolve_reference('observer_refs', entry['ref'], path.parent)
+        result['observers'].append({**entry, 'instance': load_instance(ref, 'observer')})
+    if value['stage'] != 'unlearning' and (execution or result['observers']):
+        raise ConfigurationError('execution and observers belong to unlearning')
+    for method in methods:
+        specs = observer_specs(result, method)
+        if len({spec['name'] for spec in specs}) != len(specs):
+            raise ConfigurationError('duplicate observer for method')
+        validate_capabilities(method, specs, policies.get(method, 'reuse'))
     result['source_directory'] = str(path.parent)
     # Validate matrix axes while parsing, including during the ordinary dry-run.
     validate_repeats(result)
@@ -458,6 +486,7 @@ def configuration_fingerprint(path):
         refs = []
         for field in ('dataset_refs', 'selector_refs', 'unlearning_refs', 'evaluation_refs'):
             refs.extend(resolve_reference(field, ref, current.parent) for ref in value.get(field, []))
+        refs.extend(resolve_reference('observer_refs', entry['ref'], current.parent) for entry in value.get('observers', []))
         children = [document(ref) for ref in refs]
         visited.remove(current)
         return {'document': value, 'references': children}

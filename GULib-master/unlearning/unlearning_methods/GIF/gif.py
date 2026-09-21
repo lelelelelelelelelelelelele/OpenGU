@@ -802,7 +802,8 @@ class gif(IF_based_pipeline):
         try:
             delta, self.solver_diagnostics = solve_gif_system(
                 matvec, torch.cat([part.detach().reshape(-1) for part in v]),
-                iterations=iteration, scale=scale, damp=damp)
+                iterations=iteration, scale=scale, damp=damp,
+                observer=getattr(self, "observer", None), method="GIF")
         except GIFNumericalError as error:
             self.solver_diagnostics = error.diagnostics
             raise

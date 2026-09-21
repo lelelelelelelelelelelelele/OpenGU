@@ -96,7 +96,7 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
         if instance['case'] == 'post_unlearning_utility_and_retrain_gap':
             candidates = ([(paired_reference, load_output(paired_reference, store_root, data=data, dataset_root=dataset_root))]
                           if paired_reference else retrains)
-            matches = {ref['artifact_id']: (ref, payload) for ref, payload in candidates
+            matches = {ref['content_hash']: (ref, payload) for ref, payload in candidates
                        if payload.identity['target']['method'] == 'Retrain'
                        and payload.identity['selection'] == output.identity['selection']
                        and payload.identity['pairing'] == output.identity['pairing']}
