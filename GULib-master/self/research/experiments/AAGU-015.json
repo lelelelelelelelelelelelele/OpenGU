@@ -1,0 +1,119 @@
+{
+  "id": "AAGU-015",
+  "title": "IF 分阶段实验设计",
+  "family": "if",
+  "category": "history",
+  "question": "保留分阶段配置，当前Selector与效果结果分别由031和032维护。",
+  "scope": "保留分阶段配置，当前Selector与效果结果分别由031和032维护。",
+  "reviewed_at": "2026-09-22",
+  "configs": [
+    {
+      "label": "metrics_citeseer.yaml",
+      "path": "experiments/configs/aagu015/metrics_citeseer.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "metrics_cora.yaml",
+      "path": "experiments/configs/aagu015/metrics_cora.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "metrics_pubmed.yaml",
+      "path": "experiments/configs/aagu015/metrics_pubmed.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "stage_retrain_citeseer.yaml",
+      "path": "experiments/configs/aagu015/stage_retrain_citeseer.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "stage_retrain_cora.yaml",
+      "path": "experiments/configs/aagu015/stage_retrain_cora.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "stage_retrain_pubmed.yaml",
+      "path": "experiments/configs/aagu015/stage_retrain_pubmed.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "stage_s_citeseer.yaml",
+      "path": "experiments/configs/aagu015/stage_s_citeseer.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "stage_s_cora.yaml",
+      "path": "experiments/configs/aagu015/stage_s_cora.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "stage_s_pubmed.yaml",
+      "path": "experiments/configs/aagu015/stage_s_pubmed.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "stage_u_citeseer.yaml",
+      "path": "experiments/configs/aagu015/stage_u_citeseer.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "stage_u_cora.yaml",
+      "path": "experiments/configs/aagu015/stage_u_cora.yaml",
+      "role": "reference"
+    },
+    {
+      "label": "stage_u_pubmed.yaml",
+      "path": "experiments/configs/aagu015/stage_u_pubmed.yaml",
+      "role": "reference"
+    }
+  ],
+  "preparation": {
+    "state": "defined",
+    "note": "执行定义与来源按下方配置核对。",
+    "evidence": []
+  },
+  "execution": {
+    "state": "unknown",
+    "note": "此记录维护设计来源，不把旧“实验表已做”换算成执行完成。",
+    "evidence": []
+  },
+  "analysis": {
+    "state": "not_started",
+    "note": "阶段结论见031/032。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "dependencies": [],
+  "blocks": [],
+  "attempts": [],
+  "next_step": "后续只在031/032或明确的新实验中记录运行。",
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-015/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-015/REPORT.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "workplan-intake-20260922",
+      "at": "2026-09-22",
+      "stage": "creation",
+      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-015/WORKITEM.md"
+        }
+      ]
+    }
+  ]
+}

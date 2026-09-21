@@ -1,0 +1,123 @@
+{
+  "id": "AAGU-065",
+  "title": "Cora H16 固定 PT 参数校准",
+  "family": "if",
+  "category": "history",
+  "question": "记录r1/r2/r3校准；冻结scale9000、damp0.22755555555555556、T100。",
+  "scope": "记录r1/r2/r3校准；冻结scale9000、damp0.22755555555555556、T100。",
+  "reviewed_at": "2026-09-22",
+  "configs": [
+    {
+      "label": "calibration_h16.yaml",
+      "path": "experiments/configs/aagu065/calibration_h16.yaml",
+      "role": "historical"
+    },
+    {
+      "label": "calibration_h16_r1.yaml",
+      "path": "experiments/configs/aagu065/calibration_h16_r1.yaml",
+      "role": "historical"
+    },
+    {
+      "label": "calibration_h16_r2.yaml",
+      "path": "experiments/configs/aagu065/calibration_h16_r2.yaml",
+      "role": "historical"
+    },
+    {
+      "label": "calibration_h16_r3_seed104246.yaml",
+      "path": "experiments/configs/aagu065/calibration_h16_r3_seed104246.yaml",
+      "role": "current"
+    },
+    {
+      "label": "calibration_h16_r3_seed104247.yaml",
+      "path": "experiments/configs/aagu065/calibration_h16_r3_seed104247.yaml",
+      "role": "current"
+    },
+    {
+      "label": "calibration_h64.yaml",
+      "path": "experiments/configs/aagu065/calibration_h64.yaml",
+      "role": "historical"
+    }
+  ],
+  "preparation": {
+    "state": "defined",
+    "note": "执行定义与来源按下方配置核对。",
+    "evidence": []
+  },
+  "execution": {
+    "state": "completed",
+    "note": "r1/r2/r3各12个诊断cell，保留各代来源，不跨轮去重冒充一次矩阵。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-065/REPORT.md"
+      }
+    ]
+  },
+  "analysis": {
+    "state": "complete",
+    "note": "已接受H16 shifted-solver校准；非原始系统无偏逆或遗忘证明。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-065/REPORT.md"
+      }
+    ]
+  },
+  "decision": {
+    "state": "accepted",
+    "note": "只适用于本记录明确范围；新运行需独立确认。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-065/REPORT.md"
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "experiment": "AAGU-061",
+      "requirement": "evidence",
+      "stage": "execution",
+      "reason": "固定H16 PT"
+    }
+  ],
+  "blocks": [],
+  "attempts": [],
+  "next_step": "066复用身份匹配检查，不能把已有请求声称全新留出。",
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-065/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-065/REPORT.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "workplan-intake-20260922",
+      "at": "2026-09-22",
+      "stage": "creation",
+      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-065/WORKITEM.md"
+        }
+      ]
+    },
+    {
+      "id": "existing-delivery-record",
+      "at": "2026-09-22",
+      "stage": "analysis",
+      "note": "r1/r2/r3各12个诊断cell，保留各代来源，不跨轮去重冒充一次矩阵。 已接受H16 shifted-solver校准；非原始系统无偏逆或遗忘证明。",
+      "evidence": [
+        {
+          "label": "结果与分析报告",
+          "path": ".workblock/items/AAGU-065/REPORT.md"
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,25 @@
 'use strict';
-const controls=['phase','family','view','search'].map(id=>document.getElementById(id));let topic='';
-function filter(){const [phase,family,view,search]=controls.map(x=>x.value);let count=0;for(const card of document.querySelectorAll('.card')){const show=(phase==='all'||card.dataset.phase===phase)&&(family==='all'||card.dataset.family===family)&&(view==='all'||card.dataset.views.split(' ').includes(view))&&(!topic||card.dataset.topics.split(' ').includes(topic))&&card.textContent.toLowerCase().includes(search.trim().toLowerCase());card.hidden=!show;if(show)count++;}document.querySelectorAll('.cluster').forEach(group=>group.hidden=![...group.querySelectorAll('.card')].some(card=>!card.hidden));document.getElementById('count').textContent=`显示 ${count} / ${document.querySelectorAll('.card').length} 张`;document.getElementById('empty').hidden=count!==0;document.getElementById('filter-note').textContent=topic?`正在查看：${document.querySelector(`[data-topic="${topic}"]`).dataset.label}`:'准备、运行、分析是独立状态。配置已定不等于已运行；缺失结果不自动计为零。';}
-function openQuestion(){const target=document.getElementById(location.hash.slice(1));if(target?.matches('details'))target.open=true;}window.addEventListener('hashchange',openQuestion);openQuestion();
-controls.forEach(c=>c.addEventListener(c.tagName==='INPUT'?'input':'change',filter));document.querySelectorAll('[data-topic]').forEach(button=>button.addEventListener('click',()=>{topic=topic===button.dataset.topic?'':button.dataset.topic;document.querySelectorAll('[data-topic]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.topic===topic)));filter();document.getElementById('sheets').scrollIntoView({behavior:'smooth',block:'start'});}));document.getElementById('clear').addEventListener('click',()=>{controls.forEach(c=>c.value=c.tagName==='INPUT'?'':'all');topic='';document.querySelectorAll('[data-topic]').forEach(b=>b.setAttribute('aria-pressed','false'));filter();});filter();
+const category = document.getElementById('category');
+if (category) {
+  const family = document.getElementById('family');
+  const view = document.getElementById('view');
+  const search = document.getElementById('search');
+  const rows = [...document.querySelectorAll('.experiment')];
+  function filter() {
+    let count = 0;
+    const query = search.value.trim().toLocaleLowerCase();
+    for (const row of rows) {
+      const matchCategory = category.value === 'all' || (category.value === 'current' ? row.dataset.category !== 'history' : row.dataset.category === category.value);
+      const visible = matchCategory && (family.value === 'all' || row.dataset.family === family.value) && (view.value === 'all' || row.dataset.views.split(' ').includes(view.value)) && row.dataset.search.toLocaleLowerCase().includes(query);
+      row.hidden = !visible;
+      count += Number(visible);
+    }
+    document.getElementById('count').textContent = `显示 ${count} / ${rows.length} 项实验`;
+    document.getElementById('empty').hidden = count !== 0;
+  }
+  for (const input of [category, family, view, search]) input.addEventListener('input', filter);
+  document.getElementById('clear').addEventListener('click', () => {
+    category.value = 'current'; family.value = 'all'; view.value = 'all'; search.value = ''; filter();
+  });
+  filter();
+}

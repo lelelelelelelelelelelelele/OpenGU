@@ -1,0 +1,80 @@
+{
+  "id": "AAGU-066",
+  "title": "Cora 冻结参数的 Random 请求验证",
+  "family": "if",
+  "category": "active",
+  "question": "H16，10%，Random104246/104247/104248，共享Selection的GIF/IDEA/Retrain及no-update参照。",
+  "scope": "H16，10%，Random104246/104247/104248，共享Selection的GIF/IDEA/Retrain及no-update参照。",
+  "reviewed_at": "2026-09-22",
+  "configs": [],
+  "preparation": {
+    "state": "preparing",
+    "note": "066软件候选尚未合入。配置见软件交付报告，主线暂没有aagu066 YAML。",
+    "evidence": []
+  },
+  "execution": {
+    "state": "pending",
+    "note": "9月22日报告明确：软件候选95dfcd45已验证，正式GPU gate、全表和回传尚未执行。",
+    "evidence": []
+  },
+  "analysis": {
+    "state": "not_started",
+    "note": "目前没有正式科研结果。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "dependencies": [
+    {
+      "experiment": "AAGU-065",
+      "requirement": "accepted",
+      "stage": "execution",
+      "reason": "消费已接受冻结参数与适用域"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "AAGU-070",
+      "stage": "execution",
+      "reason": "Observer公共能力已交付",
+      "delivery_confirmed": true,
+      "delivery_note": "已核对既有交付记录；重新运行仍做版本preflight。"
+    },
+    {
+      "id": "AAGU-066",
+      "stage": "execution",
+      "reason": "历史混合Block中仍在交付的066软件候选；科研生命周期由此实验记录维护",
+      "delivery_confirmed": false,
+      "delivery_note": "未确认本实验所需能力已落地主线。"
+    }
+  ],
+  "attempts": [],
+  "next_step": "先交付066的软件候选；重新preflight后才提交正式运行。",
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-066/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-066/REPORT.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "workplan-intake-20260922",
+      "at": "2026-09-22",
+      "stage": "creation",
+      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-066/WORKITEM.md"
+        }
+      ]
+    }
+  ]
+}

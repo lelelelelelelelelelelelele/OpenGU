@@ -1,43 +1,34 @@
-# 实验研究总览与配置单
+# Work Plan · 实验管理
 
-[打开研究总览](index.html) · [独立SVG框图](diagram/research-framework.svg)
+[打开实验总表](index.html) · [运行流程](RUNBOOK.md) · [实验归属整理](MIGRATION.md)
 
-Phase 1 / Phase 2 是已有研究阶段，IF / IM 是方法分组。IM保持独立研究线，不从IF进度推断其运行前置。X1–X8保留核心研究问题；没有配置单的问题显示“配置单待形成”，不自动扩张已批准矩阵。
+Work Plan 与 Block 平行。这里拥有实验创建、定义修订、运行尝试、重跑原因、分析、科学决定和实验依赖。Block 只拥有开发变更。SyncMate 负责提交、监控、回传、校验；SSH AutoReport 是按需追查的运行审计，不是日常工作计划。
 
-研究总览只列出回答明确研究问题的配置与分析。工程能力验证、预热和缓存复用检查由原工程任务承接，不作为研究节点、实验单或附属Gate展示。预算变化只有在用于研究剂量响应等明确问题时才纳入。
+## 事实来源
 
-## 唯一来源
+- `experiments/AAGU-NNN.json` 是每项实验的唯一过程记录，沿用原编号，不因来源编号重排或移动 YAML。`category` 区分当前维护、待准备和历史；四个阶段分别记录状态、说明与证据。
+- `configs` 只引用原 YAML，分别标注现行、辅助、历史和候选。配置参数由 YAML 拥有，界面直接解析，禁止复制出第二套参数。
+- `attempts` 按 run_id 保存每次尝试与证据；重跑追加独立记录，保留失败及被替代运行，不覆盖旧结果。计数只适用于该次运行范围，不跨配置或历史累加。
+- `history` 保存有日期和来源的过程事件。只追加事件；纠错新增说明，现行状态直接改为已核实事实。不把迁入日期伪装为历史实际运行日期。
+- `analysis` 和 `decision` 分别记录分析交付与科学决定。软件通过、运行完成、文件校验均不自动成为科学接受。
+- `dependencies` 引用其他实验及所需证据、分析或科学接受；要求验证成功的扩展使用successful_acceptance，并要求父实验decision.success_confirmed明确为true，接受否定结果不会放行。`blocks` 只引用明确开发依赖，写明阻塞阶段和原因。
+- Block 状态从指定 WORKITEM.md 只读读取。还需 `delivery_confirmed` 表明已核对本实验所需交付。缺失、未知、未接受或未确认落地均不自动解除；解除不触发运行。禁止扫描全体 WorkItems、复制Block图或强制映射每个Block。
+- `framework.json` 保存研究问题说明；`config_groups.json` 只声明配置目录归属。开发验证 YAML 可以存在而不成为科研实验。
 
-- [framework.json](framework.json) 只拥有研究阶段、方法标签、问题分类与配置单目录，不保存任务状态、优先级、Claim或Block依赖。
-- [experiments/](experiments/) 每张JSON是独立实验配置单的内容源：问题、完整实验故事、评价、输出、准备缺口与明确核对的运行/分析引用。独立HTML由它生成，不是旧EXP WorkItem的重命名。
-- `experiments/configs/` 的既有YAML拥有可执行定义。配置单不复制可执行参数树，也不修改现有YAML；人类可读范围必须与所引用版本核对。新的运行定义未定时标记draft，不把旧表当作新表启动。
-- 指定run.json与产物保存运行事实；分析报告保存结论。关联WorkItem仅作为原始讨论、历史或软件前提，不读取其生命周期推断实验完成。
-- [旧覆盖CSV](../dashboard/config_inventory.csv) 仅保留历史原始材料，不参与新总览或配置单生成。
+## Agent 维护
 
-## 更新与生成
+实验创建及日常运行/分析更新直接维护本目录，不需要为每次更新创建 Block、Claim、分支或候选。需要修改算法、执行器、指标能力或正式可执行配置时，使用开发 Block，并在实验记录引用其交付。新实验采用唯一 AAGU 编号；不调用 Block allocator 创建伪开发任务，暂未分配的编号必须先核对现有实验及共享编号占用。
 
-普通Block新增、编辑、推进不会更新这些文件。只有研究设计或已核对的实验事实变化时更新对应配置单，不恢复WORKPLAN、逐Block状态表或自动暂存hook。
+更新 JSON 后运行校验与重建；不编辑 HTML。新增实验按已有记录字段形成独立文件；没有证据的运行用 unknown，不把缺失当成0或已完成。维护接口是文件与生成器，当前前端为只读视图，不是在线编辑器或实时调度台。
 
 ```powershell
-python -B -X utf8 scripts/dashboard/gen_research_overview.py
-python -B -X utf8 scripts/dashboard/gen_research_overview.py --check --check-links --verify-evidence
-python -B -X utf8 -m pytest -q tests/test_research_overview.py
+python -B -X utf8 scripts/dashboard/gen_research_overview.py --canonical-root E:/project/OpenGU/GULib-master --check-links
+python -B -X utf8 scripts/dashboard/gen_research_overview.py --canonical-root E:/project/OpenGU/GULib-master --check --check-links --verify-evidence
+python -B -X utf8 -m pytest tests/test_research_overview.py -q
 ```
 
-Linked worktree中加 `--canonical-root E:/project/OpenGU/GULib-master`，让记录与结果链接指向唯一canonical来源；源码/YAML仍指向本候选。DocMap从canonical项目的既有兄弟位置解析。可用`--output-dir`生成独立预览，全部内部链接按输出位置计算，不复制记录或结果。
+页面在 `self/research/index.html`。linked worktree 通过 canonical-root 读取既有证据与指定Block，源码/YAML仍来自当前候选。HTML/SVG是忽略的生成物；普通Block变化不修改实验记录或Git跟踪文件。只有被引用依赖的只读展示会在重建后变化。
 
-HTML/SVG/PNG是忽略的本地生成物；生成器只写目标页面，修改记录或重新生成不会制造额外tracked diff。源码、样式、目录与配置单内容进入同一软件候选。
+## 科学与交付边界
 
-## 状态语义
-
-准备：draft待形成，defined配置已定，review范围待复核，preparing运行准备中，waiting等待输入。配置已定不是GPU准入。
-
-运行：unknown待核对，unbound未绑定，pending显式待跑，running/partial/failed有对应运行事实，completed须指定run身份和条件数，not_required仅用于离线分析单。无结果链接不能自动计0；存在预热证据不能算主矩阵完成。
-
-分析：not_started、working、review、complete，独立于运行状态。已有结果可进入待分析；分析单可以引用多张输入。review不等于科学接受。运行队列不包含未知是否运行的条目。
-
-`--check-links`只核对路径存在；`--verify-evidence`额外核对显式绑定的manifest摘要、experiment/run/code身份、配置路径、逻辑条件去重与每个声明产物SHA-256。不扫描其他运行，不调用producer、同步或调度程序。
-
-研究问题以可折叠完整段落呈现：说明动机、比较和解释边界，再从同一配置单来源显示运行与分析进度。X1–X8只作为内部关联标识；已有结果数量不代表整个研究问题完成。
-
-总览优先按IF簇、IM簇、共同参照和跨实验分析组织实验；每项实验可跳到问题说明，问题说明反向列出相关实验。详情页直接通过项目已有PyYAML解析引用配置，按原键顺序展示YAML与文件名；生成时读取文件，页面不是实时编辑器，不展开引用文件或运行配置。手工控制/变量/范围副本已删除。
+本轮迁入是2026-09-22本地材料核对，不代表SSH实时盘点。绑定manifest的哈希核查只验证这些指定本地文件；可信回传、索引与项目接纳仍由SyncMate负责。来源报告确认的完成与本轮重新核查的原始manifest分别标识。已失效的旧032映射不进入当前结果。

@@ -1,0 +1,69 @@
+{
+  "id": "AAGU-022",
+  "title": "大图 D-full 计时与外推",
+  "family": "if",
+  "category": "planned",
+  "question": "以大图探针检验成本外推，分别报告实测与估计。",
+  "scope": "以大图探针检验成本外推，分别报告实测与估计。",
+  "reviewed_at": "2026-09-22",
+  "configs": [],
+  "preparation": {
+    "state": "draft",
+    "note": "执行定义与来源按下方配置核对。",
+    "evidence": []
+  },
+  "execution": {
+    "state": "unknown",
+    "note": "独立探针尚待定义。",
+    "evidence": []
+  },
+  "analysis": {
+    "state": "not_started",
+    "note": "小图证据与探针分析尚未具备。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "dependencies": [
+    {
+      "experiment": "AAGU-021",
+      "requirement": "analysis",
+      "stage": "preparation",
+      "reason": "以小图计时拟合确定大图探针"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "AAGU-020",
+      "stage": "execution",
+      "reason": "计算原语与计时能力",
+      "delivery_confirmed": false,
+      "delivery_note": "未确认本实验所需能力已落地主线。"
+    }
+  ],
+  "attempts": [],
+  "next_step": "消费021结果后形成受限探针。",
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-022/WORKITEM.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "workplan-intake-20260922",
+      "at": "2026-09-22",
+      "stage": "creation",
+      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-022/WORKITEM.md"
+        }
+      ]
+    }
+  ]
+}

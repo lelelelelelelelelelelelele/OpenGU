@@ -1,0 +1,61 @@
+{
+  "id": "AAGU-062",
+  "title": "固定 PT 的求解稳定性研究",
+  "family": "if",
+  "category": "active",
+  "question": "统筹校准、冻结请求验证及跨数据集扩展；实际运行记录归065–068。",
+  "scope": "统筹校准、冻结请求验证及跨数据集扩展；实际运行记录归065–068。",
+  "reviewed_at": "2026-09-22",
+  "configs": [],
+  "preparation": {
+    "state": "defined",
+    "note": "分析范围已定义，消费关联实验结果。",
+    "evidence": []
+  },
+  "execution": {
+    "state": "not_required",
+    "note": "研究汇总项，无额外独立运行，避免与子实验重复计数。",
+    "evidence": []
+  },
+  "analysis": {
+    "state": "working",
+    "note": "065已交付校准，066尚待正式验证，跨数据集未展开。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "dependencies": [
+    {
+      "experiment": "AAGU-061",
+      "requirement": "evidence",
+      "stage": "analysis",
+      "reason": "固定PT证据"
+    }
+  ],
+  "blocks": [],
+  "attempts": [],
+  "next_step": "先完成066并作科学决定，再按既定顺序扩展。",
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-062/WORKITEM.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "workplan-intake-20260922",
+      "at": "2026-09-22",
+      "stage": "creation",
+      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-062/WORKITEM.md"
+        }
+      ]
+    }
+  ]
+}

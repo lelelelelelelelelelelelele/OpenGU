@@ -1,152 +1,152 @@
-"""Independent experiment sheet semantics and research view integration."""
-from pathlib import Path
+"""Work Plan evidence boundaries and one-way Block integration."""
 import copy
 import hashlib
 import json
-import subprocess
-from html.parser import HTMLParser
+from pathlib import Path
 import xml.etree.ElementTree as ET
 import pytest
-import yaml
-from scripts.dashboard import gen_research_overview as gen
+from scripts.dashboard import workplan_model as model
+from scripts.dashboard import workplan_view as view
 
 
-def test_framework_has_phases_families_and_all_core_questions():
-    frame,sheets=gen.load()
-    assert {p['id'] for p in frame['phases']}=={'phase-1','phase-2','im-track'}
-    assert {t['id'] for t in frame['topics']}=={f'X{i}' for i in range(1,9)}
-    assert sum(s['family']=='if' for s in sheets)==3
-    assert sum(s['phase']=='im-track' for s in sheets)==1
-    assert all(s['question'] and s['comparison'] and s['narrative'] and s['metrics'] and s['outputs'] for s in sheets)
-    assert not any('WORKITEM.md' in c['path'] for s in sheets for c in s['configs'])
+def records():
+    return model.load(view.ROOT)[1]
 
 
-@pytest.mark.parametrize('defect',['missing_design','workitem_as_config','fake_complete','invalid_count','invalid_family','duplicate_id','analysis_without_source','cycle','pending_unbound','missing_run'])
-def test_invalid_sheet_cannot_claim_valid_experiment(defect):
-    frame,sheets=gen.load();s=sheets[0]
-    if defect=='missing_design':s['narrative']=[]
-    if defect=='workitem_as_config':s['configs'][0]['path']='.workblock/items/AAGU-031/WORKITEM.md'
-    if defect=='fake_complete':s['execution']['runs']=[]
-    if defect=='invalid_count':s['execution']['completed']=1000
-    if defect=='invalid_family':s['family']='invented'
-    if defect=='duplicate_id':sheets.append(copy.deepcopy(s))
-    if defect=='analysis_without_source':s['analysis']['links']=[]
-    if defect=='cycle':s['analysis']['inputs']=[sheets[1]['id']]
-    if defect=='pending_unbound':s['configs']=[];s['preparation']['state']='draft';s['execution'].update(state='pending',completed=0)
-    if defect=='missing_run':s['execution'].update(state='running',completed=0,runs=[])
-    with pytest.raises(ValueError):gen.validate(frame,sheets)
+def test_current_experiments_preserve_numbered_identity_and_separate_stages():
+    rows = records()
+    assert len(rows) == 25
+    lookup = {r['id']:r for r in rows}
+    assert lookup['AAGU-011']['execution']['state'] == 'completed'
+    assert lookup['AAGU-011']['decision']['state'] == 'pending'
+    assert lookup['AAGU-066']['execution']['state'] == 'pending'
+    assert lookup['AAGU-056']['execution']['state'] == 'completed'
+    assert lookup['AAGU-056']['analysis']['state'] == 'not_started'
+    assert lookup['AAGU-032']['decision']['state'] != 'accepted'
 
 
-def test_configured_axes_match_existing_yaml_without_running_experiments():
-    _,sheets=gen.load()
-    for s in sheets:
-        if s['execution']['total'] is None:continue
-        config=yaml.safe_load((gen.ROOT/s['configs'][0]['path']).read_text(encoding='utf-8'))
-        count=len(config['dataset_refs'])*len(config['budget_ratios'])
-        if 'im_selector_seeds' in config:
-            # Existing IM table: three RR configs, CELF, Degree and Random.
-            count*=4*len(config['im_selector_seeds'])+1+len(config['random_selector_seeds'])
-        else:
-            count*=len(config['selector_refs'])*len(config.get('random_selector_seeds',[0]))
-        count*=len(config.get('seeds',[0]))*len(config.get('unlearning_refs',[0]))
-        assert count==s['execution']['total'],s['id']
+@pytest.mark.parametrize('defect', ['id','state','evidence','analysis','decision','cycle','unknown_dependency','block','event','config'])
+def test_invalid_records_fail_closed(defect):
+    rows = copy.deepcopy(records()); r = rows[0]
+    if defect == 'id': r['id'] = '../oops'
+    if defect == 'state': r['execution']['state'] = 'maybe'
+    if defect == 'evidence': r['execution']['evidence'] = []
+    if defect == 'analysis': r['analysis']['evidence'] = []
+    if defect == 'decision': r['decision']['evidence'] = []
+    if defect == 'cycle': r['dependencies'] = [dict(experiment=r['id'],stage='analysis',reason='x',requirement='evidence')]
+    if defect == 'unknown_dependency': r['dependencies'] = [dict(experiment='AAGU-999',stage='analysis',reason='x',requirement='evidence')]
+    if defect == 'block': r['blocks'] = [dict(id='bad',stage='execution',reason='x')]
+    if defect == 'event': r['history'].append(copy.deepcopy(r['history'][0]))
+    if defect == 'config': r['configs'][0]['path'] = 'script.py'
+    with pytest.raises(ValueError): model.validate(rows)
 
 
-def test_diagram_and_pages_have_same_sheet_navigation(tmp_path):
-    frame,sheets=gen.load();built=gen.outputs(frame,sheets,gen.Sources(gen.ROOT,gen.ROOT),tmp_path)
-    assert len(built)==9
-    svg=ET.fromstring(built[tmp_path/'diagram/research-framework.svg'])
-    targets=[x.attrib['href'] for x in svg.iter() if x.tag.endswith('}a')]
-    assert targets==['../experiments/'+s['id']+'.html' for s in sheets]
-    for s in sheets:
-        content=built[tmp_path/'experiments'/f'{s["id"]}.html']
-        assert '<h2>实验设计</h2>' in content
-        assert '<h2>配置与准备</h2>' in content
-        assert '<h2>运行与结果</h2>' in content
-        assert '<h2>结果分析</h2>' in content
+def write_block(root, code, status):
+    path=root/f'.workblock/items/{code}/WORKITEM.md';path.parent.mkdir(parents=True,exist_ok=True)
+    path.write_text(f'# Block\n当前状态: `{status}`\n',encoding='utf-8')
+    return path
 
 
-def test_html_and_svg_escape_research_text(tmp_path):
-    frame,sheets=gen.load();sheets[0]['title']='</text><script>alert(1)</script>'
-    for content in gen.outputs(frame,sheets,gen.Sources(gen.ROOT,gen.ROOT),tmp_path).values():
-        assert '</text><script>alert(1)' not in content
-        if 'alert(1)' in content:assert '&lt;script&gt;alert(1)' in content
+def test_block_status_is_read_only_fail_closed_and_needs_delivery(tmp_path):
+    dep=dict(id='AAGU-072',delivery_confirmed=False)
+    assert not model.block_status(tmp_path,dep)['resolved']
+    p=write_block(tmp_path,'AAGU-072','accepted');before=p.read_bytes()
+    assert not model.block_status(tmp_path,dep)['resolved']
+    dep['delivery_confirmed']=True
+    assert model.block_status(tmp_path,dep)['resolved']
+    assert p.read_bytes()==before
+    for status in ['working / claimed','not accepted','awaiting acceptance','closed / not accepted','unknown']:
+        write_block(tmp_path,'AAGU-072',status)
+        assert not model.block_status(tmp_path,dep)['resolved']
 
 
-def test_record_and_legacy_changes_do_not_change_generated_content_or_git(tmp_path):
-    folder=tmp_path/'self/research';(folder/'experiments').mkdir(parents=True)
-    owned=[]
-    for p in [gen.SOURCE/'framework.json',gen.SOURCE/'.gitignore',*(gen.SOURCE/'experiments').glob('*.json')]:
-        dest=folder/p.relative_to(gen.SOURCE);dest.write_bytes(p.read_bytes());owned.append(str(dest.relative_to(tmp_path)))
-    (tmp_path/'.gitignore').write_text('.workblock/\nself/dashboard/\n');owned.append('.gitignore')
-    def git(*args):return subprocess.check_output(['git','-C',str(tmp_path),*args],text=True,stderr=subprocess.STDOUT).strip()
-    git('init','-q');git('add',*owned);git('-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','-qm','research baseline')
-    frame,sheets=gen.load(tmp_path)
-    for sheet in sheets:
-        for config in sheet['configs']:
-            dest=tmp_path/config['path'];dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes((gen.ROOT/config['path']).read_bytes())
-            git('add',config['path'])
-    git('-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','-qm','config fixtures')
-    sources=gen.Sources(tmp_path,tmp_path)
-    before=gen.outputs(frame,sheets,sources,folder)
-    item=tmp_path/'.workblock/items/TEST/WORKITEM.md';item.parent.mkdir(parents=True)
-    csv=tmp_path/'self/dashboard/config_inventory.csv';csv.parent.mkdir(parents=True)
-    for state in ['registered','edited contract','working','awaiting acceptance']:
-        item.write_text(state);csv.write_text('deliberately invalid legacy CSV: '+state)
-        (tmp_path/'.workblock/graph.json').write_text(json.dumps({'fixture_state':state}))
-        frame,sheets=gen.load(tmp_path);after=gen.outputs(frame,sheets,sources,folder)
-        assert before==after
-        for path,content in after.items():path.parent.mkdir(parents=True,exist_ok=True);path.write_text(content,encoding='utf-8')
-        assert git('status','--porcelain')==''
+def test_unrelated_block_and_graph_changes_do_not_change_experiment_or_view(tmp_path):
+    frame,rows=model.load(view.ROOT);sources=view.Sources(view.ROOT,tmp_path)
+    page=tmp_path/'index.html'
+    before=view.index_page(frame,rows,sources,page)
+    serialized=json.dumps(rows,ensure_ascii=False)
+    write_block(tmp_path,'AAGU-999','accepted')
+    (tmp_path/'.workblock/graph.json').write_text('invalid irrelevant data')
+    assert view.index_page(frame,rows,sources,page)==before
+    assert json.dumps(rows,ensure_ascii=False)==serialized
+    write_block(tmp_path,'AAGU-070','accepted')
+    after=view.index_page(frame,rows,sources,page)
+    assert after!=before
+    assert json.dumps(rows,ensure_ascii=False)==serialized
 
 
-def test_config_sheet_exists_before_yaml_and_results(tmp_path):
-    frame,sheets=gen.load();draft=next(s for s in sheets if s['id']=='if-trajectory')
-    assert draft['preparation']['state']=='draft' and not draft['configs'] and not draft['execution']['runs']
-    built=gen.outputs(frame,sheets,gen.Sources(gen.ROOT,gen.ROOT),tmp_path)
-    assert '尚未形成独立执行表' in built[tmp_path/'experiments/if-trajectory.html']
+def test_010_012_stage_specific_dependencies_are_preserved():
+    lookup={r['id']:r for r in records()}
+    assert lookup['AAGU-010']['blocks'][0]['id']=='AAGU-072'
+    dep=next(d for d in lookup['AAGU-012']['dependencies'] if d['experiment']=='AAGU-010')
+    assert dep['stage']=='analysis'
+    assert lookup['AAGU-012']['analysis']['state']=='review'
 
 
-def test_link_missing_is_reported_instead_of_silently_omitted(tmp_path):
+def test_accepted_negative_result_does_not_unlock_cross_dataset_run(tmp_path):
+    rows=records();lookup={r['id']:r for r in rows}
+    parent=lookup['AAGU-066'];child=lookup['AAGU-067']
+    parent['decision']['state']='accepted'
+    parent['decision']['success_confirmed']=False
+    assert not model.dependencies(child,rows,tmp_path)[0]['resolved']
+    parent['decision']['success_confirmed']=True
+    assert model.dependencies(child,rows,tmp_path)[0]['resolved']
+
+
+def test_yaml_rendering_uses_actual_file_and_escapes_html(tmp_path):
+    p=tmp_path/'experiments/configs/test.yaml';p.parent.mkdir(parents=True)
+    p.write_text('kind: experiment\nbudget_ratios: [0.1]\nlabel: "<script>"\n')
+    config=dict(path='experiments/configs/test.yaml',label='config',role='current')
+    sources=view.Sources(tmp_path,tmp_path)
+    text=view.config_preview(config,sources,tmp_path/'index.html')
+    assert '0.1' in text and '&lt;script&gt;' in text
+    p.write_text('budget_ratios: [')
+    with pytest.raises(ValueError,match='Invalid YAML'):view.config_preview(config,sources,tmp_path/'index.html')
+
+
+def test_catalog_classifies_development_without_registering_experiments():
+    rows=records();catalog=view.catalog(view.ROOT,rows)
+    assert any(c['owner']=='AAGU-032' for c in catalog)
+    assert any(c['owner']=='AAGU-063' and c['kind']=='development' for c in catalog)
+    assert not any(r['id']=='AAGU-063' for r in rows)
+    assert len({c['path'] for c in catalog})==len(catalog)
+
+
+@pytest.mark.parametrize('path',['../secret','/absolute','C:/secret','bad\\path','../../OpenGU-DocMap/../secret'])
+def test_unsafe_source_paths_rejected(path,tmp_path):
+    with pytest.raises(ValueError):model.resolve(tmp_path,tmp_path,path)
+
+
+def test_diagram_valid_and_all_explicit_dependencies_present(tmp_path):
+    rows=records();svg=view.diagram(rows,tmp_path)
+    root=ET.fromstring(svg)
+    targets=[x.attrib['href'] for x in root.iter() if x.tag.endswith('}a')]
+    assert set(targets)=={'experiments/'+r['id']+'.html' for r in rows if r['blocks'] or r['dependencies']}
+    assert 'Block AAGU-072' in svg
+
+
+def test_repeated_generation_is_deterministic_and_escapes_data(tmp_path):
+    frame,rows=model.load(view.ROOT); sources=view.Sources(view.ROOT,tmp_path)
+    assert view.index_page(frame,rows,sources,tmp_path/'index.html')==view.index_page(frame,rows,sources,tmp_path/'index.html')
+    rows[0]['title']='</text><script>alert(1)</script>'
+    content=view.index_page(frame,rows,sources,tmp_path/'index.html')
+    assert '</text><script>alert(1)' not in content and '&lt;script&gt;alert(1)' in content
+
+
+def test_manifest_binding_checks_identity_count_and_file_hash(tmp_path):
+    p=tmp_path/'results/run/run.json';p.parent.mkdir(parents=True)
+    artifact=p.parent/'cells/a/metrics.json';artifact.parent.mkdir(parents=True);artifact.write_text('{}')
+    run=dict(run_id='r1',experiment_id='e1',commit='a'*40,cells=[dict(cell_id='a',path='cells/a',status='completed',files={'metrics.json':{'sha256':hashlib.sha256(artifact.read_bytes()).hexdigest()}})])
+    p.write_text(json.dumps(run))
+    bound=dict(path='results/run/run.json',sha256=hashlib.sha256(p.read_bytes()).hexdigest(),experiment_id='e1',commit='a'*40,completed=1)
+    rows=[{'attempts':[dict(run_id='r1',manifest=bound)]}]
+    assert model.verify_manifests(rows,tmp_path,tmp_path)==2
+    bound['completed']=2
+    with pytest.raises(ValueError,match='count mismatch'):model.verify_manifests(rows,tmp_path,tmp_path)
+    bound['completed']=1;artifact.write_text('changed')
+    with pytest.raises(ValueError,match='checksum mismatch'):model.verify_manifests(rows,tmp_path,tmp_path)
+
+
+def test_missing_evidence_not_silently_omitted(tmp_path):
     with pytest.raises(ValueError,match='Missing sources'):
-        gen.check_sources({'link':{'label':'definition','path':'missing.md'}},[],gen.Sources(tmp_path,tmp_path))
-
-
-def test_run_hash_and_count_are_verified(tmp_path):
-    artifact=tmp_path/'results/run/cells/a/metrics.json';artifact.parent.mkdir(parents=True);artifact.write_text('{}')
-    run={'experiment_id':'exp','run_id':'r1','commit':'a'*40,'config_path':'experiments/configs/test.yaml','cells':[{'cell_id':'a','path':'cells/a','status':'completed','files':{'metrics.json':{'sha256':hashlib.sha256(artifact.read_bytes()).hexdigest()}}}]}
-    path=tmp_path/'results/run/run.json';path.write_text(json.dumps(run))
-    bound=dict(path='results/run/run.json',experiment_id='exp',run_id='r1',commit='a'*40,sha256=hashlib.sha256(path.read_bytes()).hexdigest())
-    sheets=[{'configs':[{'path':run['config_path']}],'execution':{'runs':[bound],'completed':1}}];sources=gen.Sources(tmp_path,tmp_path)
-    assert gen.verify_runs(sheets,sources)==2
-    sheets[0]['execution']['runs'].append(dict(bound));sheets[0]['execution']['completed']=2
-    with pytest.raises(ValueError,match='count mismatch'):gen.verify_runs(sheets,sources)
-    sheets[0]['execution']['runs']=[bound];sheets[0]['execution']['completed']=1
-    artifact.write_text('changed')
-    with pytest.raises(ValueError,match='checksum mismatch'):gen.verify_runs(sheets,sources)
-    path.write_text('{}')
-    with pytest.raises(ValueError,match='manifest changed'):gen.verify_runs(sheets,sources)
-
-
-def test_yaml_preview_reads_actual_file_and_rejects_invalid_yaml(tmp_path):
-    path=tmp_path/'experiments/configs/test.yaml';path.parent.mkdir(parents=True)
-    ref={'path':'experiments/configs/test.yaml','label':'config'}
-    sources=gen.Sources(tmp_path,tmp_path);page=tmp_path/'index.html'
-    path.write_text('budget_ratios: [0.1]\nlabel: "<script>"\n',encoding='utf-8')
-    first=gen.config_preview(ref,sources,page)
-    assert 'test.yaml' in first and '0.1' in first and '&lt;script&gt;' in first
-    path.write_text('budget_ratios: [0.05]\n',encoding='utf-8')
-    assert '0.05' in gen.config_preview(ref,sources,page)
-    path.write_text('budget_ratios: [',encoding='utf-8')
-    with pytest.raises(ValueError,match='Invalid YAML'):gen.config_preview(ref,sources,page)
-    path.write_text('- not a mapping',encoding='utf-8')
-    with pytest.raises(ValueError,match='must be a mapping'):gen.config_preview(ref,sources,page)
-
-
-def test_every_sheet_has_reverse_question_links_and_yaml_is_not_hand_copied(tmp_path):
-    frame,sheets=gen.load();built=gen.outputs(frame,sheets,gen.Sources(gen.ROOT,gen.ROOT),tmp_path)
-    for sheet in sheets:
-        page=built[tmp_path/'experiments'/f'{sheet["id"]}.html']
-        assert all('../index.html#question-'+topic in page for topic in sheet['topics'])
-        assert '固定条件</h3>' not in page and '变化的因素</h3>' not in page
-        assert page.count('class="yaml-content"')==len(sheet['configs'])
+        model.check_links({},[{'evidence':[dict(label='result',path='missing.json')]}],tmp_path,tmp_path)

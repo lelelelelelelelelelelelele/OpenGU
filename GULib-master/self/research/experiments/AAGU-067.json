@@ -1,0 +1,61 @@
+{
+  "id": "AAGU-067",
+  "title": "CiteSeer 固定 PT 校准与验证",
+  "family": "if",
+  "category": "planned",
+  "question": "先固定本数据集PT，再校准并冻结参数做Random请求验证。",
+  "scope": "先固定本数据集PT，再校准并冻结参数做Random请求验证。",
+  "reviewed_at": "2026-09-22",
+  "configs": [],
+  "preparation": {
+    "state": "draft",
+    "note": "执行定义与来源按下方配置核对。",
+    "evidence": []
+  },
+  "execution": {
+    "state": "unknown",
+    "note": "尚未启动；不能直接套用Cora参数宣布就绪。",
+    "evidence": []
+  },
+  "analysis": {
+    "state": "not_started",
+    "note": "等待Cora科学前置。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "dependencies": [
+    {
+      "experiment": "AAGU-066",
+      "requirement": "successful_acceptance",
+      "stage": "execution",
+      "reason": "Cora成功且经用户科学接受"
+    }
+  ],
+  "blocks": [],
+  "attempts": [],
+  "next_step": "等待066成功且科学接受，再准备本数据集。",
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-067/WORKITEM.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "workplan-intake-20260922",
+      "at": "2026-09-22",
+      "stage": "creation",
+      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-067/WORKITEM.md"
+        }
+      ]
+    }
+  ]
+}
