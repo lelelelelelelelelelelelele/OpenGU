@@ -9,7 +9,9 @@ import pytest
 import torch
 
 from test_modular_consumers import tables, run, write_yaml
-from experiments.observers import LinearSolverTrace, SameGraphChange, validate_capabilities
+from experiments.observers import validate_capabilities
+from experiments.observers.linear_solver_trace import LinearSolverTrace
+from experiments.observers.same_graph_change import SameGraphChange
 from unlearning.unlearning_methods.GIF.solver import solve_gif_system
 
 
@@ -92,7 +94,7 @@ def test_real_graph_run_uncached_observers_metrics_and_hashes(tables, method):
     store = root/'results/cache_v2'
     before = load_output(plain['unlearning'][0]['output'], store, dataset_root=root)
     after = load_output(observed['unlearning'][0]['output'], store, dataset_root=root)
-    from experiments.calibration_observer import compare_runs
+    from experiments.aagu065_observer_comparison import compare_runs
     compared = compare_runs(root/'results/runs/observed/observed/run.json',
         root/'results/runs/plain/plain/run.json', dataset_root=root, store_root=store)
     assert compared['production_unchanged']
@@ -104,7 +106,7 @@ def test_real_graph_run_uncached_observers_metrics_and_hashes(tables, method):
     cell = result['cells'][0]
     assert cell['cache']['method'] == 'disabled'
     assert len(cell['observers']) == 3
-    from experiments.calibration_observer import HessianCalibration
+    from experiments.observers.hessian_calibration import HessianCalibration
     calibration = HessianCalibration.read(documents[0]['observers/hessian_calibration/calibration.json'])
     assert calibration['coverage'] == ['loss_ready', 'solver_system_ready', 'update_applied']
     measured = calibration['measurements']
@@ -155,7 +157,7 @@ def test_same_graph_preserves_modes_gradients_and_rng(tables):
 
 
 def test_failure_keeps_partial_observation(tables, monkeypatch):
-    from experiments.observers import LinearSolverTrace
+    from experiments.observers.linear_solver_trace import LinearSolverTrace
     root, _, gu = tables
     gu.update(method='GIF', parameters=dict(iteration=3, scale=100, damp=.1))
     write_yaml(root/'method.yaml', gu)
@@ -234,7 +236,7 @@ def test_nonfinite_observation_is_saved_not_rejected(tmp_path):
 
 
 def test_calibration_preserves_rng_gradients_and_mode(tables):
-    from experiments.calibration_observer import HessianCalibration
+    from experiments.observers.hessian_calibration import HessianCalibration
     from experiments.modular_run import read_dataset
     from experiments.modular_config import load_instance
     from experiments.modular_model import create_model

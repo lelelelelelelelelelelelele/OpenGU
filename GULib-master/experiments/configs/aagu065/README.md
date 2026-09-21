@@ -67,7 +67,7 @@ After both runs complete on the same approved SSH code version, compare locally
 on that runner (model outputs remain remote):
 
 ```sh
-python -m experiments.calibration_observer \
+python -m experiments.aagu065_observer_comparison \
   --observed results/runs/aagu065-observer-h16/aagu070-065-h16-v1/run.json \
   --control results/runs/aagu065-observer-h16-control/aagu070-065-h16-control-v1/run.json \
   --dataset-root . --store-root results/cache_v2

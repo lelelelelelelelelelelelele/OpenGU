@@ -90,7 +90,7 @@ Metrics、Selection 和可选 scores 位于各 cell 目录，不再将整次矩�
 
 普通 experiment 直接声明 `observers: [{name: linear_solver_trace, methods: [GIF, IDEA]}]`，
 仅需要覆盖默认值时填写 `parameters`。名称在 `experiments.observers.OBSERVERS` 映射到类，
-没有独立 Observer YAML 引用。当前提供 linear_solver_trace、same_graph_change、hessian_calibration。
+没有独立 Observer YAML 引用。每个 Observer 位于 experiments/observers/ 下的同名 Python 文件；__init__.py 只负责注册与运行时管理。当前提供 linear_solver_trace、same_graph_change、hessian_calibration。
 
 调用点提供语义明确的上下文；Observer 在 Python 实现中声明 `requires`（事件到字段集合）和
 `files`（相对输出文件路径）。ObserverSession 按声明选取字段、调用、计时和结束保存。
@@ -113,5 +113,5 @@ SyncMate 按 Observer 的文件声明收集、核验哈希和索引；Adapter �
 065 首个真实消费者配置是 `experiments/configs/aagu065/observer_h16.yaml` 及同目录
 `observer_h16_control.yaml`，固定 H16/PT/Random104245/10%删除/scale9000/damp2048÷9000，
 分别运行 GIF/IDEA 的100/200/400步。两表均禁用 GU 缓存，只有前者挂载 Observer。
-`python -m experiments.calibration_observer` 只读比较两次 Output 并解释自己的观测文件，
+`python -m experiments.aagu065_observer_comparison` 只读比较两次 Output 并解释自己的观测文件，
 不启动实验、不修改方法预算、不进行科研验收。正式执行仍遵守 SSH 版本与部署边界。
