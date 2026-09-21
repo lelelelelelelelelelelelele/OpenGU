@@ -1,0 +1,69 @@
+{
+  "id": "AAGU-010",
+  "title": "Flip/Hop 指标补齐",
+  "family": "shared",
+  "category": "active",
+  "question": "消费011四GU与Retrain已有Output，补齐828对指标，不补训练。",
+  "scope": "消费011四GU与Retrain已有Output，补齐828对指标，不补训练。",
+  "reviewed_at": "2026-09-22",
+  "configs": [],
+  "preparation": {
+    "state": "preparing",
+    "note": "指标补算入口等待072交付，不能自动补训练。",
+    "evidence": []
+  },
+  "execution": {
+    "state": "pending",
+    "note": "目标为1035格对应207请求组、828对；尚未取得本轮补算证据。",
+    "evidence": []
+  },
+  "analysis": {
+    "state": "not_started",
+    "note": "补算完成后由012解释。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "dependencies": [
+    {
+      "experiment": "AAGU-011",
+      "requirement": "evidence",
+      "stage": "execution",
+      "reason": "需要同一Table02的Output、Selection和数据身份"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "AAGU-072",
+      "stage": "execution",
+      "reason": "Flip/Hop公共Metrics代码尚待交付",
+      "delivery_confirmed": false,
+      "delivery_note": "未确认本实验所需能力已落地主线。"
+    }
+  ],
+  "attempts": [],
+  "next_step": "等待072代码交付，核验011输入后按Runbook提交指标重算。",
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-010/WORKITEM.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "workplan-intake-20260922",
+      "at": "2026-09-22",
+      "stage": "creation",
+      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-010/WORKITEM.md"
+        }
+      ]
+    }
+  ]
+}

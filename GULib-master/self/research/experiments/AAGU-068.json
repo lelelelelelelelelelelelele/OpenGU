@@ -1,0 +1,67 @@
+{
+  "id": "AAGU-068",
+  "title": "PubMed 固定 PT 校准与验证",
+  "family": "if",
+  "category": "planned",
+  "question": "按既定顺序完成本数据集固定PT、校准和冻结验证。",
+  "scope": "按既定顺序完成本数据集固定PT、校准和冻结验证。",
+  "reviewed_at": "2026-09-22",
+  "configs": [],
+  "preparation": {
+    "state": "draft",
+    "note": "执行定义与来源按下方配置核对。",
+    "evidence": []
+  },
+  "execution": {
+    "state": "unknown",
+    "note": "尚未启动；066科学接受及067顺序交付为前置。",
+    "evidence": []
+  },
+  "analysis": {
+    "state": "not_started",
+    "note": "暂无本数据集证据。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "dependencies": [
+    {
+      "experiment": "AAGU-066",
+      "requirement": "successful_acceptance",
+      "stage": "execution",
+      "reason": "Cora科学前置"
+    },
+    {
+      "experiment": "AAGU-067",
+      "requirement": "evidence",
+      "stage": "execution",
+      "reason": "CiteSeer顺序交付前置，失败不冒充成功"
+    }
+  ],
+  "blocks": [],
+  "attempts": [],
+  "next_step": "保持066科学前置与067交付顺序。",
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-068/WORKITEM.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "workplan-intake-20260922",
+      "at": "2026-09-22",
+      "stage": "creation",
+      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-068/WORKITEM.md"
+        }
+      ]
+    }
+  ]
+}

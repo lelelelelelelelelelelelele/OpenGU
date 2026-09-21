@@ -1,0 +1,54 @@
+{
+  "id": "AAGU-013",
+  "title": "代理模型选集迁移",
+  "family": "shared",
+  "category": "planned",
+  "question": "固定目标模型，只改变选点使用的代理模型，比较迁移效果。",
+  "scope": "固定目标模型，只改变选点使用的代理模型，比较迁移效果。",
+  "reviewed_at": "2026-09-22",
+  "configs": [],
+  "preparation": {
+    "state": "draft",
+    "note": "执行定义与来源按下方配置核对。",
+    "evidence": []
+  },
+  "execution": {
+    "state": "unknown",
+    "note": "当前代理/目标组合与独立执行表尚待核对。",
+    "evidence": []
+  },
+  "analysis": {
+    "state": "not_started",
+    "note": "暂无本轮分析证据。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "dependencies": [],
+  "blocks": [],
+  "attempts": [],
+  "next_step": "明确代理与目标配置及匹配参照。",
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-013/WORKITEM.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "workplan-intake-20260922",
+      "at": "2026-09-22",
+      "stage": "creation",
+      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-013/WORKITEM.md"
+        }
+      ]
+    }
+  ]
+}

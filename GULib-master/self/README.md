@@ -1,17 +1,19 @@
 # Self 文档入口
 
 `self/` 保存研究过程材料、历史判断和 dashboard。当前研究定义与实验计划在
-[OpenGU DocMap](../../../OpenGU-DocMap/_文档地图.md)，当前任务编排在
-[WORKPLAN](dashboard/WORKPLAN.md)，生命周期在 [WorkItems](../.workblock/items/)。
+[OpenGU DocMap](../../../OpenGU-DocMap/_文档地图.md)，开发变更在
+[WorkBlock / Companion 记录](../.workblock/items/)，生命周期在 [WorkItems](../.workblock/items/)。
 本页只做导航，不维护另一份研究计划或任务状态。
 
 ## 从这里开始
 
 | 你要做什么 | 入口 | 如何使用 |
 |---|---|---|
-| 看下一步、优先级与依赖 | [WORKPLAN](dashboard/WORKPLAN.md) | 看当前编排；通过条目进入 WorkItem |
+| 看实验下一步与依赖 | [Work Plan](research/index.html) | 独立实验过程及明确的开发阻塞 |
+| 看开发变更 | [WorkBlock / Companion](../.workblock/items/) | 开发交付与生命周期 |
+| 看研究框架、配置单、结果与分析 | [Work Plan](research/index.html) | 按编号、研究组与阶段查实验 |
 | 看研究问题、实验矩阵和论文论证 | [OpenGU DocMap](../../../OpenGU-DocMap/_文档地图.md) | 使用独立研究文档库的当前入口 |
-| 修改 dashboard | [AGENTS.md](dashboard/AGENTS.md) | 区分手写节点、WorkItem 状态和生成视图 |
+| 修改 dashboard | [AGENTS.md](dashboard/AGENTS.md) | 区分研究清单、运行证据和历史覆盖 |
 | 查代码合同与设计 | [docs 入口](../docs/README.md) | 区分合同、实现说明与历史验收报告 |
 | 查正式运行及结果产物 | [results 说明](../results/README.md)、[AutoReport V3](../docs/auto_report_v3_DESIGN.md) | 按配置、代码版本和产物核对证据 |
 | 查人工验证发现 | [VALIDATION_LOG](dashboard/VALIDATION_LOG.md) | 按条目日期与后续 superseded 记录阅读 |
@@ -44,7 +46,7 @@
 ## 新内容放哪里
 
 - 当前研究问题、实验解释、矩阵与论文思考进入 OpenGU DocMap；此处通过链接引用。
-- 当前任务与依赖写入 WORKPLAN；生命周期交给对应 WorkItem，不在研究笔记里另建任务事实源。
+- 当前任务与依赖由 WorkBlock / Companion 管理；生命周期交给对应 WorkItem，不在研究笔记里另建任务事实源。
 - 代码合同、实现说明进入 `docs/`；阶段汇报、课程报告与答辩成果进入 `report/`。
 - 实验产物由其执行和收集流程写入 `results/`；不要通过整理文档修改实验事实。
 - 旧材料只有在仍承担明确参考用途时才保留。删除或合并前核对独有内容是否已被吸收、引用是否仍有效；不能仅凭文件日期裁定。

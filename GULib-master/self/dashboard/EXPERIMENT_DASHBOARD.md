@@ -1,6 +1,6 @@
 # Experiment Dashboard
 
-> ⚠️ **FROZEN 2026-05-07（NeurIPS push 结束）。当前状态以 [`PROGRESS.md`](PROGRESS.md) 为准。**
+> ⚠️ **FROZEN 2026-05-07（NeurIPS push 结束）。当前实验入口见 [实验研究总览](../research/index.html)，任务见 WorkBlock / Companion。**
 > 本文件保留作 **历史覆盖矩阵 + bug 档案**；§1 的 Phase B "[ ]" 早已完成（cora 满矩阵），勿据此判断现状。
 > Last updated: 2026-05-07 (§3.3 衍生事实 + IM cross-cell cache 行为 + arxiv k 选择 tradeoff + master scorecard / k=5 dual-baseline)
 > See rules: `CLAUDE.md`

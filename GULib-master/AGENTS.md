@@ -10,9 +10,9 @@ The framework connects OpenGU's data processing, model training, and graph-unlea
 
 This repository is both a codebase and an experiment/evidence repository: source code and YAML define executable experiments; datasets and splits, cache identities, result artifacts, and reports support conclusions. Every experiment conclusion must be traceable to an explicit configuration, dataset and split, code version, and artifact evidence.
 
-Current research framing, experiment design, and review thinking start in the sibling [OpenGU DocMap](../../OpenGU-DocMap/_文档地图.md) repository. Current tasks, priorities, and dependencies have one live source: `self/dashboard/WORKPLAN.md`.
+Current research framing and scientific rationale start in the sibling [OpenGU DocMap](../../OpenGU-DocMap/_文档地图.md). [Work Plan](self/research/index.html) independently owns experiment creation, preparation, runs, reruns, analysis, scientific decisions and experiment dependencies; its source records are `self/research/experiments/AAGU-NNN.json`. Development contracts and lifecycle belong to canonical WorkBlock records and Companion. An experiment may reference a blocking development Block; Work Plan never manages or synchronizes Block lifecycle.
 
-Do not duplicate live dashboard state into other documents; link to its owning source instead. If provenance, dataset or split identity, cache or artifact identity, or metric semantics are ambiguous, fail closed: do not treat the result as trusted evidence.
+Pure experiment maintenance follows [the experiment Runbook](self/research/RUNBOOK.md), without a Block Claim, branch or software-candidate cycle for each run or analysis. Software and executable-definition changes still use development Blocks. Do not duplicate either system's live state. Ordinary Block edits require no experiment-record update or dashboard commit. If provenance, dataset/split, cache identity or metric semantics are ambiguous, do not treat the result as trusted evidence.
 
 ## 2. Execution Locations
 

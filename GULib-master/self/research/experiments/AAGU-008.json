@@ -1,0 +1,54 @@
+{
+  "id": "AAGU-008",
+  "title": "K5 噪声参照",
+  "family": "baseline",
+  "category": "planned",
+  "question": "明确当前可执行 K5 参照与适用范围。",
+  "scope": "明确当前可执行 K5 参照与适用范围。",
+  "reviewed_at": "2026-09-22",
+  "configs": [],
+  "preparation": {
+    "state": "draft",
+    "note": "执行定义与来源按下方配置核对。",
+    "evidence": []
+  },
+  "execution": {
+    "state": "unknown",
+    "note": "旧定义保留，当前配置与运行覆盖待核对。",
+    "evidence": []
+  },
+  "analysis": {
+    "state": "not_started",
+    "note": "未关联现行分析。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "dependencies": [],
+  "blocks": [],
+  "attempts": [],
+  "next_step": "先确认此研究线是否仍需执行，不能恢复已退役配置。",
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-008/WORKITEM.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "workplan-intake-20260922",
+      "at": "2026-09-22",
+      "stage": "creation",
+      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-008/WORKITEM.md"
+        }
+      ]
+    }
+  ]
+}
