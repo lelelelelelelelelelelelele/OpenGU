@@ -54,14 +54,14 @@ Metrics、Selection 和可选 scores 位于各 cell 目录，不再将整次矩�
 - 是否回传由具体运行的交付需求确定，不因“本地可能分析”自动强制。未回传可以通过 SSH 分析远端已有产物。
 - 不为回传增加评分或扩大 K；不生成伪造的缺失排名。NPZ 仅是数值数组容器，不能直接复制 Cache payload 填充此文件。
 
-## 不在结果文件夹中
+## 不进入常规回传包
 
 | 内容 | 处理 |
 |---|---|
 | graph、边、特征、标签 | 留在远端正式输入；不新增 collect-inputs 收集 |
 | train/val/test masks、节点名单、划分说明副本 | 不单独回传；正式输入按既有配置及远端核验保证 |
-| logits / logits_before、逐节点概率与预测 | 留在远端 Output Cache，供 Metrics 重算或 SSH 分析 |
-| 模型 checkpoint、模型状态和方法张量 | 留在远端 Cache |
+| logits / logits_before、逐节点概率与预测 | 留在执行端 Output Cache 或 run-owned Output，供 Metrics 重算或 SSH 分析 |
+| 模型 checkpoint、模型状态和方法张量 | 留在执行端 Cache 或 run-owned Output |
 | 梯度、Hessian/逆近似、优化器和其他临时状态 | 留在计算/缓存端 |
 | 全量 experiment/子 YAML 展开副本、源码 | 不回传；已提交配置由 commit + 路径定位 |
 | 传输临时 manifest、checksum 文件 | 由 SyncMate 执行核验并管理，不作为实验结果文件；按现有机制清理临时物，不删除 Cache 自身校验/来源记录 |
@@ -93,7 +93,7 @@ Metrics、Selection 和可选 scores 位于各 cell 目录，不再将整次矩�
 公共实例位于 `experiments/configs/observers/`；当前提供 linear_solver_trace 与 same_graph_change。
 解析器在执行前核对方法的事件/字段能力；现阶段观测请求必须禁用对应 GU 缓存。
 Observer 不进入算法 parameters、Selection 或 checkpoint 身份，不增加矩阵轴。
-项目设计正文仍由 [OpenGU DocMap](../../OpenGU-DocMap/10_实验矩阵/25_跨方法Observer设计.md) 唯一维护。
+项目设计正文仍由 [OpenGU DocMap](../../../OpenGU-DocMap/10_实验矩阵/25_跨方法Observer设计.md) 唯一维护。
 
 每个 cell 的 `observers/<name>/result.json` 与可选 `trace.jsonl` 独立保存标量观测。
 run.json 的 observers/files 登记实际文件哈希；result 绑定运行、配置摘要、提交、完整 Output
