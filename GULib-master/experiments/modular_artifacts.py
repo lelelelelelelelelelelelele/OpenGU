@@ -258,16 +258,26 @@ def read_run(path, expected_sha256):
                 required.add(name + ('.npz' if name == 'scores' else '.json'))
         observer_names = set()
         for reference in cell.get('observers', []):
-            from experiments.observers import OBSERVERS
+            from experiments.observers import OBSERVERS, declared_files
             name = reference['name']
             if name in observer_names or name not in OBSERVERS or reference['status'] != 'completed':
                 raise ValueError('invalid Observer reference')
             observer_names.add(name)
-            expected = {f'observers/{name}/{file}' for file in OBSERVERS[name].files}
+            expected = {f'observers/{name}/{file}' for file in declared_files(OBSERVERS[name])}
             if set(reference['files']) != expected or reference['semantic_version'] != OBSERVERS[name].version:
                 raise ValueError('Observer file or semantic declaration mismatch')
             if any(cell['files'].get(k) != v for k, v in reference['files'].items()):
                 raise ValueError('Observer hashes differ from cell files')
+            identity = reference['identity']
+            if (identity['cell_id'] != cell['cell_id'] or identity['conditions'] != cell['conditions']
+                    or identity['run_id'] != run['run_id'] or identity['experiment_id'] != run['experiment_id']
+                    or identity['commit'] != run['commit']
+                    or identity['output_identity']['selection']['artifact_id'] != cell['selection_id']):
+                raise ValueError('Observer reference identity mismatch')
+            from cache_v2 import ArtifactRecipe
+            from cache_v2.unlearning_output import OUTPUT_CONTRACT
+            if ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **identity['output_identity']}).recipe_hash != cell['output']['recipe_hash']:
+                raise ValueError('Observer does not bind cell Output')
             required.update(expected)
         if set(cell['files']) != required:
             raise ValueError('result file declaration mismatch')
@@ -277,21 +287,7 @@ def read_run(path, expected_sha256):
             if hashlib.sha256(target.read_bytes()).hexdigest() != item['sha256']:
                 raise ValueError('result checksum mismatch: ' + name)
             if name.startswith('observers/'):
-                if name.endswith('.jsonl'):
-                    values[name] = [json.loads(line) for line in target.read_text(encoding='utf-8').splitlines()]
-                else:
-                    value = json.loads(target.read_text(encoding='utf-8'))
-                    identity = value['identity']
-                    if (value['status'] != 'completed' or identity['cell_id'] != cell['cell_id']
-                            or identity['conditions'] != cell['conditions'] or identity['run_id'] != run['run_id']
-                            or identity['experiment_id'] != run['experiment_id'] or identity['commit'] != run['commit']
-                            or identity['output_identity']['selection']['artifact_id'] != cell['selection_id']):
-                        raise ValueError('Observer identity or status mismatch')
-                    from cache_v2 import ArtifactRecipe
-                    from cache_v2.unlearning_output import OUTPUT_CONTRACT
-                    if ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **identity['output_identity']}).recipe_hash != cell['output']['recipe_hash']:
-                        raise ValueError('Observer does not bind cell Output')
-                    values[name] = value
+                values[name] = target.read_bytes()
             elif name == 'scores.npz':
                 with np.load(target, allow_pickle=False) as arrays:
                     if set(arrays.files) != set(cell['scores']['keys']):
@@ -302,8 +298,6 @@ def read_run(path, expected_sha256):
                 if value['cell_id'] != cell['cell_id']:
                     raise ValueError('result cell ownership mismatch')
                 values[name] = value
-        from experiments.observers import verify_observer_documents
-        verify_observer_documents(cell, values)
         selection = values['selection.json']
         nodes = selection['selected_nodes']
         if (selection['selection_id'] != cell['selection_id'] or type(selection['requested_k']) is not int

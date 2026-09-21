@@ -88,27 +88,30 @@ Metrics、Selection 和可选 scores 位于各 cell 目录，不再将整次矩�
 
 ## Observer 与无缓存 Output
 
-普通 experiment 可声明 `observers: [{ref: ../observers/linear_solver_trace.yaml, methods: [GIF, IDEA]}]`
-及 `execution.gu_cache: {GIF: disabled, IDEA: disabled, Retrain: reuse}`。
-公共实例位于 `experiments/configs/observers/`；当前提供 linear_solver_trace 与 same_graph_change。
-解析器在执行前核对方法的事件/字段能力；现阶段观测请求必须禁用对应 GU 缓存。
-Observer 不进入算法 parameters、Selection 或 checkpoint 身份，不增加矩阵轴。
-项目设计正文仍由 [OpenGU DocMap](../../../OpenGU-DocMap/10_实验矩阵/25_跨方法Observer设计.md) 唯一维护。
+普通 experiment 直接声明 `observers: [{name: linear_solver_trace, methods: [GIF, IDEA]}]`，
+仅需要覆盖默认值时填写 `parameters`。名称在 `experiments.observers.OBSERVERS` 映射到类，
+没有独立 Observer YAML 引用。当前提供 linear_solver_trace、same_graph_change、hessian_calibration。
 
-每个 cell 的 `observers/<name>/result.json` 与可选 `trace.jsonl` 独立保存标量观测。
-run.json 的 observers/files 登记实际文件哈希；result 绑定运行、配置摘要、提交、完整 Output
-计算身份、Observer 参数/实现/语义版本、覆盖及诊断耗时。异常终止仍保留已采轨迹和失败状态，
-不能通过 completed run 的核验。正常读取同时核验文件、身份、覆盖与数值有限性。
+调用点提供语义明确的上下文；Observer 在 Python 实现中声明 `requires`（事件到字段集合）和
+`files`（相对输出文件路径）。ObserverSession 按声明选取字段、调用、计时和结束保存。
+GIF/IDEA 提供 unlearning_start/end、loss_ready、solver_system_ready、solver_step、update_applied。
+缺字段属于接口错误；数值发散、NaN、残差大小属于 Observer 记录/分析的内容，不由公共层判定。
 
-`disabled` 同时禁止 GU Output 缓存读与写，最终 payload 保存到 cell 的 `output.npz`。
-标准引用为 `storage: run`、相对项目根的 path、recipe_hash 与 content_hash；它没有跨 run
-缓存注册。metrics 使用同一 load_output 接口核对完整 payload、当前 producer 和 Selection
-依赖，输入图仍由已绑定 manifest 解析。checkpoint、Score、Selection 和 reuse 方法的策略不变。
+运行时管理目录、完整运行/配置/Output 身份和文件哈希；这些信息保存在 run.json 的 Observer 引用中。
+文件内容不要求 JSON、固定 result.json 或仅标量，read_run 对 Observer 文件只核验哈希并返回 bytes。
+内容读取、格式解释和数值分析由 Observer 或它的消费者实现承担。公共层不调用科学判据。
+保存异常和算法失败保留已生成文件及失败引用，不能伪装成完成。
 
-通用 SyncMate 按配置声明 Observer 文件、收集并核验哈希和索引；output.npz 与输入图/模型
-仍留在执行端，不加入常规回传列表。回传集合由 output_paths 生成，不靠扫描文件夹推断。
-方法计时包含求解期 callback 的开销；独立 observer_seconds 包含全部开始/求解/结束 callback，
-不能将带观测总耗时称作纯 GU 时间。标量提取同步 CUDA；未做 GPU 性能结论。
+请求运行期事件的方法必须使用 `execution.gu_cache: {GIF: disabled, IDEA: disabled}`，确保实际执行。
+可同时保留 `Retrain: reuse`；checkpoint、Score、Selection 的复用规则不变。
+禁用 GU 缓存时最终 Output 使用运行独立的 output.npz，统一 metrics 仍能读取。
 
-本公共接口不执行 066 的 T/2T/4T 汇总或科学验收，也不引用专属 runner/adapter。
-不同预算由普通方法小表指定；Observer 保存步数和对应范数，不改变生产预算。
+SyncMate 按 Observer 的文件声明收集、核验哈希和索引；Adapter 只核对引用身份、配置和文件集合，
+不读取 Observer 内容或理解数值。output.npz 与输入图/模型留在执行端。
+方法计时包含求解期 callback 开销；observer_seconds 包含全部回调额外计算，不能称为纯 GU 耗时。
+
+065 首个真实消费者配置是 `experiments/configs/aagu065/observer_h16.yaml` 及同目录
+`observer_h16_control.yaml`，固定 H16/PT/Random104245/10%删除/scale9000/damp2048÷9000，
+分别运行 GIF/IDEA 的100/200/400步。两表均禁用 GU 缓存，只有前者挂载 Observer。
+`python -m experiments.calibration_observer` 只读比较两次 Output 并解释自己的观测文件，
+不启动实验、不修改方法预算、不进行科研验收。正式执行仍遵守 SSH 版本与部署边界。

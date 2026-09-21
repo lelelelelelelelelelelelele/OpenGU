@@ -18,11 +18,10 @@ def test_observer_cli_collect_verify_and_accept(workspace, record_property):
     write_yaml(runner/'gif.yaml', gu)
     idea = {**gu, 'method': 'IDEA', 'parameters': {**gu['parameters'], 'gaussian_mean': 0., 'gaussian_std': 0.}}
     write_yaml(runner/'idea.yaml', idea)
-    for name in ('linear_solver_trace', 'same_graph_change'):
-        write_yaml(runner/(name+'.yaml'), dict(kind='observer', schema_version=1, name=name))
     config.update(stage='unlearning', unlearning_refs=['gif.yaml', 'idea.yaml', 'retrain.yaml'],
         seeds=[42], budget_ratios=[.1], execution={'gu_cache': {'GIF': 'disabled', 'IDEA': 'disabled', 'Retrain': 'reuse'}},
-        observers=[dict(ref='./'+name+'.yaml', methods=['GIF', 'IDEA']) for name in ('linear_solver_trace', 'same_graph_change')])
+        observers=[dict(name=name, methods=['GIF', 'IDEA']) for name in ('linear_solver_trace', 'same_graph_change')] +
+        [dict(name='hessian_calibration', methods=['GIF', 'IDEA'], parameters={'lanczos_steps': 3})])
     write_yaml(path, config)
     sha = commit(runner)
     definition = declaration(runner, path, 'unlearning')

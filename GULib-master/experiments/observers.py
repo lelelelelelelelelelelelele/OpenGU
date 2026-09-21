@@ -3,9 +3,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import torch
 
@@ -16,6 +15,9 @@ SOLVER_FIELDS = {'update', 'rhs', 'matvec', 'curvature', 'scale', 'damp', 'itera
 CAPABILITIES = {method: {
     'unlearning_start': {'model', 'graphs'}, 'unlearning_end': {'model', 'graphs'},
     'solver_step': SOLVER_FIELDS,
+    'loss_ready': {'loss', 'loss_reduction', 'model', 'data', 'parameters'},
+    'solver_system_ready': {'matvec', 'rhs', 'parameters', 'scale', 'damp', 'iterations'},
+    'update_applied': {'parameters', 'expected_parameters', 'update'},
 } for method in ('GIF', 'IDEA')}
 
 
@@ -140,11 +142,14 @@ class SameGraphChange:
             indent=2, allow_nan=False), encoding='utf-8')
 
 
-OBSERVERS = {'linear_solver_trace': LinearSolverTrace, 'same_graph_change': SameGraphChange}
+from experiments.calibration_observer import HessianCalibration
+
+OBSERVERS = {'linear_solver_trace': LinearSolverTrace, 'same_graph_change': SameGraphChange,
+             'hessian_calibration': HessianCalibration}
 
 
 def resolve_observer(value):
-    fields(value, {'kind', 'schema_version', 'name', 'parameters'}, {'kind', 'schema_version', 'name'}, 'observer')
+    fields(value, {'name', 'parameters'}, {'name'}, 'observer')
     if value['name'] not in OBSERVERS:
         raise ConfigurationError('unknown observer: ' + str(value['name']))
     instance = OBSERVERS[value['name']](value.get('parameters', {}))
@@ -170,46 +175,7 @@ def observer_specs(config, method):
 
 def observer_files(config, method):
     return [f'observers/{spec["name"]}/{name}' for spec in observer_specs(config, method)
-            for name in OBSERVERS[spec['name']].files]
-
-
-def verify_observer_documents(cell, documents):
-    """Validate scalar semantics and actual coverage in addition to file hashes."""
-    def finite(value):
-        if isinstance(value, dict):
-            return all(finite(v) for v in value.values())
-        if isinstance(value, list):
-            return all(finite(v) for v in value)
-        return not isinstance(value, float) or math.isfinite(value)
-    for ref in cell.get('observers', []):
-        name = ref['name']
-        result = documents[f'observers/{name}/result.json']
-        implementation = OBSERVERS[name]
-        if (result['name'] != name or result['semantic_version'] != implementation.version
-                or not finite(result) or len(result['implementation']) != 64):
-            raise ValueError('invalid Observer semantics')
-        implementation(result['parameters'])
-        if name == 'linear_solver_trace':
-            trace = documents[f'observers/{name}/trace.jsonl']
-            if not trace or not finite(trace) or not all(row['finite'] for row in trace):
-                raise ValueError('invalid solver trace')
-            steps = [row['step'] for row in trace]
-            params = result['identity']['output_identity']['target']['parameters']
-            count = params['iteration']
-            zero = trace[0]['rhs_l2'] == 0
-            expected = [i for i in range(count+1) if (i != 0 or result['parameters']['include_initial'])
-                        and (i % result['parameters']['every_n_steps'] == 0 or i == count)]
-            if zero:
-                expected = [0] if result['parameters']['include_initial'] else []
-            if steps != expected or result['coverage'] != steps:
-                raise ValueError('solver trace coverage mismatch')
-            for row in trace:
-                if row['scale'] != params['scale'] or row['damp'] != params['damp']:
-                    raise ValueError('solver trace parameters mismatch')
-                if zero and any(row[k] is not None for k in ('original_relative_residual', 'shifted_relative_residual')):
-                    raise ValueError('zero RHS cannot claim relative residual')
-        elif result['coverage'] != ['unlearning_start', 'unlearning_end'] or set(result['measurements']['graphs']) != {'original', 'retained'}:
-            raise ValueError('same graph coverage mismatch')
+            for name in declared_files(OBSERVERS[spec['name']])]
 
 
 class ObserverSession:
@@ -217,6 +183,8 @@ class ObserverSession:
     def __init__(self, specs, folder, identity):
         self.folder, self.identity = Path(folder), identity
         self.items = [(spec, OBSERVERS[spec['name']](spec['parameters'])) for spec in specs]
+        for _, observer in self.items:
+            declared_files(observer)
         self.seconds = 0.0
         self.events = []
         self.references = []
@@ -230,7 +198,8 @@ class ObserverSession:
                     missing = observer.requires[event['phase']] - set(event['values'])
                     if missing:
                         raise ValueError(f'{spec["name"]}: missing event fields {sorted(missing)}')
-                    observer(event)
+                    observer({**event, 'values': {key: event['values'][key]
+                                                 for key in observer.requires[event['phase']]}})
         finally:
             # Scalar extraction synchronizes CUDA; count all observer compute here.
             self.seconds += time.perf_counter() - started
@@ -243,7 +212,7 @@ class ObserverSession:
             folder = self.folder/'observers'/spec['name']
             folder.mkdir(parents=True, exist_ok=False)
             metadata = dict(identity=self.identity, name=spec['name'], semantic_version=observer.version,
-                implementation=implementation_fingerprint(type(observer), norm), parameters=spec['parameters'],
+                implementation=implementation_fingerprint(type(observer)), parameters=spec['parameters'],
                 status='failed' if error else 'completed', error=str(error)[:1000] if error else None,
                 observer_seconds=self.seconds, timing='total callbacks; scalar CPU extraction synchronizes CUDA',
                 events=self.events)
@@ -251,11 +220,27 @@ class ObserverSession:
                 observer.save(folder, metadata)
             except BaseException as exc:
                 metadata.update(status='failed', error=str(exc))
-                (folder/'result.json').write_text(json.dumps(metadata, indent=2), encoding='utf-8')
                 save_errors.append(exc)
             files = {f'observers/{spec["name"]}/{name}': {
                 'sha256': hashlib.sha256((folder/name).read_bytes()).hexdigest()} for name in observer.files if (folder/name).is_file()}
-            references.append(dict(name=spec['name'], semantic_version=observer.version, status=metadata['status'], files=files))
+            references.append(dict(name=spec['name'], semantic_version=observer.version,
+                status=metadata['status'], error=metadata['error'], identity=self.identity,
+                parameters=spec['parameters'], implementation=metadata['implementation'], files=files))
+            if metadata['status'] == 'completed' and len(files) != len(observer.files):
+                references[-1]['status'] = 'failed'
+                save_errors.append(ValueError('Observer did not save all declared files'))
         if save_errors:
             raise RuntimeError('Observer save failed: ' + '; '.join(map(str, save_errors))) from save_errors[0]
         return references
+
+
+def declared_files(observer):
+    names = observer.files
+    if not names or len(set(names)) != len(names):
+        raise ConfigurationError('Observer files must be nonempty and unique')
+    for name in names:
+        if (not isinstance(name, str) or not name or '\\' in name or ':' in name
+                or PurePosixPath(name).is_absolute() or '..' in PurePosixPath(name).parts
+                or str(PurePosixPath(name)) != name):
+            raise ConfigurationError('Observer file must be a normalized relative path')
+    return names

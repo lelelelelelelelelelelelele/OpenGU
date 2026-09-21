@@ -76,12 +76,11 @@ def test_real_graph_run_uncached_observers_metrics_and_hashes(tables, method):
         gu['parameters'].update(gaussian_mean=0., gaussian_std=0.)
     write_yaml(root/'method.yaml', gu)
     write_yaml(root/'retrain.yaml', {**gu, 'method': 'Retrain', 'parameters': {}})
-    for name in ('linear_solver_trace', 'same_graph_change'):
-        write_yaml(root/(name+'.yaml'), dict(kind='observer', schema_version=1, name=name))
     opts = dict(stage='unlearning', selector_refs=['degree.yaml'], unlearning_refs=['method.yaml', 'retrain.yaml'])
     plain = run(tables, 'plain', **opts)
     policies = dict(execution={'gu_cache': {method: 'disabled', 'Retrain': 'reuse'}},
-        observers=[dict(ref='./'+name+'.yaml', methods=[method]) for name in ('linear_solver_trace', 'same_graph_change')])
+        observers=[dict(name=name, methods=[method]) for name in ('linear_solver_trace', 'same_graph_change')] +
+        [dict(name='hessian_calibration', methods=[method], parameters={'lanczos_steps': 3})])
     cached_outputs = set((root/'results/cache_v2/artifacts/prediction').glob('*/payload.npz'))
     observed = run(tables, 'observed', **opts, **policies)
     again = run(tables, 'again', **opts, **policies)
@@ -93,6 +92,10 @@ def test_real_graph_run_uncached_observers_metrics_and_hashes(tables, method):
     store = root/'results/cache_v2'
     before = load_output(plain['unlearning'][0]['output'], store, dataset_root=root)
     after = load_output(observed['unlearning'][0]['output'], store, dataset_root=root)
+    from experiments.calibration_observer import compare_runs
+    compared = compare_runs(root/'results/runs/observed/observed/run.json',
+        root/'results/runs/plain/plain/run.json', dataset_root=root, store_root=store)
+    assert compared['production_unchanged']
     assert np.array_equal(before.arrays['logits'], after.arrays['logits'])
     assert all(np.array_equal(before.state[k], after.state[k]) for k in before.state)
     source = root/'results/runs/observed/observed/run.json'
@@ -100,10 +103,18 @@ def test_real_graph_run_uncached_observers_metrics_and_hashes(tables, method):
     result, documents = read_run(source, digest)
     cell = result['cells'][0]
     assert cell['cache']['method'] == 'disabled'
-    assert len(cell['observers']) == 2
-    trace = documents[0]['observers/linear_solver_trace/trace.jsonl']
+    assert len(cell['observers']) == 3
+    from experiments.calibration_observer import HessianCalibration
+    calibration = HessianCalibration.read(documents[0]['observers/hessian_calibration/calibration.json'])
+    assert calibration['coverage'] == ['loss_ready', 'solver_system_ready', 'update_applied']
+    measured = calibration['measurements']
+    assert measured['hvp']['probe_relative_error'] < 1e-5
+    assert measured['hvp']['repeat_relative_error'] == 0
+    assert measured['writeback']['actual_vs_expected_max_abs'] == 0
+    assert len(measured['curvature']) == 2
+    trace = [json.loads(line) for line in documents[0]['observers/linear_solver_trace/trace.jsonl'].splitlines()]
     assert [r['step'] for r in trace] == [0, 1, 2]
-    assert set(documents[0]['observers/same_graph_change/result.json']['measurements']['graphs']) == {'original', 'retained'}
+    assert set(json.loads(documents[0]['observers/same_graph_change/result.json'])['measurements']['graphs']) == {'original', 'retained'}
     declared = set(output_paths(source, load_experiment(root/'observed.yaml')))
     actual = {(source.parent/c['path']/f).as_posix() for c in result['cells'] for f in c['files']}
     assert actual == declared
@@ -148,7 +159,6 @@ def test_failure_keeps_partial_observation(tables, monkeypatch):
     root, _, gu = tables
     gu.update(method='GIF', parameters=dict(iteration=3, scale=100, damp=.1))
     write_yaml(root/'method.yaml', gu)
-    write_yaml(root/'trace.yaml', dict(kind='observer', schema_version=1, name='linear_solver_trace'))
     original = LinearSolverTrace.__call__
     def fail(self, event):
         original(self, event)
@@ -157,7 +167,7 @@ def test_failure_keeps_partial_observation(tables, monkeypatch):
     monkeypatch.setattr(LinearSolverTrace, '__call__', fail)
     with pytest.raises(RuntimeError, match='diagnostic failure'):
         run(tables, 'failed', stage='unlearning', selector_refs=['degree.yaml'], unlearning_refs=['method.yaml'],
-            execution={'gu_cache': {'GIF': 'disabled'}}, observers=[{'ref': './trace.yaml', 'methods': ['GIF']}])
+            execution={'gu_cache': {'GIF': 'disabled'}}, observers=[{'name': 'linear_solver_trace', 'methods': ['GIF']}])
     source = root/'results/runs/failed/failed/run.json'
     value = json.loads(source.read_text())
     assert value['status'] == 'failed' and value['cells'][0]['status'] == 'failed'
@@ -181,3 +191,74 @@ def test_distinct_uncached_cells_with_same_recipe(tables):
     assert first['recipe_hash'] == second['recipe_hash']
     assert first['output']['path'] != second['output']['path']
 
+
+def test_runtime_dispatch_and_opaque_files(tables, monkeypatch):
+    """A new Observer needs neither a result.json nor runtime parsing support."""
+    from experiments.observers import OBSERVERS
+    from experiments.modular_artifacts import read_run
+
+    class BinaryObserver:
+        version = 'binary-v1'
+        requires = {'solver_step': {'update'}}
+        files = ('raw.bin',)
+        def __init__(self, parameters):
+            self.parameters = parameters
+        def __call__(self, event):
+            assert set(event['values']) == {'update'}
+        def save(self, folder, metadata):
+            (folder/'raw.bin').write_bytes(b'\x00\xffNaN: observation, not runtime failure')
+
+    monkeypatch.setitem(OBSERVERS, 'binary', BinaryObserver)
+    root, _, gu = tables
+    gu.update(method='GIF', parameters=dict(iteration=2, scale=100, damp=.1))
+    write_yaml(root/'method.yaml', gu)
+    run(tables, 'binary-run', stage='unlearning', selector_refs=['degree.yaml'],
+        unlearning_refs=['method.yaml'], execution={'gu_cache': {'GIF': 'disabled'}},
+        observers=[{'name': 'binary', 'methods': ['GIF']}])
+    path = root/'results/runs/binary-run/binary-run/run.json'
+    result, documents = read_run(path, hashlib.sha256(path.read_bytes()).hexdigest())
+    assert documents[0]['observers/binary/raw.bin'].startswith(b'\x00\xff')
+    assert result['cells'][0]['observers'][0]['status'] == 'completed'
+
+
+def test_nonfinite_observation_is_saved_not_rejected(tmp_path):
+    from experiments.observers import ObserverSession
+    session = ObserverSession([{'name': 'linear_solver_trace', 'parameters': {}}], tmp_path, {})
+    session(dict(method='GIF', phase='solver_step', step=0, values=dict(update=torch.ones(2),
+        rhs=torch.ones(2), curvature=torch.full((2,), float('nan')), matvec=None,
+        scale=5., damp=.1, iterations=1)))
+    references = session.finish()
+    assert references[0]['status'] == 'completed'
+    row = json.loads((tmp_path/'observers/linear_solver_trace/trace.jsonl').read_text())
+    assert row['finite'] is False and row['shifted_relative_residual'] is None
+
+
+def test_calibration_preserves_rng_gradients_and_mode(tables):
+    from experiments.calibration_observer import HessianCalibration
+    from experiments.modular_run import read_dataset
+    from experiments.modular_config import load_instance
+    from experiments.modular_model import create_model
+    root, _, _ = tables
+    data, _ = read_dataset(load_instance(root/'dataset.yaml', 'dataset_split'), root)
+    model = create_model({'architecture': 'OpenGU.GCNNet', 'layers': 2, 'hidden_channels': 4}, 'cpu_fixture', data, 'cpu')
+    model.eval()
+    params = list(model.parameters())
+    for p in params:
+        p.grad = torch.ones_like(p)
+    state = copy.deepcopy(model.state_dict())
+    loss = torch.nn.functional.cross_entropy(model.reason_once(data)[data.train_mask], data.y[data.train_mask], reduction='sum')
+    gradient = torch.autograd.grad(loss, params, create_graph=True)
+    sizes = [p.numel() for p in params]
+    def matvec(vector):
+        parts = [x.reshape_as(p) for x, p in zip(vector.split(sizes), params)]
+        result = torch.autograd.grad(gradient, params, grad_outputs=parts, retain_graph=True)
+        return torch.cat([x.flatten() for x in result])
+    rng = torch.random.get_rng_state().clone()
+    observer = HessianCalibration({'lanczos_steps': 3})
+    observer(dict(method='GIF', phase='loss_ready', values=dict(loss=loss, loss_reduction='sum', model=model, data=data, parameters=params)))
+    observer(dict(method='GIF', phase='solver_system_ready', values=dict(matvec=matvec,
+        rhs=torch.ones(sum(sizes)), parameters=params, scale=100, damp=.1, iterations=2)))
+    assert torch.equal(rng, torch.random.get_rng_state())
+    assert not model.training and all(torch.equal(p.grad, torch.ones_like(p)) for p in params)
+    assert all(torch.equal(state[k], value) for k, value in model.state_dict().items())
+    assert torch.isfinite(matvec(torch.ones(sum(sizes)))).all()

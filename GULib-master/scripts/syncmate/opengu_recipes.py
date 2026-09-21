@@ -380,6 +380,27 @@ EXPERIMENT_RECIPES['opengu-aagu011-references-v2'] = copy.deepcopy(EXPERIMENT_RE
 EXPERIMENT_RECIPES['opengu-aagu011-references-v2']['run_identity']['run_id'] = 'aagu011-references-v2'
 
 
+# AAGU-070: first real consumer, frozen AAGU-065 H16 conditions.
+EXPERIMENT_RECIPES['opengu-aagu070-065-h16-v1'] = {'config_path': 'experiments/configs/aagu065/observer_h16.yaml',
+ 'config_sha256': 'fb43500b0e4d10bb79c4a8b25111b9b055290e0f8ce839f24ebd36a2d214728d',
+ 'configuration_fingerprint': 'ae69ddbbe640404a31576aea0c9bc69e40643d04d494549520223a0620f600c9',
+ 'run_identity': {'experiment_id': 'aagu065-observer-h16',
+                  'run_id': 'aagu070-065-h16-v1'},
+ 'timeout_seconds': 3600,
+ 'logical_cells': 6,
+ 'stage': 'unlearning',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}]}
+EXPERIMENT_RECIPES['opengu-aagu070-065-h16-control-v1'] = {'config_path': 'experiments/configs/aagu065/observer_h16_control.yaml',
+ 'config_sha256': '5d371a4d53837a923021e2a7aca7db1e901ff0fb94d04b3922f2ee54e6ac22be',
+ 'configuration_fingerprint': '7f714f40dbacd903e1aeb78f8e6537d496b7645384a28843276a819ffb49c78b',
+ 'run_identity': {'experiment_id': 'aagu065-observer-h16-control',
+                  'run_id': 'aagu070-065-h16-control-v1'},
+ 'timeout_seconds': 3600,
+ 'logical_cells': 6,
+ 'stage': 'unlearning',
+ 'expected_datasets': [{'num_nodes': 2708, 'candidate_count': 1895}]}
+
+
 def recipe_definitions():
     from pathlib import Path
     from experiments.modular_config import load_experiment

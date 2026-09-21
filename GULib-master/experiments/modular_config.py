@@ -11,7 +11,6 @@ from experiments.target_direct_v1.methods import resolve_parameters, uses_model,
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_DIRECTORIES = {
-    'observer_refs': 'observers',
     'dataset_refs': 'datasets',
     'selector_refs': 'selectors',
     'unlearning_refs': 'unlearning',
@@ -214,9 +213,6 @@ def load_instance(path, expected_kind):
             raise ConfigurationError('checkpoint must be a nonempty pure state_dict file path')
         else:
             value['checkpoint'] = str((Path(path).resolve().parent / checkpoint).resolve())
-    if expected_kind == 'observer':
-        from experiments.observers import resolve_observer
-        return resolve_observer(value)
     if expected_kind == 'selector':
         return selector(value)
     if expected_kind == 'unlearning':
@@ -351,12 +347,13 @@ def load_experiment(path):
     if not isinstance(value.get('observers', []), list):
         raise ConfigurationError('observers must be a list')
     for entry in value.get('observers', []):
-        fields(entry, {'ref', 'methods'}, {'ref', 'methods'}, 'observer attachment')
+        fields(entry, {'name', 'parameters', 'methods'}, {'name', 'methods'}, 'observer attachment')
         if (not isinstance(entry['methods'], list) or not entry['methods']
                 or len(set(entry['methods'])) != len(entry['methods']) or set(entry['methods']) - methods):
             raise ConfigurationError('observer methods must select distinct configured methods')
-        ref = resolve_reference('observer_refs', entry['ref'], path.parent)
-        result['observers'].append({**entry, 'instance': load_instance(ref, 'observer')})
+        from experiments.observers import resolve_observer
+        spec = resolve_observer({k: v for k, v in entry.items() if k != 'methods'})
+        result['observers'].append({'methods': entry['methods'], 'instance': spec})
     if value['stage'] != 'unlearning' and (execution or result['observers']):
         raise ConfigurationError('execution and observers belong to unlearning')
     for method in methods:
@@ -486,7 +483,6 @@ def configuration_fingerprint(path):
         refs = []
         for field in ('dataset_refs', 'selector_refs', 'unlearning_refs', 'evaluation_refs'):
             refs.extend(resolve_reference(field, ref, current.parent) for ref in value.get(field, []))
-        refs.extend(resolve_reference('observer_refs', entry['ref'], current.parent) for entry in value.get('observers', []))
         children = [document(ref) for ref in refs]
         visited.remove(current)
         return {'document': value, 'references': children}
