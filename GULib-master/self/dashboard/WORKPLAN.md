@@ -84,7 +84,8 @@ flowchart LR
   subgraph Repair[修复队列]
     R0[AAGU-006 FIX dataset/split]
     R1[AAGU-009 FIX IF-family evaluation code]
-    R2[AAGU-010 FIX hop aggregate]
+    R2[AAGU-010 Flip/Hop data backfill]
+    R10[AAGU-072 FIX Flip/Hop Metrics code]
     R3[AAGU-018 FIX D-GIF source labels]
     R4[AAGU-019 FIX retire legacy budgets]
     R5[AAGU-023 FIX legacy evidence inventory]
@@ -178,7 +179,9 @@ flowchart LR
   R6 --> R7
   R7 --> X0
   G0 --> X6
-  R1 --> X6 --> R2
+  R1 --> X6
+  R7 --> R10 --> R2
+  M3 --> R2 --> M4
   R2 --> G2
   R5 --> G2
 ```
@@ -200,7 +203,8 @@ flowchart LR
 | AAGU-025 | FIX | 通用缓存原位接入 Cache V2 | 未定 | — | [AAGU-025 Block contract](../../.workblock/items/AAGU-025/WORKITEM.md) |
 | AAGU-026 | FIX | 模块化实验配置与缓存身份隔离 | 未定 | AAGU-001 | [AAGU-026 Block contract](../../.workblock/items/AAGU-026/WORKITEM.md) |
 | AAGU-009 | FIX | IF-family 参数写回与 Collateral 评估代码修复 | P0 | — | [AAGU-009 软件修复合同](../../.workblock/items/AAGU-009/WORKITEM.md) |
-| AAGU-010 | FIX | hop aggregate fields 修复 | P1 | AAGU-027 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
+| AAGU-010 | FIX | Flip/Hop 指标数据补齐 | P1 | AAGU-072, AAGU-011 | [AAGU-010 数据补齐](../../.workblock/items/AAGU-010/WORKITEM.md) |
+| AAGU-072 | FIX | Flip/Hop Metrics 代码接入 | P1 | AAGU-028 | [AAGU-072 代码合同](../../.workblock/items/AAGU-072/WORKITEM.md) |
 | AAGU-023 | FIX | Legacy 实验证据盘点与归档边界 | 未定 | — | [AAGU-023 Block contract](../../.workblock/items/AAGU-023/WORKITEM.md) |
 
 ## 实验起点 · 最小正式验证
@@ -240,7 +244,7 @@ flowchart LR
 |---|---|---|---|---|---|
 | AAGU-030 | DOCS/CONFIG | 本轮完整实验表与配置映射 | P1 | AAGU-001, AAGU-015, AAGU-026, AAGU-028 | [AAGU-030 表格与覆盖合同](../../.workblock/items/AAGU-030/WORKITEM.md) |
 | AAGU-011 | EXP | X3 GU 主矩阵与结果 | P1 | AAGU-030, AAGU-031, AAGU-007 | [AAGU-011 X3 实验合同](../../.workblock/items/AAGU-011/WORKITEM.md) |
-| AAGU-012 | EXP | X4 退化分解与副作用分析 | P1 | AAGU-030, AAGU-011 | [AAGU-012 X4 分析合同](../../.workblock/items/AAGU-012/WORKITEM.md) |
+| AAGU-012 | EXP | X4 退化分解与副作用分析 | P1 | AAGU-030, AAGU-011, AAGU-010 | [AAGU-012 X4 分析合同](../../.workblock/items/AAGU-012/WORKITEM.md) |
 
 ## 既有实验 timeline（待映射）
 
