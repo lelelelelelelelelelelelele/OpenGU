@@ -165,3 +165,19 @@ def test_failure_keeps_partial_observation(tables, monkeypatch):
     assert result['status'] == 'failed' and result['coverage'] == [0, 1]
     assert not list(source.parent.rglob('output.npz'))
 
+
+def test_distinct_uncached_cells_with_same_recipe(tables):
+    import yaml
+    root, _, gu = tables
+    selector = yaml.safe_load((root/'degree.yaml').read_text())
+    selector['budget'] = {'mode': 'ratio', 'value': .1}
+    write_yaml(root/'degree.yaml', selector)
+    gu.update(method='GIF', parameters=dict(iteration=1, scale=100, damp=.1))
+    write_yaml(root/'method.yaml', gu)
+    result = run(tables, 'same-recipe', stage='unlearning', selector_refs=['degree.yaml'],
+        unlearning_refs=['method.yaml'], budget_ratios=[.1, .19], execution={'gu_cache': {'GIF': 'disabled'}})
+    first, second = result['unlearning']
+    assert first['producer_called'] and second['producer_called']
+    assert first['recipe_hash'] == second['recipe_hash']
+    assert first['output']['path'] != second['output']['path']
+

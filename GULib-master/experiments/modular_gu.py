@@ -151,6 +151,8 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
         raise ValueError('method does not provide Observer events')
     if observer is not None and gu_cache != 'disabled':
         raise ValueError('observer requires actual method execution')
+    if gu_cache == 'disabled' and output_path is None:
+        raise ValueError('uncached execution requires run output_path')
     stored = resolve_formal_artifact(Path(store_root), request) if gu_cache == 'reuse' else None
     hit = stored is not None
     seconds = 0.0
@@ -177,6 +179,12 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
         for name in ('train', 'val', 'test'):
             setattr(working, name + '_indices', getattr(working, name + '_mask').nonzero().flatten().cpu().numpy())
         runtime_path = Path(runtime_root) / 'unlearning' / request.recipe.recipe_hash
+        if gu_cache == 'disabled':
+            # Distinct cells can legitimately resolve to the same computation
+            # (e.g. two budget ratios round to K=1). Each must still execute.
+            import hashlib
+            runtime_path = Path(runtime_root) / 'unlearning' / hashlib.sha256(
+                str(Path(output_path).resolve()).encode()).hexdigest()
         runtime_path.mkdir(parents=True, exist_ok=False)
         graphs = {'original': data, 'retained': retained}
         if observer is not None:
@@ -198,8 +206,6 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
             stored = store_formal_artifact(store_root, request, payload, compute_seconds=seconds)
         else:
             from experiments.unlearning_outputs import save_run_output
-            if output_path is None:
-                raise ValueError('uncached execution requires run output_path')
             reference = save_run_output(payload, output_path, dataset_root)
     if gu_cache == 'reuse':
         reference = output_reference(stored, request.recipe.recipe_hash)
