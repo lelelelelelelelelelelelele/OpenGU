@@ -10,7 +10,7 @@ import torch
 from cache_v2.runtime import load_selection_artifact
 from experiments.effective_config import fields, ConfigurationError
 from experiments.modular_config import load_experiment, resolve_budget, experiment_batches, configuration_fingerprint, selector_entries, unlearning_entries
-from experiments.modular_evaluation import evaluate_modular, require_consumer
+from experiments.modular_evaluation import evaluate_modular, require_consumer, is_paired_evaluation
 from experiments.modular_execution import ExecutionContext
 from experiments.modular_model import prepare_model, runtime_defaults
 from experiments.selection_inputs import make_dataset_selection_inputs
@@ -92,8 +92,8 @@ def _execute(path, *, context=None, dry_run=False, run_state):
     for evaluation in config['evaluations']:
         require_consumer(evaluation, 'modular_v1')
     if config['stage'] == 'unlearning' and any(
-            item['case'] == 'post_unlearning_utility_and_retrain_gap' for item in config['evaluations']):
-        raise ConfigurationError('retrain-gap belongs to the independent metrics stage')
+            is_paired_evaluation(item) for item in config['evaluations']):
+        raise ConfigurationError('retrain-gap and flip-hop belong to the independent metrics stage')
     if config['stage'] == 'metrics' and any(not v.get('run') or not v.get('sha256') for v in config['output_inputs']):
         raise ConfigurationError('metrics requires bound run.json paths and checksums')
     directory = Path(config['source_directory'])

@@ -39,9 +39,10 @@ def evaluate_outputs(evaluation, pairs, *, store_root, output_dir, dataset_root)
                       logits_retrained=r['logits'], y=a['y'], test_mask=a['test_mask'],
                       retain_mask=a['retain_mask'], selected_nodes=a['selected_nodes'])
         # This existing evaluator consumes arrays only, despite its Prediction type hint.
-        diagnostics = _scalar_metrics_from_prediction(SimpleNamespace(**bundle))
+        diagnostics = ({} if evaluation['case'] == 'post_unlearning_flip_hop' else
+                       _scalar_metrics_from_prediction(SimpleNamespace(**bundle)))
         rows.append({'strategy': strategy, **row['metrics'],
-                     **{k: diagnostics[k] for k in ('mean_pred_shift', 'max_pred_shift', 'fraction_flipped')},
+                     **{k: diagnostics[k] for k in ('mean_pred_shift', 'max_pred_shift', 'fraction_flipped') if k in diagnostics},
                      'evaluation_receipt_id': row['evaluation_receipt_id'], 'identity': row['identity'],
                      'dataset_input': gu.identity['dataset_input'], 'deletion': gu.identity['pairing']['deletion']})
         arrays.update({strategy + '__' + key: value for key, value in bundle.items()

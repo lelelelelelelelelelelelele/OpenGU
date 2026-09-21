@@ -35,6 +35,12 @@ Metrics、Selection 和可选 scores 位于各 cell 目录，不再将整次矩�
 
 ### metrics.json
 
+配对 `post_unlearning_flip_hop` 行携带 `evaluation_receipt_id`、`identity` 和
+`baseline_output`；身份绑定指标协议、保留测试 mask 哈希、原图及预测评价图、实现版本与两侧
+Output 引用，不包含图或预测数组。其标量值含总体和 1/2/3/>3（含不可达）各组的节点数、
+不一致数、比例；空组为 null。收集端核验 receipt 与引用，汇总表保留这些标量字段。
+定义见 [Flip/Hop Methods](experiment_contract/FLIP_HOP_METHODS.md)。
+
 - 本目录 cell / seed 的指标名与值，如 accuracy、F1、loss，以及该实验已要求的 before/after、drop、gap 等。按实际阶段生成，不要求每行都包含全部指标。
 - 以 cell_id 与 run.json 对应；条件相同的基线按引用配对，不只保存跨 seed 的平均值。
 - 不含 logits、逐节点预测、模型参数或图数据。

@@ -36,13 +36,14 @@ def _slug(value):
 def planned_cells(config):
     """Shared matrix expansion for execution, declaration and validation."""
     from experiments.modular_config import experiment_batches, selector_entries, unlearning_entries
+    from experiments.modular_evaluation import is_paired_evaluation
     cells = []
     if config['stage'] == 'metrics':
         for source in config['output_inputs']:
             run, _ = read_run(Path(config['source_directory']) / source['run'], source['sha256'])
             for cell in run['cells']:
                 if cell.get('output') and (cell['conditions']['method'] != 'Retrain' or any(
-                        e['case'] != 'post_unlearning_utility_and_retrain_gap' for e in config['evaluations'])):
+                        not is_paired_evaluation(e) for e in config['evaluations'])):
                     cells.append({key: cell[key] for key in ('cell_id', 'path', 'conditions')})
     else:
         for batch in experiment_batches(config):
@@ -192,6 +193,9 @@ def export_outputs(summary, *, config, context, run):
                 for measured in evaluation['rows']:
                     if measured['identity']['unlearning_output'] == row['output']:
                         item = {'stage': evaluation['effective_config']['case'], 'values': measured['metrics']}
+                        if evaluation['effective_config']['case'] == 'post_unlearning_flip_hop':
+                            item.update(evaluation_receipt_id=measured['evaluation_receipt_id'],
+                                        identity=measured['identity'])
                         if 'retrain_output' in measured['identity']:
                             item['baseline_output'] = measured['identity']['retrain_output']
                         measurements.append(item)
@@ -280,7 +284,20 @@ def read_run(path, expected_sha256):
             if set(values['metrics.json']) != {'cell_id', 'rows'} or not values['metrics.json']['rows']:
                 raise ValueError('invalid metrics document')
             for row in values['metrics.json']['rows']:
-                if (set(row) - {'stage', 'values', 'baseline_output'} or not row['values']
+                allowed = {'stage', 'values', 'baseline_output'}
+                if row.get('stage') == 'post_unlearning_flip_hop':
+                    from cache_v2 import canonical_sha256
+                    allowed |= {'evaluation_receipt_id', 'identity'}
+                    identity = row.get('identity', {})
+                    if (identity.get('case') != row['stage']
+                            or identity.get('unlearning_output') != cell.get('output')
+                            or not row.get('baseline_output')
+                            or identity.get('retrain_output') != row['baseline_output']
+                            or identity.get('metrics') != sorted(row['values'])
+                            or not identity.get('protocol')
+                            or row.get('evaluation_receipt_id') != 'evalr_' + canonical_sha256(identity)[:32]):
+                        raise ValueError('flip-hop metric identity mismatch')
+                if (set(row) - allowed or not row['values']
                         or any(isinstance(v, (dict, list, bool)) or (isinstance(v, float) and not math.isfinite(v))
                                for v in row['values'].values())):
                     raise ValueError('metrics must contain scalar measurements')
