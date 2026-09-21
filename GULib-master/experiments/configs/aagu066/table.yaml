@@ -1,0 +1,14 @@
+kind: experiment
+schema_version: 1
+experiment_id: aagu066-cora-h16
+stage: unlearning
+dataset_refs: [../datasets/cora.yaml]
+selector_refs: [../selectors/random.yaml]
+unlearning_refs:
+  - ../unlearning/gif_cora_gcn_h16_fixed_pt.yaml
+  - ../unlearning/idea_cora_gcn_h16_fixed_pt.yaml
+  - ./retrain.yaml
+matrix: cartesian_product
+random_selector_seeds: [104246, 104247, 104248]
+budget_ratios: [0.1]
+return_scores: false
