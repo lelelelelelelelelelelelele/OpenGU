@@ -52,11 +52,11 @@ Use the project interpreter owned by `experiments/AGENTS.md`; do not duplicate i
 
 ```text
 <project-python> -m py_compile scripts/syncmate/syncmate.py
-<project-python> -m pytest tests/test_syncmate.py -q
+<project-python> -m pytest tests/test_syncmate_adapter.py -q
 <project-python> scripts/syncmate/syncmate.py smoke --json
 ```
 
-Run the closest targeted test first, then the full SyncMate test file before treating a behavioral change as verified. Any cache cleanup must use resolved, narrow local paths and remain separate from experiment Cache/Artifact repair.
+Run only the closest affected Adapter tests. Generic Core queue, lock, transport and dashboard tests belong to the independent SyncMate repository (`tests/test_core_behaviors.py`); do not run that suite as an OpenGU development prerequisite. Registry changes use the real recipe-contract test; result/collection changes use Adapter and GU-output tests. Test fixtures must use temporary state, never a running service. Any cache cleanup must use resolved, narrow local paths and remain separate from experiment Cache/Artifact repair.
 
 ## Documentation
 

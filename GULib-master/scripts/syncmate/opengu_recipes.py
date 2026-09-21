@@ -6,7 +6,6 @@ from scripts.syncmate.opengu_layout import modular_output_path
 
 RUNNER_AGENT_MAX_TIMEOUT_SECONDS = 21600
 RUNNER_RECIPE_INTRODUCED_SHA = "3331c641ce16d0d7a3def66b0e302dd4a39a919c"
-RUNNER_RECIPE_ALLOWED_TOOL_DELTA = ("GULib-master/scripts/syncmate/", "GULib-master/tests/test_syncmate.py")
 
 # These fingerprints are reviewed constants, not recomputed expected values.
 # Changing any referenced table requires a new review and updated registration.
