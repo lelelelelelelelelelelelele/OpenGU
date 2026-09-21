@@ -1,10 +1,10 @@
 {
   "id": "AAGU-065",
-  "title": "Cora H16 固定 PT 参数校准",
+  "title": "Cora H16/H64 固定 PT 参数校准",
   "family": "if",
-  "category": "history",
-  "question": "记录r1/r2/r3校准；冻结scale9000、damp0.22755555555555556、T100。",
-  "scope": "记录r1/r2/r3校准；冻结scale9000、damp0.22755555555555556、T100。",
+  "category": "active",
+  "question": "分别在Cora H16/H64 baseline上为GIF/IDEA形成可验证的冻结参数组。",
+  "scope": "062 Batch第1项：保留已接受H16校准与跨请求证据，补充H64独立校准；参数绑定baseline，Retrain不是参数绑定对象。 本批采用062的用户委托阶段放行规则，最终科学验收集中在062。",
   "reviewed_at": "2026-09-22",
   "configs": [
     {
@@ -39,13 +39,13 @@
     }
   ],
   "preparation": {
-    "state": "defined",
-    "note": "执行定义与来源按下方配置核对。",
+    "state": "preparing",
+    "note": "H16已有定义和证据；H64历史配置不是有效冻结组，新校准定义/Observer链路仍需完成交付。",
     "evidence": []
   },
   "execution": {
-    "state": "completed",
-    "note": "r1/r2/r3各12个诊断cell，保留各代来源，不跨轮去重冒充一次矩阵。",
+    "state": "partial",
+    "note": "既有H16 r1/r2/r3结果保留；扩展后H64尚无有效冻结组，不能将旧H64尝试记为完成新范围。",
     "evidence": [
       {
         "label": "结果与分析报告",
@@ -54,8 +54,8 @@
     ]
   },
   "analysis": {
-    "state": "complete",
-    "note": "已接受H16 shifted-solver校准；非原始系统无偏逆或遗忘证明。",
+    "state": "working",
+    "note": "H16原分析及接受保留；当前H16/H64整体范围尚未完成。",
     "evidence": [
       {
         "label": "结果与分析报告",
@@ -64,26 +64,35 @@
     ]
   },
   "decision": {
-    "state": "accepted",
-    "note": "只适用于本记录明确范围；新运行需独立确认。",
+    "state": "not_requested",
+    "note": "用户授权Agent按运行前冻结的判据作阶段放行判断；完整范围成功后继续下一阶段，无需逐阶段等待用户确认。失败、证据不足、身份不匹配或软件未就绪时不放行。阶段放行不代表用户最终科学验收，最终统一由062提交总报告。 本阶段尚未据此放行；未来只有完整范围成功且有证据时，Agent才将本阶段decision记为accepted、success_confirmed=true，并记录判据/范围/证据及判断者。失败或不充分保持success_confirmed=false。 065此前H16原范围的用户接受保留于历史，不覆盖新增H64。",
     "evidence": [
       {
         "label": "结果与分析报告",
         "path": ".workblock/items/AAGU-065/REPORT.md"
       }
-    ]
+    ],
+    "success_confirmed": false
   },
   "dependencies": [
     {
       "experiment": "AAGU-061",
       "requirement": "evidence",
       "stage": "execution",
-      "reason": "固定H16 PT"
+      "reason": "对应Cora H16/H64 baseline checkpoint的身份与交付证据"
     }
   ],
-  "blocks": [],
+  "blocks": [
+    {
+      "id": "AAGU-070",
+      "stage": "execution",
+      "reason": "新增Observer校准链路以065为首个真实消费者",
+      "delivery_confirmed": false,
+      "delivery_note": "2026-09-22核对070仍working / claimed；报告注明候选未合并部署，不能采用此前误标接受。"
+    }
+  ],
   "attempts": [],
-  "next_step": "066复用身份匹配检查，不能把已有请求声称全新留出。",
+  "next_step": "核验对应H64 baseline与现有诊断，准备独立参数候选和冻结判据；待执行定义及070交付后开展校准，不重跑已覆盖H16。 完成本阶段预定范围后按冻结判据作放行判断，成功继续066；不等待单独人工中间验收。",
   "sources": [
     {
       "label": "历史定义",
@@ -92,6 +101,14 @@
     {
       "label": "结果与分析报告",
       "path": ".workblock/items/AAGU-065/REPORT.md"
+    },
+    {
+      "label": "062：065–068 Batch定义与来源",
+      "path": "self/research/experiments/AAGU-062.json"
+    },
+    {
+      "label": "049前序诊断：更新链与求解进展",
+      "path": ".workblock/items/AAGU-049/REPORT.md"
     }
   ],
   "history": [
@@ -116,6 +133,54 @@
         {
           "label": "结果与分析报告",
           "path": ".workblock/items/AAGU-065/REPORT.md"
+        }
+      ]
+    },
+    {
+      "id": "calibration-batch-20260922",
+      "at": "2026-09-22",
+      "stage": "preparation",
+      "note": "用户确认065–068形成一个batch，由062汇总；H16/H64分别绑定baseline校准和验证。保留已有H16接受，新增范围不视为完成；049作为前序诊断来源。未运行实验或改写历史Block。",
+      "evidence": [
+        {
+          "label": "062：065–068 Batch定义与来源",
+          "path": "self/research/experiments/AAGU-062.json"
+        }
+      ]
+    },
+    {
+      "id": "h16-acceptance-preserved-20260922",
+      "at": "2026-09-22",
+      "stage": "decision",
+      "note": "范围扩展前H16校准已接受；该接受事实及原报告永久保留，不自动覆盖H64。",
+      "evidence": [
+        {
+          "label": "结果与分析报告",
+          "path": ".workblock/items/AAGU-065/REPORT.md"
+        }
+      ]
+    },
+    {
+      "id": "remove-redundant-ob-batch-note-20260922",
+      "at": "2026-09-22",
+      "stage": "preparation",
+      "note": "按用户要求删除多余OB批次说明；批次定义与049关系仅由Work Plan维护。既有事件保留，原说明页引用改指当前Work Plan或原始049报告；未改变实验状态、范围或证据结论。",
+      "evidence": [
+        {
+          "label": "062：065–068 Batch定义与来源",
+          "path": "self/research/experiments/AAGU-062.json"
+        }
+      ]
+    },
+    {
+      "id": "delegated-batch-stage-gates-20260922",
+      "at": "2026-09-22",
+      "stage": "preparation",
+      "note": "用户明确授权“判断一下是否成功，如果判断成功就继续做”。更新批次流程：Agent按冻结判据放行中间阶段，062最终汇总交用户科学验收。本次仅更新流程，未产生新成功判定或运行。",
+      "evidence": [
+        {
+          "label": "062批次执行与阶段放行约定",
+          "path": "self/research/experiments/AAGU-062.json"
         }
       ]
     }

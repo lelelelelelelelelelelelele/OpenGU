@@ -1,15 +1,15 @@
 {
   "id": "AAGU-066",
-  "title": "Cora 冻结参数的 Random 请求验证",
+  "title": "Cora H16/H64 冻结参数的 Random 请求验证",
   "family": "if",
   "category": "active",
-  "question": "H16，10%，Random104246/104247/104248，共享Selection的GIF/IDEA/Retrain及no-update参照。",
-  "scope": "H16，10%，Random104246/104247/104248，共享Selection的GIF/IDEA/Retrain及no-update参照。",
+  "question": "各宽度的冻结GIF/IDEA参数能否在预定Random请求上保持数值稳定并形成可解释的Retrain比较？",
+  "scope": "062 Batch第2项：H16/H64分别消费065对应baseline的冻结组；10%预算、Random104246/104247/104248，各请求共享Selection，配对同宽度Retrain和no-update参照。已有065证据核验后按覆盖复用。 本批采用062的用户委托阶段放行规则，最终科学验收集中在062。",
   "reviewed_at": "2026-09-22",
   "configs": [],
   "preparation": {
     "state": "preparing",
-    "note": "066软件候选尚未合入。配置见软件交付报告，主线暂没有aagu066 YAML。",
+    "note": "主线尚无覆盖新H16/H64范围的066 YAML；旧软件候选不代表该范围已交付，需统一Observer链路与配置。",
     "evidence": []
   },
   "execution": {
@@ -24,24 +24,25 @@
   },
   "decision": {
     "state": "not_requested",
-    "note": "实验定义、执行交付与科学判断分别记录。",
-    "evidence": []
+    "note": "用户授权Agent按运行前冻结的判据作阶段放行判断；完整范围成功后继续下一阶段，无需逐阶段等待用户确认。失败、证据不足、身份不匹配或软件未就绪时不放行。阶段放行不代表用户最终科学验收，最终统一由062提交总报告。 本阶段尚未据此放行；未来只有完整范围成功且有证据时，Agent才将本阶段decision记为accepted、success_confirmed=true，并记录判据/范围/证据及判断者。失败或不充分保持success_confirmed=false。",
+    "evidence": [],
+    "success_confirmed": false
   },
   "dependencies": [
     {
       "experiment": "AAGU-065",
-      "requirement": "accepted",
+      "requirement": "successful_acceptance",
       "stage": "execution",
-      "reason": "消费已接受冻结参数与适用域"
+      "reason": "065完整预定范围按冻结判据成功，由用户授权Agent作阶段放行；原H16接受不能放行H64"
     }
   ],
   "blocks": [
     {
       "id": "AAGU-070",
       "stage": "execution",
-      "reason": "Observer公共能力已交付",
-      "delivery_confirmed": true,
-      "delivery_note": "已核对既有交付记录；重新运行仍做版本preflight。"
+      "reason": "公共Observer链路",
+      "delivery_confirmed": false,
+      "delivery_note": "2026-09-22重新核对：070仍working / claimed，报告明确接受误标已撤回、候选未合并部署。"
     },
     {
       "id": "AAGU-066",
@@ -52,7 +53,7 @@
     }
   ],
   "attempts": [],
-  "next_step": "先交付066的软件候选；重新preflight后才提交正式运行。",
+  "next_step": "待对应宽度冻结组及软件/配置就绪后执行验证；完整范围成功则记录Agent阶段放行并继续067，失败或证据不足停止扩展。",
   "sources": [
     {
       "label": "历史定义",
@@ -61,6 +62,10 @@
     {
       "label": "结果与分析报告",
       "path": ".workblock/items/AAGU-066/REPORT.md"
+    },
+    {
+      "label": "062：065–068 Batch定义与来源",
+      "path": "self/research/experiments/AAGU-062.json"
     }
   ],
   "history": [
@@ -73,6 +78,54 @@
         {
           "label": "历史定义",
           "path": ".workblock/items/AAGU-066/WORKITEM.md"
+        }
+      ]
+    },
+    {
+      "id": "calibration-batch-20260922",
+      "at": "2026-09-22",
+      "stage": "preparation",
+      "note": "用户确认065–068形成一个batch，由062汇总；H16/H64分别绑定baseline校准和验证。保留已有H16接受，新增范围不视为完成；049作为前序诊断来源。未运行实验或改写历史Block。",
+      "evidence": [
+        {
+          "label": "062：065–068 Batch定义与来源",
+          "path": "self/research/experiments/AAGU-062.json"
+        }
+      ]
+    },
+    {
+      "id": "observer-delivery-corrected-20260922",
+      "at": "2026-09-22",
+      "stage": "preparation",
+      "note": "纠正迁入时070已交付的声明：当前任务及报告为工作中、未验收；只更新实验依赖观察，不改Block。",
+      "evidence": [
+        {
+          "label": "070当前交付报告",
+          "path": ".workblock/items/AAGU-070/REPORT.md"
+        }
+      ]
+    },
+    {
+      "id": "remove-redundant-ob-batch-note-20260922",
+      "at": "2026-09-22",
+      "stage": "preparation",
+      "note": "按用户要求删除多余OB批次说明；批次定义与049关系仅由Work Plan维护。既有事件保留，原说明页引用改指当前Work Plan或原始049报告；未改变实验状态、范围或证据结论。",
+      "evidence": [
+        {
+          "label": "062：065–068 Batch定义与来源",
+          "path": "self/research/experiments/AAGU-062.json"
+        }
+      ]
+    },
+    {
+      "id": "delegated-batch-stage-gates-20260922",
+      "at": "2026-09-22",
+      "stage": "preparation",
+      "note": "用户明确授权“判断一下是否成功，如果判断成功就继续做”。更新批次流程：Agent按冻结判据放行中间阶段，062最终汇总交用户科学验收。本次仅更新流程，未产生新成功判定或运行。",
+      "evidence": [
+        {
+          "label": "062批次执行与阶段放行约定",
+          "path": "self/research/experiments/AAGU-062.json"
         }
       ]
     }
