@@ -11,6 +11,14 @@ from experiments.effective_config import ConfigurationError, fields
 
 
 CASES = {
+    'post_unlearning_flip_hop': {
+        'metrics': ('fraction_flipped', 'node_count', 'flipped_count') + tuple(
+            label + '_hop_' + suffix for label in ('1', '2', '3', 'gt3')
+            for suffix in ('count', 'flipped_count', 'flip_rate')),
+        'required_inputs': ('method_output', 'exact_retrain_same_selection', 'bound_original_graph'),
+        'consumers': ('modular_v1',),
+        'producer_version': 'persisted-output-flip-hop-v1',
+    },
     'post_method_metrics': {
         'metrics': ('f1', 'accuracy', 'cross_entropy', 'classification_auc',
                     'classification_auc_status', 'update_detection_auc', 'update_detection_auc_status'),
@@ -33,6 +41,10 @@ CASES = {
         'producer_version': 'persisted-output-retrain-gap-v2',
     },
 }
+
+
+def is_paired_evaluation(instance):
+    return 'exact_retrain_same_selection' in instance['required_inputs']
 
 
 def resolve_evaluation(value):
@@ -80,14 +92,21 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
     retrains = [(ref, payload) for ref, payload, _ in outputs if payload.identity['target']['method'] == 'Retrain']
     rows = []
     for reference, output, paired_reference in outputs:
-        if output.identity['target']['method'] == 'Retrain' and instance['case'] == 'post_unlearning_utility_and_retrain_gap':
+        if output.identity['target']['method'] == 'Retrain' and is_paired_evaluation(instance):
             continue
-        values = utility(output)
-        available = {**values, 'f1_drop_pct': values['f1_drop_ratio']}
+        values = utility(output) if instance['case'] != 'post_unlearning_flip_hop' else {}
+        available = {**values, 'f1_drop_pct': values.get('f1_drop_ratio')}
         identity = {'case': instance['case'], 'metrics': sorted(instance['metrics']),
             'producer_version': instance['producer_version'],
             'implementation': implementation_fingerprint(evaluate_modular, utility),
             'unlearning_output': reference}
+        if instance['case'] == 'post_unlearning_flip_hop':
+            from experiments.flip_hop_metrics import exact_retrain, flip_hop
+            candidates = ([(paired_reference, load_output(paired_reference, store_root, data=data, dataset_root=dataset_root))]
+                          if paired_reference else retrains)
+            ref, retrain = exact_retrain(output, candidates)
+            available, protocol = flip_hop(output, retrain)
+            identity.update(retrain_output=ref, protocol=protocol)
         if instance['case'] == 'post_method_metrics':
             from experiments.output_metrics import evaluate_method
             measured = evaluate_method(reference, output)

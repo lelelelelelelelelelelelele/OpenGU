@@ -1,0 +1,16 @@
+# Fill exact completed source run paths/checksums before execution.
+kind: experiment
+schema_version: 1
+experiment_id: flip-hop-metrics-template
+stage: metrics
+dataset_refs: [cora.yaml]
+output_inputs:
+- run: null
+  sha256: null
+- run: null
+  sha256: null
+evaluation_refs:
+- post_method_metrics.yaml
+- post_unlearning_utility_and_retrain_gap.yaml
+- post_unlearning_flip_hop.yaml
+matrix: cartesian_product
