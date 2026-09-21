@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import copy
 import json
 import subprocess
 import sys
@@ -16,8 +17,17 @@ from opengu_adapter import OpenGUProjectExtension
 from syncmate_core import artifacts as _artifacts, brief as _brief, bundles as _bundles, cli as _cli, collection as _collection, constants as _constants, context as _context, dashboard as _dashboard, devices as _devices, diagnostics as _diagnostics, dispatch as _dispatch, evidence as _evidence, fingerprints as _fingerprints, gates as _gates, handoff as _handoff, history as _history, identity as _identity, index as _index, next_steps as _next_steps, preflight as _preflight, queue as _queue, receipts as _receipts, recipes as _recipes, saved_reports as _saved_reports, snapshot as _snapshot, storage as _storage, worker as _worker, workflow as _workflow
 
 
+@pytest.fixture(scope='module')
+def reviewed_catalog():
+    # Exercise real generation once, then give protocol tests an isolated,
+    # fixed catalog. Core otherwise re-expands every matrix once per recipe.
+    return _project_recipes.recipe_definitions()
+
+
 @pytest.fixture(autouse=True)
-def scoped_project(tmp_path):
+def scoped_project(tmp_path, monkeypatch, reviewed_catalog):
+    monkeypatch.setattr(OpenGUProjectExtension, 'recipes',
+                        lambda self, project_root: copy.deepcopy(reviewed_catalog))
     with _context.use(tmp_path, extension=OpenGUProjectExtension(), require_origin_main=True):
         yield
 
@@ -54,11 +64,12 @@ def test_default_implementation_is_core_backed_exact_entry():
     assert sm.__name__ == 'scripts.syncmate.syncmate'
 
 
-def test_reviewed_project_recipes_satisfy_core_execution_contract():
+def test_reviewed_project_recipes_satisfy_core_execution_contract(reviewed_catalog):
     # UI enumeration alone does not instantiate Core's bounded Recipe contract.
     with _context.use(sm.PROJECT_ROOT, extension=OpenGUProjectExtension()):
         recipes = _recipes.ExecutionAdapter().recipes()
-    assert set(recipes) == set(_project_recipes.recipe_definitions())
+    assert reviewed_catalog == _project_recipes.recipe_definitions()
+    assert set(recipes) == set(reviewed_catalog)
     assert all(1 <= recipe.timeout_seconds <= _constants.RUNNER_AGENT_MAX_TIMEOUT_SECONDS
                for recipe in recipes.values())
 
