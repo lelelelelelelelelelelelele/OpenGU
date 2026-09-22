@@ -43,7 +43,7 @@
   ],
   "analysis": {
     "state": "review",
-    "note": "RR10科学记录已接受；新训练96格的分析适用性需单独确认。",
+    "note": "2026-09-23 完成 100→3000 训练轮数描述性对照；48/48 个下游效果选择身份一致，RR10 采样分析维持独立范围，科学结论待审阅。",
     "evidence": [
       {
         "label": "结果与分析报告",
@@ -51,6 +51,18 @@
       },
       {
         "label": "当前运行manifest",
+        "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+      },
+      {
+        "label": "100→3000 参数对照分析报告",
+        "path": "self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md"
+      },
+      {
+        "label": "旧参数逐条件明细",
+        "path": ".workblock/items/AAGU-053/evidence/table-detail.json"
+      },
+      {
+        "label": "新参数运行manifest",
         "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
       }
     ]

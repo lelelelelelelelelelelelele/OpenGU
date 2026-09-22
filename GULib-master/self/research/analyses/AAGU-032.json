@@ -58,11 +58,23 @@
   ],
   "analysis": {
     "state": "review",
-    "note": "历史033分析保留；恢复结果与旧结论的一致性待独立复核。",
+    "note": "2026-09-23 完成 100→3000 训练轮数描述性对照；360 个条件坐标可配对，但仅 Degree/Random 的 72 格 selection_id 相同，科学结论待审阅。",
     "evidence": [
       {
         "label": "历史033报告；恢复后适用性待复核",
         "path": ".workblock/items/AAGU-033/REPORT.md"
+      },
+      {
+        "label": "100→3000 参数对照分析报告",
+        "path": "self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md"
+      },
+      {
+        "label": "旧参数逐条件明细",
+        "path": ".workblock/items/AAGU-033/analysis/20260908/retrain_cells.csv"
+      },
+      {
+        "label": "新参数运行manifest",
+        "path": "results/runs/gpu4090/aagu032-extended-v2-multi-gcn-retrain/aagu032-recovery-full-20260920/run.json"
       }
     ]
   },
