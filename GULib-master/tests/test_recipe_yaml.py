@@ -14,7 +14,7 @@ from test_syncmate_execution_contract import workspace, tables, commit, git
 
 def test_all_recipes_are_independent_and_compact():
     paths = list((ROOT / RECIPE_DIRECTORY).glob('*.yaml'))
-    assert len(paths) == len(recipe_ids(ROOT)) == 44
+    assert len(paths) == len(recipe_ids(ROOT)) == 47
     for path in paths:
         spec = load_declaration(path)
         definition = resolve_recipe(ROOT, spec['id'])

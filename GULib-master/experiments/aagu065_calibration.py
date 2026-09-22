@@ -1,6 +1,8 @@
-"""AAGU-065 Cora GIF/IDEA calibration on fixed pure checkpoints.
+"""Historical AAGU-065 Cora GIF/IDEA calibration diagnostic.
 
-This entry is deliberately separate from the historical AAGU-059 diagnostic.
+The active 065 batch uses the generic experiments/run.py Observer path from
+observer_h64_calibration.yaml. This entry is retained only to reproduce older
+calibration evidence and is not a current SyncMate batch launcher.
 It resolves the declared Random request itself, requires an explicit pure
 state-dict checkpoint, and records the production recurrence at T/2T/4T for
 each declared scale/damp pair.  It does not choose parameters from F1.

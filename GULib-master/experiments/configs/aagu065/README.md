@@ -1,11 +1,12 @@
 # AAGU-065 Cora fixed-PT calibration
 
-These two small experiments are calibration diagnostics only:
+The historical calibration YAMLs are calibration diagnostics only:
 
 - `calibration_h16.yaml` consumes the fixed Cora/GCN hidden=16 pure PT and
   runs GIF/IDEA at the author pair and one shifted pair over 100/200/400
   iterations.
-- `calibration_h64.yaml` does the same for hidden=64.
+- `calibration_h64.yaml` does the same for hidden=64. They are retained as
+  historical evidence inputs; they are not the active batch entry point.
 
 Both configs declare one independent Random request (seed `104245`) and 10%
 of the persisted `train_mask`. Every GU instance names the explicit pure
@@ -50,6 +51,15 @@ The accepted canonical H16/Cora fixed-PT method files are now promoted to
 `../unlearning/gif_cora_gcn_h16_fixed_pt.yaml` and
 `../unlearning/idea_cora_gcn_h16_fixed_pt.yaml`. The AAGU-065 files remain
 calibration evidence and are not deleted.
+
+The active batch H64 calibration uses the ordinary `experiments/run.py`
+Observer path. Its configuration is `observer_h64_calibration.yaml` and its
+reviewed Recipe is `opengu-aagu070-065-h64-calibration-v1.yaml`. It runs the
+author and shifted GIF/IDEA candidates with the linear-solver, same-graph,
+and Hessian calibration Observers; this evidence is used to freeze the H64
+parameter group before validation. The older
+`experiments/aagu065_calibration.py` entry is historical diagnostic material,
+not a new SyncMate runner.
 
 
 ## Observer integration (AAGU-070)

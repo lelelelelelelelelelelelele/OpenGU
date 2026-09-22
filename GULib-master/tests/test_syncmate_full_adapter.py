@@ -63,7 +63,7 @@ def test_registry_contains_only_current_reviewed_recipes(project_extension):
     expected_ids = {'smoke','opengu-preflight-v1','opengu-aagu007-v2','opengu-aagu032-v1',
         'opengu-aagu032-extend-cora-v1','opengu-aagu032-extend-citeseer-v1',
         'opengu-aagu032-extend-pubmed-v1','opengu-aagu032-extend-v2','opengu-aagu031-stage-s-v2'}
-    assert len(recipe_ids) == 44
+    assert len(recipe_ids) == 47
     assert expected_ids <= set(recipe_ids)
 
 
