@@ -64,6 +64,10 @@
       {
         "label": "新参数运行manifest",
         "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+      },
+      {
+        "label": "3000轮参数下论文结果分析草稿",
+        "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
       }
     ]
   },
@@ -72,6 +76,19 @@
     "note": "实验定义、执行交付与科学判断分别记录。",
     "evidence": []
   },
-  "recorded_at": "2026-09-22",
-  "history": []
+  "recorded_at": "2026-09-23",
+  "history": [
+    {
+      "id": "aagu-053-paper-analysis-3000-only-20260923",
+      "at": "2026-09-23",
+      "stage": "analysis",
+      "note": "登记当前 3000 轮论文结果分析草稿；仅增加证据引用，分析维持 review，科学决定维持 pending。",
+      "evidence": [
+        {
+          "label": "3000轮参数下论文结果分析草稿",
+          "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
+        }
+      ]
+    }
+  ]
 }
