@@ -20,15 +20,43 @@ def read_json(path):
     return json.loads(path.read_text(encoding='utf-8'))
 
 
-def load(root):
+def load(root, canonical=None):
     source = root / 'self/research'
     frame = read_json(source / 'framework.json')
-    records = [read_json(p) for p in sorted((source / 'experiments').glob('*.json'))]
-    for p, record in zip(sorted((source / 'experiments').glob('*.json')), records):
-        if p.stem != record['id']:
-            raise ValueError('Experiment filename/ID mismatch: ' + str(p))
+    states = read_records((canonical or root) / 'self/research/experiments')
+    analyses = read_records(source / 'analyses')
+    if not states or analyses.keys() - states.keys():
+        raise ValueError('Missing local experiment state; restore self/research/experiments '
+                         'from its maintained copy, not from historical analysis')
+    records = []
+    for key, state in states.items():
+        if 'analysis' in state or 'decision' in state:
+            raise ValueError('Analysis/decision belongs in analyses/: ' + key)
+        published = analyses.get(key)
+        record = dict(state)
+        record['analysis'] = {'state': 'not_started', 'note': '尚无已保存分析。', 'evidence': []}
+        record['decision'] = {'state': 'not_requested', 'note': '尚无已保存科学决定。', 'evidence': []}
+        if published:
+            if {'preparation', 'execution', 'next_step', 'blocks', 'dependencies'} & published.keys():
+                raise ValueError('Live state belongs in experiments/: ' + key)
+            for field in ('title', 'question', 'scope', 'recorded_at', 'configs', 'sources', 'attempts', 'history'):
+                if field not in published:
+                    raise ValueError('Missing analysis context: ' + field)
+            record.update({stage: published[stage] for stage in ('analysis', 'decision')})
+            record['published_analysis'] = published
+        records.append(record)
     validate(records)
     return frame, records
+
+
+def read_records(directory):
+    records = {}
+    for path in sorted(directory.glob('*.json')):
+        record = read_json(path)
+        if not ID.fullmatch(path.stem) or record.get('id') != path.stem:
+            raise ValueError('Experiment filename/ID mismatch: ' + str(path))
+        records[path.stem] = record
+    return records
 
 
 def validate(records):
@@ -112,6 +140,10 @@ def dependencies(record, records, canonical):
                     parent['decision']['state'] == 'accepted' and parent['decision'].get('success_confirmed') is True
                     if requirement == 'successful_acceptance' else
                     parent['decision']['state'] == 'accepted')
+        if requirement != 'evidence':
+            published = parent.get('published_analysis')
+            resolved = resolved and bool(published) and all(
+                published[field] == parent[field] for field in ('scope', 'configs'))
         result.append(dict(d, id=d['experiment'], kind='experiment', resolved=resolved,
                            status={'evidence': '需要匹配结果', 'analysis': '需要分析交付', 'accepted': '需要科学接受', 'successful_acceptance': '需要验证成功且科学接受'}[requirement]))
     return result
@@ -138,7 +170,7 @@ def resolve(root, canonical, path):
     p = Path(path)
     if p.anchor or '..' in p.parts or ':' in path or '\\' in path:
         raise ValueError('Unsafe source path: ' + path)
-    base = canonical if path.startswith(('.workblock/', 'results/', '.syncmate/')) else root
+    base = canonical if path.startswith(('.workblock/', 'results/', '.syncmate/', 'self/research/experiments/')) else root
     return base / p
 
 
@@ -154,6 +186,8 @@ def verify_manifests(records, root, canonical):
     """Explicit selected manifests only; does not turn local files into trusted evidence."""
     count = 0
     for record in records:
+        if record.get('published_analysis'):
+            count += verify_manifests([record['published_analysis']], root, canonical)
         for attempt in record['attempts']:
             bound = attempt.get('manifest')
             if not bound:

@@ -2,6 +2,7 @@
 import copy
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import pytest
@@ -10,19 +11,32 @@ from scripts.dashboard import workplan_view as view
 
 
 def records():
-    return model.load(view.ROOT)[1]
+    """Synthetic state: tests must work in a fresh clone without local plans."""
+    evidence = [dict(label='report', path='report.md')]
+    rows = []
+    for code in ('AAGU-001', 'AAGU-002'):
+        r = dict(id=code, title=code, family='main', category='active',
+                 question='Question', scope='Frozen scope', next_step='Review',
+                 reviewed_at='2026-09-22', sources=evidence,
+                 configs=[dict(label='config', path='experiments/configs/test.yaml', role='current')],
+                 preparation=dict(state='defined', note='Defined', evidence=[]),
+                 execution=dict(state='completed', note='Complete', evidence=evidence),
+                 analysis=dict(state='complete', note='Analysis', evidence=evidence),
+                 decision=dict(state='accepted', note='Decision', evidence=evidence, success_confirmed=True),
+                 dependencies=[], blocks=[], attempts=[],
+                 history=[dict(id='observed', at='2026-09-22', stage='analysis', note='Observed', evidence=evidence)])
+        r['published_analysis'] = {k:copy.deepcopy(r[k]) for k in
+                                  ('id','title','question','scope','configs','sources','attempts','analysis','decision','history')}
+        r['published_analysis']['recorded_at'] = r['reviewed_at']
+        rows.append(r)
+    rows[0]['blocks'] = [dict(id='AAGU-072',stage='execution',reason='software',
+                             delivery_confirmed=True,delivery_note='verified')]
+    rows[1]['dependencies'] = [dict(experiment='AAGU-001',stage='analysis',reason='parent',requirement='successful_acceptance')]
+    return rows
 
 
-def test_current_experiments_preserve_numbered_identity_and_separate_stages():
-    rows = records()
-    assert len(rows) == 25
-    lookup = {r['id']:r for r in rows}
-    assert lookup['AAGU-011']['execution']['state'] == 'completed'
-    assert lookup['AAGU-011']['decision']['state'] == 'pending'
-    assert lookup['AAGU-066']['execution']['state'] == 'pending'
-    assert lookup['AAGU-056']['execution']['state'] == 'completed'
-    assert lookup['AAGU-056']['analysis']['state'] == 'not_started'
-    assert lookup['AAGU-032']['decision']['state'] != 'accepted'
+def frame():
+    return model.read_json(view.SOURCE / 'framework.json')
 
 
 @pytest.mark.parametrize('defect', ['id','state','evidence','analysis','decision','cycle','unknown_dependency','block','event','config'])
@@ -61,31 +75,23 @@ def test_block_status_is_read_only_fail_closed_and_needs_delivery(tmp_path):
 
 
 def test_unrelated_block_and_graph_changes_do_not_change_experiment_or_view(tmp_path):
-    frame,rows=model.load(view.ROOT);sources=view.Sources(view.ROOT,tmp_path)
+    framework,rows=frame(),records();sources=view.Sources(view.ROOT,tmp_path)
     page=tmp_path/'index.html'
-    before=view.index_page(frame,rows,sources,page)
+    before=view.index_page(framework,rows,sources,page)
     serialized=json.dumps(rows,ensure_ascii=False)
     write_block(tmp_path,'AAGU-999','accepted')
     (tmp_path/'.workblock/graph.json').write_text('invalid irrelevant data')
-    assert view.index_page(frame,rows,sources,page)==before
+    assert view.index_page(framework,rows,sources,page)==before
     assert json.dumps(rows,ensure_ascii=False)==serialized
-    write_block(tmp_path,'AAGU-070','accepted')
-    after=view.index_page(frame,rows,sources,page)
+    write_block(tmp_path,'AAGU-072','accepted')
+    after=view.index_page(framework,rows,sources,page)
     assert after!=before
     assert json.dumps(rows,ensure_ascii=False)==serialized
 
 
-def test_010_012_stage_specific_dependencies_are_preserved():
-    lookup={r['id']:r for r in records()}
-    assert lookup['AAGU-010']['blocks'][0]['id']=='AAGU-072'
-    dep=next(d for d in lookup['AAGU-012']['dependencies'] if d['experiment']=='AAGU-010')
-    assert dep['stage']=='analysis'
-    assert lookup['AAGU-012']['analysis']['state']=='review'
-
-
 def test_accepted_negative_result_does_not_unlock_cross_dataset_run(tmp_path):
     rows=records();lookup={r['id']:r for r in rows}
-    parent=lookup['AAGU-066'];child=lookup['AAGU-067']
+    parent=lookup['AAGU-001'];child=lookup['AAGU-002']
     parent['decision']['state']='accepted'
     parent['decision']['success_confirmed']=False
     assert not model.dependencies(child,rows,tmp_path)[0]['resolved']
@@ -105,7 +111,7 @@ def test_yaml_rendering_uses_actual_file_and_escapes_html(tmp_path):
 
 
 def test_catalog_classifies_development_without_registering_experiments():
-    rows=records();catalog=view.catalog(view.ROOT,rows)
+    rows=list(model.read_records(view.SOURCE / 'analyses').values());catalog=view.catalog(view.ROOT,rows)
     assert any(c['owner']=='AAGU-032' for c in catalog)
     assert any(c['owner']=='AAGU-063' and c['kind']=='development' for c in catalog)
     assert not any(r['id']=='AAGU-063' for r in rows)
@@ -126,10 +132,10 @@ def test_diagram_valid_and_all_explicit_dependencies_present(tmp_path):
 
 
 def test_repeated_generation_is_deterministic_and_escapes_data(tmp_path):
-    frame,rows=model.load(view.ROOT); sources=view.Sources(view.ROOT,tmp_path)
-    assert view.index_page(frame,rows,sources,tmp_path/'index.html')==view.index_page(frame,rows,sources,tmp_path/'index.html')
+    framework,rows=frame(),records(); sources=view.Sources(view.ROOT,tmp_path)
+    assert view.index_page(framework,rows,sources,tmp_path/'index.html')==view.index_page(framework,rows,sources,tmp_path/'index.html')
     rows[0]['title']='</text><script>alert(1)</script>'
-    content=view.index_page(frame,rows,sources,tmp_path/'index.html')
+    content=view.index_page(framework,rows,sources,tmp_path/'index.html')
     assert '</text><script>alert(1)' not in content and '&lt;script&gt;alert(1)' in content
 
 
@@ -150,3 +156,77 @@ def test_manifest_binding_checks_identity_count_and_file_hash(tmp_path):
 def test_missing_evidence_not_silently_omitted(tmp_path):
     with pytest.raises(ValueError,match='Missing sources'):
         model.check_links({},[{'evidence':[dict(label='result',path='missing.json')]}],tmp_path,tmp_path)
+
+
+def write_split(root, rows):
+    source = root / 'self/research'
+    (source / 'experiments').mkdir(parents=True)
+    (source / 'analyses').mkdir()
+    (source / 'framework.json').write_text(json.dumps(frame()), encoding='utf-8')
+    for row in rows:
+        state = {k:v for k,v in row.items() if k not in ('analysis','decision','published_analysis')}
+        for directory, data in [('experiments', state), ('analyses', row['published_analysis'])]:
+            (source / directory / (row['id'] + '.json')).write_text(json.dumps(data), encoding='utf-8')
+
+
+def test_split_load_preserves_information_and_uses_canonical_state(tmp_path):
+    rows = records()
+    write_split(tmp_path, rows)
+    assert model.load(tmp_path)[1] == rows
+    candidate = tmp_path / 'candidate'
+    write_split(candidate, rows)
+    for p in (candidate / 'self/research/experiments').glob('*.json'):
+        p.unlink()
+    assert model.load(candidate, tmp_path)[1] == rows
+    with pytest.raises(ValueError, match='Missing local experiment state'):
+        model.load(candidate)
+
+
+def test_missing_analysis_is_pending_and_mixed_state_rejected(tmp_path):
+    write_split(tmp_path, records())
+    (tmp_path / 'self/research/analyses/AAGU-001.json').unlink()
+    rows = model.load(tmp_path)[1]
+    assert rows[0]['analysis']['state'] == 'not_started'
+    assert not model.dependencies(rows[1], rows, tmp_path)[0]['resolved']
+    p = tmp_path / 'self/research/experiments/AAGU-001.json'
+    state = json.loads(p.read_text())
+    state['analysis'] = records()[0]['analysis']
+    p.write_text(json.dumps(state))
+    with pytest.raises(ValueError, match='belongs in analyses'):
+        model.load(tmp_path)
+
+
+def test_old_analysis_does_not_release_expanded_scope(tmp_path):
+    rows = records()
+    rows[0]['scope'] = 'Expanded scope'
+    assert not model.dependencies(rows[1], rows, tmp_path)[0]['resolved']
+
+
+def test_published_analysis_cannot_contain_live_state(tmp_path):
+    rows = records()
+    rows[0]['published_analysis']['execution'] = rows[0]['execution']
+    write_split(tmp_path, rows)
+    with pytest.raises(ValueError, match='Live state belongs'):
+        model.load(tmp_path)
+
+
+def test_state_edits_leave_git_head_and_status_unchanged_analysis_is_tracked(tmp_path):
+    write_split(tmp_path, records())
+    source = tmp_path / 'self/research'
+    (source / '.gitignore').write_bytes((view.SOURCE / '.gitignore').read_bytes())
+    def git(*args):
+        return subprocess.check_output(['git', '-C', str(tmp_path), *args], text=True).strip()
+    git('init', '-q')
+    git('add', 'self/research/.gitignore', 'self/research/framework.json', 'self/research/analyses')
+    git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-qm', 'baseline')
+    head = git('rev-parse', 'HEAD')
+    p = source / 'experiments/AAGU-001.json'
+    state = json.loads(p.read_text())
+    state['next_step'] = 'Updated while running'
+    p.write_text(json.dumps(state))
+    assert git('status', '--porcelain') == ''
+    assert git('rev-parse', 'HEAD') == head
+    assert not git('ls-files', 'self/research/experiments')
+    p = source / 'analyses/AAGU-001.json'
+    p.write_text(p.read_text() + '\n')
+    assert 'self/research/analyses/AAGU-001.json' in git('status', '--porcelain')

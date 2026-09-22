@@ -1,0 +1,26 @@
+{
+  "id": "AAGU-022",
+  "title": "大图 D-full 计时与外推",
+  "question": "以大图探针检验成本外推，分别报告实测与估计。",
+  "scope": "以大图探针检验成本外推，分别报告实测与估计。",
+  "configs": [],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-022/WORKITEM.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "not_started",
+    "note": "小图证据与探针分析尚未具备。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": []
+}

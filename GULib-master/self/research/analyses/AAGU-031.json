@@ -1,0 +1,55 @@
+{
+  "id": "AAGU-031",
+  "title": "IF 选择机制与完整排名",
+  "question": "八组Selector排名、选集重合与已有计时。",
+  "scope": "八组Selector排名、选集重合与已有计时。",
+  "configs": [
+    {
+      "label": "stage_s.yaml",
+      "path": "experiments/configs/aagu031/stage_s.yaml",
+      "role": "current"
+    }
+  ],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-031/WORKITEM.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "complete",
+    "note": "已有排名和相似度分析；保留已接受范围。",
+    "evidence": [
+      {
+        "label": "历史定义",
+        "path": ".workblock/items/AAGU-031/WORKITEM.md"
+      }
+    ]
+  },
+  "decision": {
+    "state": "accepted",
+    "note": "只适用于本记录明确范围；新运行需独立确认。",
+    "evidence": [
+      {
+        "label": "历史定义",
+        "path": ".workblock/items/AAGU-031/WORKITEM.md"
+      }
+    ]
+  },
+  "recorded_at": "2026-09-22",
+  "history": [
+    {
+      "id": "existing-delivery-record",
+      "at": "2026-09-22",
+      "stage": "analysis",
+      "note": "历史报告交付72个条件；此次未重新计算。 已有排名和相似度分析；保留已接受范围。",
+      "evidence": [
+        {
+          "label": "历史定义",
+          "path": ".workblock/items/AAGU-031/WORKITEM.md"
+        }
+      ]
+    }
+  ]
+}

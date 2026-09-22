@@ -1,11 +1,8 @@
 {
   "id": "AAGU-061",
   "title": "作者超参基础模型 PT",
-  "family": "if",
-  "category": "history",
   "question": "按已确认架构与作者训练超参生成H16/H64纯权重，核验导出。",
   "scope": "按已确认架构与作者训练超参生成H16/H64纯权重，核验导出。",
-  "reviewed_at": "2026-09-22",
   "configs": [
     {
       "label": "已交付训练配置",
@@ -13,21 +10,17 @@
       "role": "current"
     }
   ],
-  "preparation": {
-    "state": "defined",
-    "note": "执行定义与来源按下方配置核对。",
-    "evidence": []
-  },
-  "execution": {
-    "state": "completed",
-    "note": "两份PT、SSH训练与回传核验已交付。",
-    "evidence": [
-      {
-        "label": "结果与分析报告",
-        "path": ".workblock/items/AAGU-061/REPORT.md"
-      }
-    ]
-  },
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-061/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-061/REPORT.md"
+    }
+  ],
+  "attempts": [],
   "analysis": {
     "state": "complete",
     "note": "用户接受基础模型交付；负曲率不等于求解稳定。",
@@ -48,33 +41,8 @@
       }
     ]
   },
-  "dependencies": [],
-  "blocks": [],
-  "attempts": [],
-  "next_step": "由065/066消费H16，062维护稳定性总问题。",
-  "sources": [
-    {
-      "label": "历史定义",
-      "path": ".workblock/items/AAGU-061/WORKITEM.md"
-    },
-    {
-      "label": "结果与分析报告",
-      "path": ".workblock/items/AAGU-061/REPORT.md"
-    }
-  ],
+  "recorded_at": "2026-09-22",
   "history": [
-    {
-      "id": "workplan-intake-20260922",
-      "at": "2026-09-22",
-      "stage": "creation",
-      "note": "转入独立Work Plan维护；沿用既有编号、定义与证据，不以历史Block状态推断实验进度。",
-      "evidence": [
-        {
-          "label": "历史定义",
-          "path": ".workblock/items/AAGU-061/WORKITEM.md"
-        }
-      ]
-    },
     {
       "id": "existing-delivery-record",
       "at": "2026-09-22",

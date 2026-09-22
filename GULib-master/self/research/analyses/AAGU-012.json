@@ -1,0 +1,35 @@
+{
+  "id": "AAGU-012",
+  "title": "退化分解与副作用分析",
+  "question": "区分删除效用变化、GU−Retrain差异与Flip/Hop副作用。",
+  "scope": "区分删除效用变化、GU−Retrain差异与Flip/Hop副作用。",
+  "configs": [],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-012/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-012/REPORT.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "review",
+    "note": "已有Table01分析；新增Flip/Hop部分等待010，不否定已有分析。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-012/REPORT.md"
+      }
+    ]
+  },
+  "decision": {
+    "state": "pending",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": []
+}

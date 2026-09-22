@@ -96,6 +96,15 @@ def sheet_page(r, records, sources, page):
     body += references(r['execution']['evidence'], sources, page) + '</section>'
     for key in ['analysis', 'decision']:
         body += f'<section><h2>{STAGE_NAMES[key]}与证据</h2>{badge(key,r[key]["state"])}<p>{esc(r[key]["note"])}</p>' + references(r[key]['evidence'], sources, page) + '</section>'
+    if r.get('published_analysis'):
+        published = r['published_analysis']
+        body += '<section><h2>已保存分析的范围与运行依据</h2><p>' + esc(published['scope']) + '</p>'
+        body += '<p>记录日期 ' + esc(published['recorded_at']) + '；该范围与当前计划分别维护，历史结论不自动覆盖新增范围。</p>'
+        body += sources.anchor({'label': '版本化分析记录', 'path': f'self/research/analyses/{r["id"]}.json'}, page)
+        for attempt in published['attempts']:
+            commit = attempt.get('commit') or attempt.get('manifest', {}).get('commit', '未记录；需查原始证据')
+            body += '<p>' + esc(attempt['run_id']) + ' · SHA ' + esc(commit) + '</p>' + references(attempt['evidence'], sources, page)
+        body += references(published['sources'], sources, page) + '</section>'
     body += '<section><h2>过程记录</h2><ol class="timeline">'
     for event in reversed(r['history']):
         body += f'<li><time>{esc(event["at"])}</time><p>{esc(event["note"])}</p>' + references(event['evidence'], sources, page) + '</li>'
@@ -208,7 +217,7 @@ def main(argv=None):
     parser.add_argument('--verify-evidence', action='store_true')
     args = parser.parse_args(argv)
     try:
-        frame, records = model.load(ROOT)
+        frame, records = model.load(ROOT, args.canonical_root)
         sources = Sources(ROOT, args.canonical_root)
         if args.check_links:
             print('Source references:', model.check_links(frame, records, ROOT, sources.canonical))

@@ -1,0 +1,35 @@
+{
+  "id": "AAGU-066",
+  "title": "Cora H16/H64 冻结参数的 Random 请求验证",
+  "question": "各宽度的冻结GIF/IDEA参数能否在预定Random请求上保持数值稳定并形成可解释的Retrain比较？",
+  "scope": "062 Batch第2项：H16/H64分别消费065对应baseline的冻结组；10%预算、Random104246/104247/104248，各请求共享Selection，配对同宽度Retrain和no-update参照。已有065证据核验后按覆盖复用。 本批采用062的用户委托阶段放行规则，最终科学验收集中在062。",
+  "configs": [],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-066/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-066/REPORT.md"
+    },
+    {
+      "label": "062：065–068 Batch定义与来源",
+      "path": "self/research/experiments/AAGU-062.json"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "not_started",
+    "note": "目前没有正式科研结果。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "用户授权Agent按运行前冻结的判据作阶段放行判断；完整范围成功后继续下一阶段，无需逐阶段等待用户确认。失败、证据不足、身份不匹配或软件未就绪时不放行。阶段放行不代表用户最终科学验收，最终统一由062提交总报告。 本阶段尚未据此放行；未来只有完整范围成功且有证据时，Agent才将本阶段decision记为accepted、success_confirmed=true，并记录判据/范围/证据及判断者。失败或不充分保持success_confirmed=false。",
+    "evidence": [],
+    "success_confirmed": false
+  },
+  "recorded_at": "2026-09-22",
+  "history": []
+}
