@@ -16,7 +16,6 @@ from experiments.modular_run import execute
 from experiments.modular_artifacts import ARTIFACT_NAMES,output_paths
 from scripts.syncmate import syncmate
 from opengu_adapter import OpenGUProjectExtension
-from opengu_recipes import recipe_definitions
 from syncmate_core import collection,context,devices,index
 from syncmate_core.identity import sha256_recipe_config
 from syncmate_core.run_handoff import build_execution_contract

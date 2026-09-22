@@ -18,7 +18,7 @@ from experiments.modular_config import configuration_fingerprint
 from experiments.modular_run import execute
 from scripts.syncmate import syncmate
 from opengu_adapter import OpenGUProjectExtension
-from opengu_recipes import recipe_definitions, generate, assemble, load_declaration
+from opengu_recipes import generate, assemble, load_declaration
 from syncmate_core import collection, context, devices, index, queue
 from syncmate_core.identity import sha256_recipe_config
 
@@ -96,8 +96,13 @@ class FixtureRegistration(OpenGUProjectExtension):
     def __init__(self, definition):
         self.definition = definition
 
-    def recipes(self, project_root):
-        return {self.definition['id']: self.definition}
+    def recipe_ids(self, project_root):
+        return (self.definition['id'],)
+
+    def resolve_recipe(self, project_root, recipe_id):
+        if recipe_id != self.definition['id']:
+            raise ValueError('recipe is not allowlisted')
+        return copy.deepcopy(self.definition)
 
 
 @pytest.mark.parametrize('stage', ['selector', 'unlearning', 'metrics'])
@@ -190,7 +195,7 @@ def test_device_configuration_controls_failure_before_production(workspace, devi
 
 
 def test_live_registration_invokes_ordinary_yaml_directly():
-    definition = recipe_definitions()['opengu-aagu007-v2']
+    definition = OpenGUProjectExtension().resolve_recipe(ROOT, 'opengu-aagu007-v2')
     assert definition['argv'][:3] == ('{python}', 'experiments/run.py', definition['config_path'])
     assert '--recipe' not in definition['argv']
     assert '--run-id' in definition['argv']

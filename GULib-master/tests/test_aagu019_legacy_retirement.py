@@ -39,9 +39,9 @@ def test_legacy_packages_configs_and_registry_are_not_executable():
     assert not list(
         (ROOT / "experiments" / "configs").glob("syncmate_small_selection*.yaml")
     )
-    definitions = _recipes_module().recipe_definitions()
-    assert len(definitions) == 3
-    assert not [recipe_id for recipe_id in definitions if "small-selection" in recipe_id]
+    recipe_ids = _recipes_module().recipe_ids(ROOT)
+    assert recipe_ids
+    assert not [recipe_id for recipe_id in recipe_ids if "small-selection" in recipe_id]
 
 
 def test_active_python_surface_has_no_legacy_runtime_reference():

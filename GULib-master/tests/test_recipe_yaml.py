@@ -6,23 +6,23 @@ from pathlib import Path
 import pytest
 import yaml
 from scripts.syncmate.opengu_recipes import (
-    ROOT, RECIPE_DIRECTORY, assemble, generate, load_declaration, recipe_definitions)
+    ROOT, RECIPE_DIRECTORY, assemble, generate, load_declaration, recipe_ids, resolve_recipe)
 from syncmate_core.contracts import build_job_envelope, ContractError
 from syncmate_core.recipes import execution_recipe
 from test_syncmate_execution_contract import workspace, tables, commit, git
 
 
 def test_all_recipes_are_independent_and_compact():
-    definitions = recipe_definitions()
     paths = list((ROOT / RECIPE_DIRECTORY).glob('*.yaml'))
-    assert len(paths) == len(definitions) == 44
+    assert len(paths) == len(recipe_ids(ROOT)) == 44
     for path in paths:
         spec = load_declaration(path)
+        definition = resolve_recipe(ROOT, spec['id'])
         assert path.stem == spec['id']
         assert 'expected_artifact_paths' not in spec
         assert 'argv' not in spec
         if spec['runner'] == 'experiment':
-            assert definitions[spec['id']]['argv'][1] == 'experiments/run.py'
+            assert definition['argv'][1] == 'experiments/run.py'
             assert len(spec['outputs']['files']) == 4
 
 

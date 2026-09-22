@@ -55,7 +55,7 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
     dependency = verify_core_dependency()
     errors.extend(dependency['errors'])
     with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=True):
-        binding = recipes.runner_recipe_binding(recipe_id)
+        binding = recipes.runner_recipe_binding(definition)
         errors.extend(binding['errors'])
         landing = run_handoff.landing_for(node_id)
     python = sys.executable if devices.peer_uses_local_transport(peer) else devices.peer_python_executable(peer)
