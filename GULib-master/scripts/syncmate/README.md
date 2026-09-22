@@ -6,6 +6,57 @@ single-runner poller, not a scheduler or remote shell. Its job is to give
 local AI agents, remote AI agents, humans, and future dashboards the same view
 of device identity, run artifacts, result deltas, and next safe actions.
 
+## Independent recipe YAML
+
+Each reviewed submission is declared in [recipes/](recipes/), for example
+[opengu-aagu007-v2.yaml](recipes/opengu-aagu007-v2.yaml). The YAML contains the
+configuration reference and existing SHA/fingerprint, run identity, timeout,
+dataset counts, and compact output rules. `opengu_recipes.py` only validates and
+assembles these declarations; there is no Python experiment registration table.
+
+Generate an ordinary recipe from a real configuration (PowerShell):
+
+```powershell
+E:/conda_package/envs/gnn/python.exe scripts/syncmate/recipe.py generate experiments/configs/aagu007/experiment.yaml --id opengu-example --run-id example-v1 --timeout-seconds 1800 --dataset-count 2708:1895
+```
+
+Review the stdout YAML, then save it as `scripts/syncmate/recipes/opengu-example.yaml`.
+Use one reviewed `--dataset-count NODES:CANDIDATES` per dataset in config order;
+the generator does not download or guess dataset assets. Generation computes the
+existing hashes explicitly. Reading, previewing, or submitting never refreshes
+hashes silently. After editing experiment inputs, regenerate and review the
+recipe, then commit both. Use a new run ID to preserve earlier run directories.
+The declaration's `id` must equal its filename stem. Unknown/duplicate fields,
+unsafe paths, and unsupported output rules fail closed.
+
+```powershell
+E:/conda_package/envs/gnn/python.exe scripts/syncmate/recipe.py preview opengu-example --node gpu4090 --device-config .syncmate/device.yaml
+```
+
+Choose an actual peer ID from your device configuration. Preview is read-only:
+it shows the repository/full commit, config, configured node/workdir/interpreter,
+actual argv, run identity, remote result roots, local landing and collection
+rules. It reports local blockers and explicitly marks remote readiness unobserved.
+It performs no SSH, synchronization, submission or producer computation.
+The recipe must be tracked before preview; a dirty candidate can be inspected
+but is not dispatch-ready. The normal Core dispatch command remains unchanged.
+
+Code synchronization is separate: reviewed local main, origin/main and clean
+runner main must share the exact full commit before dispatch. Dispatch does not
+copy working-tree changes or update runner code. The existing job freezes commit
+and config hash; receipts preserve its execution and return facts.
+
+`outputs.root` describes the executor's fixed
+`results/runs/{experiment_id}/{run_id}` layout; edit the run identity to choose a
+new directory. Arbitrary roots are rejected, not silently ignored. Core resolves
+local receiving directories by node (`results/runs/<node>`). YAML declares
+naming rules and file types, never expanded cell paths. Python expands paths in
+memory for the existing Core contract; Core's existing handoff and checksum
+receipts still persist their normal lists. No extra manifest attachment is added.
+Diagnostics and preflight use bounded named runners; recipe YAML cannot supply
+arbitrary argv or shell commands. This change retains SHA checks and Cache
+identity semantics and does not authorize formal experiment execution.
+
 ## Ownership and project entry
 
 Generic protocol, immutable job-envelope, bounded-runner, checksum, readiness,
@@ -38,7 +89,7 @@ the obsolete M1 helper and its separate adapter. The current CLI uses only
 surface. Historical gate evidence remains in its original WorkItems.
 
 OpenGU supplies each experiment's `timeout_seconds` in the reviewed static
-recipes in `opengu_recipes.py`. The pinned Core carries that value into the
+YAML declarations in `recipes/*.yaml`. The pinned Core carries that value into the
 saved run handoff and checks it again before execution and collection. Change
 the reviewed recipe when a different runtime limit is needed; the device file
 and job YAML do not override it. This is a subprocess limit, not an estimated
@@ -1157,7 +1208,7 @@ inbox -> running -> done | failed | blocked
 
 Jobs select only a static recipe id. They cannot accept shell fragments,
 arguments, paths, configurations, environment values, cache operations, or
-expressions. Each code-defined recipe freezes its exact argv, fixed config path
+expressions. Each reviewed YAML recipe is assembled into its exact argv, fixed config path
 and SHA-256, expected OpenGU baseline/check-out policy, timeout, expected raw
 artifact paths, success predicate, and whether controller acceptance is
 eligible. Binding mismatch becomes `blocked` with expected/observed evidence.
@@ -1258,8 +1309,10 @@ OpenGU may submit declared jobs and inspect `manifest.json`, receipts, and
 results. It must not move files between queue states, add command/argument/path
 fields to job YAML, invalidate caches, or treat queue completion as trusted
 experiment evidence. Any future OpenGU recipe is a reviewed code-level
-allowlist addition with a frozen input schema and dedicated tests—not a YAML
-switch. The ready-to-use integration prompt is
+allowlist declaration in `recipes/` with a frozen input schema; YAML cannot
+supply arbitrary execution commands. See the [experiment runbook](../../self/research/RUNBOOK.md)
+for configuration changes, running jobs, preview, submission and receipts.
+The ready-to-use integration prompt is
 [`OPENGU_RUNNER_QUEUE_INTEGRATION_PROMPT.md`](OPENGU_RUNNER_QUEUE_INTEGRATION_PROMPT.md).
 
 ## Local Status Page

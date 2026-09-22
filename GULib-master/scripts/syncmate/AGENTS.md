@@ -8,7 +8,7 @@ This directory contains the repository-local companion tool for experiment synch
 - Do not change experiment semantics, training code, research claims, matrices, or result schemas from this directory unless the user explicitly asks.
 - Tracked project files stay identical across devices. Device identity and generated synchronization evidence belong under untracked `.syncmate/`.
 - Runner nodes do not communicate with one another; collectors pull from runners.
-- Keep Runner Queue schema v1 data-only. Reviewed static recipes bind argv, configuration SHA-256, checkout policy, timeout, expected evidence paths, and acceptance eligibility. Jobs must not gain arbitrary command, argument, path, environment, cache, or expression fields.
+- Keep Runner Queue schema v1 data-only. Reviewed independent YAML recipes bind configuration SHA-256, run identity, timeout and compact output rules. The generic loader assembles bounded argv, checkout policy, expected evidence paths and acceptance eligibility for Core; do not restore an experiment registration table in Python. Jobs must not gain arbitrary command, argument, path, environment, cache, or expression fields.
 - A `done` job is execution evidence only. Acceptance requires the controller's normal collect, SHA-256 verification, trusted index/results, and gate chain. Failed, blocked, stale, or recovered jobs do not bypass it.
 - Never auto-retry a `running` job. Inspect it first; recovery must be explicit and audited, and every retry receives a new job ID.
 

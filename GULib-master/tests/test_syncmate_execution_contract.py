@@ -18,7 +18,7 @@ from experiments.modular_config import configuration_fingerprint
 from experiments.modular_run import execute
 from scripts.syncmate import syncmate
 from opengu_adapter import OpenGUProjectExtension
-from opengu_recipes import recipe_definitions
+from opengu_recipes import recipe_definitions, generate, assemble, load_declaration
 from syncmate_core import collection, context, devices, index, queue
 from syncmate_core.identity import sha256_recipe_config
 
@@ -81,24 +81,14 @@ def cli(root, path, run_id):
 
 
 def declaration(root, path, stage):
-    definition = copy.deepcopy(recipe_definitions()['opengu-aagu007-v2'])
-    plan = execute(path, dry_run=True)
-    from experiments.modular_artifacts import output_paths, planned_cells
-    from experiments.modular_config import load_experiment
-    summary = 'results/runs/contract/registered/run.json'
-    resolved = load_experiment(path)
-    paths = [summary] + list(output_paths(summary, resolved))
-    definition['expected_cells'] = planned_cells(resolved)
-    definition.update(id='temporary-contract', config_path='experiment.yaml',
-        config_sha256=sha256_recipe_config(path),
-        configuration_fingerprint=configuration_fingerprint(path),
-        logical_cells=plan['logical_cells'], stage=stage,
-        expected_datasets=[{'num_nodes': 20, 'candidate_count': 10}],
-        run_identity={'experiment_id': 'contract', 'run_id': 'registered'},
-        argv=['{python}', 'experiments/run.py', 'experiment.yaml', '--run-id', 'registered',
-              '--device-config', '.syncmate/device.yaml', '--verification-root', str(root)],
-        expected_artifact_paths=paths,
-        collector_result_roots=['results/runs/contract/registered'])
+    spec = generate('experiment.yaml', recipe_id='temporary-contract', run_id='registered',
+        expected_datasets=[{'num_nodes': 20, 'candidate_count': 10}], project_root=root)
+    declaration_path = root / 'temporary-contract.yaml'
+    write_yaml(declaration_path, spec)
+    definition = assemble(load_declaration(declaration_path), root)
+    # Only the existing disposable-verification CLI switches are fixture-specific.
+    definition['argv'] = (*definition['argv'], '--device-config', '.syncmate/device.yaml',
+                          '--verification-root', str(root))
     return definition
 
 
@@ -127,12 +117,12 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
             'evaluation_refs': ['gap.yaml'], 'output_inputs': [{'run': str(previous),
                 'sha256': hashlib.sha256(previous.read_bytes()).hexdigest()}]}
         write_yaml(path, config)
+    definition = declaration(root, path, stage)
     sha = commit(root)
     before = {str(p.relative_to(root)): p.read_bytes() for p in root.rglob('*.yaml')}
     direct = cli(root, path, 'direct')
     assert direct.returncode == 0, direct.stdout + direct.stderr
     direct_summary = json.loads(direct.stdout)
-    definition = declaration(root, path, stage)
     with context.use(root, extension=FixtureRegistration(definition)):
         submitted = queue.runner_queue_submit('contract-job', definition['id'], expected_git_sha=sha)
         assert submitted['submitted'], submitted
@@ -149,7 +139,9 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
     assert receipt['source_git_sha'] == sha
     if stage == 'unlearning':
         assert len(actual['cells']) == 8
-        assert [r['output'] for r in actual['cells']] == [r['output'] for r in direct_summary['unlearning']]
+        from experiments.modular_artifacts import ordered_execution_rows
+        ordered = ordered_execution_rows(actual['cells'], direct_summary['unlearning'])
+        assert [r['output'] for r in actual['cells']] == [r['output'] for r in ordered]
         assert all(c['cache']['method'] == 'hit' for c in actual['cells'])
     elif stage == 'selector':
         assert len(actual['cells']) == 4

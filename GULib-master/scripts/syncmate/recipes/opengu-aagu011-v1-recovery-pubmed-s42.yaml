@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu011-v1-recovery-pubmed-s42
+runner: experiment
+config_path: experiments/configs/aagu011/table02_recovery_pubmed_s42.yaml
+config_sha256: b56bc6952bc6b0a9a146dc54a9f8ebbf0a6735dddf82cc28fc3ea03fb05a3863
+configuration_fingerprint: 4f157f5c3c676da3615be7ebafee7157fc7afcd317217ec048d3f0bc8a4d43e1
+run_identity:
+  experiment_id: aagu011-v1-recovery-pubmed-s42
+  run_id: aagu011-v1-recovery-pubmed-s42-20260919
+timeout_seconds: 21600
+logical_cells: 115
+stage: unlearning
+expected_datasets:
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

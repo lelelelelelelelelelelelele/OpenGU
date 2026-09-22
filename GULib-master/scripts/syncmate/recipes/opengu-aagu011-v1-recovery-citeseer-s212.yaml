@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu011-v1-recovery-citeseer-s212
+runner: experiment
+config_path: experiments/configs/aagu011/table02_recovery_citeseer_s212.yaml
+config_sha256: 5c9387272cae9449a076c4db4657acfa4b51db7c8d290cb2477ee44e1d695572
+configuration_fingerprint: 4747e3476ce294976af448f0ad3bdbf59b26813b72459f3b9d5e9abbdb22f3c6
+run_identity:
+  experiment_id: aagu011-v1-recovery-citeseer-s212
+  run_id: aagu011-v1-recovery-citeseer-s212-20260919
+timeout_seconds: 21600
+logical_cells: 115
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu053-celf-warmup-cora-s33-v1
+runner: experiment
+config_path: experiments/configs/im_group_discussion/celf_warmup_cora_s33.yaml
+config_sha256: 499699e065c40bed35ed74ab5ded7d42d4d86b6ddd55fd3e07a6b6174e706e6e
+configuration_fingerprint: 7250f94f63492c59f68146ea0f398270b5f6e95dcd2462f9e7b41baff74066c8
+run_identity:
+  experiment_id: aagu053-celf-warmup-cora-s33
+  run_id: aagu053-celf-warmup-cora-s33-v1
+timeout_seconds: 21600
+logical_cells: 1
+stage: selector
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

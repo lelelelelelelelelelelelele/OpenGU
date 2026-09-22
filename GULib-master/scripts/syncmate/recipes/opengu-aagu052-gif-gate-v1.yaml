@@ -1,0 +1,27 @@
+schema_version: 1
+id: opengu-aagu052-gif-gate-v1
+runner: experiment
+config_path: experiments/configs/aagu052/gate.yaml
+config_sha256: 53b55195c93f594eaf62a661b8d9c3b34e104f95141c52cd7e35a8bb745c03c2
+configuration_fingerprint: b3c6250d7ba6d37ccbe58e314ec4d4144a27cdbaac63c8c2d47d9fd46437a5cb
+run_identity:
+  experiment_id: aagu011-table01-gate
+  run_id: aagu052-gif-gate-v1
+timeout_seconds: 21600
+logical_cells: 18
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

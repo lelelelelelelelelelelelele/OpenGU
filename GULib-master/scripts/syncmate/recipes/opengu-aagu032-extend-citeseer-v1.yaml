@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu032-extend-citeseer-v1
+runner: experiment
+config_path: experiments/configs/aagu032_extend/experiment.citeseer.yaml
+config_sha256: 3f329e347363283fd9bb00a695435be8070179ac7d77b71eb8b0251b3404035f
+configuration_fingerprint: b21fa4aa5e4a8795ad1d0232ca607b0c6cc894a90e3ae8174ddfb702a63ce2d6
+run_identity:
+  experiment_id: aagu032-extended-citeseer-gcn-retrain
+  run_id: aagu032-extend-v1
+timeout_seconds: 21600
+logical_cells: 96
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

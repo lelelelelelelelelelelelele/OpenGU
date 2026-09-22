@@ -29,8 +29,7 @@ class OpenGUProjectExtension:
 
     def recipes(self, project_root: Path) -> Mapping[str, Mapping[str, Any]]:
         import opengu_recipes as recipes_module
-        del project_root
-        return recipes_module.recipe_definitions()
+        return recipes_module.recipe_definitions(project_root)
 
     def artifact_names(
         self,

@@ -1,0 +1,6 @@
+schema_version: 1
+id: opengu-preflight-v1
+runner: opengu-preflight-v1
+config_path: scripts/syncmate/setup.example.yaml
+config_sha256: a04773028a9045c929f6ac3635dd3cea5b17de89184095d3e396aeb19baf77c5
+timeout_seconds: 180

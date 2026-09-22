@@ -1,0 +1,27 @@
+schema_version: 1
+id: opengu-aagu011-table02-v2-gate
+runner: experiment
+config_path: experiments/configs/aagu011/table02_v2_gate.yaml
+config_sha256: 95e628e3ce14e31689a3cb02b47fa6b4dfc736489233796249a9b56a687c2b1a
+configuration_fingerprint: 587e1990889a866778a752bf62c2b1e1d7debf8d882d4c89a6f813d41f4d2c90
+run_identity:
+  experiment_id: aagu011-table02-v2-gate
+  run_id: aagu011-table02-v2-gate
+timeout_seconds: 21600
+logical_cells: 6
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

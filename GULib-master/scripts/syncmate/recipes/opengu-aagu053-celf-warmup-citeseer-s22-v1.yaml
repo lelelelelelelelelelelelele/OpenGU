@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu053-celf-warmup-citeseer-s22-v1
+runner: experiment
+config_path: experiments/configs/im_group_discussion/celf_warmup_citeseer_s22.yaml
+config_sha256: 55723b79038e23c7d4217d2aed09302828c4fe50d5f20a8d003e5b42a5f95c21
+configuration_fingerprint: 75f193e93b723c59a0021cd007488025e854ffbcbe6330a1f56bad33dba01d97
+run_identity:
+  experiment_id: aagu053-celf-warmup-citeseer-s22
+  run_id: aagu053-celf-warmup-citeseer-s22-v1
+timeout_seconds: 21600
+logical_cells: 1
+stage: selector
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
