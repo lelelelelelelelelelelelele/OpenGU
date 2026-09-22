@@ -75,11 +75,56 @@
   ],
   "analysis": {
     "state": "working",
-    "note": "H16原分析及接受保留；当前H16/H64整体范围尚未完成。",
+    "note": "正式H16已完成可信回传并完成初步运行证据分析；H64独立校准与冻结仍未完成，不能将065整体标为成功。",
+    "formal_h16": {
+      "job_id": "smoke-20260922192413712661",
+      "recipe": "opengu-aagu070-065-h16-v2",
+      "experiment_id": "aagu065-observer-h16",
+      "run_id": "aagu070-065-h16-v2",
+      "git_sha": "81177cb2f0adcb04467ff02a6840e60d5acd3713",
+      "config_path": "experiments/configs/aagu065/observer_h16.yaml",
+      "config_sha256": "fb43500b0e4d10bb79c4a8b25111b9b055290e0f8ce839f24ebd36a2d214728d",
+      "verification": {
+        "status": "accepted",
+        "gate_passed": true,
+        "expected_artifacts": 37,
+        "verified_artifacts": 37,
+        "missing_artifacts": 0,
+        "conflicts": 0,
+        "sha256_status": "verified",
+        "trusted_index": ".syncmate/artifact_index.json",
+        "project_acceptance": "accepted",
+        "delivery": ".syncmate/deliveries/smoke-20260922192413712661.json",
+        "verify_report": ".syncmate/last_verify_gpu4090.json",
+        "project_acceptance_report": ".syncmate/project_acceptance_gpu4090.json",
+        "result_root": "results/runs/gpu4090/aagu065-observer-h16/aagu070-065-h16-v2"
+      },
+      "observations": {
+        "cells": 6,
+        "methods": [
+          "GIF",
+          "IDEA"
+        ],
+        "width": 16,
+        "f1_drop": "0 across all six cells",
+        "update_detection_auc": "approximately 0.4867",
+        "same_graph_parameter_delta_l2": "approximately 0.01344",
+        "same_graph_prediction_flip_rate": "approximately 0.00222"
+      },
+      "boundary": "Observer and delivery evidence only; no F1-based success, parameter freeze, or full AAGU-065 acceptance."
+    },
     "evidence": [
       {
-        "label": "结果与分析报告",
-        "path": ".workblock/items/AAGU-065/REPORT.md"
+        "label": "正式H16 delivery",
+        "path": ".syncmate/deliveries/smoke-20260922192413712661.json"
+      },
+      {
+        "label": "正式H16验证报告",
+        "path": ".syncmate/last_verify_gpu4090.json"
+      },
+      {
+        "label": "正式H16结果",
+        "path": "results/runs/gpu4090/aagu065-observer-h16/aagu070-065-h16-v2"
       }
     ]
   },
@@ -117,6 +162,22 @@
         {
           "label": "结果与分析报告",
           "path": ".workblock/items/AAGU-065/REPORT.md"
+        }
+      ]
+    },
+    {
+      "id": "formal-h16-verified-20260922",
+      "at": "2026-09-22",
+      "stage": "analysis",
+      "note": "正式H16可信回传完成并完成初步分析：37/37产物，verify=verified，项目验收accepted；数值观察不替代H64校准和冻结判据。",
+      "evidence": [
+        {
+          "label": "H16 delivery",
+          "path": ".syncmate/deliveries/smoke-20260922192413712661.json"
+        },
+        {
+          "label": "H16验证报告",
+          "path": ".syncmate/last_verify_gpu4090.json"
         }
       ]
     }
