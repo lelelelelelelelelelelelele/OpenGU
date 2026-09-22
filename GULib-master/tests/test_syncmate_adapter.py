@@ -9,17 +9,12 @@ from scripts.syncmate import syncmate as sm
 import pytest
 import opengu_recipes as _project_recipes
 from opengu_adapter import OpenGUProjectExtension
-from syncmate_core import artifacts as _artifacts, brief as _brief, bundles as _bundles, cli as _cli, collection as _collection, constants as _constants, context as _context, dashboard as _dashboard, devices as _devices, diagnostics as _diagnostics, dispatch as _dispatch, evidence as _evidence, fingerprints as _fingerprints, gates as _gates, handoff as _handoff, history as _history, identity as _identity, index as _index, next_steps as _next_steps, preflight as _preflight, queue as _queue, receipts as _receipts, recipes as _recipes, saved_reports as _saved_reports, snapshot as _snapshot, storage as _storage, worker as _worker, workflow as _workflow
-
-class AdapterFixture(OpenGUProjectExtension):
-    """Use real result/acceptance policies without unrelated research expansion."""
-    def recipes(self, project_root):
-        return _constants.RUNNER_RECIPE_DEFINITIONS
+from syncmate_core import artifacts as _artifacts, brief as _brief, bundles as _bundles, cli as _cli, collection as _collection, context as _context, dashboard as _dashboard, devices as _devices, diagnostics as _diagnostics, dispatch as _dispatch, evidence as _evidence, fingerprints as _fingerprints, gates as _gates, handoff as _handoff, history as _history, identity as _identity, index as _index, next_steps as _next_steps, preflight as _preflight, queue as _queue, receipts as _receipts, recipes as _recipes, saved_reports as _saved_reports, snapshot as _snapshot, storage as _storage, worker as _worker, workflow as _workflow
 
 
 @pytest.fixture(autouse=True)
 def scoped_project(tmp_path):
-    with _context.use(tmp_path, extension=AdapterFixture(), require_origin_main=True):
+    with _context.use(tmp_path, extension=OpenGUProjectExtension(), require_origin_main=True):
         yield
 
 
@@ -65,10 +60,10 @@ def test_default_implementation_is_core_backed_exact_entry():
 def test_reviewed_project_recipes_satisfy_core_execution_contract():
     # UI enumeration alone does not instantiate Core's bounded Recipe contract.
     with _context.use(sm.PROJECT_ROOT, extension=OpenGUProjectExtension()):
-        recipes = _recipes.ExecutionAdapter().recipes()
-    assert set(recipes) == set(_project_recipes.recipe_definitions())
-    assert all(1 <= recipe.timeout_seconds <= _constants.RUNNER_AGENT_MAX_TIMEOUT_SECONDS
-               for recipe in recipes.values())
+        recipe_ids = _recipes.allowed_recipes()
+        recipes = [_recipes.runner_recipe_definition(recipe_id) for recipe_id in recipe_ids]
+    assert set(recipe_ids) == set(_project_recipes.recipe_ids(sm.PROJECT_ROOT))
+    assert all(1 <= recipe['timeout_seconds'] <= 21600 for recipe in recipes)
 
 
 def test_direct_syncmate_script_bootstraps_repo_import_path(tmp_path):

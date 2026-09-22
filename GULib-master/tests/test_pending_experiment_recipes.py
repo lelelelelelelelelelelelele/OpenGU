@@ -5,7 +5,7 @@ import pytest
 import yaml
 
 from experiments.modular_run import execute
-from scripts.syncmate.opengu_recipes import recipe_definitions
+from scripts.syncmate.opengu_recipes import resolve_recipe
 from syncmate_core.identity import sha256_recipe_config
 
 
@@ -14,7 +14,7 @@ from syncmate_core.identity import sha256_recipe_config
     'opengu-aagu056-rr1024-v1', 'opengu-aagu032-recovery-gate',
 ])
 def test_pending_registration_matches_ordinary_entry(recipe_id):
-    recipe = recipe_definitions()[recipe_id]
+    recipe = resolve_recipe(Path(__file__).resolve().parents[1], recipe_id)
     path = Path(__file__).resolve().parents[1] / recipe['config_path']
     plan = execute(path, dry_run=True)
     assert sha256_recipe_config(path) == recipe['config_sha256']

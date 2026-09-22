@@ -141,18 +141,29 @@ def assemble(spec, project_root=ROOT):
     return definition
 
 
-def recipe_definitions(project_root=ROOT):
-    root = Path(project_root)
-    result = {}
-    for path in sorted((root / RECIPE_DIRECTORY).glob('*.yaml')):
-        path.resolve().relative_to(root.resolve())
-        spec = load_declaration(path)
-        if spec['id'] in result or path.stem != spec['id']:
-            raise ValueError('duplicate recipe id or filename/id mismatch: ' + str(path))
-        result[spec['id']] = assemble(spec, root)
-    if not result:
-        raise ValueError('no recipe declarations found')
-    return result
+def recipe_ids(project_root=ROOT):
+    """List reviewed recipe identifiers without loading YAML or configs."""
+    root = Path(project_root).resolve()
+    directory = (root / RECIPE_DIRECTORY).resolve()
+    directory.relative_to(root)
+    return tuple(path.stem for path in sorted(directory.glob('*.yaml')) if path.is_file())
+
+
+def resolve_recipe(project_root, recipe_id):
+    """Load and assemble exactly one recipe declaration by its reviewed ID."""
+    from syncmate_core.contracts import JOB_ID_RE
+
+    if not isinstance(recipe_id, str) or not JOB_ID_RE.fullmatch(recipe_id):
+        raise ValueError('invalid recipe identifier')
+    root = Path(project_root).resolve()
+    declaration_path = root / RECIPE_DIRECTORY / (recipe_id + '.yaml')
+    declaration_path.resolve().relative_to(root)
+    if not declaration_path.is_file():
+        raise ValueError('recipe is not allowlisted: ' + recipe_id)
+    spec = load_declaration(declaration_path)
+    if spec['id'] != recipe_id or declaration_path.stem != spec['id']:
+        raise ValueError('recipe filename/id mismatch: ' + str(declaration_path))
+    return assemble(spec, root)
 
 
 def generate(config_path, *, recipe_id, run_id, expected_datasets, timeout_seconds=21600, project_root=ROOT):
