@@ -22,8 +22,7 @@ the production target is `(H + 20.48 I) delta = v`; the runner reports both
 this shifted residual and the original `(H delta - v)` residual. The candidate
 is a calibration probe, not a promise of convergence or a Table parameter.
 
-Run only from the SSH active checkout with the registered AAGU-065 runner;
-local use is limited to parser dry-runs and review.
+These historical YAMLs are retained for provenance and reproduction only; they are not an active batch entry. New runs use the generic `experiments/run.py` path described below.
 
 The H16 rework generation `calibration_h16_r1.yaml` is derived from the first
 production HVP/Ritz measurement. It keeps the previous shifted target
@@ -89,3 +88,4 @@ It does not select parameters or certify scientific acceptance. Content analysis
 owned by the Observer/consumer; runtime collection only checks declarations,
 identity and bytes. The older dedicated calibration entry above describes historical
 runs; it is not the launcher for the new Observer integration.
+
