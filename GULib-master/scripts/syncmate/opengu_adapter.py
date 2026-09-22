@@ -16,21 +16,7 @@ def _modular_preflight(definition, config_path):
     return {'ready': not errors, 'errors': errors}
 
 
-def _aagu066_preflight(definition, config_path):
-    from experiments.aagu066_validation import load_plan
-    config, _, fingerprint = load_plan(config_path)
-    errors = []
-    if fingerprint != definition['configuration_fingerprint']:
-        errors.append('AAGU-066 configuration or diagnostic binding changed')
-    if len(config['random_selector_seeds']) * 3 != definition['logical_cells']:
-        errors.append('AAGU-066 matrix differs from registration')
-    if config['experiment_id'] != definition['run_identity']['experiment_id']:
-        errors.append('AAGU-066 experiment identity mismatch')
-    return {'ready': not errors, 'errors': errors}
-
-
-_PREFLIGHT_HANDLERS = {'modular-project-v1': _modular_preflight,
-                       'aagu066-validation-v1': _aagu066_preflight}
+_PREFLIGHT_HANDLERS = {'modular-project-v1': _modular_preflight}
 
 
 class OpenGUProjectExtension:

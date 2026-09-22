@@ -11,17 +11,17 @@ Both configs declare one independent Random request (seed `104245`) and 10%
 of the persisted `train_mask`. Every GU instance names the explicit pure
 `state_dict` PT produced by the 3000-epoch seed-42 checkpoint run. Because the
 PT lane is external, the ordinary config parser intentionally reports the
-training optimizer fields as not applicable; the calibration runner records
+training optimizer fields as not applicable; the generic runner records
 the fixed training contract and verifies the loaded PT/file hashes at runtime.
 
 The author comparison is retained from `experiments/configs/aagu059/SOURCES.md`:
 GIF uses scale `1000`, IDEA uses scale `500`, both with zero damping and
 100/200/400 iterations. The shifted candidate is `scale=4096,damp=0.005`, so
-the production target is `(H + 20.48 I) delta = v`; the runner reports both
+the production target is `(H + 20.48 I) delta = v`; the Observer records both
 this shifted residual and the original `(H delta - v)` residual. The candidate
 is a calibration probe, not a promise of convergence or a Table parameter.
 
-Run only from the SSH active checkout with the registered AAGU-065 runner;
+New calibration runs use the shared experiments/run.py entry and Observer configuration;
 local use is limited to parser dry-runs and review.
 
 The H16 rework generation `calibration_h16_r1.yaml` is derived from the first
@@ -40,13 +40,18 @@ production parameters.
 
 The H16 r3 generation fixes the preferred r2 pair
 `(scale=9000,damp=0.22755555555555556)` (`mu=2048`) and varies only the
-Random selector seed. Because the calibration runner accepts one independent
-Random request per invocation, `calibration_h16_r3_seed104246.yaml` and
-`calibration_h16_r3_seed104247.yaml` are two separate SSH runs; the existing
-r2 seed `104245` is the anchor. Both runs test GIF and IDEA at 100/200/400
-iterations and do not retune parameters by seed or by F1.
+Random selector seed. The historical r3 YAMLs record two separate seed-specific runs (104246 and
+104247) anchored to the r2 seed 104245. They remain unchanged for provenance.
+Current candidate calibration starts from 104245 and records the full Observer
+trace; later verification uses selected parameter files across independent seeds.
 
 The accepted canonical H16/Cora fixed-PT method files are now promoted to
 `../unlearning/gif_cora_gcn_h16_fixed_pt.yaml` and
 `../unlearning/idea_cora_gcn_h16_fixed_pt.yaml`. The AAGU-065 files remain
 calibration evidence and are not deleted.
+
+The active batch calibration uses the ordinary experiments/run.py Observer
+path. The new observer_candidates_h16.yaml and observer_candidates_h64.yaml
+cover the Cora H16 and H64 candidate matrices. The old dedicated
+experiments/aagu065_calibration.py implementation is retired; existing YAMLs,
+reports, and run evidence remain unchanged.

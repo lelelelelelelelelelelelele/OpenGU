@@ -70,8 +70,6 @@ def _peer_evidence(
 
 
 def acceptance_payload(profile, definition, context):
-    if profile == 'aagu066-validation-v1':
-        return _aagu066_acceptance(definition, context)
     errors, cells = [], []
     if profile not in REVIEWED_PROFILES:
         errors.append('OpenGU acceptance profile is not reviewed')
@@ -150,37 +148,4 @@ def acceptance_payload(profile, definition, context):
     return {'owner': 'opengu', 'profile': profile, 'passed': passed,
             'status': 'accepted' if passed else 'rejected', 'errors': errors,
             'accepted_cells': len(cells), 'cells': cells,
-            'scientific_acceptance': 'not_evaluated', 'generated_at': _now_iso()}
-
-
-def _aagu066_acceptance(definition, context):
-    from experiments.aagu066_validation import verify_run
-    _, errors, paths, entries, _ = _peer_evidence(definition, context, 'AAGU-066')
-    root = Path(context['project_root']).resolve()
-    run = {}
-    try:
-        if errors:
-            raise ValueError('; '.join(errors))
-        for remote, entry in entries.items():
-            local = _safe_project_path(root, entry.get('local_path'))
-            if local is None or _sha256(local) != entry['sha256']:
-                raise ValueError('collected checksum mismatch: ' + remote)
-        remote_run = next(p for p in paths if p.endswith('/run.json'))
-        run_path = root / entries[remote_run]['local_path']
-        run, _ = verify_run(run_path, root / definition['config_path'], context['expected_git_sha'])
-        if (run['run_id'] != definition['run_identity']['run_id']
-                or run['config_path'] != definition['config_path']
-                or run['configuration_fingerprint'] != definition['configuration_fingerprint']):
-            raise ValueError('collected run differs from submitted recipe')
-        for name, sha in run['files'].items():
-            remote = str(PurePosixPath(remote_run).parent / name)
-            if (remote not in entries or entries[remote]['sha256'] != sha
-                    or (root / entries[remote]['local_path']).resolve() != (run_path.parent / name).resolve()):
-                raise ValueError('result is outside verified collected set')
-    except (ValueError, KeyError, TypeError, OSError, StopIteration) as exc:
-        errors.append(str(exc))
-    return {'owner': 'opengu', 'profile': 'aagu066-validation-v1', 'passed': not errors,
-            'status': 'accepted' if not errors else 'rejected', 'errors': errors,
-            'accepted_cells': len(run.get('requests', [])) * 3 if not errors else 0,
-            'numerical_passed': run.get('numerical_passed') if not errors else None,
             'scientific_acceptance': 'not_evaluated', 'generated_at': _now_iso()}

@@ -452,31 +452,4 @@ def recipe_definitions():
             'execution_validator': 'exact-artifacts-json-v1',
             'success_predicate': 'json.passed == true and all reviewed diagnostic artifacts exist',
         }
-    from experiments.aagu066_validation import artifact_names
-    for name, experiment_id, run_id, config_sha, fingerprint in (
-        ('gate', 'aagu066-cora-h16-gate', 'aagu066-h16-gate-v1',
-         'a707041ab8dda1f1156bce68751c20032efaffba800f19ef5ecafdfef14f3cd7',
-         'afc9f8ac5a381b5b2b1d4c67b1b0844e870687b1e77a79152f2749566d12470b'),
-        ('table', 'aagu066-cora-h16', 'aagu066-h16-v1',
-         '24940986945b98f50ad6873de734f4ff15d4737469818945bf3af84e90c5d8ec',
-         '397a4bff3971724a67c228b1a2f979b27a68ba3aa6dba66006934011488f8a2f'),
-    ):
-        config_path = f'experiments/configs/aagu066/{name}.yaml'
-        names = artifact_names(load_experiment(root / config_path))
-        base = f'results/runs/{experiment_id}/{run_id}'
-        recipe_id = 'opengu-' + run_id
-        definitions[recipe_id] = {
-            'id': recipe_id, 'config_path': config_path, 'config_sha256': config_sha,
-            'configuration_fingerprint': fingerprint, 'logical_cells': 3 if name == 'gate' else 9,
-            'run_identity': {'experiment_id': experiment_id, 'run_id': run_id},
-            'argv': ('{python}', 'experiments/aagu066_validation.py', config_path, '--run-id', run_id),
-            'git_binding_policy': 'job-exact-main-v1', 'requires_job_expected_git_sha': True,
-            'timeout_seconds': 21600,
-            'expected_artifact_paths': tuple(sorted(base + '/' + n for n in names)),
-            'collector_result_roots': (base,),
-            'collector_artifact_names': ('run.json', 'selection.json', 'reference.json', 'gif.json', 'idea.json', 'retrain.json'),
-            'preflight_profile': 'aagu066-validation-v1', 'collector_profile': 'aagu066-validation-v1',
-            'collector_acceptance': True, 'execution_validator': 'exact-artifacts-json-v1',
-            'success_predicate': 'json.passed == true and all reviewed artifacts exist',
-        }
     return definitions

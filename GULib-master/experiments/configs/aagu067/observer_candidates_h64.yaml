@@ -1,0 +1,37 @@
+# Stage 1: one Random request, candidate stability measured by the shared Observer path.
+kind: experiment
+schema_version: 1
+experiment_id: aagu067-citeseer-h64-observer-candidates-v1
+stage: unlearning
+dataset_refs:
+- ../datasets/citeseer.yaml
+selector_refs:
+- ../selectors/random.yaml
+unlearning_refs:
+- ./gif_h64_author_100.yaml
+- ./gif_h64_author_200.yaml
+- ./gif_h64_author_400.yaml
+- ./gif_h64_shifted_100.yaml
+- ./gif_h64_shifted_200.yaml
+- ./gif_h64_shifted_400.yaml
+- ./idea_h64_author_100.yaml
+- ./idea_h64_author_200.yaml
+- ./idea_h64_author_400.yaml
+- ./idea_h64_shifted_100.yaml
+- ./idea_h64_shifted_200.yaml
+- ./idea_h64_shifted_400.yaml
+matrix: cartesian_product
+random_selector_seeds: [104245]
+budget_ratios: [0.1]
+return_scores: false
+execution:
+  gu_cache:
+    GIF: disabled
+    IDEA: disabled
+observers:
+- name: linear_solver_trace
+  methods: [GIF, IDEA]
+- name: same_graph_change
+  methods: [GIF, IDEA]
+- name: hessian_calibration
+  methods: [GIF, IDEA]
