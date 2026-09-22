@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu070-065-h16-gate-v1
+runner: experiment
+config_path: experiments/configs/aagu065/observer_h16_gate.yaml
+config_sha256: 01e52b41e724fe84014c55fdbebfb09648254e0df9cde25cb3f53cda7bb761bb
+configuration_fingerprint: 569d214f4d22f70a2d7ce8c99e8f279689de8ddfef93660d84a31bbfdbc1043f
+run_identity:
+  experiment_id: aagu065-observer-h16-gate
+  run_id: aagu070-065-h16-gate-v1
+timeout_seconds: 3600
+logical_cells: 2
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
