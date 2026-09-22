@@ -1,0 +1,626 @@
+{
+  "analysis_scope": "current 3000-epoch parameter run outputs only; no prior-parameter results are read",
+  "training_default_source": "experiments/modular_config.py:73-75",
+  "provenance": {
+    "AAGU-032": {
+      "manifest": "results/runs/gpu4090/aagu032-extended-v2-multi-gcn-retrain/aagu032-recovery-full-20260920/run.json",
+      "manifest_sha256": "8391e397c1c12075e66249844fe93ca70423a0fede0785faae23185e0541e1ed",
+      "run_id": "aagu032-recovery-full-20260920",
+      "commit": "ee4ea59509523a650fe67bacf9bc961dfe9db78b",
+      "config_path": "experiments/configs/aagu032_extend_v2/experiment.yaml",
+      "status": "completed",
+      "cells": 360,
+      "declared_files_verified": 720,
+      "cache": {
+        "method": {
+          "hit": 360
+        },
+        "selection": {
+          "hit": 360
+        },
+        "score": {
+          "hit": 360
+        },
+        "method_producer_called": {
+          "false": 360
+        }
+      }
+    },
+    "AAGU-053": {
+      "manifest": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json",
+      "manifest_sha256": "dfb6f7c88021291847765a901d61efa698df889a8157fedc2f9639d50a852e7e",
+      "run_id": "aagu053-newtraining-full-20260920",
+      "commit": "38ca4e76e2fd45d30d88dc47cf7aad950193bdc7",
+      "config_path": "experiments/configs/im_group_discussion/Experiment.yaml",
+      "status": "completed",
+      "cells": 96,
+      "declared_files_verified": 192,
+      "cache": {
+        "method": {
+          "hit": 72,
+          "miss": 24
+        },
+        "selection": {
+          "hit": 96
+        },
+        "score": {
+          "hit": 24,
+          "not_applicable": 72
+        },
+        "method_producer_called": {
+          "false": 72,
+          "true": 24
+        }
+      }
+    }
+  },
+  "AAGU-032": {
+    "per_dataset": {
+      "Cora": {
+        "groups": 40,
+        "cells": 120,
+        "equal_group_mean_test_accuracy_after_percent": 89.48185731857319
+      },
+      "CiteSeer": {
+        "groups": 40,
+        "cells": 120,
+        "equal_group_mean_test_accuracy_after_percent": 75.03753753753753
+      },
+      "PubMed": {
+        "groups": 40,
+        "cells": 120,
+        "equal_group_mean_test_accuracy_after_percent": 87.75608519269777
+      }
+    },
+    "selector_names": [
+      "degree",
+      "gt_full",
+      "gt_full_all_trainable",
+      "gt_full_all_trainable_hops3",
+      "gt_full_sgc_all_trainable_hops3",
+      "gt_simple",
+      "p_graph",
+      "p_point",
+      "r_point",
+      "random"
+    ],
+    "budget_ratios": [
+      0.01,
+      0.05,
+      0.1,
+      0.15
+    ],
+    "comparisons_vs_degree": {
+      "Cora": {
+        "lower": 26,
+        "equal": 4,
+        "higher": 2,
+        "mean_difference_pp": -0.5131457564575652
+      },
+      "CiteSeer": {
+        "lower": 13,
+        "equal": 1,
+        "higher": 18,
+        "mean_difference_pp": -0.0672547547547555
+      },
+      "PubMed": {
+        "lower": 25,
+        "equal": 1,
+        "higher": 6,
+        "mean_difference_pp": -0.9642811866125777
+      }
+    },
+    "D-full_variants_vs_degree": {
+      "Cora": {
+        "n_selector_budget_means": 12,
+        "lower": 8,
+        "equal": 2,
+        "higher": 2,
+        "mean_difference_pp": -0.27675276752767525,
+        "by_variant": {
+          "gt_full": {
+            "mean_difference_pp_across_four_budgets": -0.4612546125461257,
+            "lower/equal/higher_budgets": {
+              "lower": 3,
+              "equal": 0,
+              "higher": 1
+            }
+          },
+          "gt_full_all_trainable": {
+            "mean_difference_pp_across_four_budgets": -0.18450184501845046,
+            "lower/equal/higher_budgets": {
+              "lower": 3,
+              "equal": 0,
+              "higher": 1
+            }
+          },
+          "gt_full_all_trainable_hops3": {
+            "mean_difference_pp_across_four_budgets": -0.18450184501844955,
+            "lower/equal/higher_budgets": {
+              "lower": 2,
+              "equal": 2,
+              "higher": 0
+            }
+          }
+        }
+      },
+      "CiteSeer": {
+        "n_selector_budget_means": 12,
+        "lower": 4,
+        "equal": 0,
+        "higher": 8,
+        "mean_difference_pp": 0.1876876876876867,
+        "by_variant": {
+          "gt_full": {
+            "mean_difference_pp_across_four_budgets": -0.05005005005004893,
+            "lower/equal/higher_budgets": {
+              "lower": 2,
+              "equal": 0,
+              "higher": 2
+            }
+          },
+          "gt_full_all_trainable": {
+            "mean_difference_pp_across_four_budgets": 0.25025025025024833,
+            "lower/equal/higher_budgets": {
+              "lower": 1,
+              "equal": 0,
+              "higher": 3
+            }
+          },
+          "gt_full_all_trainable_hops3": {
+            "mean_difference_pp_across_four_budgets": 0.36286286286286074,
+            "lower/equal/higher_budgets": {
+              "lower": 1,
+              "equal": 0,
+              "higher": 3
+            }
+          }
+        }
+      },
+      "PubMed": {
+        "n_selector_budget_means": 12,
+        "lower": 10,
+        "equal": 0,
+        "higher": 2,
+        "mean_difference_pp": -0.9219348659003836,
+        "by_variant": {
+          "gt_full": {
+            "mean_difference_pp_across_four_budgets": -1.4283299526707234,
+            "lower/equal/higher_budgets": {
+              "lower": 4,
+              "equal": 0,
+              "higher": 0
+            }
+          },
+          "gt_full_all_trainable": {
+            "mean_difference_pp_across_four_budgets": -0.7099391480730235,
+            "lower/equal/higher_budgets": {
+              "lower": 3,
+              "equal": 0,
+              "higher": 1
+            }
+          },
+          "gt_full_all_trainable_hops3": {
+            "mean_difference_pp_across_four_budgets": -0.6275354969574043,
+            "lower/equal/higher_budgets": {
+              "lower": 3,
+              "equal": 0,
+              "higher": 1
+            }
+          }
+        }
+      }
+    },
+    "D-full_variants_vs_random": {
+      "Cora": {
+        "n_selector_budget_means": 12,
+        "lower": 7,
+        "equal": 2,
+        "higher": 3,
+        "mean_difference_pp": -0.06150061500614922
+      },
+      "CiteSeer": {
+        "n_selector_budget_means": 12,
+        "lower": 1,
+        "equal": 0,
+        "higher": 11,
+        "mean_difference_pp": 0.5255255255255239
+      },
+      "PubMed": {
+        "n_selector_budget_means": 12,
+        "lower": 10,
+        "equal": 0,
+        "higher": 2,
+        "mean_difference_pp": -0.9494027496055876
+      }
+    },
+    "contrasts_against_two_baselines": 240
+  },
+  "AAGU-053": {
+    "strict_pairs": 48,
+    "per_dataset_equal_request_weight": [
+      {
+        "dataset": "Cora",
+        "n_selection_requests_equal_weight": 16,
+        "P0_test_accuracy_percent_mean": 90.22140221402213,
+        "GNNDelete_test_accuracy_percent_mean": 70.64114391143912,
+        "Retrain_test_accuracy_percent_mean": 89.66789667896678,
+        "P0_minus_GU_pp_mean": 19.580258302583026,
+        "P0_minus_Retrain_pp_mean": 0.5535055350553499,
+        "Retrain_minus_GU_pp_mean": 19.026752767527675,
+        "update_detection_auc_mean": 0.5867276951933037,
+        "update_detection_auc_n": 16
+      },
+      {
+        "dataset": "CiteSeer",
+        "n_selection_requests_equal_weight": 16,
+        "P0_test_accuracy_percent_mean": 74.47447447447448,
+        "GNNDelete_test_accuracy_percent_mean": 74.6433933933934,
+        "Retrain_test_accuracy_percent_mean": 74.81231231231232,
+        "P0_minus_GU_pp_mean": -0.16891891891892136,
+        "P0_minus_Retrain_pp_mean": -0.3378378378378406,
+        "Retrain_minus_GU_pp_mean": 0.16891891891891928,
+        "update_detection_auc_mean": 0.7305749990710464,
+        "update_detection_auc_n": 16
+      },
+      {
+        "dataset": "PubMed",
+        "n_selection_requests_equal_weight": 16,
+        "P0_test_accuracy_percent_mean": 88.56490872210954,
+        "GNNDelete_test_accuracy_percent_mean": 85.80121703853955,
+        "Retrain_test_accuracy_percent_mean": 88.47775101419879,
+        "P0_minus_GU_pp_mean": 2.7636916835699847,
+        "P0_minus_Retrain_pp_mean": 0.08715770791075245,
+        "Retrain_minus_GU_pp_mean": 2.676533975659232,
+        "update_detection_auc_mean": 0.5091069037492123,
+        "update_detection_auc_n": 16
+      }
+    ],
+    "selector_summaries": [
+      {
+        "dataset": "CiteSeer",
+        "selector": "degree",
+        "n_selection_requests": 1,
+        "P0_test_accuracy_percent_mean": 74.47447447447448,
+        "P0_test_accuracy_percent_sample_sd": null,
+        "GNNDelete_test_accuracy_percent_mean": 73.12312312312312,
+        "GNNDelete_test_accuracy_percent_sample_sd": null,
+        "Retrain_test_accuracy_percent_mean": 74.62462462462463,
+        "Retrain_test_accuracy_percent_sample_sd": null,
+        "P0_minus_GU_pp_mean": 1.3513513513513487,
+        "P0_minus_GU_pp_sample_sd": null,
+        "P0_minus_Retrain_pp_mean": -0.15015015015015232,
+        "P0_minus_Retrain_pp_sample_sd": null,
+        "Retrain_minus_GU_pp_mean": 1.501501501501501,
+        "Retrain_minus_GU_pp_sample_sd": null,
+        "update_detection_auc_mean": 0.7649004161712246,
+        "update_detection_auc_n": 1
+      },
+      {
+        "dataset": "CiteSeer",
+        "selector": "im_celf",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 74.47447447447448,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 74.52452452452452,
+        "GNNDelete_test_accuracy_percent_sample_sd": 1.5189180085579124,
+        "Retrain_test_accuracy_percent_mean": 73.92392392392392,
+        "Retrain_test_accuracy_percent_sample_sd": 0.3125624623823095,
+        "P0_minus_GU_pp_mean": -0.050050050050050775,
+        "P0_minus_GU_pp_sample_sd": 1.5189180085579124,
+        "P0_minus_Retrain_pp_mean": 0.5505505505505474,
+        "P0_minus_Retrain_pp_sample_sd": 0.3125624623823067,
+        "Retrain_minus_GU_pp_mean": -0.6006006006005982,
+        "Retrain_minus_GU_pp_sample_sd": 1.826655414503977,
+        "update_detection_auc_mean": 0.7418035325009908,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "CiteSeer",
+        "selector": "random",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 74.47447447447448,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 75.67567567567568,
+        "GNNDelete_test_accuracy_percent_sample_sd": 0.3003003003003002,
+        "Retrain_test_accuracy_percent_mean": 74.72472472472472,
+        "Retrain_test_accuracy_percent_sample_sd": 0.70958192586375,
+        "P0_minus_GU_pp_mean": -1.2012012012012037,
+        "P0_minus_GU_pp_sample_sd": 0.3003003003002991,
+        "P0_minus_Retrain_pp_mean": -0.2502502502502539,
+        "P0_minus_Retrain_pp_sample_sd": 0.7095819258637547,
+        "Retrain_minus_GU_pp_mean": -0.9509509509509498,
+        "Retrain_minus_GU_pp_sample_sd": 0.826962544637548,
+        "update_detection_auc_mean": 0.7732888674197385,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "CiteSeer",
+        "selector": "rr_1024",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 74.47447447447448,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 74.47447447447448,
+        "GNNDelete_test_accuracy_percent_sample_sd": 0.45045045045044674,
+        "Retrain_test_accuracy_percent_mean": 75.77577577577578,
+        "Retrain_test_accuracy_percent_sample_sd": 0.879799591153497,
+        "P0_minus_GU_pp_mean": -3.700743415417189e-15,
+        "P0_minus_GU_pp_sample_sd": 0.4504504504504514,
+        "P0_minus_Retrain_pp_mean": -1.3013013013013053,
+        "P0_minus_Retrain_pp_sample_sd": 0.8797995911535008,
+        "Retrain_minus_GU_pp_mean": 1.3013013013013015,
+        "Retrain_minus_GU_pp_sample_sd": 0.9174325715627271,
+        "update_detection_auc_mean": 0.7199700257629805,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "CiteSeer",
+        "selector": "rr_16384",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 74.47447447447448,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 73.77377377377378,
+        "GNNDelete_test_accuracy_percent_sample_sd": 0.5684592938739064,
+        "Retrain_test_accuracy_percent_mean": 74.77477477477478,
+        "Retrain_test_accuracy_percent_sample_sd": 0.5201353776483072,
+        "P0_minus_GU_pp_mean": 0.700700700700696,
+        "P0_minus_GU_pp_sample_sd": 0.5684592938739031,
+        "P0_minus_Retrain_pp_mean": -0.3003003003003009,
+        "P0_minus_Retrain_pp_sample_sd": 0.5201353776483062,
+        "Retrain_minus_GU_pp_mean": 1.0010010010009969,
+        "Retrain_minus_GU_pp_sample_sd": 0.08668922960805638,
+        "update_detection_auc_mean": 0.6946374603646452,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "CiteSeer",
+        "selector": "rr_4096",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 74.47447447447448,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 75.27527527527528,
+        "GNNDelete_test_accuracy_percent_sample_sd": 0.7557391827097807,
+        "Retrain_test_accuracy_percent_mean": 74.92492492492492,
+        "Retrain_test_accuracy_percent_sample_sd": 0.6880744286720486,
+        "P0_minus_GU_pp_mean": -0.8008008008008013,
+        "P0_minus_GU_pp_sample_sd": 0.7557391827097847,
+        "P0_minus_Retrain_pp_mean": -0.45045045045045323,
+        "P0_minus_Retrain_pp_sample_sd": 0.6880744286720519,
+        "Retrain_minus_GU_pp_mean": -0.350350350350348,
+        "Retrain_minus_GU_pp_sample_sd": 1.4427963268668282,
+        "update_detection_auc_mean": 0.7117333036068173,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "Cora",
+        "selector": "degree",
+        "n_selection_requests": 1,
+        "P0_test_accuracy_percent_mean": 90.22140221402213,
+        "P0_test_accuracy_percent_sample_sd": null,
+        "GNNDelete_test_accuracy_percent_mean": 66.97416974169742,
+        "GNNDelete_test_accuracy_percent_sample_sd": null,
+        "Retrain_test_accuracy_percent_mean": 90.03690036900369,
+        "Retrain_test_accuracy_percent_sample_sd": null,
+        "P0_minus_GU_pp_mean": 23.24723247232472,
+        "P0_minus_GU_pp_sample_sd": null,
+        "P0_minus_Retrain_pp_mean": 0.18450184501844769,
+        "P0_minus_Retrain_pp_sample_sd": null,
+        "Retrain_minus_GU_pp_mean": 23.062730627306273,
+        "Retrain_minus_GU_pp_sample_sd": null,
+        "update_detection_auc_mean": 0.5924806136446348,
+        "update_detection_auc_n": 1
+      },
+      {
+        "dataset": "Cora",
+        "selector": "im_celf",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 90.22140221402213,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 68.51168511685117,
+        "GNNDelete_test_accuracy_percent_sample_sd": 0.7681424352273573,
+        "Retrain_test_accuracy_percent_mean": 89.4218942189422,
+        "Retrain_test_accuracy_percent_sample_sd": 0.38407121761367574,
+        "P0_minus_GU_pp_mean": 21.70971709717097,
+        "P0_minus_GU_pp_sample_sd": 0.7681424352273569,
+        "P0_minus_Retrain_pp_mean": 0.7995079950799474,
+        "P0_minus_Retrain_pp_sample_sd": 0.38407121761367863,
+        "Retrain_minus_GU_pp_mean": 20.910209102091024,
+        "Retrain_minus_GU_pp_sample_sd": 0.4643194609637592,
+        "update_detection_auc_mean": 0.5895644952082342,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "Cora",
+        "selector": "random",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 90.22140221402213,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 75.83025830258302,
+        "GNNDelete_test_accuracy_percent_sample_sd": 1.917399417972927,
+        "Retrain_test_accuracy_percent_mean": 90.15990159901598,
+        "Retrain_test_accuracy_percent_sample_sd": 0.4260887595495366,
+        "P0_minus_GU_pp_mean": 14.391143911439116,
+        "P0_minus_GU_pp_sample_sd": 1.917399417972927,
+        "P0_minus_Retrain_pp_mean": 0.06150061500615293,
+        "P0_minus_Retrain_pp_sample_sd": 0.42608875954953995,
+        "Retrain_minus_GU_pp_mean": 14.329643296432963,
+        "Retrain_minus_GU_pp_sample_sd": 1.7438434045212567,
+        "update_detection_auc_mean": 0.6350279480790945,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "Cora",
+        "selector": "rr_1024",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 90.22140221402213,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 65.25215252152522,
+        "GNNDelete_test_accuracy_percent_sample_sd": 1.8664195455711603,
+        "Retrain_test_accuracy_percent_mean": 89.79089790897909,
+        "Retrain_test_accuracy_percent_sample_sd": 0.9467899334772824,
+        "P0_minus_GU_pp_mean": 24.969249692496923,
+        "P0_minus_GU_pp_sample_sd": 1.866419545571159,
+        "P0_minus_Retrain_pp_mean": 0.4305043050430483,
+        "P0_minus_Retrain_pp_sample_sd": 0.946789933477289,
+        "Retrain_minus_GU_pp_mean": 24.538745387453876,
+        "Retrain_minus_GU_pp_sample_sd": 2.311801491908058,
+        "update_detection_auc_mean": 0.6177411979881117,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "Cora",
+        "selector": "rr_16384",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 90.22140221402213,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 72.44772447724478,
+        "GNNDelete_test_accuracy_percent_sample_sd": 2.040671589549451,
+        "Retrain_test_accuracy_percent_mean": 89.2988929889299,
+        "Retrain_test_accuracy_percent_sample_sd": 0.36900369003689804,
+        "P0_minus_GU_pp_mean": 17.773677736777362,
+        "P0_minus_GU_pp_sample_sd": 2.0406715895494534,
+        "P0_minus_Retrain_pp_mean": 0.9225092250922532,
+        "P0_minus_Retrain_pp_sample_sd": 0.3690036900369009,
+        "Retrain_minus_GU_pp_mean": 16.85116851168511,
+        "Retrain_minus_GU_pp_sample_sd": 2.2165831846174813,
+        "update_detection_auc_mean": 0.5395705607345819,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "Cora",
+        "selector": "rr_4096",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 90.22140221402213,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 72.38622386223862,
+        "GNNDelete_test_accuracy_percent_sample_sd": 5.753184485945563,
+        "Retrain_test_accuracy_percent_mean": 89.54489544895449,
+        "Retrain_test_accuracy_percent_sample_sd": 0.6985127116605486,
+        "P0_minus_GU_pp_mean": 17.835178351783515,
+        "P0_minus_GU_pp_sample_sd": 5.753184485945563,
+        "P0_minus_Retrain_pp_mean": 0.676506765067649,
+        "P0_minus_Retrain_pp_sample_sd": 0.6985127116605535,
+        "Retrain_minus_GU_pp_mean": 17.15867158671587,
+        "Retrain_minus_GU_pp_sample_sd": 5.056158526215765,
+        "update_detection_auc_mean": 0.5498166344727191,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "PubMed",
+        "selector": "degree",
+        "n_selection_requests": 1,
+        "P0_test_accuracy_percent_mean": 88.56490872210954,
+        "P0_test_accuracy_percent_sample_sd": null,
+        "GNNDelete_test_accuracy_percent_mean": 87.2210953346856,
+        "GNNDelete_test_accuracy_percent_sample_sd": null,
+        "Retrain_test_accuracy_percent_mean": 88.71703853955376,
+        "Retrain_test_accuracy_percent_sample_sd": null,
+        "P0_minus_GU_pp_mean": 1.3438133874239422,
+        "P0_minus_GU_pp_sample_sd": null,
+        "P0_minus_Retrain_pp_mean": -0.15212981744421317,
+        "P0_minus_Retrain_pp_sample_sd": null,
+        "Retrain_minus_GU_pp_mean": 1.4959432048681554,
+        "Retrain_minus_GU_pp_sample_sd": null,
+        "update_detection_auc_mean": 0.36642512077294687,
+        "update_detection_auc_n": 1
+      },
+      {
+        "dataset": "PubMed",
+        "selector": "im_celf",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 88.56490872210954,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 86.82386747802569,
+        "GNNDelete_test_accuracy_percent_sample_sd": 0.11982291141614461,
+        "Retrain_test_accuracy_percent_mean": 88.43813387423936,
+        "Retrain_test_accuracy_percent_sample_sd": 0.11619106731632789,
+        "P0_minus_GU_pp_mean": 1.741041244083848,
+        "P0_minus_GU_pp_sample_sd": 0.11982291141614215,
+        "P0_minus_Retrain_pp_mean": 0.12677484787018503,
+        "P0_minus_Retrain_pp_sample_sd": 0.1161910673163261,
+        "Retrain_minus_GU_pp_mean": 1.6142663962136632,
+        "Retrain_minus_GU_pp_sample_sd": 0.22725371297750033,
+        "update_detection_auc_mean": 0.508736259889379,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "PubMed",
+        "selector": "random",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 88.56490872210954,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 86.23225152129817,
+        "GNNDelete_test_accuracy_percent_sample_sd": 0.7058524800748035,
+        "Retrain_test_accuracy_percent_mean": 88.61561866125761,
+        "Retrain_test_accuracy_percent_sample_sd": 0.1774847870182563,
+        "P0_minus_GU_pp_mean": 2.3326572008113646,
+        "P0_minus_GU_pp_sample_sd": 0.7058524800747992,
+        "P0_minus_Retrain_pp_mean": -0.05070993914807106,
+        "P0_minus_Retrain_pp_sample_sd": 0.17748478701825848,
+        "Retrain_minus_GU_pp_mean": 2.383367139959436,
+        "Retrain_minus_GU_pp_sample_sd": 0.5342623606923257,
+        "update_detection_auc_mean": 0.5285621017993418,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "PubMed",
+        "selector": "rr_1024",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 88.56490872210954,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 85.48850574712644,
+        "GNNDelete_test_accuracy_percent_sample_sd": 0.09599236554766487,
+        "Retrain_test_accuracy_percent_mean": 88.35361730899257,
+        "Retrain_test_accuracy_percent_sample_sd": 0.089043726782056,
+        "P0_minus_GU_pp_mean": 3.076402974983102,
+        "P0_minus_GU_pp_sample_sd": 0.09599236554767085,
+        "P0_minus_Retrain_pp_mean": 0.2112914131169726,
+        "P0_minus_Retrain_pp_sample_sd": 0.08904372678205481,
+        "Retrain_minus_GU_pp_mean": 2.8651115618661294,
+        "Retrain_minus_GU_pp_sample_sd": 0.1341658879850244,
+        "update_detection_auc_mean": 0.5268823076384512,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "PubMed",
+        "selector": "rr_16384",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 88.56490872210954,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 84.49121027721434,
+        "GNNDelete_test_accuracy_percent_sample_sd": 0.4819667826025402,
+        "Retrain_test_accuracy_percent_mean": 88.31135902636917,
+        "Retrain_test_accuracy_percent_sample_sd": 0.26349657315956604,
+        "P0_minus_GU_pp_mean": 4.073698444895202,
+        "P0_minus_GU_pp_sample_sd": 0.4819667826025438,
+        "P0_minus_Retrain_pp_mean": 0.2535496957403664,
+        "P0_minus_Retrain_pp_sample_sd": 0.2634965731595681,
+        "Retrain_minus_GU_pp_mean": 3.820148749154835,
+        "Retrain_minus_GU_pp_sample_sd": 0.7248742948746318,
+        "update_detection_auc_mean": 0.5071805643072184,
+        "update_detection_auc_n": 3
+      },
+      {
+        "dataset": "PubMed",
+        "selector": "rr_4096",
+        "n_selection_requests": 3,
+        "P0_test_accuracy_percent_mean": 88.56490872210954,
+        "P0_test_accuracy_percent_sample_sd": 0.0,
+        "GNNDelete_test_accuracy_percent_mean": 85.49695740365112,
+        "GNNDelete_test_accuracy_percent_sample_sd": 1.1051975008977346,
+        "Retrain_test_accuracy_percent_mean": 88.59026369168357,
+        "Retrain_test_accuracy_percent_sample_sd": 0.09141864288701883,
+        "P0_minus_GU_pp_mean": 3.067951318458421,
+        "P0_minus_GU_pp_sample_sd": 1.1051975008977388,
+        "P0_minus_Retrain_pp_mean": -0.02535496957403553,
+        "P0_minus_Retrain_pp_sample_sd": 0.09141864288701804,
+        "Retrain_minus_GU_pp_mean": 3.0933062880324567,
+        "Retrain_minus_GU_pp_sample_sd": 1.1404100478726695,
+        "update_detection_auc_mean": 0.521733879437093,
+        "update_detection_auc_n": 3
+      }
+    ],
+    "seed_interpretation": "selector seed varies for IM/Random; the three requests are not independent training seeds"
+  },
+  "metric_units": "test accuracy levels in percent; differences in percentage points; sample SD is descriptive"
+}
