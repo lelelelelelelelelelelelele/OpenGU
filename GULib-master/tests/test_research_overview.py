@@ -23,6 +23,9 @@ def records():
                  execution=dict(state='completed', note='Complete', evidence=evidence),
                  analysis=dict(state='complete', note='Analysis', evidence=evidence),
                  decision=dict(state='accepted', note='Decision', evidence=evidence, success_confirmed=True),
+                 time_budget=dict(estimate_status='estimated', estimated_seconds=120,
+                                 calculation='cache_miss_serial', scope='Frozen scope',
+                                 basis='3 serial cache-miss jobs at 40 seconds each'),
                  dependencies=[], blocks=[], attempts=[],
                  history=[dict(id='observed', at='2026-09-22', stage='analysis', note='Observed', evidence=evidence)])
         r['published_analysis'] = {k:copy.deepcopy(r[k]) for k in
@@ -110,6 +113,23 @@ def test_yaml_rendering_uses_actual_file_and_escapes_html(tmp_path):
     with pytest.raises(ValueError,match='Invalid YAML'):view.config_preview(config,sources,tmp_path/'index.html')
 
 
+def test_unmaterialized_candidate_config_is_visible_but_not_a_broken_link(tmp_path):
+    rows=records();r=rows[0]
+    r['preparation']['state']='draft';r['configs'][0]['role']='candidate'
+    (tmp_path/'report.md').write_text('evidence',encoding='utf-8')
+    assert model.check_links({},rows,tmp_path,tmp_path)>0
+    sources=view.Sources(tmp_path,tmp_path)
+    text=view.config_preview(r['configs'][0],sources,tmp_path/'index.html',True)
+    assert '候选配置待创建' in text
+    assert 'href=' not in text
+
+    r['preparation']['state']='defined'
+    with pytest.raises(ValueError,match='Missing sources'):
+        model.check_links({},rows,tmp_path,tmp_path)
+    with pytest.raises(ValueError,match='Missing experiment config'):
+        view.config_preview(r['configs'][0],sources,tmp_path/'index.html')
+
+
 def test_catalog_classifies_development_without_registering_experiments():
     rows=list(model.read_records(view.SOURCE / 'analyses').values());catalog=view.catalog(view.ROOT,rows)
     assert any(c['owner']=='AAGU-032' for c in catalog)
@@ -156,6 +176,104 @@ def test_manifest_binding_checks_identity_count_and_file_hash(tmp_path):
 def test_missing_evidence_not_silently_omitted(tmp_path):
     with pytest.raises(ValueError,match='Missing sources'):
         model.check_links({},[{'evidence':[dict(label='result',path='missing.json')]}],tmp_path,tmp_path)
+
+
+def timed_attempt(*, actual_status='recorded', actual_seconds=120, cache_status='observed'):
+    evidence=[dict(label='run manifest',path='results/run.json')]
+    cache=dict(status=cache_status,summary='Per-cell cache counts from the run manifest.',
+               counts={'selection':dict(hit=3,miss=0)},evidence=evidence if cache_status=='observed' else [])
+    return dict(run_id='run-1',scope='Three serial cache-miss jobs',evidence=evidence,
+                runtime=dict(job_started=True,estimate_status='recorded_before_start',
+                             estimated_seconds=120,estimate_scope='Three serial jobs',
+                             estimate_basis='Three cache-miss jobs at 40 seconds each',
+                             actual_status=actual_status,actual_seconds=actual_seconds,
+                             actual_basis='Controller start and finish timestamps',
+                             actual_scope='Three-cell GPU job',queue_seconds=4,return_seconds=6,
+                             evidence=evidence,cache=cache))
+
+
+def test_time_budget_is_required_and_legacy_unknown_is_explicit():
+    rows=records()
+    del rows[0]['time_budget']
+    with pytest.raises(ValueError,match='Missing experiment time budget'):
+        model.validate(rows)
+
+    rows=records();rows[0]['time_budget']=dict(estimate_status='not_recorded',estimated_seconds=None,
+                                              scope='Frozen scope',basis='No historical estimate')
+    with pytest.raises(ValueError,match='Only a pre-existing estimate'):
+        model.validate(rows)
+    rows[0]['time_budget']['legacy_unrecorded']=True
+    model.validate(rows)
+
+    rows[0]['time_budget']=dict(estimate_status='estimated',estimated_seconds=10,
+                                calculation='cache_hit_average',scope='Frozen scope',basis='Unsupported method')
+    with pytest.raises(ValueError,match='cache-miss serial'):
+        model.validate(rows)
+
+
+def test_attempt_requires_actual_runtime_and_cache_evidence():
+    rows=records();rows[0]['attempts']=[timed_attempt()]
+    model.validate(rows)
+    rows[0]['attempts'][0]['runtime']['cache']['counts']={}
+    with pytest.raises(ValueError,match='Observed cache statistics need counts and evidence'):
+        model.validate(rows)
+
+    rows=records();attempt=timed_attempt(actual_status='not_recorded',actual_seconds=None)
+    attempt['runtime']['actual_basis']='No job start/end duration was retained.'
+    rows[0]['attempts']=[attempt]
+    model.validate(rows)
+
+    attempt['runtime']['estimate_status']='not_recorded_before_start'
+    attempt['runtime']['estimated_seconds']=None
+    with pytest.raises(ValueError,match='Only a pre-existing run'):
+        model.validate(rows)
+    attempt['runtime']['legacy_unrecorded']=True
+    model.validate(rows)
+
+
+def test_time_match_waits_for_full_scope_runtime_and_cache():
+    rows=records();r=rows[0];r['attempts']=[timed_attempt()]
+    summary=model.time_summary(r)
+    assert summary['match_status']=='close'
+    assert summary['deviation_seconds']==0
+    assert summary['deviation_ratio']==0
+
+    r['attempts']=[]
+    summary=model.time_summary(r)
+    assert summary['match_status']=='actual_incomplete'
+    assert summary['deviation_seconds'] is None
+    r['attempts']=[timed_attempt()]
+
+    r['execution']['state']='partial'
+    summary=model.time_summary(r)
+    assert summary['match_status']=='scope_incomplete'
+    assert summary['deviation_seconds'] is None
+
+    r['execution']['state']='completed'
+    r['attempts'][0]['runtime']['cache']=dict(status='not_recorded',
+        summary='No retained cache statistics.',counts={},evidence=[])
+    summary=model.time_summary(r)
+    assert summary['match_status']=='cache_incomplete'
+    assert summary['deviation_seconds'] is None
+
+    r['attempts'][0]['runtime']['cache']=dict(status='observed',
+        summary='Observed.',counts={'selection':dict(hit=3,miss=0)},evidence=[dict(label='run',path='results/run.json')])
+    r['attempts'][0]['runtime']['actual_status']='not_recorded'
+    r['attempts'][0]['runtime']['actual_seconds']=None
+    summary=model.time_summary(r)
+    assert summary['match_status']=='actual_incomplete'
+    assert summary['deviation_seconds'] is None
+
+
+def test_time_budget_view_shows_estimate_actual_deviation_and_cache_counts(tmp_path):
+    r=records()[0];r['attempts']=[timed_attempt()]
+    sources=view.Sources(view.ROOT,tmp_path)
+    page=tmp_path/'AAGU-001.html'
+    text=view.time_budget_section(r,sources,page)
+    assert '120.00 秒' in text
+    assert '+0.00 秒（+0.0%）' in text
+    assert '完整' in text
+    assert 'selection：hit 3 / miss 0' in text
 
 
 def write_split(root, rows):

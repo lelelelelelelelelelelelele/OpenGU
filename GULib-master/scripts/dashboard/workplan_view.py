@@ -65,8 +65,90 @@ def blocker_html(record, records, sources, page):
     return '<div class="table-scroll"><table><thead><tr><th>依赖对象</th><th>约束阶段</th><th>原因</th><th>当前记录</th><th>判断</th></tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div>'
 
 
-def config_preview(config, sources, page):
+def seconds_text(value):
+    return '未记录' if value is None else f'{value:,.2f} 秒'
+
+
+def cache_counts_text(counts):
+    if not counts:
+        return '未记录'
+    return '；'.join(
+        str(layer) + '：' + ' / '.join(f'{state} {count}' for state, count in values.items())
+        for layer, values in counts.items())
+
+
+def time_budget_section(record, sources, page):
+    summary = model.time_summary(record)
+    state = summary['match_status']
+    match_names = {
+        'not_applicable': '无需 GPU 作业',
+        'estimate_not_recorded': '估时未记录，暂不计算偏差',
+        'scope_incomplete': '范围未完成，暂不计算偏差',
+        'actual_incomplete': ('暂无结构化已启动运行尝试，暂不计算偏差' if not summary['started_attempts']
+                              else f'有 {summary["missing_actual_attempts"]} 次已启动作业缺少实际耗时，暂不计算偏差'),
+        'cache_incomplete': f'有 {summary["missing_cache_attempts"]} 次已启动作业缺少 Cache 统计，暂不计算偏差',
+        'close': '接近估时（偏差在 ±20% 内）',
+        'over': '超过估时',
+        'under': '低于估时',
+    }
+    if summary['deviation_seconds'] is None:
+        deviation = match_names[state]
+    else:
+        seconds = summary['deviation_seconds']
+        ratio = summary['deviation_ratio']
+        deviation = f'{match_names[state]}：{seconds:+,.2f} 秒（{ratio:+.1%}）'
+    if summary['started_attempts']:
+        actual = (f'{seconds_text(summary["actual_seconds"])}；已启动 {summary["started_attempts"]} 次，'
+                  f'其中 {summary["recorded_actual_attempts"]} 次有实际耗时')
+    else:
+        actual = '暂无已启动 GPU 作业'
+    scope_label = '完整' if summary['scope_complete'] else model.STATES['execution'][record['execution']['state']]
+    rows = [
+        ('预估耗时', seconds_text(summary['estimated_seconds']), summary['estimate_scope']),
+        ('估算依据', 'Cache 未命中、按作业串行累计' if summary['estimate_status'] == 'estimated' else '未记录' if summary['estimate_status'] == 'not_recorded' else '不适用', summary['estimate_basis']),
+        ('累计实际耗时', actual, '只累计已启动 GPU 作业；排队与回传时间单列，不计入实际耗时。'),
+        ('范围完成状态', scope_label, '只有完整范围、完整实际耗时和 Cache 统计齐备时才计算偏差。'),
+        ('估时偏差', deviation, '接近阈值为 ±20%；偏差 = 累计实际耗时 − 预估耗时。'),
+    ]
+    body = '<section class="time-budget"><h2>时间预算与实际耗时</h2><div class="table-scroll"><table><thead><tr><th>指标</th><th>结果</th><th>范围与口径</th></tr></thead><tbody>'
+    body += ''.join(f'<tr><th>{esc(label)}</th><td>{esc(value)}</td><td>{esc(detail)}</td></tr>' for label, value, detail in rows)
+    body += '</tbody></table></div>'
+    if record['attempts']:
+        body += '<h3>运行尝试</h3><div class="table-scroll"><table><thead><tr><th>Run</th><th>GPU 作业耗时</th><th>排队</th><th>回传</th><th>Cache 情况</th><th>证据</th></tr></thead><tbody>'
+        for attempt in record['attempts']:
+            runtime = attempt['runtime']
+            if runtime['actual_status'] == 'recorded':
+                elapsed = seconds_text(runtime['actual_seconds'])
+            elif not runtime['job_started']:
+                elapsed = '未启动'
+            else:
+                elapsed = '未记录'
+            cache = runtime['cache']
+            counts = cache_counts_text(cache['counts'])
+            cache_text = esc(cache['summary'])
+            if cache['status'] == 'observed':
+                cache_text += '<br><small>' + esc(counts) + '</small>'
+            refs = list({ref['path']: ref for ref in runtime.get('evidence', []) + cache.get('evidence', [])}.values())
+            if not refs:
+                refs = attempt['evidence']
+            body += ('<tr><td>' + esc(attempt['run_id']) + '</td><td>' + esc(elapsed)
+                     + '<br><small>' + esc(runtime['actual_basis']) + '</small></td><td>'
+                     + esc(seconds_text(runtime.get('queue_seconds'))) + '</td><td>'
+                     + esc(seconds_text(runtime.get('return_seconds'))) + '</td><td>'
+                     + cache_text + '</td><td>' + references(refs, sources, page) + '</td></tr>')
+        body += '</tbody></table></div>'
+    return body + '</section>'
+
+
+def config_preview(config, sources, page, allow_unmaterialized_candidate=False):
     path = sources.resolve(config['path'])
+    if not path.exists():
+        if config['role'] == 'candidate' and allow_unmaterialized_candidate:
+            return (f'<details class="yaml"><summary>{esc(path.name)} '
+                    '<span>候选配置待创建</span></summary>'
+                    f'<p class="path">{esc(config["path"])}</p>'
+                    '<p class="muted">实验仍在草拟或准备阶段；配置文件创建后会自动出现在此处。</p></details>')
+        raise ValueError('Missing experiment config: ' + config['path'])
     try:
         parsed = yaml.safe_load(path.read_text(encoding='utf-8'))
     except yaml.YAMLError as exc:
@@ -81,9 +163,11 @@ def sheet_page(r, records, sources, page):
     body = '<main class="shell">' + nav('../') + f'<header><p class="eyebrow">{r["id"]} / {FAMILIES[r["family"]]}</p><h1>{esc(r["title"])}</h1><p class="lead">{esc(r["question"])}</p><p class="muted">核对日期 {r["reviewed_at"]} · 实验状态独立维护</p></header>'
     body += '<div class="stages">' + ''.join(f'<div><label>{name}</label>{badge(key, r[key]["state"])}<p>{esc(r[key]["note"])}</p></div>' for key, name in STAGE_NAMES.items()) + '</div>'
     body += '<section class="next"><h2>下一步</h2><p>' + esc(r['next_step']) + '</p></section>'
+    body += time_budget_section(r, sources, page)
     body += '<section><h2>依赖与阻塞</h2>' + blocker_html(r, records, sources, page) + '<p class="muted">Block 状态是生成页面时的只读观察。交付状态与本实验所需能力同时确认后，才解除对应依赖；不会自动启动。</p></section>'
     body += '<section><h2>实验定义与 YAML</h2><p>' + esc(r['scope']) + '</p>'
-    body += ''.join(config_preview(c, sources, page) for c in r['configs']) if r['configs'] else '<p class="muted">没有主线执行 YAML 绑定。分析项直接消费结果；待准备项先完成定义或软件交付。</p>'
+    body += ''.join(config_preview(c, sources, page, r['preparation']['state'] in {'draft', 'preparing'})
+                    for c in r['configs']) if r['configs'] else '<p class="muted">没有主线执行 YAML 绑定。分析项直接消费结果；待准备项先完成定义或软件交付。</p>'
     body += '</section><section><h2>运行尝试</h2>'
     if not r['attempts']:
         body += '<p class="muted">尚未在此逐次绑定 run_id。已有交付按下方来源报告阅读，不编造运行身份或重复计数。</p>'
