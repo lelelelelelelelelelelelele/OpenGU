@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu065-cora-h16-theory-candidates-v1
+runner: experiment
+config_path: experiments/configs/aagu065/observer_candidates_h16.yaml
+config_sha256: 91ca3b55647f725d1142e438a4c97dfe92b87d4ae143587d8fcdcb05a7638923
+configuration_fingerprint: 258f61693d7a966ae85b37bc6ab81e8b99263f0755a7c49f6dc29bdd4875f771
+run_identity:
+  experiment_id: aagu065-cora-h16-theory-candidates-v1
+  run_id: aagu065-cora-h16-theory-candidates-104245-v1
+timeout_seconds: 180
+logical_cells: 12
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
