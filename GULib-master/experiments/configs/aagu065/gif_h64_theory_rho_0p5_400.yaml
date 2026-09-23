@@ -1,0 +1,24 @@
+# Generated from AAGU-062 theory analysis.
+# Theory JSON SHA-256: 1956015415503f85c8ef3645cbfca07c93ac73ab51b2edd77489836b2a5aa9be
+# Theory YAML SHA-256: 5bf30a259f67e3f9ec074f457c72b5f60f3c8d1848b898ff44ef268616cc5fb9
+# Candidate target_rho_0p5 for Cora H64; Observer validation required.
+kind: unlearning
+schema_version: 1
+method: GIF
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  seed: 42
+  epochs: 3000
+  optimizer: Adam
+  lr: 0.05
+  weight_decay: 0.0001
+  scheduler: none
+checkpoint: ../../../results/runs/aagu063-paired-pt/aagu063-paired-pt-v2/3-new-h64-seed42.pt
+parameters:
+  iteration: 400
+  scale: 15665
+  damp: 0.5005948603384813
+  GIF_method: GIF

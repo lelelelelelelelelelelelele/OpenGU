@@ -1,0 +1,25 @@
+# Generated from AAGU-062 theory analysis.
+# Theory JSON SHA-256: bb8d3308b54aecb8a0c13585dd99d466527d689d9c8efd81c8a4495aab878ba2
+# Theory YAML SHA-256: d8bac47ae2da8a32a3377c249c63ce9dc983cba94c7be3e7e5681aedd4a2f611
+# Candidate target_rho_0p5 for Cora H16; Observer validation required.
+kind: unlearning
+schema_version: 1
+method: IDEA
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 16
+training:
+  seed: 42
+  epochs: 3000
+  optimizer: Adam
+  lr: 0.05
+  weight_decay: 0.0001
+  scheduler: none
+checkpoint: ../../../results/runs/aagu063-paired-pt/aagu063-paired-pt-v2/2-new-h16-seed42.pt
+parameters:
+  iteration: 200
+  scale: 13922
+  damp: 0.500191534735509
+  gaussian_mean: 0.0
+  gaussian_std: 0.0

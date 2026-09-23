@@ -1,34 +1,32 @@
-# Stage 1: one Random request, candidate stability measured by the shared Observer path.
+# Generated only after the matching checkpoint theory calculation.
+# Theory JSON SHA-256: bb8d3308b54aecb8a0c13585dd99d466527d689d9c8efd81c8a4495aab878ba2
+# Case: Cora H16; proposed parameters are not stability decisions.
 kind: experiment
 schema_version: 1
-experiment_id: aagu065-cora-h16-observer-candidates-v1
+experiment_id: aagu065-cora-h16-theory-candidates-v1
 stage: unlearning
 dataset_refs:
 - ../datasets/cora.yaml
 selector_refs:
 - ../selectors/random.yaml
 unlearning_refs:
-- ./gif_h16_author_100.yaml
-- ./gif_h16_author_200.yaml
-- ./gif_h16_author_400.yaml
-- ./gif_h16_shifted_100.yaml
-- ./gif_h16_shifted_200.yaml
-- ./gif_h16_shifted_400.yaml
-- ./idea_h16_author_100.yaml
-- ./idea_h16_author_200.yaml
-- ./idea_h16_author_400.yaml
-- ./idea_h16_shifted_100.yaml
-- ./idea_h16_shifted_200.yaml
-- ./idea_h16_shifted_400.yaml
-- ./gif_h16_r2_s9000_100.yaml
-- ./gif_h16_r2_s9000_200.yaml
-- ./gif_h16_r2_s9000_400.yaml
-- ./idea_h16_r2_s9000_100.yaml
-- ./idea_h16_r2_s9000_200.yaml
-- ./idea_h16_r2_s9000_400.yaml
+- ./gif_h16_theory_rho_0p8_100.yaml
+- ./gif_h16_theory_rho_0p8_200.yaml
+- ./gif_h16_theory_rho_0p8_400.yaml
+- ./gif_h16_theory_rho_0p5_100.yaml
+- ./gif_h16_theory_rho_0p5_200.yaml
+- ./gif_h16_theory_rho_0p5_400.yaml
+- ./idea_h16_theory_rho_0p8_100.yaml
+- ./idea_h16_theory_rho_0p8_200.yaml
+- ./idea_h16_theory_rho_0p8_400.yaml
+- ./idea_h16_theory_rho_0p5_100.yaml
+- ./idea_h16_theory_rho_0p5_200.yaml
+- ./idea_h16_theory_rho_0p5_400.yaml
 matrix: cartesian_product
-random_selector_seeds: [104245]
-budget_ratios: [0.1]
+random_selector_seeds:
+- 104245
+budget_ratios:
+- 0.1
 return_scores: false
 execution:
   gu_cache:
@@ -36,8 +34,14 @@ execution:
     IDEA: disabled
 observers:
 - name: linear_solver_trace
-  methods: [GIF, IDEA]
+  methods:
+  - GIF
+  - IDEA
 - name: same_graph_change
-  methods: [GIF, IDEA]
+  methods:
+  - GIF
+  - IDEA
 - name: hessian_calibration
-  methods: [GIF, IDEA]
+  methods:
+  - GIF
+  - IDEA
