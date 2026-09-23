@@ -85,8 +85,10 @@ def time_budget_section(record, sources, page):
         'not_applicable': '无需 GPU 作业',
         'estimate_not_recorded': '估时未记录，暂不计算偏差',
         'scope_incomplete': '范围未完成，暂不计算偏差',
-        'actual_incomplete': ('暂无结构化已启动运行尝试，暂不计算偏差' if not summary['started_attempts']
-                              else f'有 {summary["missing_actual_attempts"]} 次已启动作业缺少实际耗时，暂不计算偏差'),
+        'actual_incomplete': (f'有 {summary["unstructured_attempts"]} 次历史尝试缺少 runtime 元数据，暂不计算偏差'
+                              if summary['unstructured_attempts'] else
+                              '暂无结构化已启动运行尝试，暂不计算偏差' if not summary['started_attempts'] else
+                              f'有 {summary["missing_actual_attempts"]} 次已启动作业缺少实际耗时，暂不计算偏差'),
         'cache_incomplete': f'有 {summary["missing_cache_attempts"]} 次已启动作业缺少 Cache 统计，暂不计算偏差',
         'close': '接近估时（偏差在 ±20% 内）',
         'over': '超过估时',
@@ -98,9 +100,11 @@ def time_budget_section(record, sources, page):
         seconds = summary['deviation_seconds']
         ratio = summary['deviation_ratio']
         deviation = f'{match_names[state]}：{seconds:+,.2f} 秒（{ratio:+.1%}）'
-    if summary['started_attempts']:
+    if summary['started_attempts'] or summary['unstructured_attempts']:
         actual = (f'{seconds_text(summary["actual_seconds"])}；已启动 {summary["started_attempts"]} 次，'
                   f'其中 {summary["recorded_actual_attempts"]} 次有实际耗时')
+        if summary['unstructured_attempts']:
+            actual += f'；{summary["unstructured_attempts"]} 次历史尝试未记录 runtime'
     else:
         actual = '暂无已启动 GPU 作业'
     scope_label = '完整' if summary['scope_complete'] else model.STATES['execution'][record['execution']['state']]
@@ -117,23 +121,41 @@ def time_budget_section(record, sources, page):
     if record['attempts']:
         body += '<h3>运行尝试</h3><div class="table-scroll"><table><thead><tr><th>Run</th><th>GPU 作业耗时</th><th>排队</th><th>回传</th><th>Cache 情况</th><th>证据</th></tr></thead><tbody>'
         for attempt in record['attempts']:
-            runtime = attempt['runtime']
-            if runtime['actual_status'] == 'recorded':
+            runtime = attempt.get('runtime')
+            if not isinstance(runtime, dict):
+                runtime = {}
+                elapsed = '未记录'
+                actual_basis = '历史尝试未保存 runtime 元数据'
+                cache = {'status': 'not_recorded', 'summary': '历史尝试未保存 Cache 状态',
+                         'counts': {}, 'evidence': []}
+            elif runtime['actual_status'] == 'recorded':
                 elapsed = seconds_text(runtime['actual_seconds'])
+                actual_basis = runtime['actual_basis']
+                cache = runtime.get('cache') or {
+                    'status': 'not_recorded', 'summary': '历史尝试未保存 Cache 状态',
+                    'counts': {}, 'evidence': []}
             elif not runtime['job_started']:
                 elapsed = '未启动'
+                actual_basis = runtime['actual_basis']
+                cache = runtime.get('cache') or {
+                    'status': 'not_applicable', 'summary': 'GPU 作业未启动',
+                    'counts': {}, 'evidence': []}
             else:
                 elapsed = '未记录'
-            cache = runtime['cache']
+                actual_basis = runtime['actual_basis']
+                cache = runtime.get('cache') or {
+                    'status': 'not_recorded', 'summary': 'Cache 状态未记录',
+                    'counts': {}, 'evidence': []}
             counts = cache_counts_text(cache['counts'])
             cache_text = esc(cache['summary'])
             if cache['status'] == 'observed':
                 cache_text += '<br><small>' + esc(counts) + '</small>'
-            refs = list({ref['path']: ref for ref in runtime.get('evidence', []) + cache.get('evidence', [])}.values())
+            refs = list({ref['path']: ref for ref in
+                         (runtime.get('evidence') or []) + (cache.get('evidence') or [])}.values())
             if not refs:
                 refs = attempt['evidence']
             body += ('<tr><td>' + esc(attempt['run_id']) + '</td><td>' + esc(elapsed)
-                     + '<br><small>' + esc(runtime['actual_basis']) + '</small></td><td>'
+                     + '<br><small>' + esc(actual_basis) + '</small></td><td>'
                      + esc(seconds_text(runtime.get('queue_seconds'))) + '</td><td>'
                      + esc(seconds_text(runtime.get('return_seconds'))) + '</td><td>'
                      + cache_text + '</td><td>' + references(refs, sources, page) + '</td></tr>')

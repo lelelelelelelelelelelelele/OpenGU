@@ -111,10 +111,13 @@ def validate(records):
         for event in events:
             if not event['at'] or not event['note'] or not event['evidence']:
                 raise ValueError('History needs dated evidence')
+        budget = r.get('time_budget')
+        legacy_runtime = budget is None or (
+            isinstance(budget, dict) and budget.get('legacy_unrecorded') is True)
         for attempt in r['attempts']:
             if not attempt['run_id'] or not attempt['scope'] or not attempt['evidence']:
                 raise ValueError('Run attempt requires identity, scope and evidence')
-            validate_attempt_runtime(attempt)
+            validate_attempt_runtime(attempt, legacy_record=legacy_runtime)
         for c in r['configs']:
             if c['role'] not in {'current', 'reference', 'historical', 'candidate'} or not c['path'].endswith(('.yaml', '.yml')):
                 raise ValueError('Invalid config')
@@ -144,6 +147,8 @@ def _evidence_list(value, label):
 
 def validate_time_budget(record):
     budget = record.get('time_budget')
+    if budget is None:
+        return
     if not isinstance(budget, dict):
         raise ValueError('Missing experiment time budget: ' + record['id'])
     status = budget.get('estimate_status')
@@ -166,9 +171,11 @@ def validate_time_budget(record):
         raise ValueError('Non-applicable estimate requires no GPU run: ' + record['id'])
 
 
-def validate_attempt_runtime(attempt):
+def validate_attempt_runtime(attempt, legacy_record=False):
     runtime = attempt.get('runtime')
     if not isinstance(runtime, dict):
+        if legacy_record and runtime is None:
+            return
         raise ValueError('Run attempt requires runtime and cache status: ' + attempt['run_id'])
     if type(runtime.get('job_started')) is not bool:
         raise ValueError('Run attempt requires job_started: ' + attempt['run_id'])
@@ -182,7 +189,8 @@ def validate_attempt_runtime(attempt):
             raise ValueError('Run estimate needs basis and scope: ' + attempt['run_id'])
     elif estimate_seconds is not None:
         raise ValueError('Unrecorded run estimate must not contain seconds: ' + attempt['run_id'])
-    if estimate_status == 'not_recorded_before_start' and runtime.get('legacy_unrecorded') is not True:
+    if (estimate_status == 'not_recorded_before_start'
+            and runtime.get('legacy_unrecorded') is not True and not legacy_record):
         raise ValueError('Only a pre-existing run may lack a frozen estimate: ' + attempt['run_id'])
     if estimate_status != 'not_recorded_before_start' and runtime.get('legacy_unrecorded') is True:
         raise ValueError('Legacy runtime marker requires an unrecorded estimate: ' + attempt['run_id'])
@@ -194,8 +202,11 @@ def validate_attempt_runtime(attempt):
         _finite_seconds(actual_seconds, 'actual seconds')
         if not runtime.get('actual_basis') or not runtime.get('actual_scope'):
             raise ValueError('Recorded runtime needs basis and scope: ' + attempt['run_id'])
-        _evidence_list(runtime.get('evidence'), 'runtime')
-        if not runtime['evidence']:
+        runtime_evidence = runtime.get('evidence')
+        if legacy_record and not runtime_evidence:
+            runtime_evidence = attempt.get('evidence')
+        _evidence_list(runtime_evidence, 'runtime')
+        if not runtime_evidence:
             raise ValueError('Recorded runtime needs evidence: ' + attempt['run_id'])
         if not runtime['job_started']:
             raise ValueError('Recorded runtime requires a started job: ' + attempt['run_id'])
@@ -215,6 +226,8 @@ def validate_attempt_runtime(attempt):
             _finite_seconds(value, field)
 
     cache = runtime.get('cache')
+    if cache is None and legacy_record:
+        return
     if not isinstance(cache, dict) or cache.get('status') not in CACHE_STATUSES or not cache.get('summary'):
         raise ValueError('Run attempt requires cache observation status: ' + attempt['run_id'])
     counts = cache.get('counts')
@@ -242,21 +255,25 @@ def validate_attempt_runtime(attempt):
 
 def time_summary(record):
     """Summarize the full registered estimate scope and every started attempt."""
-    budget = record['time_budget']
-    attempts = [a['runtime'] for a in record['attempts'] if a['runtime']['job_started']]
-    recorded = [a for a in attempts if a['actual_status'] == 'recorded']
+    budget = record.get('time_budget') or {}
+    estimate_status = budget.get('estimate_status', 'not_recorded')
+    attempts = [a.get('runtime') for a in record['attempts']]
+    missing_runtime = sum(not isinstance(a, dict) for a in attempts)
+    started = [a for a in attempts if isinstance(a, dict) and a.get('job_started') is True]
+    recorded = [a for a in started if a.get('actual_status') == 'recorded']
     actual_seconds = sum(a['actual_seconds'] for a in recorded)
-    missing_actual = len(attempts) - len(recorded)
-    missing_cache = sum(a['cache']['status'] != 'observed' for a in attempts)
+    missing_actual = len(started) - len(recorded) + missing_runtime
+    missing_cache = sum(not isinstance(a.get('cache'), dict)
+                        or a['cache'].get('status') != 'observed' for a in started) + missing_runtime
     scope_complete = record['execution']['state'] == 'completed'
     deviation_seconds = deviation_ratio = None
-    if budget['estimate_status'] == 'not_applicable':
+    if estimate_status == 'not_applicable':
         match_status = 'not_applicable'
-    elif budget['estimate_status'] != 'estimated':
+    elif estimate_status != 'estimated':
         match_status = 'estimate_not_recorded'
     elif not scope_complete:
         match_status = 'scope_incomplete'
-    elif not attempts:
+    elif not started and not missing_runtime:
         match_status = 'actual_incomplete'
     elif missing_actual:
         match_status = 'actual_incomplete'
@@ -272,12 +289,13 @@ def time_summary(record):
         else:
             match_status = 'under'
     return {
-        'estimate_status': budget['estimate_status'],
-        'estimated_seconds': budget['estimated_seconds'],
-        'estimate_scope': budget['scope'],
-        'estimate_basis': budget['basis'],
+        'estimate_status': estimate_status,
+        'estimated_seconds': budget.get('estimated_seconds'),
+        'estimate_scope': budget.get('scope') or '未记录',
+        'estimate_basis': budget.get('basis') or '未记录',
         'scope_complete': scope_complete,
-        'started_attempts': len(attempts),
+        'started_attempts': len(started),
+        'unstructured_attempts': missing_runtime,
         'recorded_actual_attempts': len(recorded),
         'missing_actual_attempts': missing_actual,
         'missing_cache_attempts': missing_cache,

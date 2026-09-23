@@ -206,11 +206,19 @@ def timed_attempt(*, actual_status='recorded', actual_seconds=120, cache_status=
                              evidence=evidence,cache=cache))
 
 
-def test_time_budget_is_required_and_legacy_unknown_is_explicit():
-    rows=records()
-    del rows[0]['time_budget']
-    with pytest.raises(ValueError,match='Missing experiment time budget'):
-        model.validate(rows)
+def test_time_budget_is_optional_for_existing_entries(tmp_path):
+    rows=records();del rows[0]['time_budget']
+    model.validate(rows)
+    summary=model.time_summary(rows[0])
+    assert summary['estimate_status']=='not_recorded'
+    assert summary['match_status']=='estimate_not_recorded'
+    assert summary['deviation_seconds'] is None
+
+    rows=records();rows[0]['time_budget']=None
+    model.validate(rows)
+    text=view.time_budget_section(rows[0],view.Sources(view.ROOT,tmp_path),tmp_path/'AAGU-001.html')
+    assert '估时未记录' in text
+    assert '未记录' in text
 
     rows=records();rows[0]['time_budget']=dict(estimate_status='not_recorded',estimated_seconds=None,
                                               scope='Frozen scope',basis='No historical estimate')
@@ -243,6 +251,43 @@ def test_attempt_requires_actual_runtime_and_cache_evidence():
         model.validate(rows)
     attempt['runtime']['legacy_unrecorded']=True
     model.validate(rows)
+
+    rows=records();rows[0]['attempts']=[timed_attempt()]
+    del rows[0]['attempts'][0]['runtime']
+    with pytest.raises(ValueError,match='Run attempt requires runtime'):
+        model.validate(rows)
+
+
+def test_legacy_attempts_without_runtime_are_shown_as_unrecorded(tmp_path):
+    rows=records();rows[0]['time_budget']=None
+    attempt=timed_attempt();del attempt['runtime']
+    rows[0]['attempts']=[attempt]
+    model.validate(rows)
+    summary=model.time_summary(rows[0])
+    assert summary['unstructured_attempts']==1
+    assert summary['missing_actual_attempts']==1
+    assert summary['match_status']=='estimate_not_recorded'
+
+    page=tmp_path/'AAGU-001.html'
+    sources=view.Sources(view.ROOT,tmp_path)
+    text=view.time_budget_section(rows[0],sources,page)
+    assert '历史尝试未保存 runtime 元数据' in text
+    assert 'Cache 状态' in text
+    assert '估时未记录' in text
+
+
+def test_legacy_run_without_cache_metadata_stays_unmeasured():
+    rows=records();rows[0]['time_budget']=dict(estimate_status='not_recorded',estimated_seconds=None,
+        legacy_unrecorded=True,scope='Frozen scope',basis='No historical estimate')
+    attempt=timed_attempt()
+    attempt['runtime']['estimate_status']='not_recorded_before_start'
+    attempt['runtime']['estimated_seconds']=None
+    attempt['runtime'].pop('legacy_unrecorded',None)
+    attempt['runtime'].pop('evidence',None)
+    attempt['runtime'].pop('cache',None)
+    rows[0]['attempts']=[attempt]
+    model.validate(rows)
+    assert model.time_summary(rows[0])['missing_cache_attempts']==1
 
 
 def test_time_match_waits_for_full_scope_runtime_and_cache():

@@ -17,11 +17,11 @@ Work Plan 与 Block 平行。这里拥有实验创建、定义修订、运行尝
 
 ## 时间预算与实际耗时
 
-每份实验 JSON 都有 `time_budget`，记录估时状态、秒数、覆盖范围和估算依据。新实验及新增运行范围在启动前必须填写正数 `estimated_seconds`，并将 `estimate_status` 设为 `estimated`、`calculation` 设为 `cache_miss_serial`。估时依据应能复算为完整计划范围内各作业的 Cache 未命中耗时之和；按串行相加，不扣除 Cache 命中、不假设作业并行。范围变化时同步修订估时范围与依据。
+新实验及新增运行范围必须在启动前提供 `time_budget`，冻结正数 `estimated_seconds`、完整覆盖范围和估算依据，并将 `estimate_status` 设为 `estimated`、`calculation` 设为 `cache_miss_serial`。估时依据应能复算为完整计划范围内各作业的 Cache 未命中耗时之和；按串行相加，不扣除 Cache 命中、不假设作业并行。范围变化时同步修订估时范围与依据。既有实验记录允许缺少或将 `time_budget` 设为 `null`；页面显示“估时未记录”，不计算偏差。
 
-既有范围若没有启动前保存的估时，保留 `estimated_seconds: null`、`estimate_status: not_recorded` 和 `legacy_unrecorded: true`，说明未记录原因，不从历史运行时长倒推。既有运行尝试也可用同一标记说明启动前没有估时。`not_applicable` 仅用于 `execution.state` 为 `not_required` 的记录。新增实验或新运行不能使用 legacy 标记绕过估时要求。
+既有范围若没有启动前保存的估时，保留 `estimated_seconds: null`、`estimate_status: not_recorded` 和 `legacy_unrecorded: true`，说明未记录原因，不从历史运行时长倒推；更早的记录也可缺少整个 `time_budget` 字段。既有运行尝试可缺少 `runtime`，或缺少历史 Cache/估时子字段；页面将这些信息显示为“未记录”，不补造数值。`not_applicable` 仅用于 `execution.state` 为 `not_required` 的记录。新实验与新运行仍必须按上述格式写入预算和运行元数据，不能用缺字段或 legacy 标记跳过。
 
-每条 `attempts[]` 都记录 `runtime`：启动前的估时状态、作业是否启动、GPU 作业实际秒数及其范围/依据、单列的排队和回传秒数，以及 Cache 状态、分层命中统计和证据。实际作业耗时只计作业启动到结束；排队与回传不并入。失败、部分运行和重跑只要作业已启动，都累计实际耗时；未启动尝试不计为 0 秒。缺少原始计时或 Cache 证据时分别标记 `not_recorded`，不能用 0 代替未知。Cache 计数按逐格结果记录各层 `hit`、`miss`、`not_applicable` 或 `disabled` 数量。
+每条新 `attempts[]` 都记录 `runtime`：启动前的估时状态、作业是否启动、GPU 作业实际秒数及其范围/依据、单列的排队和回传秒数，以及 Cache 状态、分层命中统计和证据。实际作业耗时只计作业启动到结束；排队与回传不并入。失败、部分运行和重跑只要作业已启动，都累计实际耗时；未启动尝试不计为 0 秒。缺少原始计时或 Cache 证据时分别标记 `not_recorded`，不能用 0 代替未知。Cache 计数按逐格结果记录各层 `hit`、`miss`、`not_applicable` 或 `disabled` 数量。旧 `attempts[]` 缺少 `runtime` 时按未知显示，不参与偏差计算。
 
 实验页仅在估时范围完整、`execution.state` 为 `completed`、范围内每个已启动尝试都有实际作业耗时和 Cache 统计时计算偏差：`累计实际秒数 - 预估秒数`，比例为该差值除以预估秒数；绝对偏差不超过 20% 显示为接近。否则展示当前阻塞原因，不显示部分范围的匹配结论。
 

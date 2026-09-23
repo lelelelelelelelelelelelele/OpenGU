@@ -6,15 +6,15 @@
 
 ### 时间预算与运行耗时
 
-每个实验记录的 `time_budget` 覆盖其完整计划范围，含 `estimate_status`、`estimated_seconds`、`scope` 和 `basis`。新增实验/新增范围在首次 GPU 作业启动前必须冻结正数估时；`calculation` 固定为 `cache_miss_serial`，按 Cache 未命中的作业耗时串行求和。不要把预计队列、回传时间或并行收益写进估时。当前 schema 只允许已有记录用 `legacy_unrecorded: true` 标记缺少的历史估时；不能把这个标记复制到新实验。
+新实验/新增范围必须在首次 GPU 作业启动前写入 `time_budget`，覆盖其完整计划范围，并冻结 `estimate_status`、正数 `estimated_seconds`、`scope` 和 `basis`；`calculation` 固定为 `cache_miss_serial`，按 Cache 未命中的作业耗时串行求和。不要把预计队列、回传时间或并行收益写进估时。既有实验记录可缺少 `time_budget` 或设为 `null`；页面将其显示为估时未记录，不计算偏差。已有记录若保留了字段但无估时，可用 `legacy_unrecorded: true` 标记；不能把这个标记复制到新实验。
 
-每次追加 `attempts[]` 时同时写入 `runtime`：
+每次新增 `attempts[]` 时同时写入 `runtime`。既有实验中缺少 `runtime` 的尝试作为未记录历史数据显示，不推断作业状态或耗时：
 
 - `job_started` 明确 GPU 作业是否真正启动；未启动时实际耗时和 Cache 标记为 `not_applicable`，不写 0。
 - `estimate_status` / `estimated_seconds` 保留本次作业启动前冻结的分项估时；尚未记录则为 `not_recorded_before_start` / `null`，且仅既有历史尝试可带 `legacy_unrecorded: true`。
 - `actual_status` 为 `recorded` 时，`actual_seconds` 取作业启动至结束的计时并提供 `actual_basis`、`actual_scope` 与 `evidence`。没有作业起止计时证据时填 `not_recorded` / `null`，不能拿单元累计时长或文件生成时间代替。
 - `queue_seconds` 和 `return_seconds` 分别记录排队、回传耗时；没有证据时保留 `null`。两者不进入 GPU 作业实际耗时累计。
-- `cache` 用 `observed`、`not_recorded` 或 `not_applicable` 表示状态。观察到时按 cache layer 写 `hit`、`miss`、`not_applicable`、`disabled` 计数，并链接到原始运行证据；未知不能写成 0 命中或 0 未命中。
+- `cache` 用 `observed`、`not_recorded` 或 `not_applicable` 表示状态。观察到时按 cache layer 写 `hit`、`miss`、`not_applicable`、`disabled` 计数，并链接到原始运行证据；未知不能写成 0 命中或 0 未命中。既有运行数据缺少该子字段时页面显示未记录，不补造统计。
 
 页面累计所有已启动尝试的作业耗时，包括失败、部分运行和重跑。仅当 `time_budget` 的完整范围对应 `execution.state: completed`，且该范围的每个已启动尝试都保存了作业耗时和 Cache 统计，才显示估时偏差。偏差秒数为实际累计减预估，偏差比例以预估为分母；绝对值在 20% 内为“接近”。缺少估时、未完成范围或证据不齐时，页面说明原因并不显示匹配结论。
 
