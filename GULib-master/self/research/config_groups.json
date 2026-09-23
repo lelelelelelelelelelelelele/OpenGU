@@ -64,6 +64,11 @@
     "kind": "experiment",
     "note": "实验配置与辅助小表；现行入口以实验详情为准。"
   },
+  "aagu062": {
+    "owner": "AAGU-062",
+    "kind": "experiment",
+    "note": "实验配置与辅助小表；现行入口以实验详情为准。"
+  },
   "aagu063": {
     "owner": "AAGU-063",
     "kind": "development",
@@ -71,6 +76,16 @@
   },
   "aagu065": {
     "owner": "AAGU-065",
+    "kind": "experiment",
+    "note": "实验配置与辅助小表；现行入口以实验详情为准。"
+  },
+  "aagu067": {
+    "owner": "AAGU-067",
+    "kind": "experiment",
+    "note": "实验配置与辅助小表；现行入口以实验详情为准。"
+  },
+  "aagu068": {
+    "owner": "AAGU-068",
     "kind": "experiment",
     "note": "实验配置与辅助小表；现行入口以实验详情为准。"
   },
