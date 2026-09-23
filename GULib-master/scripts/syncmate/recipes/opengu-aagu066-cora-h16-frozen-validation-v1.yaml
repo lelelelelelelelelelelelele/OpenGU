@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu066-cora-h16-frozen-validation-v1
+runner: experiment
+config_path: experiments/configs/aagu066/validation_h16.yaml
+config_sha256: c17f898990af25fbcae483962cf18bb229f6d8966d223539e24b09a040f215ab
+configuration_fingerprint: 9a81ea941e640ad47bce6c6417752157b161018b6353f4c1dc29825e3d360a69
+run_identity:
+  experiment_id: aagu066-cora-h16-frozen-validation-v1
+  run_id: aagu066-cora-h16-random-104246-104248-v1
+timeout_seconds: 1800
+logical_cells: 21
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
