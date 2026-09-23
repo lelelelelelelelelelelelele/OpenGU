@@ -16,11 +16,13 @@
 
 ### 创建或修改配置后
 
+每次运行准备以一次同步为目标：先在本地备齐本阶段所需代码、实验配置、引用小表和全部 Recipe，完成审阅与相邻验证，并将完整交付落到同一主线目标版本，再统一同步一次。不得先同步代码、到提交前才补配置或 Recipe 而重复同步。同步完成并通过正式 preflight 后，直接按已授权顺序提交已准备好的运行。同一版本已同步就绪时不重复同步；依赖上游结果才能确定的后续阶段，在结果确定后独立备齐该阶段输入，再按同样流程处理。
+
 1. 确认实验记录允许的范围，审阅 `experiment.yaml` 及引用的小表，按 [experiments/AGENTS.md](../../experiments/AGENTS.md) 完成相邻验证。
 2. 按 [Recipe 命令说明](../../scripts/syncmate/README.md#independent-recipe-yaml) 使用 `recipe.py generate`，显式指定 recipe ID、新 run ID、超时及按配置顺序排列的真实数据集/候选计数。计数来自已核验数据，不猜测或临时下载。命令只将 YAML 打印到 stdout；创建 `experiment.yaml` 本身不会自动生成 Recipe。审阅后以 UTF-8 保存到 `scripts/syncmate/recipes/<id>.yaml`，文件名必须与声明 ID 相同。
 3. 配置或引用输入改变后，显式重新生成并审阅 SHA/指纹，将配置和 Recipe 一起提交。读取、预览或提交不会自动刷新哈希。仅改变 run ID 或超时也须审阅新的声明；不覆盖旧运行目录。
 4. Recipe 纳入 Git 跟踪后，用 `recipe.py preview <recipe-id> --node <peer-id> --device-config .syncmate/device.yaml` 检查完整 commit、配置、节点、SSH 工作目录、解释器、命令、run ID、执行输出和本地接收位置。`peer-id` 是设备配置中的节点 ID，例如 `gpu4090`，不是 SSH 别名。预览只读且不连接 SSH；脏工作区可以检查，但不具备正式提交资格。
-5. 代码与配置经开发 Block 交付后，单独完成已授权的代码同步，再核对本地 main、origin/main、SSH 干净 main 的完整 SHA 一致及正式 preflight。预览、dispatch 均不负责同步工作区修改；候选工作树预览不代表部署完成。
+5. 本阶段代码、配置与全部 Recipe 完整交付后，对同一主线目标版本统一完成一次已授权的同步，再核对本地 main、origin/main、SSH 干净 main 的完整 SHA 一致及正式 preflight。预览、dispatch 均不负责同步工作区修改；候选工作树预览不代表部署完成。
 6. 使用 SyncMate“运行与回传”前端选择已审阅的 Recipe 与节点，检查就绪后提交。Recipe 生成和完整提交预览目前通过上述 CLI 完成，前端接入留待后续。Agent 需要提交命令时读取已安装 CLI 的 `--help` 和上述 README，不从历史示例猜测接口。
 
 ### 回执和目录
