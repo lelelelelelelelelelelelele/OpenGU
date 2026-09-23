@@ -113,16 +113,24 @@ def acceptance_payload(profile, definition, context):
                     expected_names.add('metrics.json')
                 if config.get('return_scores'):
                     expected_names.add('scores.npz')
+                from experiments.observers import observer_files
+                expected_names.update(observer_files(config, conditions['method']))
+                from experiments.observers import observer_specs
+                for spec in observer_specs(config, conditions['method']):
+                    observed = next(ref for ref in cell['observers'] if ref['name'] == spec['name'])
+                    if (observed['parameters'] != spec['parameters']
+                            or observed['identity']['configuration_fingerprint'] != definition['configuration_fingerprint']):
+                        raise ValueError('Observer configuration differs from registration')
                 if set(cell['files']) != expected_names:
                     raise ValueError('missing or unexpected declared cell result')
                 if 'metrics.json' in document:
-                    from experiments.modular_evaluation import CASES
+                    from experiments.modular_evaluation import CASES, is_paired_evaluation
                     expected_metrics = []
                     if config['stage'] == 'unlearning':
                         expected_metrics = [('method', set(CASES['post_method_metrics']['metrics'])),
                             ('utility', {'f1_before', 'f1_after', 'f1_drop', 'f1_drop_ratio'})]
                     expected_metrics += [(e['case'], set(e['metrics'])) for e in config['evaluations']
-                        if conditions['method'] != 'Retrain' or e['case'] != 'post_unlearning_utility_and_retrain_gap']
+                        if conditions['method'] != 'Retrain' or not is_paired_evaluation(e)]
                     measured = document['metrics.json']['rows']
                     if (len(measured) != len(expected_metrics) or any(
                             r['stage'] != stage or set(r['values']) != names

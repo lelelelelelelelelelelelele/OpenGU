@@ -1,0 +1,65 @@
+{
+  "id": "AAGU-053",
+  "title": "IM 采样稳定性与删除效果",
+  "question": "分开维护RR10采样研究与96格下游效果；二者不互相替代。",
+  "scope": "分开维护RR10采样研究与96格下游效果；二者不互相替代。",
+  "configs": [
+    {
+      "label": "Experiment.yaml",
+      "path": "experiments/configs/im_group_discussion/Experiment.yaml",
+      "role": "current"
+    }
+  ],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-053/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-053/REPORT.md"
+    }
+  ],
+  "attempts": [
+    {
+      "run_id": "aagu053-newtraining-full-20260920",
+      "scope": "9月20日新训练96格已存在完成manifest；历史RR10为36格并已接受其范围。",
+      "state": "completed",
+      "evidence": [
+        {
+          "label": "当前运行manifest",
+          "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+        }
+      ],
+      "manifest": {
+        "label": "当前运行manifest",
+        "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json",
+        "sha256": "dfb6f7c88021291847765a901d61efa698df889a8157fedc2f9639d50a852e7e",
+        "experiment_id": "aagu053-im-group-budget10",
+        "commit": "38ca4e76e2fd45d30d88dc47cf7aad950193bdc7",
+        "completed": 96
+      }
+    }
+  ],
+  "analysis": {
+    "state": "review",
+    "note": "RR10科学记录已接受；新训练96格的分析适用性需单独确认。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-053/REPORT.md"
+      },
+      {
+        "label": "当前运行manifest",
+        "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+      }
+    ]
+  },
+  "decision": {
+    "state": "pending",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": []
+}

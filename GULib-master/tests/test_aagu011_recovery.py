@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 from experiments.modular_config import load_experiment, experiment_batches, unlearning_entries, configuration_fingerprint
-from scripts.syncmate.opengu_recipes import EXPERIMENT_RECIPES
+from scripts.syncmate.opengu_recipes import recipe_ids, resolve_recipe
 from syncmate_core.identity import sha256_recipe_config
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,7 +24,7 @@ def test_recovery_partitions_are_disjoint_exact_subsets():
     assert len(main) == 1035
     union = set()
     roots = set()
-    partitions = {name: value for name, value in EXPERIMENT_RECIPES.items()
+    partitions = {name: resolve_recipe(ROOT, name) for name in recipe_ids(ROOT)
                   if name.startswith('opengu-aagu011-v1-recovery-') and not name.endswith('-full')}
     assert len(partitions) == 5
     for recipe in partitions.values():
@@ -37,16 +37,17 @@ def test_recovery_partitions_are_disjoint_exact_subsets():
         roots.add(root)
         assert recipe['timeout_seconds'] <= 21600
     assert len(union) == 575
-    full = EXPERIMENT_RECIPES['opengu-aagu011-v1-recovery-full']
-    original = EXPERIMENT_RECIPES['opengu-aagu011-table02-v1']
+    full = resolve_recipe(ROOT, 'opengu-aagu011-v1-recovery-full')
+    original = resolve_recipe(ROOT, 'opengu-aagu011-table02-v1')
     assert full['config_path'] == original['config_path']
     assert full['configuration_fingerprint'] == original['configuration_fingerprint']
     assert full['run_identity']['run_id'] != original['run_identity']['run_id']
 
 
 def test_recovery_registration_matches_core_normalized_config_hashes():
-    for name, recipe in EXPERIMENT_RECIPES.items():
+    for name in recipe_ids(ROOT):
         if name.startswith('opengu-aagu011-v1-recovery-'):
+            recipe = resolve_recipe(ROOT, name)
             path = ROOT / recipe['config_path']
             assert sha256_recipe_config(path) == recipe['config_sha256']
             assert configuration_fingerprint(path) == recipe['configuration_fingerprint']

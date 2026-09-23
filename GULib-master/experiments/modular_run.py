@@ -10,7 +10,7 @@ import torch
 from cache_v2.runtime import load_selection_artifact
 from experiments.effective_config import fields, ConfigurationError
 from experiments.modular_config import load_experiment, resolve_budget, experiment_batches, configuration_fingerprint, selector_entries, unlearning_entries
-from experiments.modular_evaluation import evaluate_modular, require_consumer
+from experiments.modular_evaluation import evaluate_modular, require_consumer, is_paired_evaluation
 from experiments.modular_execution import ExecutionContext
 from experiments.modular_model import prepare_model, runtime_defaults
 from experiments.selection_inputs import make_dataset_selection_inputs
@@ -59,6 +59,8 @@ def _plan_summary(config):
         'stage': config['stage'], 'effective_selectors': config['selectors'],
         'effective_unlearning': config['unlearnings'],
         'effective_evaluations': config['evaluations'],
+        'effective_observers': config.get('observers', []),
+        'execution': config.get('execution', {}),
         'effective_datasets': config['datasets'],
         'configuration_sources': config['configuration_sources'],
         'experiment_annotations': {
@@ -92,8 +94,8 @@ def _execute(path, *, context=None, dry_run=False, run_state):
     for evaluation in config['evaluations']:
         require_consumer(evaluation, 'modular_v1')
     if config['stage'] == 'unlearning' and any(
-            item['case'] == 'post_unlearning_utility_and_retrain_gap' for item in config['evaluations']):
-        raise ConfigurationError('retrain-gap belongs to the independent metrics stage')
+            is_paired_evaluation(item) for item in config['evaluations']):
+        raise ConfigurationError('retrain-gap and flip-hop belong to the independent metrics stage')
     if config['stage'] == 'metrics' and any(not v.get('run') or not v.get('sha256') for v in config['output_inputs']):
         raise ConfigurationError('metrics requires bound run.json paths and checksums')
     directory = Path(config['source_directory'])
@@ -227,9 +229,35 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                 elif item['method'] == 'GraphRevoker':
                     from experiments.modular_graphrevoker import run_graphrevoker_unlearning
                     consumer = run_graphrevoker_unlearning
-                result = consumer(item, selection=loaded_selections[selector_ref], model=model, data=data,
-                    dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
-                    dataset_input=datasets[batch['matrix_values']['dataset_index']]['input_reference'])
+                from experiments.observers import observer_specs, ObserverSession
+                from experiments.modular_artifacts import update_run
+                cell = run_state['active'][0]
+                folder = context.output.parent / cell['path']
+                specs = observer_specs(config, item['method'])
+                session = ObserverSession(specs, folder, dict(run_id=context.run_id,
+                    experiment_id=config['experiment_id'], cell_id=cell['cell_id'],
+                    conditions=cell['conditions'], commit=context.source_git_sha,
+                    configuration_fingerprint=plan['configuration_fingerprint'])) if specs else None
+                policy = config.get('execution', {}).get('gu_cache', {}).get(item['method'], 'reuse')
+                options = dict(gu_cache=policy, observer=session, output_path=folder/'output.npz') if consumer is run_unlearning else {}
+                error = None
+                try:
+                    result = consumer(item, selection=loaded_selections[selector_ref], model=model, data=data,
+                        dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
+                        dataset_input=datasets[batch['matrix_values']['dataset_index']]['input_reference'], **options)
+                except BaseException as exc:
+                    error = exc
+                    raise
+                finally:
+                    if session is not None:
+                        try:
+                            session.finish(error)
+                        finally:
+                            cell['observers'] = session.references
+                            for reference in cell['observers']:
+                                cell['files'].update(reference['files'])
+                            update_run(run, context.output)
+                result['observer_seconds'] = session.seconds if session else 0.0
                 summary['unlearning'].append({**result, 'checkpoint': checkpoint,
                     'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
                     'unlearning_ref': gu_ref})

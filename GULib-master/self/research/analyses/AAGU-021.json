@@ -1,0 +1,26 @@
+{
+  "id": "AAGU-021",
+  "title": "小图 D-full 计时与拟合",
+  "question": "固定计时口径，对小图计算原语与整体成本作验证。",
+  "scope": "固定计时口径，对小图计算原语与整体成本作验证。",
+  "configs": [],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-021/WORKITEM.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "not_started",
+    "note": "暂无正式拟合。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": []
+}

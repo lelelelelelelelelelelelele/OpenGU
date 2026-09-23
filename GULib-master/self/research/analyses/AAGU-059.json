@@ -1,0 +1,59 @@
+{
+  "id": "AAGU-059",
+  "title": "GIF/IDEA 作者参数收敛诊断",
+  "question": "固定Cora请求，对hidden16/64、100/200/400步作诊断。",
+  "scope": "固定Cora请求，对hidden16/64、100/200/400步作诊断。",
+  "configs": [
+    {
+      "label": "table01.yaml",
+      "path": "experiments/configs/aagu059/table01.yaml",
+      "role": "historical"
+    },
+    {
+      "label": "table01_hidden16.yaml",
+      "path": "experiments/configs/aagu059/table01_hidden16.yaml",
+      "role": "historical"
+    }
+  ],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-059/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-059/REPORT.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "review",
+    "note": "收敛失败与负曲率已有报告；总科学判断待决定。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-059/REPORT.md"
+      }
+    ]
+  },
+  "decision": {
+    "state": "pending",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": [
+    {
+      "id": "existing-delivery-record",
+      "at": "2026-09-22",
+      "stage": "analysis",
+      "note": "十二格诊断已交付；数值均未形成有效更新后F1，不把发散当实验未执行。 收敛失败与负曲率已有报告；总科学判断待决定。",
+      "evidence": [
+        {
+          "label": "结果与分析报告",
+          "path": ".workblock/items/AAGU-059/REPORT.md"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+schema_version: 1
+id: opengu-aagu011-table02-v1
+runner: experiment
+config_path: experiments/configs/aagu011/table02.yaml
+config_sha256: 671414dcf557cfde2f9bc1e2351acfdd72e0ebb70c5de6150e986b3fcf064c6e
+configuration_fingerprint: 8c9945d0048873303da0ce5acd04677af0c83489fb9b3de832a6147d00443103
+run_identity:
+  experiment_id: aagu011-table02-budget10
+  run_id: aagu011-table02-v1
+timeout_seconds: 21600
+logical_cells: 1035
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

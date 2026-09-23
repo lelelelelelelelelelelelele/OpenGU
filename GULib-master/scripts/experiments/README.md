@@ -19,7 +19,7 @@ E:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/cora_GCN_
 ```
 
 可用 yaml：见 `experiments/configs/`。
-当前执行入口：详见 OpenGU DocMap 的实验运行部分与 [`WORKPLAN`](../../self/dashboard/WORKPLAN.md)。2026-05 的根目录双机 Runbook 已退休。
+当前执行入口：详见 OpenGU DocMap 的实验运行部分与 [实验研究总览](../../self/research/index.html)。2026-05 的根目录双机 Runbook 已退休。
 
 ## 仍在用的辅助 .sh
 

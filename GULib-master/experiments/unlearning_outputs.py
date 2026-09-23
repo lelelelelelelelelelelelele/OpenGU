@@ -17,7 +17,46 @@ def output_reference(result, recipe_hash):
             'content_hash': result.content_hash}
 
 
+def save_run_output(payload, path, dataset_root):
+    """Same Output payload, run-owned storage, no computation-cache registration."""
+    path = Path(path).resolve()
+    relative = path.relative_to(Path(dataset_root).resolve()).as_posix()
+    if not relative.startswith('results/runs/'):
+        raise ConfigurationError('uncached output must belong to a run')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open('xb') as handle:
+        handle.write(payload.canonical_bytes)
+    recipe = ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **payload.identity})
+    return dict(storage='run', path=relative, recipe_hash=recipe.recipe_hash, content_hash=payload.content_hash)
+
+
 def load_output(reference, store_root, *, data=None, dataset_root=None):
+    if reference.get('storage') == 'run':
+        fields(reference, {'storage', 'path', 'recipe_hash', 'content_hash'},
+               {'storage', 'path', 'recipe_hash', 'content_hash'}, 'run output reference')
+        if dataset_root is None:
+            raise ConfigurationError('run output requires explicit Dataset/Split root')
+        from experiments.modular_artifacts import safe_path
+        path = safe_path(Path(dataset_root), reference['path'])
+        if not reference['path'].startswith('results/runs/'):
+            raise ConfigurationError('run output is outside results/runs')
+        payload = UnlearningOutputPayload.from_bytes(path.read_bytes())
+        recipe = ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **payload.identity})
+        if payload.content_hash != reference['content_hash'] or recipe.recipe_hash != reference['recipe_hash']:
+            raise ConfigurationError('run output digest mismatch')
+        from experiments.modular_gu import gu_producer
+        if ProducerVersion(**payload.identity['producer_version']) != gu_producer(
+                payload.identity['target']['method'], payload.identity['pairing']['model']):
+            raise ConfigurationError('run output producer changed')
+        index = CacheIndex(Path(store_root) / 'index.sqlite')
+        index.check_schema()
+        selection = index.get_artifact(payload.identity['selection']['artifact_id'])
+        if any(selection[k] != v for k, v in payload.identity['selection'].items()):
+            raise ConfigurationError('run output Selection dependency mismatch')
+        if data is not None and pairing_identity(payload.identity['pairing'], data,
+                payload.arrays['selected_nodes']) != payload.identity['pairing']:
+            raise ConfigurationError('run output Dataset/Split mismatch')
+        return resolve_output(payload, dataset_root)
     fields(reference, {'artifact_id', 'recipe_hash', 'content_hash'},
            {'artifact_id', 'recipe_hash', 'content_hash'}, 'method output reference')
     root = Path(store_root)

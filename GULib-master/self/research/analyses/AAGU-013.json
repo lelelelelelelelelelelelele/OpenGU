@@ -1,0 +1,26 @@
+{
+  "id": "AAGU-013",
+  "title": "代理模型选集迁移",
+  "question": "固定目标模型，只改变选点使用的代理模型，比较迁移效果。",
+  "scope": "固定目标模型，只改变选点使用的代理模型，比较迁移效果。",
+  "configs": [],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-013/WORKITEM.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "not_started",
+    "note": "暂无本轮分析证据。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": []
+}

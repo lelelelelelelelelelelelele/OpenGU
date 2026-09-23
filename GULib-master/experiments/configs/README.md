@@ -1,5 +1,15 @@
 # 公共实验配置
 
+## 配对 Flip / Hop Metrics
+
+在普通 Metrics 表的 `evaluation_refs` 追加
+`post_unlearning_flip_hop.yaml`，保留原有 evaluation 即可。
+[配置模板](flip_hop_metrics.template.yaml) 需要填写已有 GU/Retrain `run.json` 的路径及校验和。
+Flip 比较同请求 GU 与 Retrain，使用 `test_mask` 排除删除节点；Hop 使用绑定的删除前原图。
+各组输出节点数、不一致数、比例，空组比例为 null。
+精确定义、配对拒绝规则及导出字段见 [Methods](../../docs/experiment_contract/FLIP_HOP_METHODS.md)。
+模板不授权正式补算，真实矩阵仍由对应 WorkItem 管理。
+
 ## GIF / IDEA 指定纯权重 checkpoint
 
 在独立方法小表中填写 `checkpoint` 文件路径，可直接使用 `torch.save(model.state_dict(), path)`

@@ -1,0 +1,26 @@
+{
+  "id": "AAGU-039",
+  "title": "Graph CP3/CP6 独立比较",
+  "question": "独立比较训练轨迹与D-full，不重开已完成P-point/R-point比较。",
+  "scope": "独立比较训练轨迹与D-full，不重开已完成P-point/R-point比较。",
+  "configs": [],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-039/WORKITEM.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "not_started",
+    "note": "尚无本项独立比较。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": []
+}

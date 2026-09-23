@@ -1,0 +1,30 @@
+{
+  "id": "AAGU-062",
+  "title": "065–068 Batch · GIF/IDEA 固定 PT 校准与验证",
+  "question": "在各数据集H16/H64 baseline上，分别校准GIF/IDEA并冻结参数后，能否通过多请求验证？",
+  "scope": "Batch成员：065=Cora H16/H64校准，066=Cora冻结验证，067=CiteSeer校准与验证，068=PubMed校准与验证。049是前序诊断来源，070是公共软件能力；均不是batch成员。 049确认监督标签边界问题，并发现旧设置下求解进展不足，是本批校准的诊断来源；其旧checkpoint、训练协议和压力删除条件不同，不直接复用为本批配对结果。参数组绑定baseline，Retrain仅为请求条件下的评价参照。 062同时作为整批执行协调入口，按065→066→067→068顺序推进。用户授权Agent按运行前冻结的判据作阶段放行判断；完整范围成功后继续下一阶段，无需逐阶段等待用户确认。失败、证据不足、身份不匹配或软件未就绪时不放行。阶段放行不代表用户最终科学验收，最终统一由062提交总报告。 放行须同时满足：本阶段预定方法/宽度/请求覆盖完整；baseline、数据/split、Selection、代码与参数身份核验通过；所需产物已收集校验；有限性、移位残差、预算一致性及排除近零退化达到事先冻结判据，原系统残差如实报告；验证阶段另须完成同图no-update及同请求同宽度Retrain比较。不以F1下降或优于Retrain为成功条件，不按验证结果调参。没有冻结判据即证据不足，不得自行补造PASS。",
+  "configs": [],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-062/WORKITEM.md"
+    },
+    {
+      "label": "049前序诊断：更新链与求解进展",
+      "path": ".workblock/items/AAGU-049/REPORT.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "working",
+    "note": "汇总范围已扩展为H16/H64；已有065 H16成果保留，H64未形成有效冻结组，不能视为整批完成。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "最终总报告由用户统一科学验收；子实验accepted且success_confirmed仅表示用户委托Agent作出的阶段放行，不冒称用户已接受整批结论。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": []
+}

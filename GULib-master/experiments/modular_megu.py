@@ -57,7 +57,9 @@ def build_megu_output(identity, model, logits, logits_before):
         {'megu_pseudo_labels': model.megu_pseudo_labels.detach().cpu().numpy()})
 
 
-def run_megu_unlearning(instance, *, selection, model, data, dataset_name, checkpoint, store_root, runtime_root, dataset_input, dataset_root):
+def run_megu_unlearning(instance, *, selection, model, data, dataset_name, checkpoint, store_root, runtime_root, dataset_input, dataset_root, observer=None):
+    if observer is not None:
+        raise ValueError('method does not provide Observer events')
     if instance['method'] != 'MEGU':
         raise ValueError('MEGU consumer requires the MEGU instance')
     from pathlib import Path

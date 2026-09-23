@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu032-extend-pubmed-v1
+runner: experiment
+config_path: experiments/configs/aagu032_extend/experiment.pubmed.yaml
+config_sha256: 59f323e0c1f07dbfcd43243c6d194094130636b1bc324a5b36394baf99439a76
+configuration_fingerprint: 6499d4cba056700c7895db6db3b29a63daf09922d8b0f4e8a6bfd13f65845a28
+run_identity:
+  experiment_id: aagu032-extended-pubmed-gcn-retrain
+  run_id: aagu032-extend-v1
+timeout_seconds: 21600
+logical_cells: 96
+stage: unlearning
+expected_datasets:
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

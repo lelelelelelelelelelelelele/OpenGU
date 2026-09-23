@@ -1,0 +1,85 @@
+{
+  "id": "AAGU-011",
+  "title": "GU 主矩阵 · Table02",
+  "question": "四GU与Retrain、三数据集、三训练seed，比较IF、RR与共同基线。",
+  "scope": "四GU与Retrain、三数据集、三训练seed，比较IF、RR与共同基线。",
+  "configs": [
+    {
+      "label": "table02.yaml",
+      "path": "experiments/configs/aagu011/table02.yaml",
+      "role": "current"
+    },
+    {
+      "label": "table02_v2.yaml",
+      "path": "experiments/configs/aagu011/table02_v2.yaml",
+      "role": "candidate"
+    },
+    {
+      "label": "table02_v2_gate.yaml",
+      "path": "experiments/configs/aagu011/table02_v2_gate.yaml",
+      "role": "candidate"
+    },
+    {
+      "label": "table01.yaml",
+      "path": "experiments/configs/aagu011/table01.yaml",
+      "role": "historical"
+    },
+    {
+      "label": "references.yaml",
+      "path": "experiments/configs/aagu011/references.yaml",
+      "role": "reference"
+    }
+  ],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-011/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-011/REPORT.md"
+    }
+  ],
+  "attempts": [
+    {
+      "run_id": "aagu011-v1-recovery-full-20260919",
+      "scope": "当前Table02为1035格、207请求组、828严格配对；不包含新GIF/IDEA矩阵。",
+      "state": "completed",
+      "evidence": [
+        {
+          "label": "当前运行manifest",
+          "path": "results/runs/gpu4090/aagu011-table02-budget10/aagu011-v1-recovery-full-20260919/run.json"
+        }
+      ],
+      "manifest": {
+        "label": "当前运行manifest",
+        "path": "results/runs/gpu4090/aagu011-table02-budget10/aagu011-v1-recovery-full-20260919/run.json",
+        "sha256": "dbb54b2bacc3ed786cff57bc37ac9d76c7bd47ddaaf81fbe1084be6378898880",
+        "experiment_id": "aagu011-table02-budget10",
+        "commit": "b51cf184b375ae924c619ec0afa5a9ef65fa76fb",
+        "completed": 1035
+      }
+    }
+  ],
+  "analysis": {
+    "state": "review",
+    "note": "主表分析已交付，科学决定待确认。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-011/REPORT.md"
+      },
+      {
+        "label": "当前运行manifest",
+        "path": "results/runs/gpu4090/aagu011-table02-budget10/aagu011-v1-recovery-full-20260919/run.json"
+      }
+    ]
+  },
+  "decision": {
+    "state": "pending",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": []
+}

@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu056-rr1024-v1
+runner: experiment
+config_path: experiments/configs/aagu056/rr_1024.yaml
+config_sha256: 0f7c7806c1e4ca168a713d682dbdbe8130c0e30c1eb8c9f86563f94bf8c7d55a
+configuration_fingerprint: 2094d1c119bd6c7170cdfe9ae40d6637f4b6a24a10e9abb8d8d8da3243e523ea
+run_identity:
+  experiment_id: aagu056-arxiv-rr1024-budget05
+  run_id: aagu056-rr1024-v1
+timeout_seconds: 21600
+logical_cells: 1
+stage: selector
+expected_datasets:
+- num_nodes: 169343
+  candidate_count: 118540
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

@@ -14,7 +14,9 @@ from experiments.modular_model import runtime_defaults
 from utils.target_checkpoint import data_identity
 
 
-def gnndelete_node(args, model, data, nodes, runtime_root):
+def gnndelete_node(args, model, data, nodes, runtime_root, observer=None):
+    if observer is not None:
+        raise ValueError('method does not provide Observer events')
     from model.model_zoo import model_zoo
     from unlearning.unlearning_methods.GNNDelete.gnndelete import gnndelete
     from task.GNNDeleteTrainer import GNNDeleteTrainer
@@ -31,12 +33,13 @@ def gnndelete_node(args, model, data, nodes, runtime_root):
     return method.target_model.model, float(method.avg_unlearning_time[0])
 
 
-def gif_node(args, model, data, nodes, runtime_root):
+def gif_node(args, model, data, nodes, runtime_root, observer=None):
     from types import SimpleNamespace
     from unlearning.unlearning_methods.GIF.gif import gif
     from task.GIFTrainer import GIFTrainer
     logger = logging.getLogger('modular.GIF')
     method = gif(args, logger, SimpleNamespace(data=data, model=model))
+    method.observer = observer
     method.device = next(model.parameters()).device
     method.target_model = GIFTrainer(args, logger, model, data)
     method.target_model.device = method.device
@@ -54,7 +57,9 @@ def gif_node(args, model, data, nodes, runtime_root):
     return method.target_model.model, float(method.avg_unlearning_time[0])
 
 
-def retrain_node(args, model, data, nodes, runtime_root):
+def retrain_node(args, model, data, nodes, runtime_root, observer=None):
+    if observer is not None:
+        raise ValueError('method does not provide Observer events')
     from unlearning.unlearning_methods.Retrain.retrain import run_retrain
     return run_retrain(args['instance'], data, nodes, args['dataset_name'])
 
@@ -119,7 +124,7 @@ def gu_producer(method, model_config):
     }))
 
 
-def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint, store_root, runtime_root, dataset_input, dataset_root):
+def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint, store_root, runtime_root, dataset_input, dataset_root, gu_cache="reuse", observer=None, output_path=None):
     from cache_v2 import ArtifactRecipe, ArtifactType
     from cache_v2.unlearning_output import OUTPUT_CONTRACT
     from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact, store_formal_artifact
@@ -140,7 +145,15 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
         'graph_fingerprint': inputs.graph_fingerprint, 'producer_version': producer.to_dict()}
     request = FormalArtifactRequest(ArtifactType.PREDICTION,
         ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **identity}), producer)
-    stored = resolve_formal_artifact(Path(store_root), request)
+    if gu_cache not in ('reuse', 'disabled'):
+        raise ValueError('unknown GU cache policy')
+    if observer is not None and instance['method'] not in ('GIF', 'IDEA'):
+        raise ValueError('method does not provide Observer events')
+    if observer is not None and gu_cache != 'disabled':
+        raise ValueError('observer requires actual method execution')
+    if gu_cache == 'disabled' and output_path is None:
+        raise ValueError('uncached execution requires run output_path')
+    stored = resolve_formal_artifact(Path(store_root), request) if gu_cache == 'reuse' else None
     hit = stored is not None
     seconds = 0.0
     if not hit:
@@ -166,19 +179,40 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
         for name in ('train', 'val', 'test'):
             setattr(working, name + '_indices', getattr(working, name + '_mask').nonzero().flatten().cpu().numpy())
         runtime_path = Path(runtime_root) / 'unlearning' / request.recipe.recipe_hash
+        if gu_cache == 'disabled':
+            # Distinct cells can legitimately resolve to the same computation
+            # (e.g. two budget ratios round to K=1). Each must still execute.
+            import hashlib
+            runtime_path = Path(runtime_root) / 'unlearning' / hashlib.sha256(
+                str(Path(output_path).resolve()).encode()).hexdigest()
         runtime_path.mkdir(parents=True, exist_ok=False)
+        graphs = {'original': data, 'retained': retained}
+        if observer is not None:
+            if hasattr(observer, 'identity'):
+                observer.identity['output_identity'] = identity
+            observer(dict(method=instance['method'], phase='unlearning_start', step=None,
+                          values=dict(model=model, graphs=graphs)))
         with seeded_execution(instance['training']['seed']):
-            output_model, seconds = GU_METHODS[instance['method']](args, model, working, list(selection.selected_nodes), runtime_path)
+            kwargs = {'observer': observer} if instance['method'] in ('GIF', 'IDEA') else {}
+            output_model, seconds = GU_METHODS[instance['method']](args, model, working, list(selection.selected_nodes), runtime_path, **kwargs)
+        if observer is not None:
+            observer(dict(method=instance['method'], phase='unlearning_end', step=None,
+                          values=dict(model=output_model, graphs=graphs)))
         output_model.eval()
         with torch.no_grad():
             logits = output_model(evaluation.x, evaluation.edge_index).detach().clone()
         payload = build_output(identity, output_model, logits, before)
-        stored = store_formal_artifact(store_root, request, payload, compute_seconds=seconds)
-    reference = output_reference(stored, request.recipe.recipe_hash)
+        if gu_cache == 'reuse':
+            stored = store_formal_artifact(store_root, request, payload, compute_seconds=seconds)
+        else:
+            from experiments.unlearning_outputs import save_run_output
+            reference = save_run_output(payload, output_path, dataset_root)
+    if gu_cache == 'reuse':
+        reference = output_reference(stored, request.recipe.recipe_hash)
     from experiments.unlearning_outputs import load_output
     verified = load_output(reference, store_root, data=data, dataset_root=dataset_root)
     from experiments.output_metrics import evaluate_method
-    return {**reference, 'output': reference, 'hit': hit, 'producer_called': not hit,
+    return {**reference, 'output': reference, 'cache_policy': gu_cache, 'hit': hit, 'producer_called': not hit,
             'compute_seconds': seconds, 'result': utility(verified), 'target': target,
             'evaluation': evaluate_method(reference, verified)}
 

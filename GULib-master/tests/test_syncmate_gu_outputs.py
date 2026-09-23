@@ -16,7 +16,6 @@ from experiments.modular_run import execute
 from experiments.modular_artifacts import ARTIFACT_NAMES,output_paths
 from scripts.syncmate import syncmate
 from opengu_adapter import OpenGUProjectExtension
-from opengu_recipes import recipe_definitions
 from syncmate_core import collection,context,devices,index
 from syncmate_core.identity import sha256_recipe_config
 from syncmate_core.run_handoff import build_execution_contract
@@ -33,8 +32,8 @@ def exported(workspace):
     runner, path, config = workspace
     config.update(stage='unlearning', unlearning_refs=['gu.yaml', 'retrain.yaml'])
     write_yaml(path, config)
-    sha = commit(runner)
     definition = declaration(runner, path, 'unlearning')
+    sha = commit(runner)
     with context.use(runner, extension=FixtureRegistration(definition)):
         submitted = queue.runner_queue_submit('cpu-job', definition['id'], expected_git_sha=sha)
         assert submitted['submitted'], submitted

@@ -1,57 +1,49 @@
 # AAGU-065 Cora fixed-PT calibration
 
-These two small experiments are calibration diagnostics only:
+AAGU-065 owns one-point Observer calibration for Cora H16 and H64. The active
+parameter path is generated from the exact `(Cora, hidden)` checkpoint; the
+old author/shifted values and prior H16 R2 files remain historical inputs and
+are not active candidate tables.
 
-- `calibration_h16.yaml` consumes the fixed Cora/GCN hidden=16 pure PT and
-  runs GIF/IDEA at the author pair and one shifted pair over 100/200/400
-  iterations.
-- `calibration_h64.yaml` does the same for hidden=64.
+## Calibration sequence
 
-Both configs declare one independent Random request (seed `104245`) and 10%
-of the persisted `train_mask`. Every GU instance names the explicit pure
-`state_dict` PT produced by the 3000-epoch seed-42 checkpoint run. Because the
-PT lane is external, the ordinary config parser intentionally reports the
-training optimizer fields as not applicable; the generic runner records
-the fixed training contract and verifies the loaded PT/file hashes at runtime.
+1. `theory_h16.yaml` or `theory_h64.yaml` identifies the persisted Cora split,
+   model, training identity and exact checkpoint. Run
+   `experiments/aagu062_theory.py` only after the matching checkpoint is present
+   in the SSH active checkout. This calculates the GIF and IDEA loss Hessian
+   Ritz range and derives the registered `rho=0.8` and `rho=0.5` proposals.
+   Finite Lanczos estimates are not full-spectrum certificates.
+2. `experiments/aagu062_generate_candidates.py` consumes that theory JSON and
+   creates method YAMLs at T=100/200/400 plus one ordinary `run.py` Observer
+   table. The table uses Random seed 104245, a 10% train-mask deletion request,
+   and disables GIF/IDEA GU output cache reads and writes.
+3. After the Observer run is collected and its run.json SHA-256 is verified,
+   `experiments/aagu062_after_exp.py` checks all Observer artifacts and applies
+   the Work Plan's frozen gate. It never changes YAML or chooses by F1.
+4. Only a `stable` method result with complete coverage of both theoretical
+   proposals and T=100/200/400 may freeze the smallest passing `mu=scale*damp`.
+   Multi-selector/seed validation YAMLs are created afterward and use the
+   frozen parameters for this exact checkpoint condition only.
 
-The author comparison is retained from `experiments/configs/aagu059/SOURCES.md`:
-GIF uses scale `1000`, IDEA uses scale `500`, both with zero damping and
-100/200/400 iterations. The shifted candidate is `scale=4096,damp=0.005`, so
-the production target is `(H + 20.48 I) delta = v`; the Observer records both
-this shifted residual and the original `(H delta - v)` residual. The candidate
-is a calibration probe, not a promise of convergence or a Table parameter.
+The gate requires finite HVP probe/RHS/repeat relative errors <=1e-5, finite
+updates and shifted residual <=1e-3 at all three budgets, update-norm variation
+from T=100 <=1e-3, and at T=100 update/RHS ratio >1e-6 plus original-graph
+same-graph logits max-abs change >1e-8. The original-system residual is reported
+separately. F1 is not a parameter-selection criterion.
 
-New calibration runs use the shared experiments/run.py entry and Observer configuration;
-local use is limited to parser dry-runs and review.
+The existing `observer_h16.yaml` and its accepted run concern the old R2 pair;
+they do not validate the new theory-derived candidate pairs. `observer_h64_calibration.yaml`
+is the single active H64 aggregate. A duplicate H64 draft table is not used.
 
-The H16 rework generation `calibration_h16_r1.yaml` is derived from the first
-production HVP/Ritz measurement. It keeps the previous shifted target
-`mu=20.48` and tests `(scale=8192,damp=0.0025)` and
-`(scale=16384,damp=0.00125)` for both GIF and IDEA over 100/200/400
-iterations. These are new calibration candidates, not frozen settings.
+## Remaining checkpoint cases
 
-The H16 rework generation `calibration_h16_r2.yaml` uses the measured
-`lambda_min=-2.492925` and `lambda_max=13919.159832` to reduce the spectral
-radius of the shifted Richardson recurrence. It tests `(scale=9000,
-damp=0.22755555555555556)` (`mu=2048`) and `(scale=15000,
-damp=0.5461333333333334)` (`mu=8192`) for both GIF and IDEA over 100/200/400
-iterations. These are stability/convergence candidates, not F1-selected
-production parameters.
+AAGU-067 and AAGU-068 use their own CiteSeer/PubMed H16/H64 checkpoint in
+exactly the same sequence. Their `theory_h16.yaml` and `theory_h64.yaml` files
+are inputs only and contain no scale/damp values. As of the latest SSH check,
+the registered CiteSeer/PubMed seed42 checkpoints are absent from the active
+checkout. Keep their paired-PT recipes as preparation; do not create or run
+candidate tables until the corresponding checkpoint is present and verified.
 
-The H16 r3 generation fixes the preferred r2 pair
-`(scale=9000,damp=0.22755555555555556)` (`mu=2048`) and varies only the
-Random selector seed. The historical r3 YAMLs record two separate seed-specific runs (104246 and
-104247) anchored to the r2 seed 104245. They remain unchanged for provenance.
-Current candidate calibration starts from 104245 and records the full Observer
-trace; later verification uses selected parameter files across independent seeds.
-
-The accepted canonical H16/Cora fixed-PT method files are now promoted to
-`../unlearning/gif_cora_gcn_h16_fixed_pt.yaml` and
-`../unlearning/idea_cora_gcn_h16_fixed_pt.yaml`. The AAGU-065 files remain
-calibration evidence and are not deleted.
-
-The active batch calibration uses the ordinary experiments/run.py Observer
-path. The new observer_candidates_h16.yaml and observer_candidates_h64.yaml
-cover the Cora H16 and H64 candidate matrices. The old dedicated
-experiments/aagu065_calibration.py implementation is retired; existing YAMLs,
-reports, and run evidence remain unchanged.
+The six conditions remain independent: Cora, CiteSeer, and PubMed each have
+separate H16 and H64 theory results, candidate tables, Observer analyses and
+frozen parameters. No cross-dataset or cross-width parameter transfer is valid.

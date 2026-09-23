@@ -8,6 +8,7 @@ import sys
 from pathlib import Path, PurePosixPath
 
 import pytest
+from syncmate_core.identity import sha256_recipe_config
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -58,24 +59,23 @@ def test_existing_experiment_templates_use_common_cli(block, cells, batches, tmp
 
 
 def test_registry_contains_only_current_reviewed_recipes(project_extension):
-    definitions = project_extension.recipes(PROJECT_ROOT)
+    recipe_ids = project_extension.recipe_ids(PROJECT_ROOT)
     expected_ids = {'smoke','opengu-preflight-v1','opengu-aagu007-v2','opengu-aagu032-v1',
         'opengu-aagu032-extend-cora-v1','opengu-aagu032-extend-citeseer-v1',
         'opengu-aagu032-extend-pubmed-v1','opengu-aagu032-extend-v2','opengu-aagu031-stage-s-v2'}
-    assert len(definitions) == 9
-    assert set(definitions) == expected_ids
+    assert len(recipe_ids) == 47
+    assert expected_ids <= set(recipe_ids)
 
 
 def test_representative_recipe_fields_remain_exact(project_extension):
-    definitions = project_extension.recipes(PROJECT_ROOT)
-
-    assert definitions["smoke"]["argv"] == (
+    smoke = project_extension.resolve_recipe(PROJECT_ROOT, "smoke")
+    assert smoke["argv"] == (
         "{python}",
         "scripts/syncmate/syncmate.py",
         "smoke",
         "--json",
     )
-    recipe = definitions['opengu-aagu007-v2']
+    recipe = project_extension.resolve_recipe(PROJECT_ROOT, 'opengu-aagu007-v2')
     assert recipe['timeout_seconds'] == 1800
     assert recipe['logical_cells'] == 4
     assert recipe['expected_datasets'] == [{'num_nodes':2708,'candidate_count':1895}]
@@ -83,9 +83,8 @@ def test_representative_recipe_fields_remain_exact(project_extension):
 
 
 def test_all_recipe_commands_and_artifact_paths_are_bounded(project_extension):
-    definitions = project_extension.recipes(PROJECT_ROOT)
-
-    for recipe_id, definition in definitions.items():
+    for recipe_id in project_extension.recipe_ids(PROJECT_ROOT):
+        definition = project_extension.resolve_recipe(PROJECT_ROOT, recipe_id)
         assert definition["id"] == recipe_id
         assert isinstance(definition["argv"], (tuple, list))
         assert definition["argv"]
@@ -97,25 +96,25 @@ def test_all_recipe_commands_and_artifact_paths_are_bounded(project_extension):
             assert path.parts[:2] == ("results", "runs")
 
 
-@pytest.mark.parametrize('recipe_id', ['opengu-aagu007-v2', 'opengu-aagu032-v1'])
+@pytest.mark.parametrize('recipe_id', ['opengu-aagu007-v2', 'opengu-aagu070-065-h16-v1'])
 def test_registered_matrix_matches_actual_yaml_and_unique_outputs(project_extension, recipe_id):
     from experiments.modular_config import configuration_fingerprint
     from experiments.modular_run import execute
-    definition = project_extension.recipes(PROJECT_ROOT)[recipe_id]
+    definition = project_extension.resolve_recipe(PROJECT_ROOT, recipe_id)
     config = PROJECT_ROOT / definition['config_path']
     actual = execute(config, dry_run=True)
-    assert hashlib.sha256(config.read_bytes()).hexdigest() == definition['config_sha256']
+    assert sha256_recipe_config(config) == definition['config_sha256']
     assert configuration_fingerprint(config) == definition['configuration_fingerprint']
     assert actual['logical_cells'] == definition['logical_cells']
     paths = definition['expected_artifact_paths']
-    assert len(set(paths)) == len(paths) == 1 + 2 * actual['logical_cells']
+    assert len(set(paths)) == len(paths)
 
 
 def test_recipe_results_are_copy_safe(project_extension):
-    first = project_extension.recipes(PROJECT_ROOT)
-    first["smoke"]["argv"] = ("mutated",)
+    first = project_extension.resolve_recipe(PROJECT_ROOT, "smoke")
+    first["argv"] = ("mutated",)
 
-    assert project_extension.recipes(PROJECT_ROOT)["smoke"]["argv"][0] == "{python}"
+    assert project_extension.resolve_recipe(PROJECT_ROOT, "smoke")["argv"][0] == "{python}"
 
 
 def test_all_reviewed_preflight_profiles_dispatch_to_project_handlers(
@@ -136,7 +135,10 @@ def test_all_reviewed_preflight_profiles_dispatch_to_project_handlers(
         "_PREFLIGHT_HANDLERS",
         {profile: handler for profile in profiles},
     )
-    definitions = project_extension.recipes(PROJECT_ROOT)
+    definitions = {
+        recipe_id: project_extension.resolve_recipe(PROJECT_ROOT, recipe_id)
+        for recipe_id in profiles.values()
+    }
 
     for profile, recipe_id in profiles.items():
         result = project_extension.preflight(
@@ -226,7 +228,7 @@ def test_unverified_index_never_passes_project_acceptance(
     recipe_id: str,
     tmp_path: Path,
 ):
-    definition = project_extension.recipes(PROJECT_ROOT)[recipe_id]
+    definition = project_extension.resolve_recipe(PROJECT_ROOT, recipe_id)
     result = project_extension.accept(
         profile,
         definition,

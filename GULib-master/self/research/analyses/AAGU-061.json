@@ -1,0 +1,59 @@
+{
+  "id": "AAGU-061",
+  "title": "作者超参基础模型 PT",
+  "question": "按已确认架构与作者训练超参生成H16/H64纯权重，核验导出。",
+  "scope": "按已确认架构与作者训练超参生成H16/H64纯权重，核验导出。",
+  "configs": [
+    {
+      "label": "已交付训练配置",
+      "path": ".workblock/items/AAGU-061/evidence/aagu061_author_checkpoint.yaml",
+      "role": "current"
+    }
+  ],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-061/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-061/REPORT.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "complete",
+    "note": "用户接受基础模型交付；负曲率不等于求解稳定。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-061/REPORT.md"
+      }
+    ]
+  },
+  "decision": {
+    "state": "accepted",
+    "note": "只适用于本记录明确范围；新运行需独立确认。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-061/REPORT.md"
+      }
+    ]
+  },
+  "recorded_at": "2026-09-22",
+  "history": [
+    {
+      "id": "existing-delivery-record",
+      "at": "2026-09-22",
+      "stage": "analysis",
+      "note": "两份PT、SSH训练与回传核验已交付。 用户接受基础模型交付；负曲率不等于求解稳定。",
+      "evidence": [
+        {
+          "label": "结果与分析报告",
+          "path": ".workblock/items/AAGU-061/REPORT.md"
+        }
+      ]
+    }
+  ]
+}

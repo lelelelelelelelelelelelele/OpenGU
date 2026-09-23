@@ -12,7 +12,7 @@
 
 根级上下文及其信息入口已经生效，不在本文件重复。
 
-- 需要确认当前注册、准备状态或阻塞项时，只读取 WORKPLAN 中与目标实验相关的条目及其计划链接。
+- 需要确认实验配置、结果、分析和实验依赖时，读取 Work Plan 的目标实验记录及其来源。仅对明确引用的开发阻塞读取对应 WorkItem；运行准备核对实际 receipt，不从页面推断启动许可。
 - 准备正式启动或收集结果时，只读取 OpenGU DocMap 实验部分中与当前 launcher 对应的运行说明。
 - 出现 Selection/selector 或 GU method 缺陷，以及相关 Cache、Artifact、结果或证据的失效与恢复问题时，先读取 OpenGU DocMap 实验部分的重跑与缓存修复说明，确认影响范围和证据边界；只有范围明确后，才执行其中指向的机器端操作规范。
 - 仅做源码阅读或局部测试时，不加载正式运行和修复材料；dry-run 或 disposable smoke 只加载当前配置与 launcher 所需的相邻验证材料，不加载失败恢复材料。
@@ -35,7 +35,7 @@
 
 配置检查与实际执行都使用 `run.py → modular_config → modular_run`。本地dry-run命令为 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run`。普通执行和SyncMate注册均直接调用 `run.py <config.yaml> --run-id <id>`，没有专用stage或第二次YAML生成。运行设备只读取Core解析的 `.syncmate/device.yaml` 中 `execution_device`，执行根来自 `repo_path`；字段缺失或设备不可用即拒绝。Core按peer配置选择SSH目录及解释器，处理版本绑定、队列与回传。隔离验证另需显式 `--verification-root <temporary-root>`；该根须等于设备配置的 `repo_path`，测试资产须在根内。可用 `--device-config <temporary-device.yaml>` 指定临时设备文件；不能以本地验证代替正式SSH/GPU证据。
 
-数据/划分由公共小表及其真实manifest拥有，模型训练seed和Random抽样seed不改变split。不同合法划分使用不同实例与持久化资产，不自动物化缺失数据。旧formal-v2配置已退役，其原文仅保留在历史配置档案中；当前科学范围以各WorkItem及普通组合表为准。
+数据/划分由公共小表及其真实manifest拥有，模型训练seed和Random抽样seed不改变split。不同合法划分使用不同实例与持久化资产，不自动物化缺失数据。旧formal-v2配置已退役，其原文仅保留在历史配置档案中；当前科学范围以Work Plan实验记录及普通组合表为准；旧WorkItem仅作历史定义或开发来源。
 
 ## 5. 通用矩阵与证据接缝
 
@@ -98,3 +98,9 @@ and training/evaluation edges. Remote Cache readers require an explicit `dataset
 These payloads and inputs stay remote. Result collection reads only the separate
 run/cell documents and never collects Dataset/Split dependencies.
 Historical Output v1 files are not converted, removed or automatically rerun.
+
+## 实验管理入口
+
+正式运行、重跑、指标补算和分析统一从 [Work Plan Runbook](../self/research/RUNBOOK.md) 进入。该指引拥有“实验配置 → 独立 Recipe YAML → 只读预览 → 代码交付与同步 → SyncMate 提交 → 回执与回传”的操作流程，以及运行中修改配置的处理边界。新增或修改配置时同步审阅 `scripts/syncmate/recipes/<id>.yaml`；配置输入改变须显式重新生成 SHA/指纹，不编辑 Python 登记表，不改写旧任务或在运行中更新共享 SSH checkout。
+
+实验过程不再使用Block Claim/分支生命周期；只有软件或正式配置变更由开发Block交付。历史材料中的WorkItem执行记录按其日期作为来源，不重新建立双份实验状态。
