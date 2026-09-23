@@ -233,6 +233,17 @@ def test_time_budget_is_optional_for_existing_entries(tmp_path):
         model.validate(rows)
 
 
+def test_only_recorded_estimates_must_match_the_current_scope():
+    rows=records();rows[0]['time_budget']['scope']='Historical scope'
+    with pytest.raises(ValueError,match='current full experiment scope'):
+        model.validate(rows)
+
+    rows=records();rows[0]['execution']['state']='not_required'
+    rows[0]['time_budget']=dict(estimate_status='not_applicable',estimated_seconds=None,
+        scope='Historical scope',basis='No GPU run is required')
+    model.validate(rows)
+
+
 def test_attempt_requires_actual_runtime_and_cache_evidence():
     rows=records();rows[0]['attempts']=[timed_attempt()]
     model.validate(rows)

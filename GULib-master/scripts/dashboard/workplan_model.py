@@ -155,7 +155,7 @@ def validate_time_budget(record):
     seconds = budget.get('estimated_seconds')
     if status not in ESTIMATE_STATUSES or not budget.get('scope') or not budget.get('basis'):
         raise ValueError('Invalid experiment time estimate: ' + record['id'])
-    if budget['scope'] != record['scope']:
+    if status == 'estimated' and budget['scope'] != record['scope']:
         raise ValueError('Estimate must cover the current full experiment scope: ' + record['id'])
     if status == 'estimated':
         _finite_seconds(seconds, 'estimated seconds', positive=True)
