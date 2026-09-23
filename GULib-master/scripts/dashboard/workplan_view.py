@@ -103,7 +103,7 @@ def time_budget_section(record, sources, page):
         ratio = summary['deviation_ratio']
         deviation = f'{match_names[state]}：{seconds:+,.2f} 秒（{ratio:+.1%}）'
     if summary['started_attempts'] or summary['unstructured_attempts']:
-        actual = (f'{seconds_text(summary["actual_seconds"])}；已启动 {summary["started_attempts"]} 次，'
+        actual = (f'{seconds_text(summary["actual_seconds"])}；记录中确认已启动 {summary["started_attempts"]} 次，'
                   f'其中 {summary["recorded_actual_attempts"]} 次有实际耗时')
         if summary['unstructured_attempts']:
             actual += f'；{summary["unstructured_attempts"]} 次历史尝试未记录 runtime'
