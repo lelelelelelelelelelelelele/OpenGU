@@ -1,19 +1,19 @@
 {
-  "id": "AAGU-013",
-  "title": "代理模型选集迁移",
-  "question": "固定目标模型，只改变选点使用的代理模型，比较迁移效果。",
-  "scope": "固定目标模型，只改变选点使用的代理模型，比较迁移效果。",
+  "id": "EXP-008",
+  "title": "K5 噪声参照",
+  "question": "明确当前可执行 K5 参照与适用范围。",
+  "scope": "明确当前可执行 K5 参照与适用范围。",
   "configs": [],
   "sources": [
     {
       "label": "历史定义",
-      "path": ".workblock/items/AAGU-013/WORKITEM.md"
+      "path": ".workblock/items/AAGU-008/WORKITEM.md"
     }
   ],
   "attempts": [],
   "analysis": {
     "state": "not_started",
-    "note": "暂无本轮分析证据。",
+    "note": "未关联现行分析。",
     "evidence": []
   },
   "decision": {

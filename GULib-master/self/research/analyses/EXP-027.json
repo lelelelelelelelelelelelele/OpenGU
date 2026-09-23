@@ -1,19 +1,19 @@
 {
-  "id": "AAGU-022",
-  "title": "大图 D-full 计时与外推",
-  "question": "以大图探针检验成本外推，分别报告实测与估计。",
-  "scope": "以大图探针检验成本外推，分别报告实测与估计。",
+  "id": "EXP-027",
+  "title": "IF-family collateral 证据恢复",
+  "question": "先确认受影响证据范围，再运行或收集尚缺部分。",
+  "scope": "先确认受影响证据范围，再运行或收集尚缺部分。",
   "configs": [],
   "sources": [
     {
       "label": "历史定义",
-      "path": ".workblock/items/AAGU-022/WORKITEM.md"
+      "path": ".workblock/items/AAGU-027/WORKITEM.md"
     }
   ],
   "attempts": [],
   "analysis": {
     "state": "not_started",
-    "note": "小图证据与探针分析尚未具备。",
+    "note": "恢复边界待形成。",
     "evidence": []
   },
   "decision": {

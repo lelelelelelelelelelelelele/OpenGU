@@ -1,5 +1,5 @@
 {
-  "id": "AAGU-051",
+  "id": "EXP-051",
   "title": "Random 多选集响应分布",
   "question": "固定训练seed42，十个Random选集，四GU与Retrain，三数据集。",
   "scope": "固定训练seed42，十个Random选集，四GU与Retrain，三数据集。",

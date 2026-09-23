@@ -1,5 +1,5 @@
 {
-  "id": "AAGU-065",
+  "id": "EXP-065",
   "title": "Cora H16/H64 固定 PT 参数校准",
   "question": "分别在Cora H16/H64 baseline上为GIF/IDEA形成可验证的冻结参数组。",
   "scope": "062 Batch第1项：保留已接受H16校准与跨请求证据，补充H64独立校准；参数绑定baseline，Retrain不是参数绑定对象。 本批采用062的用户委托阶段放行规则，最终科学验收集中在062。",
@@ -51,7 +51,7 @@
     },
     {
       "label": "062：065–068 Batch定义与来源",
-      "path": "self/research/experiments/AAGU-062.json"
+      "path": "self/research/experiments/EXP-062.json"
     },
     {
       "label": "049前序诊断：更新链与求解进展",

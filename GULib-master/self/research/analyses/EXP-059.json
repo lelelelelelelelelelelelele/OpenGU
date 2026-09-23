@@ -1,5 +1,5 @@
 {
-  "id": "AAGU-059",
+  "id": "EXP-059",
   "title": "GIF/IDEA 作者参数收敛诊断",
   "question": "固定Cora请求，对hidden16/64、100/200/400步作诊断。",
   "scope": "固定Cora请求，对hidden16/64、100/200/400步作诊断。",

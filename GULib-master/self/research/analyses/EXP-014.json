@@ -1,19 +1,19 @@
 {
-  "id": "AAGU-039",
-  "title": "Graph CP3/CP6 独立比较",
-  "question": "独立比较训练轨迹与D-full，不重开已完成P-point/R-point比较。",
-  "scope": "独立比较训练轨迹与D-full，不重开已完成P-point/R-point比较。",
+  "id": "EXP-014",
+  "title": "大图 GU 范围扩展",
+  "question": "在大图检验已确认策略和GU结果的适用范围。",
+  "scope": "在大图检验已确认策略和GU结果的适用范围。",
   "configs": [],
   "sources": [
     {
       "label": "历史定义",
-      "path": ".workblock/items/AAGU-039/WORKITEM.md"
+      "path": ".workblock/items/AAGU-014/WORKITEM.md"
     }
   ],
   "attempts": [],
   "analysis": {
     "state": "not_started",
-    "note": "尚无本项独立比较。",
+    "note": "暂无当前大图GU分析。",
     "evidence": []
   },
   "decision": {

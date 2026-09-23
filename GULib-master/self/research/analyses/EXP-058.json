@@ -1,19 +1,19 @@
 {
-  "id": "AAGU-027",
-  "title": "IF-family collateral 证据恢复",
-  "question": "先确认受影响证据范围，再运行或收集尚缺部分。",
-  "scope": "先确认受影响证据范围，再运行或收集尚缺部分。",
+  "id": "EXP-058",
+  "title": "Backbone 泛化对照",
+  "question": "使用预先固定的代表策略与GU，检验不同Backbone的适用范围。",
+  "scope": "使用预先固定的代表策略与GU，检验不同Backbone的适用范围。",
   "configs": [],
   "sources": [
     {
       "label": "历史定义",
-      "path": ".workblock/items/AAGU-027/WORKITEM.md"
+      "path": ".workblock/items/AAGU-058/WORKITEM.md"
     }
   ],
   "attempts": [],
   "analysis": {
     "state": "not_started",
-    "note": "恢复边界待形成。",
+    "note": "暂无本轮泛化分析。",
     "evidence": []
   },
   "decision": {

@@ -1,5 +1,5 @@
 {
-  "id": "AAGU-066",
+  "id": "EXP-066",
   "title": "Cora H16/H64 冻结参数的 Random 请求验证",
   "question": "各宽度的冻结GIF/IDEA参数能否在预定Random请求上保持数值稳定并形成可解释的Retrain比较？",
   "scope": "062 Batch第2项：H16/H64分别消费065对应baseline的冻结组；10%预算、Random104246/104247/104248，各请求共享Selection，配对同宽度Retrain和no-update参照。已有065证据核验后按覆盖复用。 本批采用062的用户委托阶段放行规则，最终科学验收集中在062。",
@@ -15,7 +15,7 @@
     },
     {
       "label": "062：065–068 Batch定义与来源",
-      "path": "self/research/experiments/AAGU-062.json"
+      "path": "self/research/experiments/EXP-062.json"
     }
   ],
   "attempts": [],

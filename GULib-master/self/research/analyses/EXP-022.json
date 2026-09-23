@@ -1,19 +1,19 @@
 {
-  "id": "AAGU-008",
-  "title": "K5 噪声参照",
-  "question": "明确当前可执行 K5 参照与适用范围。",
-  "scope": "明确当前可执行 K5 参照与适用范围。",
+  "id": "EXP-022",
+  "title": "大图 D-full 计时与外推",
+  "question": "以大图探针检验成本外推，分别报告实测与估计。",
+  "scope": "以大图探针检验成本外推，分别报告实测与估计。",
   "configs": [],
   "sources": [
     {
       "label": "历史定义",
-      "path": ".workblock/items/AAGU-008/WORKITEM.md"
+      "path": ".workblock/items/AAGU-022/WORKITEM.md"
     }
   ],
   "attempts": [],
   "analysis": {
     "state": "not_started",
-    "note": "未关联现行分析。",
+    "note": "小图证据与探针分析尚未具备。",
     "evidence": []
   },
   "decision": {

@@ -1,19 +1,19 @@
 {
-  "id": "AAGU-058",
-  "title": "Backbone 泛化对照",
-  "question": "使用预先固定的代表策略与GU，检验不同Backbone的适用范围。",
-  "scope": "使用预先固定的代表策略与GU，检验不同Backbone的适用范围。",
+  "id": "EXP-039",
+  "title": "Graph CP3/CP6 独立比较",
+  "question": "独立比较训练轨迹与D-full，不重开已完成P-point/R-point比较。",
+  "scope": "独立比较训练轨迹与D-full，不重开已完成P-point/R-point比较。",
   "configs": [],
   "sources": [
     {
       "label": "历史定义",
-      "path": ".workblock/items/AAGU-058/WORKITEM.md"
+      "path": ".workblock/items/AAGU-039/WORKITEM.md"
     }
   ],
   "attempts": [],
   "analysis": {
     "state": "not_started",
-    "note": "暂无本轮泛化分析。",
+    "note": "尚无本项独立比较。",
     "evidence": []
   },
   "decision": {

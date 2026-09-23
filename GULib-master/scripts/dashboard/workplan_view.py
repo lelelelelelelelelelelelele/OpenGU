@@ -11,7 +11,7 @@ from scripts.dashboard import workplan_model as model
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'self/research'
 STAGE_NAMES = {'preparation': '创建与准备', 'execution': '运行', 'analysis': '分析', 'decision': '科学决定'}
-FAMILIES = {'main': 'GU 主实验', 'if': 'IF 与数值验证', 'im': 'IM', 'baseline': '共同参照', 'shared': '跨实验分析'}
+FAMILIES = {'main': 'GU 主实验', 'if': 'IF 与数值验证', 'im': 'IM', 'baseline': '共同参照', 'shared': '跨实验分析', 'training-diagnostic': '训练诊断'}
 
 
 def esc(text):
@@ -133,7 +133,7 @@ def index_page(frame, records, sources, page):
     body += ''.join(f'<div><strong>{sum(r["category"]==k for r in records)}</strong><span>{label}</span></div>' for k, label in [('active', '当前维护'), ('planned', '待准备'), ('history', '历史与已交付')])
     body += f'</div></header><p class="snapshot">来源核对 {frame["reviewed_at"]} · 页面为本地生成快照，运行实时监控见 SyncMate。</p><section id="experiments"><h2>实验总表</h2><div class="filters"><label>范围<select id="category"><option value="current">当前与待准备</option><option value="all">全部实验</option><option value="active">当前维护</option><option value="planned">待准备</option><option value="history">历史与已交付</option></select></label><label>研究组<select id="family"><option value="all">全部研究组</option>'
     body += ''.join(f'<option value="{k}">{v}</option>' for k, v in FAMILIES.items())
-    body += '</select></label><label>工作视图<select id="view"><option value="all">全部进度</option><option value="blocked">存在未满足依赖</option><option value="run">待运行 / 待核对</option><option value="analysis">待分析 / 待决定</option></select></label><label class="search">搜索<input id="search" type="search" placeholder="AAGU-032、YAML、研究问题"></label><button id="clear">重置</button></div><p id="count" role="status" aria-live="polite"></p><div class="table-scroll"><table class="experiment-table"><thead><tr><th>实验 / 定义</th><th>准备</th><th>运行</th><th>分析</th><th>依赖与下一步</th></tr></thead><tbody>'
+    body += '</select></label><label>工作视图<select id="view"><option value="all">全部进度</option><option value="blocked">存在未满足依赖</option><option value="run">待运行 / 待核对</option><option value="analysis">待分析 / 待决定</option></select></label><label class="search">搜索<input id="search" type="search" placeholder="EXP-032、YAML、研究问题"></label><button id="clear">重置</button></div><p id="count" role="status" aria-live="polite"></p><div class="table-scroll"><table class="experiment-table"><thead><tr><th>实验 / 定义</th><th>准备</th><th>运行</th><th>分析</th><th>依赖与下一步</th></tr></thead><tbody>'
     for r in sorted(records, key=lambda item: ({'active': 0, 'planned': 1, 'history': 2}[item['category']], item['id'])):
         unmet = [d for d in model.dependencies(r, records, sources.canonical) if not d['resolved']]
         views = ['blocked'] if unmet else []
@@ -163,9 +163,9 @@ def catalog(root, records):
             relative = path.relative_to(root).as_posix()
             data = yaml.safe_load(path.read_text(encoding='utf-8'))
             result.append(dict(group, path=relative, label=path.name, role=roles.get(relative, '辅助 / 未单列为现行入口'), config_kind=data.get('kind', '专题定义') if isinstance(data, dict) else '未知'))
-    unclassified = [p.name for p in (root / 'experiments/configs').iterdir() if p.is_dir() and p.name.startswith('aagu') and p.name not in groups]
+    unclassified = [p.name for p in (root / 'experiments/configs').iterdir() if p.is_dir() and p.name.startswith(('aagu', 'exp')) and p.name not in groups]
     if unclassified:
-        raise ValueError('Unclassified AAGU configuration groups: ' + ', '.join(unclassified))
+        raise ValueError('Unclassified experiment configuration groups: ' + ', '.join(unclassified))
     return result
 
 

@@ -1,5 +1,5 @@
 {
-  "id": "AAGU-011",
+  "id": "EXP-011",
   "title": "GU 主矩阵 · Table02",
   "question": "四GU与Retrain、三数据集、三训练seed，比较IF、RR与共同基线。",
   "scope": "四GU与Retrain、三数据集、三训练seed，比较IF、RR与共同基线。",

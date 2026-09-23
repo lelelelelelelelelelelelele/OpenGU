@@ -1,23 +1,23 @@
 {
-  "id": "AAGU-068",
-  "title": "PubMed H16/H64 固定 PT 校准与验证",
-  "question": "PubMed各宽度baseline能否分别形成可用冻结组并通过多请求验证？",
-  "scope": "062 Batch第4项：核验/准备PubMed H16/H64 baseline；GIF/IDEA按方法及checkpoint分别校准冻结，seed104245校准，104246/104247/104248验证，10%预算，匹配同宽度Retrain；不直接迁移Cora参数。 本批采用062的用户委托阶段放行规则，最终科学验收集中在062。",
+  "id": "EXP-067",
+  "title": "CiteSeer H16/H64 固定 PT 校准与验证",
+  "question": "CiteSeer各宽度baseline能否分别形成可用冻结组并通过多请求验证？",
+  "scope": "062 Batch第3项：核验/准备CiteSeer H16/H64 baseline；GIF/IDEA按方法及checkpoint分别校准冻结，seed104245校准，104246/104247/104248验证，10%预算，匹配同宽度Retrain；不直接迁移Cora参数。 本批采用062的用户委托阶段放行规则，最终科学验收集中在062。",
   "configs": [
     {
       "label": "H64 Observer candidates (not executed)",
-      "path": "experiments/configs/aagu068/observer_candidates_h64.yaml",
+      "path": "experiments/configs/aagu067/observer_candidates_h64.yaml",
       "role": "candidate"
     }
   ],
   "sources": [
     {
       "label": "历史定义",
-      "path": ".workblock/items/AAGU-068/WORKITEM.md"
+      "path": ".workblock/items/AAGU-067/WORKITEM.md"
     },
     {
       "label": "062：065–068 Batch定义与来源",
-      "path": "self/research/experiments/AAGU-062.json"
+      "path": "self/research/experiments/EXP-062.json"
     }
   ],
   "attempts": [],
@@ -27,18 +27,18 @@
     "h64_theory": {
       "state": "complete",
       "source_commit": "501716bc30d59e39fa21d75c1f7af43a4ff47572",
-      "run_id": "h64-theory-20260924T052657-pubmed",
-      "result_sha256": "5fc4b3f4cdfce95876b41bc68e598e1279c60c3e279597ea041d43435066d6f2",
+      "run_id": "h64-theory-20260924T052657-citeseer",
+      "result_sha256": "985ce5d84fbf36086ef7c77cb3c86531bc6029db5939e15ea3753857c1ebab87",
       "checkpoint": {
-        "path": "/autodl-fs/data/OpenGU/GULib-master/results/runtime/modular/checkpoints/d3c8dc969190c76974cab8785950f2d09a9b3d980f1515a7f7deb9ef07a184b6.pt",
-        "file_sha256": "7596c451a94c2954591dd46881783bf6b8ecc8d8aa8b8cefd84bdc2ce527e07a",
-        "state_hash": "61eb2b0d4b92f78299cc69033f5741b31d9a51b28343fc003da46ed4d5d13ffd"
+        "path": "/autodl-fs/data/OpenGU/GULib-master/results/runtime/modular/checkpoints/bf2488a0e4445907c54954dc11efb995a80e50f24df321bf7b71682e5c960ddd.pt",
+        "file_sha256": "afd6867bc6feef4825986ef7492634d00f77a6757a7b81828cc3adaea7be186c",
+        "state_hash": "0471e54ede34af0ca1bb72e62ac513806c187f7e65685684e99ff0cf7358f532"
       },
       "scope": "H64 GIF/IDEA finite Lanczos estimates and rho=0.8/0.5 proposals only; no full-spectrum certificate",
       "evidence": [
         {
           "label": "H64 theory result with full input identity",
-          "path": "self/research/analyses/h64-theory-20260924/pubmed.json"
+          "path": "self/research/analyses/h64-theory-20260924/citeseer.json"
         },
         {
           "label": "H64 candidate table review",
@@ -49,7 +49,7 @@
     "evidence": [
       {
         "label": "H64 theory result with full input identity",
-        "path": "self/research/analyses/h64-theory-20260924/pubmed.json"
+        "path": "self/research/analyses/h64-theory-20260924/citeseer.json"
       },
       {
         "label": "H64 candidate table review",
@@ -73,7 +73,7 @@
       "evidence": [
         {
           "label": "H64 theory result with full input identity",
-          "path": "self/research/analyses/h64-theory-20260924/pubmed.json"
+          "path": "self/research/analyses/h64-theory-20260924/citeseer.json"
         },
         {
           "label": "H64 candidate table review",

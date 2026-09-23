@@ -1,5 +1,5 @@
 {
-  "id": "AAGU-056",
+  "id": "EXP-056",
   "title": "大图 RR-1024 Selector 可行性",
   "question": "ogbn-arxiv、5%预算、seed11、K5927，仅纯Selector。",
   "scope": "ogbn-arxiv、5%预算、seed11、K5927，仅纯Selector。",

@@ -6,18 +6,18 @@ Work Plan 与 Block 平行。这里拥有实验创建、定义修订、运行尝
 
 ## 事实来源
 
-- `experiments/AAGU-NNN.json` 是持续维护的本地实验状态，整个子目录不由 Git 跟踪；它不是可随意清理的缓存。保存当前范围、配置引用、准备/运行阶段、依赖、attempts、history 和下一步。沿用原编号，不移动正式 YAML。
+- `experiments/EXP-NNN.json` 是持续维护的本地实验状态，整个子目录不由 Git 跟踪；它不是可随意清理的缓存。保存当前范围、配置引用、准备/运行阶段、依赖、attempts、history 和下一步。实验编号使用 EXP-NNN；既有配置和证据目录保留原路径。
 - `configs` 只引用原 YAML，分别标注现行、辅助、历史和候选。配置参数由 YAML 拥有，界面直接解析，禁止复制出第二套参数。
 - `attempts` 按 run_id 保存每次尝试与证据；重跑追加独立记录，保留失败及被替代运行，不覆盖旧结果。计数只适用于该次运行范围，不跨配置或历史累加。
 - `history` 保存有日期和来源的过程事件。只追加事件；纠错新增说明，现行状态直接改为已核实事实。不把迁入日期伪装为历史实际运行日期。
-- `analyses/AAGU-NNN.json` 由 Git 跟踪，独立保存 `analysis`、`decision`、记录日期、所述范围、配置引用、运行身份/manifest、来源与科学事件。这里的范围和 attempts 是该分析的证据上下文，不随当前运行进度自动刷新。软件通过、运行完成、文件校验均不自动成为科学接受。
+- `analyses/EXP-NNN.json` 由 Git 跟踪，独立保存 `analysis`、`decision`、记录日期、所述范围、配置引用、运行身份/manifest、来源与科学事件。这里的范围和 attempts 是该分析的证据上下文，不随当前运行进度自动刷新。软件通过、运行完成、文件校验均不自动成为科学接受。
 - `dependencies` 引用其他实验及所需证据、分析或科学接受；要求验证成功的扩展使用successful_acceptance，并要求父实验decision.success_confirmed明确为true，接受否定结果不会放行。`blocks` 只引用明确开发依赖，写明阻塞阶段和原因。
 - Block 状态从指定 WORKITEM.md 只读读取。还需 `delivery_confirmed` 表明已核对本实验所需交付。缺失、未知、未接受或未确认落地均不自动解除；解除不触发运行。禁止扫描全体 WorkItems、复制Block图或强制映射每个Block。
 - `framework.json` 保存研究问题说明；`config_groups.json` 只声明配置目录归属。开发验证 YAML 可以存在而不成为科研实验。
 
 ## Agent 维护
 
-实验创建及日常运行更新只维护被忽略的 experiments/，不提交、不为每次更新创建 Block、Claim、分支或候选。分析草稿留在 experiments/drafts/ 子目录，完成分析后才显式维护 analyses/ 中对应记录并独立提交。需要修改算法、执行器、指标能力或正式可执行配置时，使用开发 Block，并在实验记录引用其交付。新实验采用唯一 AAGU 编号；不调用 Block allocator 创建伪开发任务，暂未分配的编号必须先核对现有实验及共享编号占用。
+实验创建及日常运行更新只维护被忽略的 experiments/，不提交、不为每次更新创建 Block、Claim、分支或候选。分析草稿留在 experiments/drafts/ 子目录，完成分析后才显式维护 analyses/ 中对应记录并独立提交。需要修改算法、执行器、指标能力或正式可执行配置时，使用开发 Block，并在实验记录引用其交付。新实验采用独立的 EXP-NNN 编号，读取现有实验编号后分配下一个未占用编号；不调用 Block allocator。新建实验配置目录使用 expNNN，既有 aaguNNN 目录继续按 configs 引用使用。WorkBlock 编号及 blocks 引用继续使用 AAGU-NNN；两套编号独立分配。
 
 更新 JSON 后运行校验与重建；不编辑 HTML。状态记录不得包含 analysis/decision，生成器从 analyses/ 读取它们；尚无分析文件时显示尚未分析/尚未提交决定。分析中等工作进度记录在状态的 next_step/history，不为进度改动已保存分析。新增实验按已有记录字段形成独立文件；没有证据的运行用 unknown，不把缺失当成0或已完成。维护接口是文件与生成器，当前前端为只读视图，不是在线编辑器或实时调度台。
 

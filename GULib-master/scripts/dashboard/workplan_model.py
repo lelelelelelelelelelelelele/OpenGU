@@ -13,7 +13,8 @@ STATES = {
     'analysis': {'not_started': '待分析', 'working': '分析中', 'review': '待复核', 'complete': '分析已交付'},
     'decision': {'pending': '待科学决定', 'accepted': '已接受所述范围', 'rejected': '未接受', 'not_requested': '尚未提交决定'},
 }
-ID = re.compile(r'AAGU-\d{3}')
+EXPERIMENT_ID = re.compile(r'EXP-\d{3}')
+BLOCK_ID = re.compile(r'AAGU-\d{3}')
 
 
 def read_json(path):
@@ -53,7 +54,7 @@ def read_records(directory):
     records = {}
     for path in sorted(directory.glob('*.json')):
         record = read_json(path)
-        if not ID.fullmatch(path.stem) or record.get('id') != path.stem:
+        if not EXPERIMENT_ID.fullmatch(path.stem) or record.get('id') != path.stem:
             raise ValueError('Experiment filename/ID mismatch: ' + str(path))
         records[path.stem] = record
     return records
@@ -64,7 +65,7 @@ def validate(records):
     if len(ids) != len(records):
         raise ValueError('Duplicate experiment ID')
     for r in records:
-        if not ID.fullmatch(r['id']):
+        if not EXPERIMENT_ID.fullmatch(r['id']):
             raise ValueError('Invalid experiment ID')
         for field in ('title', 'question', 'scope', 'next_step', 'reviewed_at', 'history', 'sources'):
             if not r.get(field):
@@ -88,7 +89,7 @@ def validate(records):
             if dep['requirement'] not in {'evidence', 'analysis', 'accepted', 'successful_acceptance'}:
                 raise ValueError('Invalid experiment requirement')
         for b in r['blocks']:
-            if not ID.fullmatch(b['id']) or b['stage'] not in {'preparation', 'execution', 'analysis'} or not b['reason']:
+            if not BLOCK_ID.fullmatch(b['id']) or b['stage'] not in {'preparation', 'execution', 'analysis'} or not b['reason']:
                 raise ValueError('Invalid Block dependency')
             if not b['delivery_note'] or type(b['delivery_confirmed']) is not bool:
                 raise ValueError('Block delivery observation required')
