@@ -3,7 +3,13 @@
   "title": "PubMed H16/H64 固定 PT 校准与验证",
   "question": "PubMed各宽度baseline能否分别形成可用冻结组并通过多请求验证？",
   "scope": "062 Batch第4项：核验/准备PubMed H16/H64 baseline；GIF/IDEA按方法及checkpoint分别校准冻结，seed104245校准，104246/104247/104248验证，10%预算，匹配同宽度Retrain；不直接迁移Cora参数。 本批采用062的用户委托阶段放行规则，最终科学验收集中在062。",
-  "configs": [],
+  "configs": [
+    {
+      "label": "H64 Observer candidates (not executed)",
+      "path": "experiments/configs/aagu068/observer_candidates_h64.yaml",
+      "role": "candidate"
+    }
+  ],
   "sources": [
     {
       "label": "历史定义",
@@ -16,9 +22,40 @@
   ],
   "attempts": [],
   "analysis": {
-    "state": "not_started",
-    "note": "暂无本数据集证据。",
-    "evidence": []
+    "state": "working",
+    "note": "H64 theory calculation complete and archived; 12-cell Observer candidate table generated and dry-run validated. H16 pending; no Observer calibration or parameter freeze.",
+    "h64_theory": {
+      "state": "complete",
+      "source_commit": "501716bc30d59e39fa21d75c1f7af43a4ff47572",
+      "run_id": "h64-theory-20260924T052657-pubmed",
+      "result_sha256": "5fc4b3f4cdfce95876b41bc68e598e1279c60c3e279597ea041d43435066d6f2",
+      "checkpoint": {
+        "path": "/autodl-fs/data/OpenGU/GULib-master/results/runtime/modular/checkpoints/d3c8dc969190c76974cab8785950f2d09a9b3d980f1515a7f7deb9ef07a184b6.pt",
+        "file_sha256": "7596c451a94c2954591dd46881783bf6b8ecc8d8aa8b8cefd84bdc2ce527e07a",
+        "state_hash": "61eb2b0d4b92f78299cc69033f5741b31d9a51b28343fc003da46ed4d5d13ffd"
+      },
+      "scope": "H64 GIF/IDEA finite Lanczos estimates and rho=0.8/0.5 proposals only; no full-spectrum certificate",
+      "evidence": [
+        {
+          "label": "H64 theory result with full input identity",
+          "path": "self/research/analyses/h64-theory-20260924/pubmed.json"
+        },
+        {
+          "label": "H64 candidate table review",
+          "path": "self/research/analyses/h64-theory-20260924/README.md"
+        }
+      ]
+    },
+    "evidence": [
+      {
+        "label": "H64 theory result with full input identity",
+        "path": "self/research/analyses/h64-theory-20260924/pubmed.json"
+      },
+      {
+        "label": "H64 candidate table review",
+        "path": "self/research/analyses/h64-theory-20260924/README.md"
+      }
+    ]
   },
   "decision": {
     "state": "not_requested",
@@ -26,6 +63,23 @@
     "evidence": [],
     "success_confirmed": false
   },
-  "recorded_at": "2026-09-22",
-  "history": []
+  "recorded_at": "2026-09-24",
+  "history": [
+    {
+      "id": "h64-theory-archive-20260924",
+      "at": "2026-09-24",
+      "stage": "analysis",
+      "note": "Archived completed H64 theory subanalysis and generated candidate table; original computation SHA preserved. No stage acceptance.",
+      "evidence": [
+        {
+          "label": "H64 theory result with full input identity",
+          "path": "self/research/analyses/h64-theory-20260924/pubmed.json"
+        },
+        {
+          "label": "H64 candidate table review",
+          "path": "self/research/analyses/h64-theory-20260924/README.md"
+        }
+      ]
+    }
+  ]
 }
