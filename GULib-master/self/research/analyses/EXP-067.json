@@ -5,9 +5,9 @@
   "scope": "062 Batch第3项：核验/准备CiteSeer H16/H64 baseline；GIF/IDEA按方法及checkpoint分别校准冻结，seed104245校准，104246/104247/104248验证，10%预算，匹配同宽度Retrain；不直接迁移Cora参数。 本批采用062的用户委托阶段放行规则，最终科学验收集中在062。",
   "configs": [
     {
-      "label": "H64 Observer candidates (not executed)",
+      "label": "H64 Observer calibration table (completed)",
       "path": "experiments/configs/aagu067/observer_candidates_h64.yaml",
-      "role": "candidate"
+      "role": "current"
     }
   ],
   "sources": [
@@ -20,10 +20,32 @@
       "path": "self/research/experiments/EXP-062.json"
     }
   ],
-  "attempts": [],
+  "attempts": [
+    {
+      "job_id": "aagu067-h64-observer-20260924",
+      "run_id": "aagu067-citeseer-h64-observer-104245-v1",
+      "commit": "b6f017987003ed8bef7d1c7284a80739e1c60792",
+      "status": "verified",
+      "scope": "用户本次指定CiteSeer H64 12格校准表；不包含后续多请求验证",
+      "evidence": [
+        {
+          "label": "controller",
+          "path": ".syncmate/controller/aagu067-h64-observer-20260924.json"
+        },
+        {
+          "label": "runs",
+          "path": ".syncmate/runs/aagu067-h64-observer-20260924.json"
+        },
+        {
+          "label": "trusted delivery",
+          "path": ".syncmate/deliveries/aagu067-h64-observer-20260924.json"
+        }
+      ]
+    }
+  ],
   "analysis": {
     "state": "working",
-    "note": "H64 theory calculation complete and archived; 12-cell Observer candidate table generated and dry-run validated. H16 pending; no Observer calibration or parameter freeze.",
+    "note": "H64理论与单请求Observer校准分析已完成，GIF/IDEA均stable，按既定规则选定rho=0.8。H16及后续多请求验证未完成；不代表完整实验科学验收。",
     "h64_theory": {
       "state": "complete",
       "source_commit": "501716bc30d59e39fa21d75c1f7af43a4ff47572",
@@ -54,8 +76,53 @@
       {
         "label": "H64 candidate table review",
         "path": "self/research/analyses/h64-theory-20260924/README.md"
+      },
+      {
+        "label": "H64 Observer calibration analysis",
+        "path": "self/research/analyses/EXP-067/observer-calibration-h64-20260924.json"
       }
-    ]
+    ],
+    "h64_observer_calibration": {
+      "state": "complete",
+      "scope": "citeseer H64 seed42, Random104245, budget10%, GIF/IDEA two proposals at T100/200/400",
+      "status": "stable",
+      "run": {
+        "path": "E:\\project\\OpenGU\\GULib-master\\results\\runs\\gpu4090\\aagu067-citeseer-h64-theory-candidates-v1\\aagu067-citeseer-h64-observer-104245-v1\\run.json",
+        "run_id": "aagu067-citeseer-h64-observer-104245-v1",
+        "experiment_id": "aagu067-citeseer-h64-theory-candidates-v1",
+        "commit": "b6f017987003ed8bef7d1c7284a80739e1c60792",
+        "sha256": "2e7a0cfc2b831aa431027cdac947c8d1c57b69099e0702ee58af2175822db349",
+        "config_path": "experiments/configs/aagu067/observer_candidates_h64.yaml",
+        "theory_json_sha256": "985ce5d84fbf36086ef7c77cb3c86531bc6029db5939e15ea3753857c1ebab87"
+      },
+      "methods": {
+        "GIF": {
+          "status": "stable",
+          "frozen_candidate": "target_rho_0p8",
+          "frozen_parameters": {
+            "scale": 23004.0,
+            "damp": 0.20094722036615764,
+            "mu": 4622.58985730309
+          }
+        },
+        "IDEA": {
+          "status": "stable",
+          "frozen_candidate": "target_rho_0p8",
+          "frozen_parameters": {
+            "scale": 23004.0,
+            "damp": 0.20094722036615764,
+            "mu": 4622.58985730309
+          }
+        }
+      },
+      "analyzer_commit": "eb1e41755bbf235130d61b8549d13e9ab42b5f8d",
+      "evidence": [
+        {
+          "label": "H64 Observer calibration analysis",
+          "path": "self/research/analyses/EXP-067/observer-calibration-h64-20260924.json"
+        }
+      ]
+    }
   },
   "decision": {
     "state": "not_requested",
@@ -78,6 +145,18 @@
         {
           "label": "H64 candidate table review",
           "path": "self/research/analyses/h64-theory-20260924/README.md"
+        }
+      ]
+    },
+    {
+      "id": "h64-observer-analysis-20260924",
+      "at": "2026-09-24",
+      "stage": "analysis",
+      "note": "H64理论与单请求Observer校准分析已完成，GIF/IDEA均stable，按既定规则选定rho=0.8。H16及后续多请求验证未完成；不代表完整实验科学验收。",
+      "evidence": [
+        {
+          "label": "H64 Observer calibration analysis",
+          "path": "self/research/analyses/EXP-067/observer-calibration-h64-20260924.json"
         }
       ]
     }

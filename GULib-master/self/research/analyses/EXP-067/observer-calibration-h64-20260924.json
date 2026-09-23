@@ -1,0 +1,350 @@
+{
+  "schema": "aagu062.after-exp-analysis.v1",
+  "status": "pending_or_failed",
+  "criteria_source": "AAGU-065 Work Plan pre_run_gate, applied unchanged to all six dataset/hidden conditions",
+  "criteria": {
+    "hvp_relative_error": 1e-05,
+    "shifted_relative_residual": 0.001,
+    "relative_update_norm_variation": 0.001,
+    "update_to_rhs_ratio_min_exclusive": 1e-06,
+    "original_graph_logits_max_abs_min_exclusive": 1e-08
+  },
+  "uses_f1_for_parameter_selection": false,
+  "candidate_freeze_rule": "choose the smallest mu among passing theoretical proposals only when all registered proposals and T=100/200/400 cells are complete; otherwise no freeze",
+  "cases": [
+    {
+      "dataset": "Cora",
+      "hidden_channels": 16,
+      "status": "inconclusive",
+      "reason": "no checksum-verified Observer run supplied",
+      "methods": {
+        "GIF": {
+          "status": "inconclusive",
+          "frozen_candidate": null,
+          "frozen_parameters": null,
+          "candidates": []
+        },
+        "IDEA": {
+          "status": "inconclusive",
+          "frozen_candidate": null,
+          "frozen_parameters": null,
+          "candidates": []
+        }
+      }
+    },
+    {
+      "dataset": "Cora",
+      "hidden_channels": 64,
+      "status": "inconclusive",
+      "reason": "no checksum-verified Observer run supplied",
+      "methods": {
+        "GIF": {
+          "status": "inconclusive",
+          "frozen_candidate": null,
+          "frozen_parameters": null,
+          "candidates": []
+        },
+        "IDEA": {
+          "status": "inconclusive",
+          "frozen_candidate": null,
+          "frozen_parameters": null,
+          "candidates": []
+        }
+      }
+    },
+    {
+      "dataset": "CiteSeer",
+      "hidden_channels": 16,
+      "status": "inconclusive",
+      "reason": "no checksum-verified Observer run supplied",
+      "methods": {
+        "GIF": {
+          "status": "inconclusive",
+          "frozen_candidate": null,
+          "frozen_parameters": null,
+          "candidates": []
+        },
+        "IDEA": {
+          "status": "inconclusive",
+          "frozen_candidate": null,
+          "frozen_parameters": null,
+          "candidates": []
+        }
+      }
+    },
+    {
+      "dataset": "CiteSeer",
+      "hidden_channels": 64,
+      "status": "stable",
+      "run": {
+        "path": "E:\\project\\OpenGU\\GULib-master\\results\\runs\\gpu4090\\aagu067-citeseer-h64-theory-candidates-v1\\aagu067-citeseer-h64-observer-104245-v1\\run.json",
+        "run_id": "aagu067-citeseer-h64-observer-104245-v1",
+        "experiment_id": "aagu067-citeseer-h64-theory-candidates-v1",
+        "commit": "b6f017987003ed8bef7d1c7284a80739e1c60792",
+        "sha256": "2e7a0cfc2b831aa431027cdac947c8d1c57b69099e0702ee58af2175822db349",
+        "config_path": "experiments/configs/aagu067/observer_candidates_h64.yaml",
+        "theory_json_sha256": "985ce5d84fbf36086ef7c77cb3c86531bc6029db5939e15ea3753857c1ebab87"
+      },
+      "checkpoint": {
+        "path": "/autodl-fs/data/OpenGU/GULib-master/results/runtime/modular/checkpoints/bf2488a0e4445907c54954dc11efb995a80e50f24df321bf7b71682e5c960ddd.pt",
+        "file_sha256": "afd6867bc6feef4825986ef7492634d00f77a6757a7b81828cc3adaea7be186c",
+        "state_hash": "0471e54ede34af0ca1bb72e62ac513806c187f7e65685684e99ff0cf7358f532"
+      },
+      "methods": {
+        "GIF": {
+          "status": "stable",
+          "candidates": [
+            {
+              "candidate_id": "target_rho_0p8",
+              "scale": 23004.0,
+              "damp": 0.20094722036615764,
+              "mu": 4622.58985730309,
+              "status": "stable",
+              "failures": [],
+              "missing": [],
+              "budgets": {
+                "100": {
+                  "shifted_relative_residual": 1.2987317420281895e-07,
+                  "original_relative_residual": 0.2549112268986584,
+                  "update_l2": 0.009998788186270521,
+                  "rhs_l2": 181.31923228204357,
+                  "same_graph_logits_max_abs": 0.30779027938842773,
+                  "hvp_errors": {
+                    "probe_relative_error": 3.0868552673169396e-08,
+                    "rhs_relative_error": 4.224217045409763e-08,
+                    "repeat_relative_error": 3.91507728776022e-08
+                  }
+                },
+                "200": {
+                  "shifted_relative_residual": 1.3227712525230408e-07,
+                  "original_relative_residual": 0.2549111965819241,
+                  "update_l2": 0.00999878837797358,
+                  "rhs_l2": 181.31922879421072,
+                  "same_graph_logits_max_abs": 0.30779027938842773,
+                  "hvp_errors": {
+                    "probe_relative_error": 4.942133020936871e-08,
+                    "rhs_relative_error": 1.9050749782597145e-08,
+                    "repeat_relative_error": 6.094206541740591e-08
+                  }
+                },
+                "400": {
+                  "shifted_relative_residual": 7.391499685691083e-08,
+                  "original_relative_residual": 0.254911202268806,
+                  "update_l2": 0.009998788937825773,
+                  "rhs_l2": 181.31924174179503,
+                  "same_graph_logits_max_abs": 0.30779027938842773,
+                  "hvp_errors": {
+                    "probe_relative_error": 1.613000185591035e-08,
+                    "rhs_relative_error": 5.1943565104091424e-08,
+                    "repeat_relative_error": 2.9677746453053033e-08
+                  }
+                }
+              }
+            },
+            {
+              "candidate_id": "target_rho_0p5",
+              "scale": 36806.0,
+              "damp": 0.5005865852660731,
+              "mu": 18424.589857303086,
+              "status": "stable",
+              "failures": [],
+              "missing": [],
+              "budgets": {
+                "100": {
+                  "shifted_relative_residual": 8.252983990705726e-08,
+                  "original_relative_residual": 0.4804506661310857,
+                  "update_l2": 0.004728188768815834,
+                  "rhs_l2": 181.3192414524663,
+                  "same_graph_logits_max_abs": 0.19268178939819336,
+                  "hvp_errors": {
+                    "probe_relative_error": 6.379554055674872e-08,
+                    "rhs_relative_error": 3.441104769624319e-08,
+                    "repeat_relative_error": 2.1357230986930273e-08
+                  }
+                },
+                "200": {
+                  "shifted_relative_residual": 5.80618019164899e-08,
+                  "original_relative_residual": 0.48045065069693726,
+                  "update_l2": 0.004728188698953059,
+                  "rhs_l2": 181.31923010452456,
+                  "same_graph_logits_max_abs": 0.19268226623535156,
+                  "hvp_errors": {
+                    "probe_relative_error": 4.387614802040483e-08,
+                    "rhs_relative_error": 1.2092671499174928e-08,
+                    "repeat_relative_error": 2.732907078738209e-08
+                  }
+                },
+                "400": {
+                  "shifted_relative_residual": 4.312750328582977e-08,
+                  "original_relative_residual": 0.4804506556035548,
+                  "update_l2": 0.004728188916942729,
+                  "rhs_l2": 181.3192339654377,
+                  "same_graph_logits_max_abs": 0.19268178939819336,
+                  "hvp_errors": {
+                    "probe_relative_error": 5.491979469768123e-08,
+                    "rhs_relative_error": 2.7489791589221085e-08,
+                    "repeat_relative_error": 1.4801536278791094e-08
+                  }
+                }
+              }
+            }
+          ],
+          "frozen_candidate": "target_rho_0p8",
+          "frozen_parameters": {
+            "scale": 23004.0,
+            "damp": 0.20094722036615764,
+            "mu": 4622.58985730309
+          },
+          "selection_id": "sel_c5d5b29a_ceea18e1"
+        },
+        "IDEA": {
+          "status": "stable",
+          "candidates": [
+            {
+              "candidate_id": "target_rho_0p8",
+              "scale": 23004.0,
+              "damp": 0.20094722036615764,
+              "mu": 4622.58985730309,
+              "status": "stable",
+              "failures": [],
+              "missing": [],
+              "budgets": {
+                "100": {
+                  "shifted_relative_residual": 7.142906424437495e-08,
+                  "original_relative_residual": 0.25491115049818824,
+                  "update_l2": 0.009998788279648688,
+                  "rhs_l2": 181.31923218363426,
+                  "same_graph_logits_max_abs": 0.30779075622558594,
+                  "hvp_errors": {
+                    "probe_relative_error": 6.462469008748502e-08,
+                    "rhs_relative_error": 4.6307453152728836e-08,
+                    "repeat_relative_error": 6.095631749502847e-08
+                  }
+                },
+                "200": {
+                  "shifted_relative_residual": 4.795573311321122e-08,
+                  "original_relative_residual": 0.25491116162264854,
+                  "update_l2": 0.00999878814215017,
+                  "rhs_l2": 181.31923616627844,
+                  "same_graph_logits_max_abs": 0.30778980255126953,
+                  "hvp_errors": {
+                    "probe_relative_error": 6.585926204659297e-08,
+                    "rhs_relative_error": 3.234679501111368e-08,
+                    "repeat_relative_error": 3.286039352584906e-08
+                  }
+                },
+                "400": {
+                  "shifted_relative_residual": 6.011789523325403e-08,
+                  "original_relative_residual": 0.2549111603069351,
+                  "update_l2": 0.009998787596393452,
+                  "rhs_l2": 181.31923086845708,
+                  "same_graph_logits_max_abs": 0.3077888488769531,
+                  "hvp_errors": {
+                    "probe_relative_error": 3.28909037513578e-08,
+                    "rhs_relative_error": 4.4189844970060424e-08,
+                    "repeat_relative_error": 4.264999457680002e-08
+                  }
+                }
+              }
+            },
+            {
+              "candidate_id": "target_rho_0p5",
+              "scale": 36806.0,
+              "damp": 0.5005865852660731,
+              "mu": 18424.589857303086,
+              "status": "stable",
+              "failures": [],
+              "missing": [],
+              "budgets": {
+                "100": {
+                  "shifted_relative_residual": 5.773208789379025e-08,
+                  "original_relative_residual": 0.48045066678659865,
+                  "update_l2": 0.004728189069636969,
+                  "rhs_l2": 181.31923533445874,
+                  "same_graph_logits_max_abs": 0.19268226623535156,
+                  "hvp_errors": {
+                    "probe_relative_error": 4.366395666593956e-08,
+                    "rhs_relative_error": 5.780432734587766e-08,
+                    "repeat_relative_error": 4.643443659045114e-08
+                  }
+                },
+                "200": {
+                  "shifted_relative_residual": 5.080315200094914e-08,
+                  "original_relative_residual": 0.48045064387096764,
+                  "update_l2": 0.004728188785750178,
+                  "rhs_l2": 181.31923162605182,
+                  "same_graph_logits_max_abs": 0.19268274307250977,
+                  "hvp_errors": {
+                    "probe_relative_error": 3.715195359614515e-08,
+                    "rhs_relative_error": 2.475073014147469e-08,
+                    "repeat_relative_error": 4.898108460638181e-08
+                  }
+                },
+                "400": {
+                  "shifted_relative_residual": 6.57250818514652e-08,
+                  "original_relative_residual": 0.4804506482829744,
+                  "update_l2": 0.004728188644630452,
+                  "rhs_l2": 181.31921831440013,
+                  "same_graph_logits_max_abs": 0.19268131256103516,
+                  "hvp_errors": {
+                    "probe_relative_error": 3.6457984231678224e-08,
+                    "rhs_relative_error": 3.659693936601379e-08,
+                    "repeat_relative_error": 3.636434243014122e-08
+                  }
+                }
+              }
+            }
+          ],
+          "frozen_candidate": "target_rho_0p8",
+          "frozen_parameters": {
+            "scale": 23004.0,
+            "damp": 0.20094722036615764,
+            "mu": 4622.58985730309
+          },
+          "selection_id": "sel_c5d5b29a_ceea18e1"
+        }
+      }
+    },
+    {
+      "dataset": "PubMed",
+      "hidden_channels": 16,
+      "status": "inconclusive",
+      "reason": "no checksum-verified Observer run supplied",
+      "methods": {
+        "GIF": {
+          "status": "inconclusive",
+          "frozen_candidate": null,
+          "frozen_parameters": null,
+          "candidates": []
+        },
+        "IDEA": {
+          "status": "inconclusive",
+          "frozen_candidate": null,
+          "frozen_parameters": null,
+          "candidates": []
+        }
+      }
+    },
+    {
+      "dataset": "PubMed",
+      "hidden_channels": 64,
+      "status": "inconclusive",
+      "reason": "no checksum-verified Observer run supplied",
+      "methods": {
+        "GIF": {
+          "status": "inconclusive",
+          "frozen_candidate": null,
+          "frozen_parameters": null,
+          "candidates": []
+        },
+        "IDEA": {
+          "status": "inconclusive",
+          "frozen_candidate": null,
+          "frozen_parameters": null,
+          "candidates": []
+        }
+      }
+    }
+  ],
+  "interpretation": "This read-only after-exp report does not modify YAML or authorize downstream multi-selector/seed runs. A stable result is a one-point calibration decision, not a claim that all selectors are stable."
+}
