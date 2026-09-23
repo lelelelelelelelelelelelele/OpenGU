@@ -10,6 +10,8 @@
 
 当前正式SSH版本、数据根和GPU要求仍以 experiments/AGENTS.md 为准。设备不满足就记录原因；不能降级CPU或自动改数据、预算、参数。
 
+检查按职责消费证据：安装事实读取对应目标版本的安装回执；启动时的版本、输入和设备等动态条件由正式 preflight 核验。Agent 不在工具检查之外另写 SSH 命令重复核对同一事实。回执缺失、过期或身份不匹配时，交由对应检查入口返回具体阻塞；只有明确故障且本地证据不足时，才针对该故障连接 SSH 排查。必要的提交时检查不因此前预览或安装成功而省略。
+
 ## 3. 准备 Recipe，再通过 SyncMate 提交
 
 科学配置在 `experiments/configs/`，提交声明在 [scripts/syncmate/recipes/](../../scripts/syncmate/recipes/)。一份 Recipe 绑定配置、现有 SHA/指纹、run ID、超时、数据集计数和产物规则；`opengu_recipes.py` 只负责通用读取、校验和装配，不再登记具体实验。多份 Recipe 可以服务同一实验的不同已审阅运行范围，不代表多个科学实验，也不要求把普通矩阵按数据集或 seed 拆开。
@@ -45,7 +47,7 @@ SyncMate 的 runbook、checklist 和 handoff 命令提供设备级操作指导�
 
 运行过程由SyncMate观察，Work Plan只保存已确认的阶段事实与最新观察日期。进程done不代表回传或可信校验完成。沿用现有链：完成运行 → 收集 → SHA-256校验 → 可信索引 → 项目结果检查。
 
-需要排查精确阶段或缓存事件时再读取SSH AutoReport。无需把日志全文复制进Work Plan。运行失败、部分完成、输入缺失分别记录，恢复按已有重跑与缓存修复Runbook确认范围。
+Agent 按确切 job_id 读取本地 controller、delivery 和 handoff 回执，运行观察、收集与传输校验由 SyncMate 执行；不另行 SSH 轮询进程、扫描缓存或重复验证已可信回传的远端文件。仅在本地回执指出具体故障且现有证据不足时，针对该故障读取 SSH AutoReport 等必要证据。无需把日志全文复制进 Work Plan。失败、阻塞或可信回传均结束该次运行的等待；可信回传后进入项目科学分析，失败恢复按已有重跑与缓存修复 Runbook 确认范围。
 
 ## 5. 分析与科学决定
 
