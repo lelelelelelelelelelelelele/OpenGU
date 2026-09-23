@@ -58,6 +58,20 @@ def test_invalid_records_fail_closed(defect):
     with pytest.raises(ValueError): model.validate(rows)
 
 
+def test_partially_verified_preparation_aliases_to_ongoing(tmp_path):
+    rows = records()
+    rows[0]['preparation']['state'] = 'partially_verified'
+    model.validate(rows)
+    assert model.canonical_state('preparation', 'partially_verified') == 'ongoing'
+    assert 'badge ongoing' in view.badge('preparation', 'partially_verified')
+    assert '进行中' in view.badge('preparation', 'partially_verified')
+
+    pending = dict(preparation=rows[0]['preparation'],
+                   configs=[dict(role='candidate', path='not-yet-created.yaml')],
+                   sources=[dict(label='Pending candidate', path='not-yet-created.yaml')])
+    assert model.check_links({}, [pending], tmp_path, tmp_path) == 0
+
+
 def write_block(root, code, status):
     path=root/f'.workblock/items/{code}/WORKITEM.md';path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(f'# Block\n当前状态: `{status}`\n',encoding='utf-8')

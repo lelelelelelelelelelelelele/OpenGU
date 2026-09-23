@@ -8,12 +8,13 @@ import re
 from pathlib import Path
 
 STATES = {
-    'preparation': {'draft': '待定义', 'preparing': '准备中', 'defined': '定义已固定'},
+    'preparation': {'draft': '待定义', 'preparing': '准备中', 'ongoing': '进行中', 'defined': '定义已固定'},
     'execution': {'unknown': '待核对', 'pending': '待运行', 'running': '运行中',
                   'partial': '部分完成', 'completed': '运行已完成', 'not_required': '无需新运行', 'failed': '运行失败'},
     'analysis': {'not_started': '待分析', 'working': '分析中', 'review': '待复核', 'complete': '分析已交付'},
     'decision': {'pending': '待科学决定', 'accepted': '已接受所述范围', 'rejected': '未接受', 'not_requested': '尚未提交决定'},
 }
+STATE_ALIASES = {'preparation': {'partially_verified': 'ongoing'}}
 ID = re.compile(r'AAGU-\d{3}')
 ESTIMATE_STATUSES = {'estimated', 'not_recorded', 'not_applicable'}
 ACTUAL_STATUSES = {'recorded', 'not_recorded', 'not_applicable'}
@@ -24,6 +25,10 @@ MATCH_TOLERANCE = 0.20
 
 def read_json(path):
     return json.loads(path.read_text(encoding='utf-8'))
+
+
+def canonical_state(stage, state):
+    return STATE_ALIASES.get(stage, {}).get(state, state)
 
 
 def load(root, canonical=None):
@@ -78,7 +83,8 @@ def validate(records):
         if r['category'] not in {'active', 'planned', 'history'}:
             raise ValueError('Invalid category')
         for stage in STATES:
-            if r[stage]['state'] not in STATES[stage] or not r[stage].get('note'):
+            state = canonical_state(stage, r[stage]['state'])
+            if state not in STATES[stage] or not r[stage].get('note'):
                 raise ValueError('Invalid stage: ' + stage)
         if r['execution']['state'] in {'completed', 'partial', 'running', 'failed'} and not r['execution']['evidence']:
             raise ValueError('Observed execution requires evidence')
@@ -347,7 +353,8 @@ def check_links(frame, records, root, canonical):
     pending_candidates = {
         config['path']
         for record in records
-        if record.get('preparation', {}).get('state') in {'draft', 'preparing'}
+        if canonical_state('preparation', record.get('preparation', {}).get('state')) in {
+                'draft', 'preparing', 'ongoing'}
         for config in record.get('configs', [])
         if config['role'] == 'candidate' and not resolve(root, canonical, config['path']).exists()
     }

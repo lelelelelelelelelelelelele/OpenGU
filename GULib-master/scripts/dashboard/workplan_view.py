@@ -36,6 +36,7 @@ class Sources:
 
 
 def badge(stage, state):
+    state = model.canonical_state(stage, state)
     return f'<span class="badge {esc(state)}">{esc(model.STATES[stage][state])}</span>'
 
 
@@ -166,7 +167,8 @@ def sheet_page(r, records, sources, page):
     body += time_budget_section(r, sources, page)
     body += '<section><h2>依赖与阻塞</h2>' + blocker_html(r, records, sources, page) + '<p class="muted">Block 状态是生成页面时的只读观察。交付状态与本实验所需能力同时确认后，才解除对应依赖；不会自动启动。</p></section>'
     body += '<section><h2>实验定义与 YAML</h2><p>' + esc(r['scope']) + '</p>'
-    body += ''.join(config_preview(c, sources, page, r['preparation']['state'] in {'draft', 'preparing'})
+    body += ''.join(config_preview(c, sources, page, model.canonical_state(
+        'preparation', r['preparation']['state']) in {'draft', 'preparing', 'ongoing'})
                     for c in r['configs']) if r['configs'] else '<p class="muted">没有主线执行 YAML 绑定。分析项直接消费结果；待准备项先完成定义或软件交付。</p>'
     body += '</section><section><h2>运行尝试</h2>'
     if not r['attempts']:
