@@ -7,6 +7,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
+import time
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -23,6 +24,7 @@ def ssh(peer, argv, *, payload=None, timeout=240):
 
 
 def apply():
+    started = time.monotonic()
     if ROOT.resolve() != Path('E:/project/OpenGU/GULib-master').resolve():
         raise ValueError('installation must run from the canonical landed project')
     from syncmate_core import context, devices
@@ -65,6 +67,7 @@ def apply():
         result = json.loads(response.stdout)
     except ValueError as exc:
         raise ValueError('installation response unavailable; do not retry until remote state is diagnosed') from exc
+    result['elapsed_seconds'] = round(time.monotonic() - started, 2)
     directory = ROOT / '.workblock/runtime/install' / target
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / 'receipt.json'

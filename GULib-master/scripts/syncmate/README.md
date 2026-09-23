@@ -9,7 +9,7 @@ of device identity, run artifacts, result deltas, and next safe actions.
 ## Registered installation command
 
 The candidate action is [install.action.json](install.action.json). After this
-candidate and SyncMate Core 0.5.0 are accepted and installed on both endpoints,
+candidate and SyncMate Core 0.5.1 are accepted and installed on both endpoints,
 replace the canonical `.workblock/actions/install.json` with that declaration.
 Until then the existing registered action remains active; do not deploy from a
 candidate worktree. Core upgrades are owned by SyncMate, not this code installer.
