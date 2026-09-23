@@ -1,0 +1,25 @@
+# Generated from AAGU-062 theory analysis.
+# Theory JSON SHA-256: 985ce5d84fbf36086ef7c77cb3c86531bc6029db5939e15ea3753857c1ebab87
+# Theory YAML SHA-256: 68d9571f06f49542fc0eda8e6f7ff067b0729786430fb55231800640795ce1f5
+# Candidate target_rho_0p5 for CiteSeer H64; Observer validation required.
+kind: unlearning
+schema_version: 1
+method: IDEA
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  seed: 42
+  epochs: 3000
+  optimizer: Adam
+  lr: 0.05
+  weight_decay: 0.0001
+  scheduler: none
+checkpoint: ../../../results/runtime/modular/checkpoints/bf2488a0e4445907c54954dc11efb995a80e50f24df321bf7b71682e5c960ddd.pt
+parameters:
+  iteration: 100
+  scale: 36806
+  damp: 0.5005865852660731
+  gaussian_mean: 0.0
+  gaussian_std: 0.0

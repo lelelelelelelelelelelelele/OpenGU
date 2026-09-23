@@ -1,0 +1,264 @@
+{
+  "schema": "aagu062.theory-analysis.v1",
+  "status": "candidate_proposal",
+  "condition": {
+    "dataset": "CiteSeer",
+    "hidden_channels": 64
+  },
+  "dataset_split": {
+    "identity": {
+      "num_nodes": 3327,
+      "edge_index_hash": "d5891b32756d4ebc5fb86b2f787dee711df51f721c92358ed9c9db23f1b044ca",
+      "features_hash": "b12d04f551ead30664aa5b2aa34e0b965cc3e2a5fd9bc18d61420ac01a02596d",
+      "labels_hash": "e94f6db89d0131f80e65d61cecf1fbd7902114b28f98cb226738357dcf9ec71d",
+      "split_hash": "b8877443252d36d5863e1a534712091390cfb39127a726395d65592ead0dd14d"
+    },
+    "manifest": "../../../data/processed/transductive/citeseer__planetoid_70_10_20_seed2024.modular.json",
+    "manifest_sha256": "ab079581b16c8ddfbe6a38edeba82a0669e7a9a7dc5577f79e9e379501651208"
+  },
+  "checkpoint": {
+    "path": "/autodl-fs/data/OpenGU/GULib-master/results/runtime/modular/checkpoints/bf2488a0e4445907c54954dc11efb995a80e50f24df321bf7b71682e5c960ddd.pt",
+    "file_sha256": "afd6867bc6feef4825986ef7492634d00f77a6757a7b81828cc3adaea7be186c",
+    "state_hash": "0471e54ede34af0ca1bb72e62ac513806c187f7e65685684e99ff0cf7358f532"
+  },
+  "model": {
+    "architecture": "OpenGU.GCNNet",
+    "layers": 2,
+    "hidden_channels": 64
+  },
+  "training": {
+    "seed": 42,
+    "epochs": 3000,
+    "optimizer": "Adam",
+    "lr": 0.05,
+    "weight_decay": 0.0001,
+    "scheduler": "none"
+  },
+  "methods": [
+    {
+      "method": "GIF",
+      "loss": {
+        "definition": "sum cross entropy on persisted train_mask",
+        "forward": "reason_once",
+        "reduction": "sum",
+        "parameter_count": 237446,
+        "dtype": "float64"
+      },
+      "lanczos": {
+        "seeds": [
+          173,
+          941
+        ],
+        "steps": 80,
+        "starts": [
+          {
+            "seed": 173,
+            "steps": 80,
+            "minimum": {
+              "value": -21.680968427283027,
+              "ritz_residual": 2.3663645909469548e-12
+            },
+            "maximum": {
+              "value": 36784.50125382109,
+              "ritz_residual": 1.5981573811700098e-11
+            }
+          },
+          {
+            "seed": 941,
+            "steps": 80,
+            "minimum": {
+              "value": -21.680968427283137,
+              "ritz_residual": 1.1142181098322248e-12
+            },
+            "maximum": {
+              "value": 36784.5012538211,
+              "ritz_residual": 9.340312065582449e-12
+            }
+          }
+        ]
+      },
+      "candidate_design": {
+        "observed_ritz_range": {
+          "minimum": -21.680968427283137,
+          "maximum": 36784.5012538211
+        },
+        "proposed_candidates": [
+          {
+            "candidate_id": "target_rho_0p8",
+            "target_spectral_radius": 0.8,
+            "iteration_values": [
+              100,
+              200,
+              400
+            ],
+            "scale": 23004,
+            "damp": 0.20094722036615764,
+            "mu": 4622.58985730309,
+            "estimated_endpoint_factors": {
+              "lambda_min": 0.799995266524265,
+              "lambda_max": -0.799995266524265
+            },
+            "estimated_spectral_radius": 0.799995266524265
+          },
+          {
+            "candidate_id": "target_rho_0p5",
+            "target_spectral_radius": 0.5,
+            "iteration_values": [
+              100,
+              200,
+              400
+            ],
+            "scale": 36806,
+            "damp": 0.5005865852660731,
+            "mu": 18424.589857303086,
+            "estimated_endpoint_factors": {
+              "lambda_min": 0.5000024754421615,
+              "lambda_max": -0.5000024754421613
+            },
+            "estimated_spectral_radius": 0.5000024754421615
+          }
+        ],
+        "rejected_targets": [],
+        "formula": {
+          "recurrence_factor": "q(lambda)=1-damp-lambda/scale",
+          "target": "integer scale nearest to (lambda_max-lambda_min)/(2*rho); damp centers endpoint factors",
+          "ideal_scale": "(lambda_max-lambda_min)/(2*rho)",
+          "scale": "round(ideal_scale) to nearest integer, as required by GIF/IDEA config schema",
+          "damp": "1-(lambda_max+lambda_min)/(2*scale)",
+          "shift": "mu=scale*damp"
+        }
+      }
+    },
+    {
+      "method": "IDEA",
+      "loss": {
+        "definition": "sum cross entropy on persisted train_mask",
+        "forward": "forward_once(data, None)",
+        "reduction": "sum",
+        "parameter_count": 237446,
+        "dtype": "float64"
+      },
+      "lanczos": {
+        "seeds": [
+          173,
+          941
+        ],
+        "steps": 80,
+        "starts": [
+          {
+            "seed": 173,
+            "steps": 80,
+            "minimum": {
+              "value": -21.68096842728339,
+              "ritz_residual": 1.78090498098096e-12
+            },
+            "maximum": {
+              "value": 36784.5012538211,
+              "ritz_residual": 9.242882823597878e-12
+            }
+          },
+          {
+            "seed": 941,
+            "steps": 80,
+            "minimum": {
+              "value": -21.680968427283194,
+              "ritz_residual": 2.3956828311479793e-12
+            },
+            "maximum": {
+              "value": 36784.5012538211,
+              "ritz_residual": 1.9746526649119708e-11
+            }
+          }
+        ]
+      },
+      "candidate_design": {
+        "observed_ritz_range": {
+          "minimum": -21.68096842728339,
+          "maximum": 36784.5012538211
+        },
+        "proposed_candidates": [
+          {
+            "candidate_id": "target_rho_0p8",
+            "target_spectral_radius": 0.8,
+            "iteration_values": [
+              100,
+              200,
+              400
+            ],
+            "scale": 23004,
+            "damp": 0.20094722036615764,
+            "mu": 4622.58985730309,
+            "estimated_endpoint_factors": {
+              "lambda_min": 0.799995266524265,
+              "lambda_max": -0.799995266524265
+            },
+            "estimated_spectral_radius": 0.799995266524265
+          },
+          {
+            "candidate_id": "target_rho_0p5",
+            "target_spectral_radius": 0.5,
+            "iteration_values": [
+              100,
+              200,
+              400
+            ],
+            "scale": 36806,
+            "damp": 0.5005865852660731,
+            "mu": 18424.589857303086,
+            "estimated_endpoint_factors": {
+              "lambda_min": 0.5000024754421615,
+              "lambda_max": -0.5000024754421613
+            },
+            "estimated_spectral_radius": 0.5000024754421615
+          }
+        ],
+        "rejected_targets": [],
+        "formula": {
+          "recurrence_factor": "q(lambda)=1-damp-lambda/scale",
+          "target": "integer scale nearest to (lambda_max-lambda_min)/(2*rho); damp centers endpoint factors",
+          "ideal_scale": "(lambda_max-lambda_min)/(2*rho)",
+          "scale": "round(ideal_scale) to nearest integer, as required by GIF/IDEA config schema",
+          "damp": "1-(lambda_max+lambda_min)/(2*scale)",
+          "shift": "mu=scale*damp"
+        }
+      }
+    }
+  ],
+  "candidate_policy": {
+    "target_spectral_radii": [
+      0.8,
+      0.5
+    ],
+    "iteration_values": [
+      100,
+      200,
+      400
+    ],
+    "lanczos_seeds": [
+      173,
+      941
+    ],
+    "lanczos_steps": 80
+  },
+  "execution": {
+    "device": "cuda:0",
+    "torch_version": "2.1.2+cu118",
+    "source_commit": "501716bc30d59e39fa21d75c1f7af43a4ff47572",
+    "analysis_tool_sha256": "7cedd9555642b5dea13215478e6b8dfc4c4bc4863f1f259e84d1ab882cb228b8",
+    "theory_config": "/autodl-fs/data/OpenGU/GULib-master/experiments/configs/aagu067/theory_h64.yaml",
+    "theory_config_sha256": "68d9571f06f49542fc0eda8e6f7ff067b0729786430fb55231800640795ce1f5",
+    "seconds": 3.0021605798974633
+  },
+  "limitation": "Finite Lanczos Ritz estimates are not certified full-spectrum bounds. These values are theory-derived proposals only; the registered Observer calibration must test finite updates, residuals, budget consistency, and nontriviality.",
+  "analysis_input": {
+    "run_id": "h64-theory-20260924T052657-citeseer",
+    "mode": "read-only cached-checkpoint theory proposal",
+    "registered_config": "experiments/configs/aagu067/theory_h64.yaml",
+    "registered_config_sha256": "333d5c58e130a73e8801b60de3e85f988b51f58bcf716843ff2d266c465aa081",
+    "effective_config_yaml": "kind: aagu062_theory\nschema_version: 1\ncondition:\n  dataset: CiteSeer\n  hidden_channels: 64\ndataset_ref: ../datasets/citeseer.yaml\nmodel:\n  architecture: OpenGU.GCNNet\n  layers: 2\n  hidden_channels: 64\ntraining:\n  seed: 42\n  epochs: 3000\n  optimizer: Adam\n  lr: 0.05\n  weight_decay: 0.0001\n  scheduler: none\ncheckpoint: ../../../results/runtime/modular/checkpoints/bf2488a0e4445907c54954dc11efb995a80e50f24df321bf7b71682e5c960ddd.pt\nmethods:\n- GIF\n- IDEA\n",
+    "checkpoint_override_reason": "User requested H64-only candidates using existing audited baseline cache; no registered PT run was created.",
+    "checkpoint_sha256_verified_before_and_after": true,
+    "observer_executed": false,
+    "training_executed": false
+  }
+}

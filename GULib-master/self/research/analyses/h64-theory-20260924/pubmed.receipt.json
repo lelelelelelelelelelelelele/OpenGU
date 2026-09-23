@@ -1,0 +1,24 @@
+{
+  "run_id": "h64-theory-20260924T052657-pubmed",
+  "source_commit": "501716bc30d59e39fa21d75c1f7af43a4ff47572",
+  "exit_code": 0,
+  "input": {
+    "config": "experiments/configs/aagu068/theory_h64.yaml",
+    "cache": "results/runtime/modular/checkpoints/d3c8dc969190c76974cab8785950f2d09a9b3d980f1515a7f7deb9ef07a184b6.pt",
+    "expected_sha": "7596c451a94c2954591dd46881783bf6b8ecc8d8aa8b8cefd84bdc2ce527e07a",
+    "head": "501716bc30d59e39fa21d75c1f7af43a4ff47572",
+    "data_identity": {
+      "num_nodes": 19717,
+      "edge_index_hash": "06c3c4c03d73b7113f75ede19c39b06b1063731a2c8388dd3b55024aab47df66",
+      "features_hash": "cdc602479ad341d31e57403422ede933c16bc08fb358fa776afde7cd9ee3dcb7",
+      "labels_hash": "129c0d7b8f8f6405d3a4ce26272f0a06c3b7d1cc31601d4377c370a2d55ddd3a",
+      "split_hash": "6ec0440916aefbd55751ab060690476925f0c254b72ef0db676491f540e7e483"
+    },
+    "run_id": "h64-theory-20260924T052657-pubmed"
+  },
+  "transport": "foreground SSH; complete JSON captured from stdout",
+  "checked_at": "2026-09-24T05:27:24.932957",
+  "result_sha256": "5fc4b3f4cdfce95876b41bc68e598e1279c60c3e279597ea041d43435066d6f2",
+  "status": "complete_identity_checked",
+  "result_path": "E:\\project\\OpenGU\\GULib-master\\self\\research\\experiments\\drafts\\h64-theory-20260924T052657\\pubmed.json"
+}

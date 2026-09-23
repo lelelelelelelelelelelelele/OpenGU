@@ -1,0 +1,22 @@
+[
+  {
+    "dataset": "CiteSeer",
+    "table": "experiments/configs/aagu067/observer_candidates_h64.yaml",
+    "logical_cells": 12,
+    "dry_run": true,
+    "producer_called": false,
+    "configuration_fingerprint": "4a1b85a367663e2686cd8febd9d3138edf3d5ccb52e19abfb81cbb737253e6c7",
+    "parameters_checkpoint_and_result_hash_verified": true,
+    "status": "PASS"
+  },
+  {
+    "dataset": "PubMed",
+    "table": "experiments/configs/aagu068/observer_candidates_h64.yaml",
+    "logical_cells": 12,
+    "dry_run": true,
+    "producer_called": false,
+    "configuration_fingerprint": "00a8cfe91d2fe3f499326928f8b3eb80b0c31d28bdf2b2a5d96a8a05e0487ba9",
+    "parameters_checkpoint_and_result_hash_verified": true,
+    "status": "PASS"
+  }
+]

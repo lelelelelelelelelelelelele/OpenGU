@@ -1,0 +1,44 @@
+[
+  {
+    "table": "experiments/configs/aagu067/observer_candidates_h64.yaml",
+    "experiment_id": "aagu067-citeseer-h64-theory-candidates-v1",
+    "theory_json_sha256": "985ce5d84fbf36086ef7c77cb3c86531bc6029db5939e15ea3753857c1ebab87",
+    "theory_config_sha256": "68d9571f06f49542fc0eda8e6f7ff067b0729786430fb55231800640795ce1f5",
+    "generated_unlearning_yamls": [
+      "experiments/configs/aagu067/gif_h64_theory_rho_0p8_100.yaml",
+      "experiments/configs/aagu067/gif_h64_theory_rho_0p8_200.yaml",
+      "experiments/configs/aagu067/gif_h64_theory_rho_0p8_400.yaml",
+      "experiments/configs/aagu067/gif_h64_theory_rho_0p5_100.yaml",
+      "experiments/configs/aagu067/gif_h64_theory_rho_0p5_200.yaml",
+      "experiments/configs/aagu067/gif_h64_theory_rho_0p5_400.yaml",
+      "experiments/configs/aagu067/idea_h64_theory_rho_0p8_100.yaml",
+      "experiments/configs/aagu067/idea_h64_theory_rho_0p8_200.yaml",
+      "experiments/configs/aagu067/idea_h64_theory_rho_0p8_400.yaml",
+      "experiments/configs/aagu067/idea_h64_theory_rho_0p5_100.yaml",
+      "experiments/configs/aagu067/idea_h64_theory_rho_0p5_200.yaml",
+      "experiments/configs/aagu067/idea_h64_theory_rho_0p5_400.yaml"
+    ],
+    "logical_cells": 12
+  },
+  {
+    "table": "experiments/configs/aagu068/observer_candidates_h64.yaml",
+    "experiment_id": "aagu068-pubmed-h64-theory-candidates-v1",
+    "theory_json_sha256": "5fc4b3f4cdfce95876b41bc68e598e1279c60c3e279597ea041d43435066d6f2",
+    "theory_config_sha256": "9373ca4238c859239deb295a4914cb065df5c46556f0b18b458415b0855395f1",
+    "generated_unlearning_yamls": [
+      "experiments/configs/aagu068/gif_h64_theory_rho_0p8_100.yaml",
+      "experiments/configs/aagu068/gif_h64_theory_rho_0p8_200.yaml",
+      "experiments/configs/aagu068/gif_h64_theory_rho_0p8_400.yaml",
+      "experiments/configs/aagu068/gif_h64_theory_rho_0p5_100.yaml",
+      "experiments/configs/aagu068/gif_h64_theory_rho_0p5_200.yaml",
+      "experiments/configs/aagu068/gif_h64_theory_rho_0p5_400.yaml",
+      "experiments/configs/aagu068/idea_h64_theory_rho_0p8_100.yaml",
+      "experiments/configs/aagu068/idea_h64_theory_rho_0p8_200.yaml",
+      "experiments/configs/aagu068/idea_h64_theory_rho_0p8_400.yaml",
+      "experiments/configs/aagu068/idea_h64_theory_rho_0p5_100.yaml",
+      "experiments/configs/aagu068/idea_h64_theory_rho_0p5_200.yaml",
+      "experiments/configs/aagu068/idea_h64_theory_rho_0p5_400.yaml"
+    ],
+    "logical_cells": 12
+  }
+]
