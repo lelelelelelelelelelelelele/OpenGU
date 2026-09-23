@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu068-pubmed-h64-validation-v1
+runner: experiment
+config_path: experiments/configs/aagu068/validation_h64.yaml
+config_sha256: c289e4d60527ff2ff5aab95892d09ef9baccac32ec5c069aa7df3147c7616e5a
+configuration_fingerprint: 5259950a970bec0a8f64b76ad1722ed7ce03f14ea2c5bdbd5bfd2a433a905b1f
+run_identity:
+  experiment_id: aagu068-pubmed-h64-frozen-validation-v1
+  run_id: aagu068-pubmed-h64-validation-104246-104248-v1
+timeout_seconds: 3600
+logical_cells: 21
+stage: unlearning
+expected_datasets:
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

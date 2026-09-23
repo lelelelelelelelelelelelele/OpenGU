@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu067-citeseer-h64-validation-v1
+runner: experiment
+config_path: experiments/configs/aagu067/validation_h64.yaml
+config_sha256: 9df698230ccf39a7b29b62acf4a3ffbe43a5bc5e31a6f31adf303f375e9a2125
+configuration_fingerprint: 31bc981e225bb8c6911e25578616776dfe4d7eb519dbf5cfc587d6b06be25c4f
+run_identity:
+  experiment_id: aagu067-citeseer-h64-frozen-validation-v1
+  run_id: aagu067-citeseer-h64-validation-104246-104248-v1
+timeout_seconds: 3600
+logical_cells: 21
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
