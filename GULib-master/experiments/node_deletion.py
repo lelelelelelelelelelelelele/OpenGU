@@ -54,3 +54,22 @@ def pairing_identity(instance, data, nodes):
         'training_graph_identity': data_identity(retained),
         'evaluation_graph_identity': data_identity(evaluation),
     }
+
+
+def retrain_pairing_matches(output, retrain):
+    """Match requests; external PT outputs have no executed training settings."""
+    if retrain['target']['method'] != 'Retrain' or any(
+            output[key] != retrain[key]
+            for key in ('selection', 'dataset_input', 'graph_fingerprint')):
+        return False
+    left, right = output['pairing'], retrain['pairing']
+    unused = ('epochs', 'optimizer', 'lr', 'weight_decay', 'scheduler')
+    training = left['training']
+    # This is the existing external-state-dict contract. Internally trained
+    # checkpoints also have a state hash, but retain their training settings.
+    external_pt = bool(output['target'].get('checkpoint_state_hash')) and all(
+        key in training and training[key] is None for key in unused)
+    if external_pt:
+        left = {**left, 'training': {k: v for k, v in training.items() if k not in unused}}
+        right = {**right, 'training': {k: v for k, v in right['training'].items() if k not in unused}}
+    return left == right

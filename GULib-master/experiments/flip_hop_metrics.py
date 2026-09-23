@@ -6,14 +6,13 @@ import numpy as np
 
 from experiments.effective_config import ConfigurationError
 from experiments.implementation_identity import implementation_fingerprint
+from experiments.node_deletion import retrain_pairing_matches
 
 
 def exact_retrain(output, candidates):
     """Reject missing/ambiguous pairs, including repeated identical references."""
     matches = [(ref, payload) for ref, payload in candidates
-               if payload.identity['target']['method'] == 'Retrain'
-               and all(payload.identity[key] == output.identity[key]
-                       for key in ('selection', 'pairing', 'dataset_input', 'graph_fingerprint'))]
+               if retrain_pairing_matches(output.identity, payload.identity)]
     if len(matches) != 1:
         raise ConfigurationError('flip-hop needs exactly one verified Retrain with the same request, Dataset/Split, training and evaluation graph')
     reference, retrain = matches[0]

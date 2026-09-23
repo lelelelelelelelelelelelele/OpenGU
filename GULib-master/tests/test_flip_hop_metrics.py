@@ -95,6 +95,47 @@ def test_missing_and_duplicate_retrain_rejected(count):
         exact_retrain(gu, [({'artifact_id': 'rt'}, rt)] * count)
 
 
+@pytest.mark.parametrize('field', [None, 'selection', 'dataset_input', 'graph_fingerprint',
+    'seed', 'model', 'deletion', 'training_graph_identity', 'evaluation_graph_identity',
+    'selected_nodes', 'data_identity', 'extra_training_field'])
+@pytest.mark.parametrize('case', ['post_unlearning_flip_hop', 'post_unlearning_utility_and_retrain_gap'])
+def test_external_pt_relaxes_only_inactive_training_settings(monkeypatch, field, case):
+    gu, rt = hand_pair()
+    unused = ('epochs', 'optimizer', 'lr', 'weight_decay', 'scheduler')
+    gu.identity['target']['checkpoint_state_hash'] = 'verified-pt-state'
+    gu.identity['pairing']['training'].update(dict.fromkeys(unused))
+    rt.identity['pairing']['training'].update(dict(zip(unused, (3000, 'Adam', .05, .0001, 'none'))))
+    if field in ('selection', 'dataset_input', 'graph_fingerprint'):
+        rt.identity[field] = 'wrong'
+    elif field == 'seed':
+        rt.identity['pairing']['training']['seed'] = 99
+    elif field == 'extra_training_field':
+        rt.identity['pairing']['training']['extra'] = 'must remain strict'
+    elif field is not None:
+        rt.identity['pairing'][field] = 'wrong'
+    before = copy.deepcopy(gu.identity), copy.deepcopy(rt.identity)
+    monkeypatch.setattr('experiments.unlearning_outputs.utility',
+        lambda output: dict(f1_before=.8, f1_after=.7, f1_drop=.1, f1_drop_ratio=.125))
+    def evaluate():
+        return evaluate_modular(evaluation(case), [], store_root=None, verified_outputs=[
+            ({'content_hash': 'gu'}, gu, None), ({'content_hash': 'rt'}, rt, None)])
+    if field is None:
+        assert len(evaluate()['rows']) == 1
+    else:
+        with pytest.raises(ValueError, match='exactly one verified Retrain'):
+            evaluate()
+    assert (gu.identity, rt.identity) == before
+
+
+def test_internal_checkpoint_training_stays_strict():
+    gu, rt = hand_pair()
+    gu.identity['target']['checkpoint_state_hash'] = 'internally-trained-state'
+    gu.identity['pairing']['training']['epochs'] = 100
+    rt.identity['pairing']['training']['epochs'] = 3000
+    with pytest.raises(ValueError, match='exactly one verified Retrain'):
+        exact_retrain(gu, [({'content_hash': 'rt'}, rt)])
+
+
 def forbidden(*args, **kwargs):
     raise AssertionError('training, producer or forward called in Metrics-only test')
 

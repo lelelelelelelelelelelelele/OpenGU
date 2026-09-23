@@ -17,6 +17,25 @@ from utils.target_checkpoint import state_hash, sha256_file
 UNUSED = ('lr', 'weight_decay', 'epochs', 'optimizer', 'scheduler')
 
 
+@pytest.mark.parametrize('method', ['GIF', 'IDEA'])
+def test_external_pt_pairs_with_from_scratch_retrain(tables, method):
+    from test_retrain_outputs import result_inputs
+    root, _, base = tables
+    external(tables, method)
+    retrain = {k: copy.deepcopy(base[k]) for k in ('kind', 'schema_version', 'model', 'training')}
+    retrain.update(method='Retrain')
+    retrain['training']['seed'] = 17
+    write_yaml(root / 'retrain.yaml', retrain)
+    run(tables, 'pt-pair', stage='unlearning', selector_refs=['degree.yaml'],
+        unlearning_refs=['external.yaml', 'retrain.yaml'])
+    for name, case in (('gap', 'post_unlearning_utility_and_retrain_gap'),
+                       ('flip', 'post_unlearning_flip_hop')):
+        write_yaml(root / 'paired.yaml', dict(kind='evaluation', schema_version=1, case=case))
+        result = run(tables, name, stage='metrics', selector_refs=[],
+            output_inputs=result_inputs(tables, 'pt-pair'), evaluation_refs=['paired.yaml'])
+        assert len(result['evaluations'][0]['rows']) == 1
+
+
 def external(tables, method='GIF'):
     root, _, base = tables
     data, _ = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
