@@ -18,7 +18,7 @@ are not active candidate tables.
    table. The table uses Random seed 104245, a 10% train-mask deletion request,
    and disables GIF/IDEA GU output cache reads and writes.
 3. After the Observer run is collected and its run.json SHA-256 is verified,
-   `experiments/aagu062_after_exp.py` checks all Observer artifacts and applies
+   `experiments/analyze_observer_calibration.py` checks all Observer artifacts and applies
    the Work Plan's frozen gate. It never changes YAML or chooses by F1.
 4. Only a `stable` method result with complete coverage of both theoretical
    proposals and T=100/200/400 may freeze the smallest passing `mu=scale*damp`.

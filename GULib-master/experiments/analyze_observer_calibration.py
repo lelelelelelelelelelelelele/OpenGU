@@ -3,6 +3,12 @@
 This post-run analyzer never executes an experiment or edits its configuration.
 Each input is a completed run.json, its trusted SHA-256 receipt, and the exact
 theory proposal JSON used to create that run's candidate table.
+
+Scope: GIF/IDEA one-request calibration on Cora, CiteSeer or PubMed, H16/H64,
+with two theory proposals and T=100/200/400. This is not a general metrics or
+multi-request validation analyzer. Configuration is read from the recorded run
+commit, never the current checkout. Output reports stability and eligible frozen
+parameters; it does not change YAML, run state, or scientific acceptance.
 """
 from __future__ import annotations
 
@@ -59,6 +65,23 @@ def resolve_project_ref(base_directory: str, value: str, label: str) -> str:
     resolved = posixpath.normpath(posixpath.join(base_directory, value))
     if resolved == ".." or resolved.startswith("../"):
         raise ValueError(label + " escapes the project root")
+    return resolved
+
+
+
+def resolve_config_ref(base_directory: str, value: str, field: str) -> str:
+    """Resolve public YAML names using execution semantics, without filesystem IO.
+
+    The returned path is subsequently read from the run commit. Calling the live
+    modular_config resolver would incorrectly require files in today's checkout.
+    Explicit relative references remain anchored to the containing YAML.
+    """
+    directories = {"dataset_refs": "datasets", "unlearning_refs": "unlearning"}
+    if isinstance(value, str) and "/" not in value:
+        base_directory = "experiments/configs/" + directories[field]
+    resolved = resolve_project_ref(base_directory, value, field)
+    if PurePosixPath(resolved).suffix not in (".yaml", ".yml"):
+        raise ValueError(field + " must reference a YAML file")
     return resolved
 
 
@@ -198,7 +221,7 @@ def load_run_configuration(root: Path, run: dict, expected_theory_sha: str):
     dataset_refs = table.get("dataset_refs", [])
     if len(dataset_refs) != 1:
         raise ValueError("calibration table must bind exactly one dataset")
-    dataset_path = resolve_project_ref(table_dir, dataset_refs[0], "dataset ref")
+    dataset_path = resolve_config_ref(table_dir, dataset_refs[0], "dataset_refs")
     dataset, _ = read_git_yaml(root, run["commit"], dataset_path, "dataset config")
     dataset_name = dataset.get("dataset", {}).get("name")
     unlearning_refs = table.get("unlearning_refs", [])
@@ -206,7 +229,7 @@ def load_run_configuration(root: Path, run: dict, expected_theory_sha: str):
         raise ValueError("calibration table must contain exactly two theoretical candidates per method")
     instances = {}
     for reference in unlearning_refs:
-        path = resolve_project_ref(table_dir, reference, "unlearning ref")
+        path = resolve_config_ref(table_dir, reference, "unlearning_refs")
         instance, raw_instance = read_git_yaml(root, run["commit"], path, "unlearning config")
         match = CANDIDATE_RE.fullmatch(posixpath.basename(path))
         if not match:
@@ -356,7 +379,7 @@ def analyze_case(root: Path, run_path: Path, expected_sha256: str, theory_path: 
     if dataset_name != dataset:
         raise ValueError("run dataset differs from theory case")
     dataset_config, _ = read_git_yaml(root, run["commit"],
-        resolve_project_ref(posixpath.dirname(table_path), table.get("dataset_refs", [])[0], "dataset ref"),
+        resolve_config_ref(posixpath.dirname(table_path), table.get("dataset_refs", [])[0], "dataset_refs"),
         "dataset config")
     if dataset_config.get("artifacts", {}).get("manifest_sha256") != theory.get("dataset_split", {}).get("manifest_sha256"):
         raise ValueError("run dataset manifest differs from the theory analysis")
@@ -368,7 +391,7 @@ def analyze_case(root: Path, run_path: Path, expected_sha256: str, theory_path: 
         conditions = cell.get("conditions", {})
         ref = conditions.get("unlearning_ref")
         table_dir = posixpath.dirname(table_path)
-        normalized_ref = resolve_project_ref(table_dir, ref, "cell unlearning ref")
+        normalized_ref = resolve_config_ref(table_dir, ref, "unlearning_refs")
         instance = next((value for value in instances.values() if value["path"] == normalized_ref), None)
         if instance is None:
             raise ValueError("run cell references an undeclared candidate config")
