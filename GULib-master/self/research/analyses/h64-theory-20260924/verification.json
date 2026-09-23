@@ -1,22 +1,22 @@
 [
   {
-    "dataset": "CiteSeer",
-    "table": "experiments/configs/aagu067/observer_candidates_h64.yaml",
+    "dataset": "citeseer",
     "logical_cells": 12,
     "dry_run": true,
     "producer_called": false,
-    "configuration_fingerprint": "4a1b85a367663e2686cd8febd9d3138edf3d5ccb52e19abfb81cbb737253e6c7",
     "parameters_checkpoint_and_result_hash_verified": true,
+    "public_references_verified": true,
+    "configuration_fingerprint": "70ed3e2b0be269e786be43cf25132f16daaa46735245cef849a45b21edadd971",
     "status": "PASS"
   },
   {
-    "dataset": "PubMed",
-    "table": "experiments/configs/aagu068/observer_candidates_h64.yaml",
+    "dataset": "pubmed",
     "logical_cells": 12,
     "dry_run": true,
     "producer_called": false,
-    "configuration_fingerprint": "00a8cfe91d2fe3f499326928f8b3eb80b0c31d28bdf2b2a5d96a8a05e0487ba9",
     "parameters_checkpoint_and_result_hash_verified": true,
+    "public_references_verified": true,
+    "configuration_fingerprint": "83ddfc55ef33eb5783d95bb2ee38d34f3873903884193fe4f12612c13140bcff",
     "status": "PASS"
   }
 ]

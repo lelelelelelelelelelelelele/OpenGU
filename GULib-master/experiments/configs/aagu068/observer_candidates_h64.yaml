@@ -6,9 +6,9 @@ schema_version: 1
 experiment_id: aagu068-pubmed-h64-theory-candidates-v1
 stage: unlearning
 dataset_refs:
-- ../datasets/pubmed.yaml
+- pubmed.yaml
 selector_refs:
-- ../selectors/random.yaml
+- random.yaml
 unlearning_refs:
 - ./gif_h64_theory_rho_0p8_100.yaml
 - ./gif_h64_theory_rho_0p8_200.yaml

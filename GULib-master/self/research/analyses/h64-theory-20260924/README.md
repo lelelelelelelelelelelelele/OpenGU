@@ -26,3 +26,5 @@ H64 theory YAML now equals the actual effective input and directly references th
 - [Generation manifest](generation.json), [verification](verification.json)
 
 Finite Ritz estimates are not certified full-spectrum bounds. No training, Observer, retrain comparison, parameter freeze or scientific acceptance occurred. Dry-run validates configuration expansion, not remote launch readiness. Before execution, verify the recorded checkpoint SHA/state hash and dataset identity, then prepare/review a separate SyncMate Recipe and normal execution preflight.
+
+Public dataset/selector instances use location-independent names (`citeseer.yaml`, `pubmed.yaml`, `random.yaml`). Experiment-specific method instances retain `./` references.

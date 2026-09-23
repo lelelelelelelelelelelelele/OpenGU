@@ -96,9 +96,9 @@ def generate(theory_config, theory_json, table_path, project_root, replace_table
         raise ValueError("table output escapes project root") from exc
     table_parent = root / table_parent_relative
     dataset_path = (Path(theory_config).resolve().parent / config["dataset_ref"]).resolve()
-    dataset_relative = Path(os.path.relpath(dataset_path, table_path.parent)).as_posix()
-    selector_path = root / "experiments/configs/selectors/random.yaml"
-    selector_relative = Path(os.path.relpath(selector_path, table_path.parent)).as_posix()
+    public_datasets = (root / "experiments/configs/datasets").resolve()
+    dataset_reference = (dataset_path.name if dataset_path.parent == public_datasets
+                         else Path(os.path.relpath(dataset_path, table_path.parent)).as_posix())
     checkpoint_path = root / checkpoint_relative
     checkpoint_ref = Path(os.path.relpath(checkpoint_path, table_path.parent)).as_posix()
 
@@ -139,8 +139,8 @@ def generate(theory_config, theory_json, table_path, project_root, replace_table
     experiment_id = f"aagu{Path(table_path.parent).name[-3:]}-{case['dataset'].lower()}-h{hidden}-theory-candidates-v1"
     table = {
         "kind": "experiment", "schema_version": 1, "experiment_id": experiment_id,
-        "stage": "unlearning", "dataset_refs": [dataset_relative],
-        "selector_refs": [selector_relative], "unlearning_refs": refs,
+        "stage": "unlearning", "dataset_refs": [dataset_reference],
+        "selector_refs": ["random.yaml"], "unlearning_refs": refs,
         "matrix": "cartesian_product", "random_selector_seeds": [104245],
         "budget_ratios": [0.1], "return_scores": False,
         "execution": {"gu_cache": {"GIF": "disabled", "IDEA": "disabled"}},
