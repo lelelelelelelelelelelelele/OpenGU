@@ -6,6 +6,33 @@ single-runner poller, not a scheduler or remote shell. Its job is to give
 local AI agents, remote AI agents, humans, and future dashboards the same view
 of device identity, run artifacts, result deltas, and next safe actions.
 
+## Registered installation command
+
+The candidate action is [install.action.json](install.action.json). After this
+candidate and SyncMate Core 0.5.0 are accepted and installed on both endpoints,
+replace the canonical `.workblock/actions/install.json` with that declaration.
+Until then the existing registered action remains active; do not deploy from a
+candidate worktree. Core upgrades are owned by SyncMate, not this code installer.
+The matching Core wheel is pinned in `core_dependency.json`.
+
+The registered action invokes these fixed project commands from clean landed main:
+
+```powershell
+E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py apply
+E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt
+```
+
+`apply` verifies local/origin identity, gates runner admission, pauses an idle
+persistent service, enables academic acceleration before GitHub fetch, and
+fast-forwards the fixed SSH checkout to that exact SHA. It validates Git state,
+protected-path diff and changed Python syntax without scanning caches. It restores
+only the service it paused; a stopped runner remains stopped. One-shot or bounded
+workers must finish first. Queue/run/return occupancy and unknown locks stop the
+operation; failed installation retains maintenance state for explicit diagnosis.
+The bounded bundle route is used only if accelerated Git transfer is unavailable.
+`receipt` reads the installation result instead of repeating SSH verification.
+Prepare all code, configurations and Recipe files before this one installation.
+
 ## Independent recipe YAML
 
 Each reviewed submission is declared in [recipes/](recipes/), for example
@@ -17,15 +44,17 @@ assembles these declarations; there is no Python experiment registration table.
 Generate an ordinary recipe from a real configuration (PowerShell):
 
 ```powershell
-E:/conda_package/envs/gnn/python.exe scripts/syncmate/recipe.py generate experiments/configs/aagu007/experiment.yaml --id opengu-example --run-id example-v1 --timeout-seconds 1800 --dataset-count 2708:1895
+E:/conda_package/envs/gnn/python.exe scripts/syncmate/recipe.py generate experiments/configs/aagu007/experiment.yaml --id opengu-example --run-id example-v1 --timeout-seconds 1800 --node gpu4090 --output scripts/syncmate/recipes/opengu-example.yaml
 ```
 
-Review the stdout YAML, then save it as `scripts/syncmate/recipes/opengu-example.yaml`.
-Use one reviewed `--dataset-count NODES:CANDIDATES` per dataset in config order;
-the generator does not download or guess dataset assets. Generation computes the
+Review the generated YAML file. The command refuses to overwrite an existing file.
+Counts come from the configuration's exact persisted Dataset/Split graph and masks,
+validated by the existing dataset reader on the configured runner. Omit `--node`
+only when those inputs already exist locally. No raw data is downloaded; missing
+or mismatched evidence fails explicitly. Generation computes the
 existing hashes explicitly. Reading, previewing, or submitting never refreshes
 hashes silently. After editing experiment inputs, regenerate and review the
-recipe, then commit both. Use a new run ID to preserve earlier run directories.
+recipe under a new ID, then commit both. Use a new run ID to preserve earlier run directories.
 The declaration's `id` must equal its filename stem. Unknown/duplicate fields,
 unsafe paths, and unsupported output rules fail closed.
 

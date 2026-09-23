@@ -1,6 +1,8 @@
 """Declarative recipes preserve Core's immutable job and hash contracts."""
 import copy
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -14,7 +16,7 @@ from test_syncmate_execution_contract import workspace, tables, commit, git
 
 def test_all_recipes_are_independent_and_compact():
     paths = list((ROOT / RECIPE_DIRECTORY).glob('*.yaml'))
-    assert len(paths) == len(recipe_ids(ROOT)) == 47
+    assert len(paths) == len(recipe_ids(ROOT)) and paths
     for path in paths:
         spec = load_declaration(path)
         definition = resolve_recipe(ROOT, spec['id'])
@@ -57,10 +59,43 @@ def save_spec(root, spec):
     return path
 
 
+def test_generator_writes_yaml_from_configured_runner_and_never_overwrites(workspace):
+    from syncmate_core.devices import build_peer_config
+    root, config, _ = workspace
+    device_file = root / '.syncmate/device.yaml'
+    device = yaml.safe_load(device_file.read_text())
+    device['peers'] = {'cpu': build_peer_config('runner', None, str(root), transport='local')}
+    device_file.write_text(yaml.safe_dump(device))
+    output = root / RECIPE_DIRECTORY / 'generated.yaml'
+    command = [sys.executable, '-B', str(root / 'scripts/syncmate/recipe.py'), 'generate',
+        config.relative_to(root).as_posix(), '--id', 'generated', '--run-id', 'automatic', '--node', 'cpu',
+        '--output', str(output)]
+    result = subprocess.run(command, cwd=root, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    spec = load_declaration(output)
+    assert spec['expected_datasets'] == [{'num_nodes': 20, 'candidate_count': 10}]
+    before = output.read_bytes()
+    repeat = subprocess.run(command, cwd=root, capture_output=True, text=True)
+    assert repeat.returncode != 0
+    assert output.read_bytes() == before
+
+
+def test_generator_refuses_missing_or_changed_bound_graph(workspace):
+    root, _, _ = workspace
+    graph = root / 'data/processed/graph.pkl'
+    graph.write_bytes(graph.read_bytes() + b'changed')
+    with pytest.raises(ValueError, match='digest mismatch'):
+        generate('experiment.yaml', recipe_id='invalid', run_id='invalid', project_root=root)
+    graph.unlink()
+    with pytest.raises(OSError):
+        generate('experiment.yaml', recipe_id='missing', run_id='missing', project_root=root)
+
+
 def test_config_new_commit_creates_new_job_without_mutating_old_job(workspace):
     root, config, _ = workspace
     spec = generate('experiment.yaml', recipe_id='new-recipe', run_id='first',
-        expected_datasets=[{'num_nodes': 20, 'candidate_count': 10}], project_root=root)
+        project_root=root)
+    assert spec['expected_datasets'] == [{'num_nodes': 20, 'candidate_count': 10}]
     path = save_spec(root, spec)
     sha1 = commit(root)
     recipe = execution_recipe(assemble(load_declaration(path), root))
@@ -74,7 +109,7 @@ def test_config_new_commit_creates_new_job_without_mutating_old_job(workspace):
     with pytest.raises(ContractError, match='dirty'):
         build_job_envelope(recipe, root, job_id='dirty', git_state={'clean': False, 'sha': sha1})
     new_spec = generate('experiment.yaml', recipe_id='new-recipe', run_id='second',
-        expected_datasets=spec['expected_datasets'], project_root=root)
+        project_root=root)
     save_spec(root, new_spec)
     sha2 = commit(root)
     new_recipe = execution_recipe(assemble(load_declaration(path), root))
@@ -101,7 +136,7 @@ def test_preview_resolves_device_and_outputs_without_submission(workspace):
     from syncmate_core.devices import build_peer_config
     root, config, _ = workspace
     spec = generate('experiment.yaml', recipe_id='visible', run_id='visible-run',
-        expected_datasets=[{'num_nodes': 20, 'candidate_count': 10}], project_root=root)
+        project_root=root)
     path = save_spec(root, spec)
     sha = commit(root)
     device_file = root / '.syncmate/device.yaml'

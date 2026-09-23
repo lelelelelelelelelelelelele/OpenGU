@@ -166,13 +166,18 @@ def resolve_recipe(project_root, recipe_id):
     return assemble(spec, root)
 
 
-def generate(config_path, *, recipe_id, run_id, expected_datasets, timeout_seconds=21600, project_root=ROOT):
+def generate(config_path, *, recipe_id, run_id, timeout_seconds=21600, project_root=ROOT,
+             node=None, device_file=None):
     """Explicit generation refreshes hashes; ordinary reads never refresh them."""
     from experiments.modular_run import execute
+    from experiments.modular_config import load_experiment
     from syncmate_core.identity import sha256_recipe_config
     root = Path(project_root).resolve()
     path = resolve_repo_path(root, config_path)
     plan = execute(path, dry_run=True)
+    from scripts.syncmate.recipe_inputs import dataset_counts
+    expected_datasets = dataset_counts(load_experiment(path), root, node=node,
+        device_file=device_file or root / '.syncmate/device.yaml')
     return {'schema_version': 1, 'id': recipe_id, 'runner': 'experiment',
         'config_path': path.relative_to(root).as_posix(), 'config_sha256': sha256_recipe_config(path),
         'configuration_fingerprint': plan['configuration_fingerprint'],
