@@ -14,8 +14,9 @@
 
 % Draft markers; remove or resolve before submission.
 \newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\draftnote}[1]{\textcolor{blue!70!black}{[#1]}}
 
-\title{\todo{Working title}}
+\title{Auditing Strategic Deletion Requests in Graph Unlearning}
 
 % Keep anonymous for submission. Enable \iclrfinalcopy only for the final version.
 \author{Anonymous Authors}
@@ -23,56 +24,34 @@
 \begin{document}
 
 \maketitle
-
-\begin{abstract}
-\todo{Write a one-paragraph abstract grounded in the finalized experiments and claims.}
-\end{abstract}
-
-\section{Introduction}
-\label{sec:intro}
-\todo{Motivate strategic deletion requests and state the paper's research questions and contributions.}
-
-\section{Related Work}
-\label{sec:related}
-\todo{Position the work relative to graph unlearning, machine unlearning evaluation, and adversarial request selection.}
-
-\section{Threat Model and Attack Construction}
-\label{sec:method}
-\todo{Define attacker access, deletion-request constraints, selectors, and response measurements.}
-
-\section{Experimental Protocol}
-\label{sec:experiments}
-\todo{Specify datasets, models, unlearning methods, baselines, budgets, seeds, and evaluation procedures.}
-
-\section{Results}
-\label{sec:results}
-\todo{Report evidence-backed response differences, with uncertainty and scope limits.}
-
-\section{Discussion and Limitations}
-\label{sec:discussion}
-\todo{Discuss supported interpretations, alternative explanations, and limitations.}
-
-\section{Conclusion}
-\label{sec:conclusion}
-\todo{Summarize the contribution without extending beyond the evidence.}
+\draftnote{Working title; results and claims remain provisional pending scientific review.}
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/problem}
+\input{sections/methods}
+\input{sections/experiments}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/limitations}
+\input{sections/conclusion}
 
 % Optional: include an ethics statement when the work raises relevant issues.
 % \section*{Ethics Statement}
 % \todo{Address relevant privacy, security, dataset, or research-integrity issues.}
 
-% Recommended by ICLR 2027; this statement is outside the main-text page limit.
+% Recommended by ICLR 2027; complete the statement before submission.
 \section*{Reproducibility Statement}
-\todo{Point readers to the paper, appendix, and anonymous supplementary materials needed to reproduce the work.}
+\todo{Point to the paper, appendix, and anonymous materials needed to reproduce the results.}
 
 % Required by ICLR 2027. Replace with an accurate disclosure before submission.
 \section*{AI Use Statement}
-\todo{Disclose required and recommended LLM use, including review of AI-assisted work and author responsibility.}
+\todo{Disclose required and recommended AI use, author review, and responsibility.}
 
 \bibliographystyle{iclr2027_conference}
 \bibliography{references}
 
 \appendix
-\section{Supplementary Material}
-\todo{Add supplementary methods, proofs, or extended results as needed.}
+\input{sections/appendix}
 
 \end{document}

@@ -1,0 +1,19 @@
+\section{Experimental Design}
+\label{sec:experiments}
+
+\subsection{Primary multi-method matrix}
+The primary matrix covers node-deletion requests on Cora, CiteSeer, and PubMed with an OpenGU GCN backbone. We compare six graph-unlearning methods: GIF, GNNDelete, MEGU, IDEA, GraphEraser, and GraphRevoker \cite{wu2023gif,cheng2023gnndelete,li2024towards,dong2024idea,chen2022graph}. Each request removes 10\% of the eligible training-node candidates. The five selectors are Random, Degree, PageRank, R-point, and D-full. R-point is the practical influence-based setting used in the main-text comparison; D-full is a last-layer, two-hop setting included for reference.
+
+The matrix contains 315 planned method conditions: 270 GU outputs and 45 full-retraining references. All 270 GU outputs have an identity-matched retraining result. We report three training seeds (42, 212, and 2024) as mean and sample standard deviation. In this matrix, Random, Degree, and PageRank reuse a selection across training seeds, whereas R-point and D-full selections vary with training seed. Thus, the reported spread includes model-training variability and, for the influence-based selectors, selection variability; it is not an estimate over independent random requests.
+
+\draftnote{The registered split, candidate-pool construction, exact selector information access, training hyperparameters, and tie-breaking rules must be inserted from the final experiment manifests before submission.}
+
+\subsection{Matched-reference analyses}
+We add two current-parameter analyses to make the reference questions explicit. AAGU-032 contains 360 full-retraining conditions across ten selectors, four deletion budgets, three training seeds, and the three datasets. It compares selector outcomes under retraining; it does not measure GU behavior. AAGU-053 contains 48 strictly matched GNNDelete--retraining request pairs, with 16 requests per dataset at a 10\% budget and the training seed fixed to 42. The same selection identity is used at both endpoints.
+
+These analyses use archived outputs from the 3000-epoch default configuration. The corresponding analysis report records that all AAGU-032 method outputs were cache hits; AAGU-053 includes both cache hits and producer executions. We therefore treat these as analyses of verified archived outputs, not as a claim that every condition was freshly recomputed in one run.
+
+\subsection{Metrics and aggregation}
+The primary matrix reports the F1 values recorded in its analysis report. We aggregate at the training-seed level and retain signed paired differences. For AAGU-032/053, the serialized utility field is named f1, but the output code computes test accuracy by comparing predicted and true labels on the test mask. We call that endpoint test accuracy throughout and keep it separate from the primary F1 tables.
+
+For the AAGU-053 comparison, each dataset-level mean gives equal weight to its 16 matched requests. For the AAGU-032 selector comparison, we first average over three training seeds within each configuration and budget, then summarize the 12 configuration-budget groups per dataset. Those groups share configurations and are not independent samples. We use these results descriptively and do not report significance or equivalence from them.
