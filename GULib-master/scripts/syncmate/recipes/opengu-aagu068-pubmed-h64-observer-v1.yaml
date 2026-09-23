@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu068-pubmed-h64-observer-v1
+runner: experiment
+config_path: experiments/configs/aagu068/observer_candidates_h64.yaml
+config_sha256: 9e33b01e4561339dfd2044ad903f304d650c38400dd39aa096676362f2f261d9
+configuration_fingerprint: 83ddfc55ef33eb5783d95bb2ee38d34f3873903884193fe4f12612c13140bcff
+run_identity:
+  experiment_id: aagu068-pubmed-h64-theory-candidates-v1
+  run_id: aagu068-pubmed-h64-observer-104245-v1
+timeout_seconds: 7200
+logical_cells: 12
+stage: unlearning
+expected_datasets:
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

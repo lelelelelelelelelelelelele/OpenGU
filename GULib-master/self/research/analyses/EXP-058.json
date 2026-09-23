@@ -1,0 +1,26 @@
+{
+  "id": "EXP-058",
+  "title": "Backbone 泛化对照",
+  "question": "使用预先固定的代表策略与GU，检验不同Backbone的适用范围。",
+  "scope": "使用预先固定的代表策略与GU，检验不同Backbone的适用范围。",
+  "configs": [],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-058/WORKITEM.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "not_started",
+    "note": "暂无本轮泛化分析。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": []
+}

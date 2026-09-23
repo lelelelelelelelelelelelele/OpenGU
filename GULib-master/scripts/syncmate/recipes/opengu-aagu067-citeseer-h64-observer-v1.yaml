@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-aagu067-citeseer-h64-observer-v1
+runner: experiment
+config_path: experiments/configs/aagu067/observer_candidates_h64.yaml
+config_sha256: 6558887f488d18a8b2f3070053bded59509e033ae7e4f9899125fd17c250d8b6
+configuration_fingerprint: 70ed3e2b0be269e786be43cf25132f16daaa46735245cef849a45b21edadd971
+run_identity:
+  experiment_id: aagu067-citeseer-h64-theory-candidates-v1
+  run_id: aagu067-citeseer-h64-observer-104245-v1
+timeout_seconds: 3600
+logical_cells: 12
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

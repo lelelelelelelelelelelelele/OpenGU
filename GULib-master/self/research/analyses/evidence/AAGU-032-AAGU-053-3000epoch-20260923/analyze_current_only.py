@@ -186,6 +186,45 @@ def main() -> None:
             "cells": sum(r["n_training_seeds"] for r in dataset_rows),
             "equal_group_mean_test_accuracy_after_percent": statistics.mean(all_values),
         }
+
+    # Current 10% selected-node overlap and R-point/gt_full paired outcome contrasts.
+    selector_sets032 = {}
+    for record in cells032.values():
+        cell = record["cell"]
+        cond = cell["conditions"]
+        if cond["budget_ratio"] == 0.10:
+            selector_sets032[(cond["dataset_name"], cond["training_seed"], selector_name(cond["selector_ref"]))] = set(record["selection"].get("selected_nodes", []))
+    overlap032 = {}
+    full_variants = ("gt_full", "gt_full_all_trainable", "gt_full_all_trainable_hops3")
+    for dataset in DATASETS:
+        ratios = []
+        for variant in full_variants:
+            for seed in (42, 212, 2024):
+                target = selector_sets032[(dataset, seed, variant)]
+                degree = selector_sets032[(dataset, seed, "degree")]
+                if not target or len(target) != len(degree):
+                    raise ValueError(f"AAGU-032 10% selection-size mismatch: {(dataset, seed, variant)}")
+                ratios.append(100 * len(target & degree) / len(target))
+        overlap032[dataset] = {
+            "n_variant_seed_pairs": len(ratios),
+            "mean_intersection_over_selected_k_percent": statistics.mean(ratios),
+            "sample_sd_pp": sample_sd(ratios),
+            "min_percent": min(ratios),
+            "max_percent": max(ratios),
+            "definition": "|D-full selected nodes intersect Degree selected nodes| / |D-full selected nodes|; all requests use the same dataset, 10% budget, and training seed",
+        }
+    rpoint_vs_full = {}
+    for dataset in DATASETS:
+        rpoint_vs_full[dataset] = {}
+        for budget in (0.10, 0.15):
+            a = {r["seed"]: r["accuracy"] for r in index032[(dataset, "r_point", budget)]}
+            b = {r["seed"]: r["accuracy"] for r in index032[(dataset, "gt_full", budget)]}
+            diffs = [(a[s] - b[s]) * 100 for s in sorted(a)]
+            rpoint_vs_full[dataset][f"{budget:.0%}"] = {
+                "n_paired_training_seeds": len(diffs),
+                "mean_difference_pp": statistics.mean(diffs),
+                "paired_sample_sd_pp": sample_sd(diffs),
+            }
     for dataset in DATASETS:
         selectors = sorted({selector for ds, selector, _ in index032 if ds == dataset})
         budgets = sorted({budget for ds, _, budget in index032 if ds == dataset})
@@ -360,6 +399,8 @@ def main() -> None:
             },
             "D-full_variants_vs_degree": full_variant_contrasts,
             "D-full_variants_vs_random": full_variant_random_contrasts,
+            "D-full_degree_selection_overlap_at_10_percent": overlap032,
+            "r_point_minus_gt_full_test_accuracy": rpoint_vs_full,
             "contrasts_against_two_baselines": len(contrasts032),
         },
         "AAGU-053": {
@@ -401,7 +442,7 @@ def main() -> None:
             "",
             "## AAGU-053 · GNNDelete and same-request Retrain",
             "",
-            "Each GU/Retrain comparison uses identical selected nodes. `n` is the number of selector requests (Degree: 1; other selectors: 3), with one training seed. Means ± sample SD describe variation across requests, not across independently trained models. Difference columns are percentage points.",
+            "Each GU/Retrain comparison uses identical selected nodes. `n` is the number of selector requests (Degree: 1; other selectors: 3), with one training seed. Means ± sample SD describe variation across requests, not across independently trained models. Test-accuracy difference columns are percentage points.",
             "",
             "| Selector | n | P0 test acc. (%) | GNNDelete (%) | Retrain (%) | P0−GU (pp) | P0−Retrain (pp) | Retrain−GU (pp) |",
             "|---|---:|---:|---:|---:|---:|---:|---:|",

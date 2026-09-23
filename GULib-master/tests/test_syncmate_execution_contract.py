@@ -82,7 +82,7 @@ def cli(root, path, run_id):
 
 def declaration(root, path, stage):
     spec = generate('experiment.yaml', recipe_id='temporary-contract', run_id='registered',
-        expected_datasets=[{'num_nodes': 20, 'candidate_count': 10}], project_root=root)
+        project_root=root)
     declaration_path = root / 'temporary-contract.yaml'
     write_yaml(declaration_path, spec)
     definition = assemble(load_declaration(declaration_path), root)

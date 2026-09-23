@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from cache_v2 import canonical_sha256
 from experiments.effective_config import ConfigurationError, fields
+from experiments.node_deletion import retrain_pairing_matches
 
 
 CASES = {
@@ -116,9 +117,7 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
             candidates = ([(paired_reference, load_output(paired_reference, store_root, data=data, dataset_root=dataset_root))]
                           if paired_reference else retrains)
             matches = {ref['content_hash']: (ref, payload) for ref, payload in candidates
-                       if payload.identity['target']['method'] == 'Retrain'
-                       and payload.identity['selection'] == output.identity['selection']
-                       and payload.identity['pairing'] == output.identity['pairing']}
+                       if retrain_pairing_matches(output.identity, payload.identity)}
             if len(matches) != 1:
                 raise ConfigurationError('retrain-gap needs exactly one verified Retrain with the same request, training and deletion semantics')
             ref, retrain = next(iter(matches.values()))

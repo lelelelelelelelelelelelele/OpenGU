@@ -14,7 +14,7 @@ def records():
     """Synthetic state: tests must work in a fresh clone without local plans."""
     evidence = [dict(label='report', path='report.md')]
     rows = []
-    for code in ('AAGU-001', 'AAGU-002'):
+    for code in ('EXP-001', 'EXP-002'):
         r = dict(id=code, title=code, family='main', category='active',
                  question='Question', scope='Frozen scope', next_step='Review',
                  reviewed_at='2026-09-22', sources=evidence,
@@ -34,7 +34,7 @@ def records():
         rows.append(r)
     rows[0]['blocks'] = [dict(id='AAGU-072',stage='execution',reason='software',
                              delivery_confirmed=True,delivery_note='verified')]
-    rows[1]['dependencies'] = [dict(experiment='AAGU-001',stage='analysis',reason='parent',requirement='successful_acceptance')]
+    rows[1]['dependencies'] = [dict(experiment='EXP-001',stage='analysis',reason='parent',requirement='successful_acceptance')]
     return rows
 
 
@@ -42,16 +42,18 @@ def frame():
     return model.read_json(view.SOURCE / 'framework.json')
 
 
-@pytest.mark.parametrize('defect', ['id','state','evidence','analysis','decision','cycle','unknown_dependency','block','event','config'])
+@pytest.mark.parametrize('defect', ['id','old_experiment_id','experiment_as_block','state','evidence','analysis','decision','cycle','unknown_dependency','block','event','config'])
 def test_invalid_records_fail_closed(defect):
     rows = copy.deepcopy(records()); r = rows[0]
     if defect == 'id': r['id'] = '../oops'
+    if defect == 'old_experiment_id': r['id'] = 'AAGU-001'
+    if defect == 'experiment_as_block': r['blocks'][0]['id'] = 'EXP-072'
     if defect == 'state': r['execution']['state'] = 'maybe'
     if defect == 'evidence': r['execution']['evidence'] = []
     if defect == 'analysis': r['analysis']['evidence'] = []
     if defect == 'decision': r['decision']['evidence'] = []
     if defect == 'cycle': r['dependencies'] = [dict(experiment=r['id'],stage='analysis',reason='x',requirement='evidence')]
-    if defect == 'unknown_dependency': r['dependencies'] = [dict(experiment='AAGU-999',stage='analysis',reason='x',requirement='evidence')]
+    if defect == 'unknown_dependency': r['dependencies'] = [dict(experiment='EXP-999',stage='analysis',reason='x',requirement='evidence')]
     if defect == 'block': r['blocks'] = [dict(id='bad',stage='execution',reason='x')]
     if defect == 'event': r['history'].append(copy.deepcopy(r['history'][0]))
     if defect == 'config': r['configs'][0]['path'] = 'script.py'
@@ -108,7 +110,7 @@ def test_unrelated_block_and_graph_changes_do_not_change_experiment_or_view(tmp_
 
 def test_accepted_negative_result_does_not_unlock_cross_dataset_run(tmp_path):
     rows=records();lookup={r['id']:r for r in rows}
-    parent=lookup['AAGU-001'];child=lookup['AAGU-002']
+    parent=lookup['EXP-001'];child=lookup['EXP-002']
     parent['decision']['state']='accepted'
     parent['decision']['success_confirmed']=False
     assert not model.dependencies(child,rows,tmp_path)[0]['resolved']
@@ -146,7 +148,7 @@ def test_unmaterialized_candidate_config_is_visible_but_not_a_broken_link(tmp_pa
 
 def test_catalog_classifies_development_without_registering_experiments():
     rows=list(model.read_records(view.SOURCE / 'analyses').values());catalog=view.catalog(view.ROOT,rows)
-    assert any(c['owner']=='AAGU-032' for c in catalog)
+    assert any(c['owner']=='EXP-032' for c in catalog)
     assert any(c['owner']=='AAGU-063' and c['kind']=='development' for c in catalog)
     assert not any(r['id']=='AAGU-063' for r in rows)
     assert len({c['path'] for c in catalog})==len(catalog)
@@ -171,6 +173,14 @@ def test_repeated_generation_is_deterministic_and_escapes_data(tmp_path):
     rows[0]['title']='</text><script>alert(1)</script>'
     content=view.index_page(framework,rows,sources,tmp_path/'index.html')
     assert '</text><script>alert(1)' not in content and '&lt;script&gt;alert(1)' in content
+
+
+def test_training_diagnostic_experiment_page(tmp_path):
+    rows = records()
+    rows[0]['family'] = 'training-diagnostic'
+    rows[0]['configs'] = []
+    page = view.sheet_page(rows[0], rows, view.Sources(view.ROOT, tmp_path), tmp_path / 'EXP-001.html')
+    assert 'EXP-001 / 训练诊断' in page
 
 
 def test_manifest_binding_checks_identity_count_and_file_hash(tmp_path):
@@ -216,7 +226,7 @@ def test_time_budget_is_optional_for_existing_entries(tmp_path):
 
     rows=records();rows[0]['time_budget']=None
     model.validate(rows)
-    text=view.time_budget_section(rows[0],view.Sources(view.ROOT,tmp_path),tmp_path/'AAGU-001.html')
+    text=view.time_budget_section(rows[0],view.Sources(view.ROOT,tmp_path),tmp_path/'EXP-001.html')
     assert '估时未记录' in text
     assert '未记录' in text
 
@@ -235,8 +245,14 @@ def test_time_budget_is_optional_for_existing_entries(tmp_path):
 
 def test_only_recorded_estimates_must_match_the_current_scope():
     rows=records();rows[0]['time_budget']['scope']='Historical scope'
-    with pytest.raises(ValueError,match='current full experiment scope'):
-        model.validate(rows)
+    model.validate(rows)
+    assert model.time_summary(rows[0])['match_status']=='estimate_scope_mismatch'
+    assert model.time_summary(rows[0])['deviation_seconds'] is None
+    rows[0]['time_budget']['scope']=rows[0]['scope']
+    del rows[0]['time_budget']['calculation']
+    model.validate(rows)
+    assert model.time_summary(rows[0])['match_status']=='estimate_basis_unconfirmed'
+    assert model.time_summary(rows[0])['deviation_seconds'] is None
 
     rows=records();rows[0]['execution']['state']='not_required'
     rows[0]['time_budget']=dict(estimate_status='not_applicable',estimated_seconds=None,
@@ -265,8 +281,9 @@ def test_attempt_requires_actual_runtime_and_cache_evidence():
 
     rows=records();rows[0]['attempts']=[timed_attempt()]
     del rows[0]['attempts'][0]['runtime']
-    with pytest.raises(ValueError,match='Run attempt requires runtime'):
-        model.validate(rows)
+    model.validate(rows)
+    assert model.time_summary(rows[0])['match_status']=='actual_incomplete'
+    assert model.time_summary(rows[0])['deviation_seconds'] is None
 
 
 def test_legacy_attempts_without_runtime_are_shown_as_unrecorded(tmp_path):
@@ -279,7 +296,7 @@ def test_legacy_attempts_without_runtime_are_shown_as_unrecorded(tmp_path):
     assert summary['missing_actual_attempts']==1
     assert summary['match_status']=='estimate_not_recorded'
 
-    page=tmp_path/'AAGU-001.html'
+    page=tmp_path/'EXP-001.html'
     sources=view.Sources(view.ROOT,tmp_path)
     text=view.time_budget_section(rows[0],sources,page)
     assert '历史尝试未保存 runtime 元数据' in text
@@ -338,7 +355,7 @@ def test_time_match_waits_for_full_scope_runtime_and_cache():
 def test_time_budget_view_shows_estimate_actual_deviation_and_cache_counts(tmp_path):
     r=records()[0];r['attempts']=[timed_attempt()]
     sources=view.Sources(view.ROOT,tmp_path)
-    page=tmp_path/'AAGU-001.html'
+    page=tmp_path/'EXP-001.html'
     text=view.time_budget_section(r,sources,page)
     assert '120.00 秒' in text
     assert '+0.00 秒（+0.0%）' in text
@@ -372,11 +389,11 @@ def test_split_load_preserves_information_and_uses_canonical_state(tmp_path):
 
 def test_missing_analysis_is_pending_and_mixed_state_rejected(tmp_path):
     write_split(tmp_path, records())
-    (tmp_path / 'self/research/analyses/AAGU-001.json').unlink()
+    (tmp_path / 'self/research/analyses/EXP-001.json').unlink()
     rows = model.load(tmp_path)[1]
     assert rows[0]['analysis']['state'] == 'not_started'
     assert not model.dependencies(rows[1], rows, tmp_path)[0]['resolved']
-    p = tmp_path / 'self/research/experiments/AAGU-001.json'
+    p = tmp_path / 'self/research/experiments/EXP-001.json'
     state = json.loads(p.read_text())
     state['analysis'] = records()[0]['analysis']
     p.write_text(json.dumps(state))
@@ -408,13 +425,13 @@ def test_state_edits_leave_git_head_and_status_unchanged_analysis_is_tracked(tmp
     git('add', 'self/research/.gitignore', 'self/research/framework.json', 'self/research/analyses')
     git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-qm', 'baseline')
     head = git('rev-parse', 'HEAD')
-    p = source / 'experiments/AAGU-001.json'
+    p = source / 'experiments/EXP-001.json'
     state = json.loads(p.read_text())
     state['next_step'] = 'Updated while running'
     p.write_text(json.dumps(state))
     assert git('status', '--porcelain') == ''
     assert git('rev-parse', 'HEAD') == head
     assert not git('ls-files', 'self/research/experiments')
-    p = source / 'analyses/AAGU-001.json'
+    p = source / 'analyses/EXP-001.json'
     p.write_text(p.read_text() + '\n')
-    assert 'self/research/analyses/AAGU-001.json' in git('status', '--porcelain')
+    assert 'self/research/analyses/EXP-001.json' in git('status', '--porcelain')

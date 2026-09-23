@@ -1,0 +1,94 @@
+{
+  "id": "EXP-053",
+  "title": "IM 采样稳定性与删除效果",
+  "question": "分开维护RR10采样研究与96格下游效果；二者不互相替代。",
+  "scope": "分开维护RR10采样研究与96格下游效果；二者不互相替代。",
+  "configs": [
+    {
+      "label": "Experiment.yaml",
+      "path": "experiments/configs/im_group_discussion/Experiment.yaml",
+      "role": "current"
+    }
+  ],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-053/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-053/REPORT.md"
+    }
+  ],
+  "attempts": [
+    {
+      "run_id": "aagu053-newtraining-full-20260920",
+      "scope": "9月20日新训练96格已存在完成manifest；历史RR10为36格并已接受其范围。",
+      "state": "completed",
+      "evidence": [
+        {
+          "label": "当前运行manifest",
+          "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+        }
+      ],
+      "manifest": {
+        "label": "当前运行manifest",
+        "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json",
+        "sha256": "dfb6f7c88021291847765a901d61efa698df889a8157fedc2f9639d50a852e7e",
+        "experiment_id": "aagu053-im-group-budget10",
+        "commit": "38ca4e76e2fd45d30d88dc47cf7aad950193bdc7",
+        "completed": 96
+      }
+    }
+  ],
+  "analysis": {
+    "state": "review",
+    "note": "2026-09-23 完成 100→3000 训练轮数描述性对照；48/48 个下游效果选择身份一致，RR10 采样分析维持独立范围，科学结论待审阅。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-053/REPORT.md"
+      },
+      {
+        "label": "当前运行manifest",
+        "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+      },
+      {
+        "label": "100→3000 参数对照分析报告",
+        "path": "self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md"
+      },
+      {
+        "label": "旧参数逐条件明细",
+        "path": ".workblock/items/AAGU-053/evidence/table-detail.json"
+      },
+      {
+        "label": "新参数运行manifest",
+        "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+      },
+      {
+        "label": "3000轮参数下论文结果分析草稿",
+        "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
+      }
+    ]
+  },
+  "decision": {
+    "state": "pending",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-23",
+  "history": [
+    {
+      "id": "aagu-053-paper-analysis-3000-only-20260923",
+      "at": "2026-09-23",
+      "stage": "analysis",
+      "note": "登记当前 3000 轮论文结果分析草稿；仅增加证据引用，分析维持 review，科学决定维持 pending。",
+      "evidence": [
+        {
+          "label": "3000轮参数下论文结果分析草稿",
+          "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
+        }
+      ]
+    }
+  ]
+}

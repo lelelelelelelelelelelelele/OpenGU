@@ -234,6 +234,70 @@
         "mean_difference_pp": -0.9494027496055876
       }
     },
+    "D-full_degree_selection_overlap_at_10_percent": {
+      "Cora": {
+        "n_variant_seed_pairs": 9,
+        "mean_intersection_over_selected_k_percent": 21.222810111699,
+        "sample_sd_pp": 1.4109347442680777,
+        "min_percent": 19.576719576719576,
+        "max_percent": 23.80952380952381,
+        "definition": "|D-full selected nodes intersect Degree selected nodes| / |D-full selected nodes|; all requests use the same dataset, 10% budget, and training seed"
+      },
+      "CiteSeer": {
+        "n_variant_seed_pairs": 9,
+        "mean_intersection_over_selected_k_percent": 13.218390804597702,
+        "sample_sd_pp": 3.38025584943063,
+        "min_percent": 9.913793103448276,
+        "max_percent": 18.96551724137931,
+        "definition": "|D-full selected nodes intersect Degree selected nodes| / |D-full selected nodes|; all requests use the same dataset, 10% budget, and training seed"
+      },
+      "PubMed": {
+        "n_variant_seed_pairs": 9,
+        "mean_intersection_over_selected_k_percent": 22.391304347826086,
+        "sample_sd_pp": 3.0508020920320127,
+        "min_percent": 17.028985507246375,
+        "max_percent": 25.0,
+        "definition": "|D-full selected nodes intersect Degree selected nodes| / |D-full selected nodes|; all requests use the same dataset, 10% budget, and training seed"
+      }
+    },
+    "r_point_minus_gt_full_test_accuracy": {
+      "Cora": {
+        "10%": {
+          "n_paired_training_seeds": 3,
+          "mean_difference_pp": -1.0455104551045553,
+          "paired_sample_sd_pp": 0.5636624471040366
+        },
+        "15%": {
+          "n_paired_training_seeds": 3,
+          "mean_difference_pp": -0.9840098400984062,
+          "paired_sample_sd_pp": 1.2958983705845921
+        }
+      },
+      "CiteSeer": {
+        "10%": {
+          "n_paired_training_seeds": 3,
+          "mean_difference_pp": 0.10010010010009784,
+          "paired_sample_sd_pp": 1.1067739933681664
+        },
+        "15%": {
+          "n_paired_training_seeds": 3,
+          "mean_difference_pp": -0.050050050050050775,
+          "paired_sample_sd_pp": 0.6770645274508837
+        }
+      },
+      "PubMed": {
+        "10%": {
+          "n_paired_training_seeds": 3,
+          "mean_difference_pp": -0.37187288708587046,
+          "paired_sample_sd_pp": 1.0028309835156315
+        },
+        "15%": {
+          "n_paired_training_seeds": 3,
+          "mean_difference_pp": -0.7352941176470599,
+          "paired_sample_sd_pp": 1.037696852417903
+        }
+      }
+    },
     "contrasts_against_two_baselines": 240
   },
   "AAGU-053": {

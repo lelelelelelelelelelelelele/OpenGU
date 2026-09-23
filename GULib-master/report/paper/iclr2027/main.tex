@@ -1,0 +1,57 @@
+\documentclass{article}
+
+% ICLR 2027 official style. Keep the official style files unchanged.
+\usepackage{iclr2027_conference,times}
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{xcolor}
+
+% Draft markers; remove or resolve before submission.
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\draftnote}[1]{\textcolor{blue!70!black}{[#1]}}
+
+\title{Auditing Strategic Deletion Requests in Graph Unlearning}
+
+% Keep anonymous for submission. Enable \iclrfinalcopy only for the final version.
+\author{Anonymous Authors}
+
+\begin{document}
+
+\maketitle
+\draftnote{Working title; results and claims remain provisional pending scientific review.}
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/problem}
+\input{sections/methods}
+\input{sections/experiments}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/limitations}
+\input{sections/conclusion}
+
+% Optional: include an ethics statement when the work raises relevant issues.
+% \section*{Ethics Statement}
+% \todo{Address relevant privacy, security, dataset, or research-integrity issues.}
+
+% Recommended by ICLR 2027; complete the statement before submission.
+\section*{Reproducibility Statement}
+\todo{Point to the paper, appendix, and anonymous materials needed to reproduce the results.}
+
+% Required by ICLR 2027. Replace with an accurate disclosure before submission.
+\section*{AI Use Statement}
+\todo{Disclose required and recommended AI use, author review, and responsibility.}
+
+\bibliographystyle{iclr2027_conference}
+\bibliography{references}
+
+\appendix
+\input{sections/appendix}
+
+\end{document}

@@ -1,0 +1,25 @@
+# Generated from AAGU-062 theory analysis.
+# Theory JSON SHA-256: 5fc4b3f4cdfce95876b41bc68e598e1279c60c3e279597ea041d43435066d6f2
+# Theory YAML SHA-256: 9373ca4238c859239deb295a4914cb065df5c46556f0b18b458415b0855395f1
+# Candidate target_rho_0p5 for PubMed H64; Observer validation required.
+kind: unlearning
+schema_version: 1
+method: IDEA
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  seed: 42
+  epochs: 3000
+  optimizer: Adam
+  lr: 0.05
+  weight_decay: 0.0001
+  scheduler: none
+checkpoint: ../../../results/runtime/modular/checkpoints/d3c8dc969190c76974cab8785950f2d09a9b3d980f1515a7f7deb9ef07a184b6.pt
+parameters:
+  iteration: 200
+  scale: 277144
+  damp: 0.50023247619265
+  gaussian_mean: 0.0
+  gaussian_std: 0.0

@@ -1,0 +1,20 @@
+\section{Introduction}
+\label{sec:intro}
+
+Graph unlearning (GU) studies how a trained graph model should respond when selected nodes, edges, or features must be removed. The problem is relevant to data-erasure requests, but graph structure makes the update different from removing an isolated training example: message passing couples a node's representation and prediction to its neighborhood \cite{gdpr2016,ccpa2018,kipf2017semi}. A deletion request can therefore change both the status of the requested records and the graph context used by the remaining model.
+
+Existing GU methods reduce the cost of retraining by using partition-based updates, influence estimates, or learned deletion-aware procedures \cite{chen2022graph,wu2023gif,cheng2023gnndelete,li2024towards,dong2024idea}. These methods provide different update mechanisms and need not produce the same post-deletion model as full retraining. Consequently, a lower score after a request does not by itself identify what changed: it may reflect the method's pre-deletion reference, the effect of deleting those records even under retraining, or an additional difference between the GU output and the retrained output.
+
+Deletion requests also expose a choice to the requester. If an interface accepts a set of eligible records, a requester may choose that set strategically instead of sampling it benignly. This paper studies that request-selection step. The attacker selects a deletion set subject to an explicit candidate pool, information access, and budget; the attacker does not control model training or the implementation of the victim GU method. We use the term attack to describe this constrained request construction, not to imply that every selected request harms every method.
+
+Our evaluation asks two related questions: whether selection changes the requests presented to a GU system, and how the resulting GU behavior compares with both a budget-matched random request and full retraining on the same request. We separate the method-specific pre-deletion reference, the method's response to random deletion, and the additional change associated with a selected request. We also compare GU and retraining endpoints directly. These comparisons preserve signed differences: the GU endpoint may be above or below retraining, and neither direction alone establishes whether the requested information was forgotten correctly.
+
+The paper's intended contribution is an audit framework for interpreting method-dependent responses to deletion requests, rather than a new GU update algorithm or a claim that one selector is universally strongest. The framework makes the attacker's information set explicit, keeps selector objectives distinct from downstream outcomes, and uses paired endpoints to separate several sources of observed utility change. The empirical examples below are restricted to the datasets, methods, selectors, and evidence status described in Sections~\ref{sec:experiments}--\ref{sec:results}.
+
+\paragraph{Contributions.}
+\draftnote{Provisional wording; finalize after the result matrix and novelty claims receive scientific review.}
+\begin{itemize}
+  \item We formulate strategic deletion-set selection as an explicit threat-model component for graph-unlearning evaluation.
+  \item We describe paired utility comparisons against same-budget random requests and same-request full retraining, with signed decompositions that distinguish these reference questions.
+  \item We use multi-method and matched-request case studies to show why GU responses should be interpreted by method and dataset rather than summarized by a universal selector ranking.
+\end{itemize}

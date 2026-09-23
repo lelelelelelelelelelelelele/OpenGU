@@ -1,0 +1,26 @@
+\section{Problem Formulation and Threat Model}
+\label{sec:problem}
+
+\subsection{Graph-unlearning setting}
+Let $\mathcal{G}=(V,E,X,Y)$ be a node-classification dataset with a fixed train/validation/test split. A canonical model trained on the original training graph produces the pre-request endpoint with utility $U_0$. A deletion request is a set $S\subseteq\mathcal{C}$, where $\mathcal{C}$ is the eligible candidate pool and $|S|=k$ is the request budget. For a GU method $M$, let $U_M(S)$ denote the utility of its output after processing $S$. Let $U_R(S)$ denote the utility of a model retrained from scratch on the corresponding retained training data. The GU and retraining procedures use the same request, graph split, test nodes, labels, and evaluation metric whenever a paired comparison is reported.
+
+This draft's primary matrices study node-deletion requests on Cora, CiteSeer, and PubMed with a GCN backbone. Edge- and feature-deletion requests are outside the current empirical scope. The method-specific pre-deletion endpoint $U_{M,0}$ is kept distinct from $U_0$; this distinction is especially important when the method has its own architecture or ensemble.
+
+\subsection{Attacker capability}
+The attacker chooses $S$ using an information set $\mathcal{I}_a$ and a selector $q$. We use gray-box and white-box labels only as shorthand for declared information sets; each experiment must specify the graph structure, node attributes or labels, model parameters, and gradient or score information actually available to the selector. A label alone is not a complete capability definition.
+
+\todo{Complete the level-to-input mapping for each executed selector, including unavailable information and selection-time computation. Do not add surrogate access unless it is present in the final experiment matrix.}
+
+The attacker may inspect only the information assigned to its setting and may submit at most $k$ eligible records. The attacker does not change the training data outside the request, alter the victim method, or use test labels or retraining outcomes to tune the selector.
+
+\subsection{Selection objective and audit outcomes}
+A selector maps the permitted information and budget to a request, $q(\mathcal{I}_a,\mathcal{C},k)\mapsto S$. The selector's score or proxy objective is kept separate from the audit outcome. Outcomes include post-request utility, the difference from a budget-matched random request, the signed difference from same-request retraining, and, when node-level predictions are available, prediction disagreement. The audit does not assume that the selector directly optimizes any one of these outcomes unless the selector's implementation and tuning protocol establish that fact.
+
+\subsection{Research questions}
+We organize the experiments around four questions:
+\begin{enumerate}
+  \item Do the selection mechanisms produce distinct deletion sets under matched candidates and budgets?
+  \item Do the selectors' reference or proxy objectives align with their stated targets?
+  \item Relative to a budget-matched random request, how does a selected request change the measured GU outcome?
+  \item How do these responses vary across GU methods and datasets, and how large is the signed gap from same-request retraining?
+\end{enumerate}

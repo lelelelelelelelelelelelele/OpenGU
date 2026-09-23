@@ -15,12 +15,13 @@ STATES = {
     'decision': {'pending': '待科学决定', 'accepted': '已接受所述范围', 'rejected': '未接受', 'not_requested': '尚未提交决定'},
 }
 STATE_ALIASES = {'preparation': {'partially_verified': 'ongoing'}}
-ID = re.compile(r'AAGU-\d{3}')
 ESTIMATE_STATUSES = {'estimated', 'not_recorded', 'not_applicable'}
 ACTUAL_STATUSES = {'recorded', 'not_recorded', 'not_applicable'}
 CACHE_STATUSES = {'observed', 'not_recorded', 'not_applicable'}
 ATTEMPT_ESTIMATE_STATUSES = {'recorded_before_start', 'not_recorded_before_start', 'not_applicable'}
 MATCH_TOLERANCE = 0.20
+EXPERIMENT_ID = re.compile(r'EXP-\d{3}')
+BLOCK_ID = re.compile(r'AAGU-\d{3}')
 
 
 def read_json(path):
@@ -64,7 +65,7 @@ def read_records(directory):
     records = {}
     for path in sorted(directory.glob('*.json')):
         record = read_json(path)
-        if not ID.fullmatch(path.stem) or record.get('id') != path.stem:
+        if not EXPERIMENT_ID.fullmatch(path.stem) or record.get('id') != path.stem:
             raise ValueError('Experiment filename/ID mismatch: ' + str(path))
         records[path.stem] = record
     return records
@@ -75,7 +76,7 @@ def validate(records):
     if len(ids) != len(records):
         raise ValueError('Duplicate experiment ID')
     for r in records:
-        if not ID.fullmatch(r['id']):
+        if not EXPERIMENT_ID.fullmatch(r['id']):
             raise ValueError('Invalid experiment ID')
         for field in ('title', 'question', 'scope', 'next_step', 'reviewed_at', 'history', 'sources'):
             if not r.get(field):
@@ -101,7 +102,7 @@ def validate(records):
             if dep['requirement'] not in {'evidence', 'analysis', 'accepted', 'successful_acceptance'}:
                 raise ValueError('Invalid experiment requirement')
         for b in r['blocks']:
-            if not ID.fullmatch(b['id']) or b['stage'] not in {'preparation', 'execution', 'analysis'} or not b['reason']:
+            if not BLOCK_ID.fullmatch(b['id']) or b['stage'] not in {'preparation', 'execution', 'analysis'} or not b['reason']:
                 raise ValueError('Invalid Block dependency')
             if not b['delivery_note'] or type(b['delivery_confirmed']) is not bool:
                 raise ValueError('Block delivery observation required')
@@ -155,11 +156,9 @@ def validate_time_budget(record):
     seconds = budget.get('estimated_seconds')
     if status not in ESTIMATE_STATUSES or not budget.get('scope') or not budget.get('basis'):
         raise ValueError('Invalid experiment time estimate: ' + record['id'])
-    if status == 'estimated' and budget['scope'] != record['scope']:
-        raise ValueError('Estimate must cover the current full experiment scope: ' + record['id'])
     if status == 'estimated':
         _finite_seconds(seconds, 'estimated seconds', positive=True)
-        if budget.get('calculation') != 'cache_miss_serial':
+        if budget.get('calculation') not in (None, 'cache_miss_serial'):
             raise ValueError('Estimate must use cache-miss serial calculation: ' + record['id'])
     elif seconds is not None:
         raise ValueError('Unrecorded or non-applicable estimate must not contain seconds: ' + record['id'])
@@ -174,7 +173,7 @@ def validate_time_budget(record):
 def validate_attempt_runtime(attempt, legacy_record=False):
     runtime = attempt.get('runtime')
     if not isinstance(runtime, dict):
-        if legacy_record and runtime is None:
+        if runtime is None:
             return
         raise ValueError('Run attempt requires runtime and cache status: ' + attempt['run_id'])
     if type(runtime.get('job_started')) is not bool:
@@ -271,6 +270,10 @@ def time_summary(record):
         match_status = 'not_applicable'
     elif estimate_status != 'estimated':
         match_status = 'estimate_not_recorded'
+    elif budget.get('scope') != record['scope']:
+        match_status = 'estimate_scope_mismatch'
+    elif budget.get('calculation') != 'cache_miss_serial':
+        match_status = 'estimate_basis_unconfirmed'
     elif not scope_complete:
         match_status = 'scope_incomplete'
     elif not started and not missing_runtime:
@@ -293,6 +296,7 @@ def time_summary(record):
         'estimated_seconds': budget.get('estimated_seconds'),
         'estimate_scope': budget.get('scope') or '未记录',
         'estimate_basis': budget.get('basis') or '未记录',
+        'estimate_calculation_confirmed': budget.get('calculation') == 'cache_miss_serial',
         'scope_complete': scope_complete,
         'started_attempts': len(started),
         'unstructured_attempts': missing_runtime,

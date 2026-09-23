@@ -1,0 +1,19 @@
+kind: checkpoint_training
+schema_version: 1
+experiment_id: aagu067-citeseer-pt
+dataset_ref: ../datasets/citeseer.yaml
+models:
+- architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 16
+- architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+seeds: [42]
+groups:
+  new:
+    epochs: 3000
+    optimizer: Adam
+    lr: 0.05
+    weight_decay: 0.0001
+    scheduler: none

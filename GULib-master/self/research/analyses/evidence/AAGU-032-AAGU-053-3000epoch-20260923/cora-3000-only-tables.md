@@ -22,7 +22,7 @@ Entries are mean ± sample SD over 3 training seeds; levels are percentages. AAG
 
 ## AAGU-053 · GNNDelete and same-request Retrain
 
-Each GU/Retrain comparison uses identical selected nodes. `n` is the number of selector requests (Degree: 1; other selectors: 3), with one training seed. Means ± sample SD describe variation across requests, not across independently trained models. Difference columns are percentage points.
+Each GU/Retrain comparison uses identical selected nodes. `n` is the number of selector requests (Degree: 1; other selectors: 3), with one training seed. Means ± sample SD describe variation across requests, not across independently trained models. Test-accuracy difference columns are percentage points.
 
 | Selector | n | P0 test acc. (%) | GNNDelete (%) | Retrain (%) | P0−GU (pp) | P0−Retrain (pp) | Retrain−GU (pp) |
 |---|---:|---:|---:|---:|---:|---:|---:|

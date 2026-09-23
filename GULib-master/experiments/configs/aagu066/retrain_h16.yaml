@@ -1,0 +1,20 @@
+kind: unlearning
+schema_version: 1
+method: Retrain
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 16
+training:
+  seed: 42
+  epochs: 3000
+  optimizer: Adam
+  lr: 0.05
+  weight_decay: 0.0001
+  scheduler: none
+deletion:
+  task: node
+  supervision: exclude_selected
+  training_graph: remove_incident_edges
+  features: retain_isolated_rows
+  evaluation_graph: original

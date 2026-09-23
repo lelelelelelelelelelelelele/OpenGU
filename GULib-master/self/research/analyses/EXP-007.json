@@ -1,0 +1,59 @@
+{
+  "id": "EXP-007",
+  "title": "最小正式实验 Gate",
+  "question": "完成最小正式链路验证。",
+  "scope": "完成最小正式链路验证。",
+  "configs": [
+    {
+      "label": "experiment.yaml",
+      "path": "experiments/configs/aagu007/experiment.yaml",
+      "role": "historical"
+    }
+  ],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-007/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-007/REPORT.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "complete",
+    "note": "本范围已接受。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-007/REPORT.md"
+      }
+    ]
+  },
+  "decision": {
+    "state": "accepted",
+    "note": "只适用于本记录明确范围；新运行需独立确认。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-007/REPORT.md"
+      }
+    ]
+  },
+  "recorded_at": "2026-09-22",
+  "history": [
+    {
+      "id": "existing-delivery-record",
+      "at": "2026-09-22",
+      "stage": "analysis",
+      "note": "已交付最小正式验证；不等于主矩阵完成。 本范围已接受。",
+      "evidence": [
+        {
+          "label": "结果与分析报告",
+          "path": ".workblock/items/AAGU-007/REPORT.md"
+        }
+      ]
+    }
+  ]
+}

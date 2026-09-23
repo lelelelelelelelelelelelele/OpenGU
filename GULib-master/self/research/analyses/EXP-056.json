@@ -1,0 +1,54 @@
+{
+  "id": "EXP-056",
+  "title": "大图 RR-1024 Selector 可行性",
+  "question": "ogbn-arxiv、5%预算、seed11、K5927，仅纯Selector。",
+  "scope": "ogbn-arxiv、5%预算、seed11、K5927，仅纯Selector。",
+  "configs": [
+    {
+      "label": "selector_rr_1024.yaml",
+      "path": "experiments/configs/aagu056/selector_rr_1024.yaml",
+      "role": "current"
+    },
+    {
+      "label": "rr_1024.yaml",
+      "path": "experiments/configs/aagu056/rr_1024.yaml",
+      "role": "reference"
+    }
+  ],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-056/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-056/REPORT.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "not_started",
+    "note": "执行已接受，但可行性分析明确仍待完成。",
+    "evidence": []
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": [
+    {
+      "id": "existing-delivery-record",
+      "at": "2026-09-22",
+      "stage": "analysis",
+      "note": "报告确认1条件2文件，真实MISS，Selector366.55秒。 执行已接受，但可行性分析明确仍待完成。",
+      "evidence": [
+        {
+          "label": "结果与分析报告",
+          "path": ".workblock/items/AAGU-056/REPORT.md"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+# Template: bind the completed, checksum-verified run.json and its SHA-256 before use.
+kind: experiment
+schema_version: 1
+experiment_id: aagu066-cora-h16-paired-metrics-v1
+stage: metrics
+dataset_refs:
+- cora.yaml
+output_inputs:
+- run: null
+  sha256: null
+evaluation_refs:
+- post_unlearning_utility_and_retrain_gap.yaml
+matrix: cartesian_product

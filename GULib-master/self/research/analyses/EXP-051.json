@@ -1,0 +1,59 @@
+{
+  "id": "EXP-051",
+  "title": "Random 多选集响应分布",
+  "question": "固定训练seed42，十个Random选集，四GU与Retrain，三数据集。",
+  "scope": "固定训练seed42，十个Random选集，四GU与Retrain，三数据集。",
+  "configs": [
+    {
+      "label": "table.yaml",
+      "path": "experiments/configs/aagu051/table.yaml",
+      "role": "current"
+    },
+    {
+      "label": "gate.yaml",
+      "path": "experiments/configs/aagu051/gate.yaml",
+      "role": "reference"
+    }
+  ],
+  "sources": [
+    {
+      "label": "历史定义",
+      "path": ".workblock/items/AAGU-051/WORKITEM.md"
+    },
+    {
+      "label": "结果与分析报告",
+      "path": ".workblock/items/AAGU-051/REPORT.md"
+    }
+  ],
+  "attempts": [],
+  "analysis": {
+    "state": "review",
+    "note": "分布分析已交付，报告决定为待决定。",
+    "evidence": [
+      {
+        "label": "结果与分析报告",
+        "path": ".workblock/items/AAGU-051/REPORT.md"
+      }
+    ]
+  },
+  "decision": {
+    "state": "pending",
+    "note": "实验定义、执行交付与科学判断分别记录。",
+    "evidence": []
+  },
+  "recorded_at": "2026-09-22",
+  "history": [
+    {
+      "id": "existing-delivery-record",
+      "at": "2026-09-22",
+      "stage": "analysis",
+      "note": "报告交付150格、301文件、120严格GU−Retrain配对；无GIF/IDEA。 分布分析已交付，报告决定为待决定。",
+      "evidence": [
+        {
+          "label": "结果与分析报告",
+          "path": ".workblock/items/AAGU-051/REPORT.md"
+        }
+      ]
+    }
+  ]
+}

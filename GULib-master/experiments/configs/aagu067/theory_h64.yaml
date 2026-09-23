@@ -1,0 +1,21 @@
+kind: aagu062_theory
+schema_version: 1
+condition:
+  dataset: CiteSeer
+  hidden_channels: 64
+dataset_ref: ../datasets/citeseer.yaml
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  seed: 42
+  epochs: 3000
+  optimizer: Adam
+  lr: 0.05
+  weight_decay: 0.0001
+  scheduler: none
+checkpoint: ../../../results/runtime/modular/checkpoints/bf2488a0e4445907c54954dc11efb995a80e50f24df321bf7b71682e5c960ddd.pt
+methods:
+- GIF
+- IDEA

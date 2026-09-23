@@ -36,6 +36,8 @@ summary v3 的 `datasets` 按声明顺序记录各实例、真实 data identity�
 
 GIF、IDEA、MEGU、GNNDelete 以及无需轨迹的模型型 Selector 可以声明 `checkpoint: <path.pt>`。相对路径以小表目录为基准。PT 只包含非空 `state_dict`；严格核对键、shape、dtype与有限性。显式路径直接加载，不查询基础训练缓存、不训练，不要求 SHA、元数据或 sidecar。基础训练 epochs/optimizer/lr/weight_decay/scheduler 被标为不适用；seed仅用于本次执行，不被认作该PT的训练seed。
 
+Retrain-gap 与 flip-hop 配对时，显式 PT 的 epochs/optimizer/lr/weight_decay/scheduler 不参与和 Retrain 的相等比较，仍保留为不适用；本次执行 seed、模型结构、数据/split、Selection、删除语义及训练图/评价图必须一致。Retrain 使用自身声明的训练配置从头训练，PT 状态哈希仍保留用于来源追溯。内部训练模型的训练参数继续严格匹配。
+
 未指定PT时根据实际数据/split、结构、训练参数和实现查缓存，MISS只保存最终纯权重及独立来源JSON。文件身份由框架计算，替换同路径权重会改变下游计算身份。内部缓存来源记录损坏会明确失败，不回退训练。旧封装不再支持，也不自动迁移。
 
 MEGU 的遗忘 SGD 设置由 `parameters.unlearn_lr` 和 `parameters.unlearn_weight_decay` 独立控制，不再借用基础训练参数。TracIn按自己的checkpoint_steps/view管理独立轨迹；普通GU不读写全epoch。GraphEraser/GraphRevoker保留分片模型、分配和聚合状态，不接受单模型PT替换ensemble；Retrain仍从头训练。

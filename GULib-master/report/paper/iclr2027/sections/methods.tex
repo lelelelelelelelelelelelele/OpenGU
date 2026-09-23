@@ -1,0 +1,58 @@
+\section{Attack and Audit Framework}
+\label{sec:methods}
+
+\subsection{Overview}
+The audit has four stages. We fix the graph, split, candidate pool, model, and request budget; a selector uses only its declared information to produce $S$; the same $S$ is processed by the GU method and, where specified, by full retraining; and both endpoints are evaluated on the same held-out nodes. A budget-matched random request provides a request-selection reference. The selector and the GU method are separate components of this pipeline.
+
+\todo{Insert the reviewed framework figure and map every arrow to an executed artifact or a declared reference endpoint.}
+
+\subsection{Selection strategies}
+Random sampling selects $k$ candidates uniformly without replacement from $\mathcal{C}$. Degree and PageRank are structural baselines that rank candidates by their corresponding graph statistic; tie-breaking and graph scope must be stated with the experiment configuration. The random-request distribution is estimated only when multiple independent random selections are available.
+
+The influence-based selectors in the current matrices include R-point and D-full. At a high level, R-point uses candidate-node training information to estimate a parameter-level influence on a target objective; D-full additionally accounts for graph-structure changes associated with deletion. Their exact score source, sign convention, ranking direction, trainable parameter range, hop scope, and solver configuration are implementation details and must match the registered selector recipes.
+
+\todo{Add the verified score equations and exact ranking direction for R-point and D-full. Add the reverse-reachable-set objective and estimator only for the RR recipes retained in the final paper.}
+
+\subsection{Endpoints and comparison protocol}
+Let $U$ be the paper's chosen utility metric, where larger values are better. Define $U_0$ as the canonical pre-deletion endpoint, $U_{M,0}$ as method $M$'s own pre-deletion endpoint, $U_M(S)$ as its post-request endpoint, and $U_R(S)$ as full retraining on the same request. Let $S_a$ be a selected request and $S_r$ a budget-matched random request. Differences are computed within matched dataset, model, split, budget, seed, and request identities before aggregation. All signed differences are retained.
+
+The first decomposition separates three sources of a total change:
+\begin{equation}
+\begin{aligned}
+U_0-U_M(S_a)
+={}&\underbrace{U_0-U_{M,0}}_{\text{pre-deletion method baseline}}\\
+&+\underbrace{U_{M,0}-\bar U_{M,r}}_{\text{method response to random deletion}}\\
+&+\underbrace{\bar U_{M,r}-U_M(S_a)}_{\text{selected-request increment}},
+\end{aligned}
+\label{eq:three-part}
+\end{equation}
+where $\bar U_{M,r}$ is the mean over independently selected, budget-matched random requests when such repeats are available. The first two terms are interpretable outcomes in their own right; they are not merely corrections to a selector comparison.
+
+The second decomposition compares a GU output with full retraining on the same request:
+\begin{equation}
+U_0-U_M(S)
+=\underbrace{U_0-U_R(S)}_{D(S):\ \text{retraining-reference change}}
++\underbrace{U_R(S)-U_M(S)}_{G_M(S):\ \text{signed GU--retraining gap}}.
+\label{eq:retrain-decomposition}
+\end{equation}
+A positive $G_M(S)$ means the GU output has lower utility than retraining; a negative value means it has higher utility. Retraining is a reference, not a test-utility upper bound. For partition-based methods, $G_M$ can include architecture and aggregation differences and is not automatically a pure approximation error.
+
+We define the selector's extra utility loss relative to random as
+\begin{equation}
+A_M(S_a)=\bar U_{M,r}-U_M(S_a),
+\end{equation}
+so positive values indicate lower utility for the selected request than for the random-request mean. If the corresponding random-request gap is estimated, the selected-request change in the GU--retraining gap is
+\begin{equation}
+E_M(S_a)=G_M(S_a)-\mathbb{E}_{S_r}[G_M(S_r)].
+\end{equation}
+These quantities answer different questions: lower utility, a larger gap from retraining, and prediction disagreement are not interchangeable outcomes.
+
+\subsection{Complementary diagnostics}
+When per-node predictions are available, a prediction-disagreement rate can compare GU and retraining outputs on a fixed evaluation set:
+\begin{equation}
+\operatorname{Disagree}(M,R;S)
+=\frac{1}{|V_{\mathrm{test}}|}
+\sum_{v\in V_{\mathrm{test}}}
+\mathbf{1}\!\left[\hat y_M(v;S)\ne\hat y_R(v;S)\right].
+\end{equation}
+The current matched GNNDelete analysis also reports an update-detection AUC computed from prediction changes under its implemented positive/negative sampling rule. We call this an update-detection diagnostic, not a general membership-inference guarantee. Any privacy interpretation requires a separately specified attacker, controls, and evaluation protocol.
