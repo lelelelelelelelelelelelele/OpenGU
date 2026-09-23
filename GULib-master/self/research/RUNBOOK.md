@@ -20,6 +20,8 @@
 
 每次运行准备以一次同步为目标：先在本地备齐本阶段所需代码、实验配置、引用小表和全部 Recipe，完成审阅与相邻验证，并将完整交付落到同一主线目标版本，再统一同步一次。不得先同步代码、到提交前才补配置或 Recipe 而重复同步。同步完成并通过正式 preflight 后，直接按已授权顺序提交已准备好的运行。同一版本已同步就绪时不重复同步；依赖上游结果才能确定的后续阶段，在结果确定后独立备齐该阶段输入，再按同样流程处理。
 
+所有 SSH 代码同步，包括不伴随 Block 合并的独立同步，都使用 `.workblock/actions/install.json` 登记的安装动作；GitHub 获取须在同一临时 shell 中先启用学术加速，不临时绕过动作手写裸 fetch/pull。仅论文或文档编辑不主动触发 SSH 同步；下一次正式运行需要更新版本时再统一同步。已有任务占用 SSH 活跃检出时，任何提交（包括论文提交）都不得更新该检出；运行代码变更留在本地，待占用结束后部署。
+
 1. 确认实验记录允许的范围，审阅 `experiment.yaml` 及引用的小表，按 [experiments/AGENTS.md](../../experiments/AGENTS.md) 完成相邻验证。
 2. 按 [Recipe 命令说明](../../scripts/syncmate/README.md#independent-recipe-yaml) 使用 `recipe.py generate`，显式指定 recipe ID、新 run ID、超时及按配置顺序排列的真实数据集/候选计数。计数来自已核验数据，不猜测或临时下载。命令只将 YAML 打印到 stdout；创建 `experiment.yaml` 本身不会自动生成 Recipe。审阅后以 UTF-8 保存到 `scripts/syncmate/recipes/<id>.yaml`，文件名必须与声明 ID 相同。
 3. 配置或引用输入改变后，显式重新生成并审阅 SHA/指纹，将配置和 Recipe 一起提交。读取、预览或提交不会自动刷新哈希。仅改变 run ID 或超时也须审阅新的声明；不覆盖旧运行目录。
