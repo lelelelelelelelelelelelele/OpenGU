@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "action": "install",
+  "workingDirectory": ".",
+  "targets": ["ssh://autodl-opengu/autodl-fs/data/OpenGU", ".workblock/runtime/install"],
+  "preconditions": [],
+  "instruction": {"entry": ["E:/conda_package/envs/gnn/python.exe", "-B", "scripts/syncmate/install.py", "apply"]},
+  "permissions": {
+    "write": ["ssh://autodl-opengu/autodl-fs/data/OpenGU", ".workblock/runtime/install"],
+    "delete": ["ssh://autodl-opengu/autodl-fs/data/OpenGU", ".workblock/runtime/install"],
+    "network": ["ssh://autodl-opengu", "https://github.com/lelelelelelelelelelelelele/OpenGU"]
+  },
+  "secretRefs": [],
+  "readBack": {"entry": ["E:/conda_package/envs/gnn/python.exe", "-B", "scripts/syncmate/install.py", "receipt"]},
+  "onFailure": "stop"
+}

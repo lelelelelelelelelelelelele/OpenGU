@@ -90,12 +90,13 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='action', required=True)
-    gen = sub.add_parser('generate', help='print a new ordinary-experiment recipe YAML to stdout')
+    gen = sub.add_parser('generate', help='write a new Recipe YAML using bound dataset evidence')
     gen.add_argument('config')
     gen.add_argument('--id', required=True)
     gen.add_argument('--run-id', required=True)
-    gen.add_argument('--dataset-count', action='append', required=True, metavar='NODES:CANDIDATES',
-                     help='one reviewed count pair per dataset, in config order')
+    gen.add_argument('--node', help='read bound dataset evidence from this configured runner')
+    gen.add_argument('--device-config', type=Path, default=ROOT / '.syncmate/device.yaml')
+    gen.add_argument('--output', type=Path, required=True, help='new Recipe YAML file; never overwritten')
     gen.add_argument('--timeout-seconds', type=int, default=21600)
     view = sub.add_parser('preview')
     view.add_argument('recipe')
@@ -104,20 +105,24 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.action == 'generate':
-            counts = []
-            for value in args.dataset_count:
-                nodes, candidates = map(int, value.split(':'))
-                counts.append({'num_nodes': nodes, 'candidate_count': candidates})
+            if args.output.name != args.id + '.yaml' or args.output.exists():
+                raise ValueError('output must be a new file named <Recipe ID>.yaml')
             spec = generate(args.config, recipe_id=args.id, run_id=args.run_id,
-                expected_datasets=counts, timeout_seconds=args.timeout_seconds)
+                timeout_seconds=args.timeout_seconds, node=args.node, device_file=args.device_config)
             from opengu_recipes import validate_declaration
             validate_declaration(spec)
             assemble(spec)
-            print(yaml.safe_dump(spec, sort_keys=False), end='')
+            if args.output.name != args.id + '.yaml':
+                raise ValueError('output filename must match Recipe ID')
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            with args.output.open('x', encoding='utf-8', newline='\n') as handle:
+                handle.write(yaml.safe_dump(spec, sort_keys=False))
+            print(json.dumps({'recipe': spec['id'], 'path': str(args.output.resolve()),
+                              'expected_datasets': spec['expected_datasets']}))
         else:
             print(json.dumps(preview(args.recipe, args.node, args.device_config), indent=2, ensure_ascii=False))
         return 0
-    except (ValueError, OSError, yaml.YAMLError) as exc:
+    except (ValueError, OSError, yaml.YAMLError, subprocess.SubprocessError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
 
