@@ -173,7 +173,7 @@ def attempt_rows(record, sources, page):
         recipe_path = 'scripts/syncmate/recipes/' + recipe + '.yaml'
         recipe_link = sources.anchor({'label': recipe, 'path': recipe_path}, page) if recipe != '未记录' and sources.resolve(recipe_path).exists() else esc(recipe)
         timing = '<small>' + esc(rt.get('started_at', '起始未记录')) + '<br>→ ' + esc(rt.get('finished_at', '结束未记录')) + '</small>'
-        body += '<tr><td class="run-name">' + esc(a['run_id']) + '<small>Recipe · ' + recipe_link + '</small>' + '</td><td>' + esc(submitted) + '</td><td>' + esc(state) + '</td><td>' + esc(elapsed) + '</td><td><details><summary>详情与证据</summary><p>' + esc(a['scope']) + '</p>'
+        body += '<tr><td class="run-name">' + esc(a['run_id']) + '<small>Recipe · ' + recipe_link + '</small>' + '</td><td>' + esc(submitted) + '</td><td>' + esc(state) + '</td><td>' + esc(elapsed) + timing + '</td><td><details><summary>详情与证据</summary><p>' + esc(a['scope']) + '</p>'
         body += '<p class="path">Recipe：' + esc(recipe) + '</p>'
         if ref:
             body += '<p>提交时间来源：' + sources.anchor(ref, page) + '（保留源记录时区）</p>'
