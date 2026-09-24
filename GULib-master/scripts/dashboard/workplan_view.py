@@ -211,9 +211,12 @@ def sheet_page(r, records, sources, page):
     body += '<nav class="sheet-nav"><a href="#definition">实验定义</a><a href="#analysis">实验分析</a><a href="#runs">运行尝试</a><a href="#archive">历史与依赖</a></nav>'
     body += '<section id="definition"><h2>实验定义</h2><p class="question-text">' + esc(r['question']) + '</p>'
     current = [c for c in r['configs'] if c['role'] == 'current']
-    body += ''.join(('<p class="muted">' + esc(c['label']) + '</p>' if len(current) > 1 else '') + parameter_preview(c, sources) for c in current)
     body += '<p class="execution-note"><strong>执行记录</strong> · ' + esc(r['execution']['note']) + '</p>'
     body += '<details><summary>实验参数与配置</summary><p>' + esc(r['scope']) + '</p>'
+    for c in current:
+        preview = parameter_preview(c, sources)
+        if preview:
+            body += '<h3>' + esc(c['label']) + '</h3>' + preview
     body += ''.join('<p>' + esc(t) + '</p>' for t in r.get('narrative', []))
     body += ''.join(config_preview(c, sources, page, model.canonical_state('preparation', r['preparation']['state']) in {'draft','preparing','ongoing'}) for c in r['configs'])
     body += '<p class="muted">准备：' + esc(r['preparation']['note']) + '</p></details></section>'
