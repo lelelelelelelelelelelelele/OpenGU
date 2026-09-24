@@ -15,14 +15,24 @@ Each condition passed its 2026-09-24 multi-request numerical stability check.
 This is not a claim of general stability or final scientific acceptance.
 Keep the full recorded precision: GIF and IDEA damp values can differ slightly.
 These values supersede the earlier Cora H16 R2 example. CiteSeer/PubMed H16 have
-no mapping. Each condition is valid only with its independently calibrated fixed
-checkpoint and Dataset/Split; matching by dataset and width is not scientific
-authorization to transfer it to another checkpoint.
+no mapping. The observed stability evidence belongs to those independently
+calibrated checkpoints and Dataset/Split instances. Profile matching does not
+include training seed. The user-approved Table02 supplement reuses each H64
+parameter group across training seeds 42/212/2024; stability on the resulting
+models remains to be observed during actual execution.
 
 An experiment opts in with `parameter_profile_ref` relative to its own YAML.
 Its GIF/IDEA method references retain `iteration`, model, training and checkpoint;
 remove the fields supplied by the profile from those references. Supplying the
 same field in both places is an error. Retrain is unaffected.
+
+The directly runnable configuration review entries are
+[`Table02 GIF/IDEA gate`](../aagu077/table02_gif_idea_gate.yaml) and
+[`complete supplement`](../aagu077/table02_gif_idea.yaml).
+Both consume this profile through the same H64 method instances; see
+[`configuration walkthrough`](../aagu077/README.md). Their `checkpoint: null`
+uses the normal model-cache/training path for each seed, never relabeling the
+calibration's seed42 checkpoint as a different training seed.
 
 AAGU-077 verification uses the four existing tables as test inputs. Disposable
 copies change only reference locations and the parameter source; normal

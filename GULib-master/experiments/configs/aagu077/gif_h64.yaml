@@ -1,0 +1,11 @@
+kind: unlearning
+schema_version: 1
+method: GIF
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+# Use each training seed's own model cache or train on an exact cache miss.
+checkpoint: null
+parameters:
+  iteration: 100
