@@ -1,10 +1,29 @@
-# Only independently accepted calibration conditions belong in this profile.
+# Frozen parameters exercised by the four 2026-09-24 multi-request validations.
+# Each mapping belongs to its own fixed checkpoint; see README.md for sources.
 kind: parameter_profile
 schema_version: 1
 profiles:
-- name: cora-gcn-h16-aagu065-r2
+- name: cora-gcn-h16-rho-0p8
   dataset: Cora
   model: {architecture: OpenGU.GCNNet, hidden_channels: 16}
   methods:
-    GIF: {scale: 9000, damp: 0.22755555555555556, GIF_method: GIF}
-    IDEA: {scale: 9000, damp: 0.22755555555555556, gaussian_mean: 0.0, gaussian_std: 0.0}
+    GIF: {scale: 8701, damp: 0.20028347851830353, GIF_method: GIF}
+    IDEA: {scale: 8701, damp: 0.2002834785183033, gaussian_mean: 0.0, gaussian_std: 0.0}
+- name: cora-gcn-h64-rho-0p8
+  dataset: Cora
+  model: {architecture: OpenGU.GCNNet, hidden_channels: 64}
+  methods:
+    GIF: {scale: 9791, damp: 0.20098238047209782, GIF_method: GIF}
+    IDEA: {scale: 9791, damp: 0.20098238047209782, gaussian_mean: 0.0, gaussian_std: 0.0}
+- name: citeseer-gcn-h64-rho-0p8
+  dataset: CiteSeer
+  model: {architecture: OpenGU.GCNNet, hidden_channels: 64}
+  methods:
+    GIF: {scale: 23004, damp: 0.20094722036615764, GIF_method: GIF}
+    IDEA: {scale: 23004, damp: 0.20094722036615764, gaussian_mean: 0.0, gaussian_std: 0.0}
+- name: pubmed-gcn-h64-rho-0p8
+  dataset: PubMed
+  model: {architecture: OpenGU.GCNNet, hidden_channels: 64}
+  methods:
+    GIF: {scale: 173215, damp: 0.20037196190824003, GIF_method: GIF}
+    IDEA: {scale: 173215, damp: 0.20037196190823992, gaussian_mean: 0.0, gaussian_std: 0.0}
