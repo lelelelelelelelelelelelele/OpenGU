@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 STATES = {
-    'preparation': {'draft': '待定义', 'preparing': '准备中', 'ongoing': '进行中', 'defined': '定义已固定'},
+    'preparation': {'draft': '待定义', 'preparing': '准备中', 'ready': '准备就绪', 'ongoing': '进行中', 'defined': '定义已固定'},
     'execution': {'unknown': '待核对', 'pending': '待运行', 'running': '运行中',
                   'partial': '部分完成', 'completed': '运行已完成', 'not_required': '无需新运行', 'failed': '运行失败'},
     'analysis': {'not_started': '待分析', 'working': '分析中', 'review': '待复核', 'complete': '分析已交付'},

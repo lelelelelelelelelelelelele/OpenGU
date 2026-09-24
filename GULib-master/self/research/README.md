@@ -60,3 +60,5 @@ python -B -X utf8 -m pytest --noconftest tests/test_research_overview.py -q
 实验定义与已保存分析为正文；范围、完整 YAML、时间口径和历史来源可展开。运行尝试只展示一次，提交时间取显式 `submitted_at` 或关联 controller 的 `watch.job.receipt.submitted_at`，Recipe 同样来自明确关联记录；缺失时显示未记录，不解析 run_id 猜测日期。时间缺失不改变执行状态。
 
 分析记录可用 `analysis.highlights`（字符串列表）和 `analysis.tables`（caption、columns、rows）展示原证据中的关键观察；须保留原始来源、执行 SHA 和科学决定，不重新推断结果。参数摘要直接读取现行 YAML，不另存参数副本。
+
+实验组按现行 `kind: experiment` 配置组织；提交 Recipe 的 `config_path` 归入该配置。运行按明确 Recipe ID、run_id 或 manifest.config_path 关联；分析按 config_path/run_id（含校准 cases[].run）关联。未匹配的准备和历史文件折叠保留，不按文件名猜测运行状态。相同路径的证据只显示一次。

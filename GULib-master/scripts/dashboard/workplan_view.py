@@ -52,7 +52,7 @@ def nav(prefix=''):
 
 
 def references(refs, sources, page):
-    return '<div class="sources">' + ''.join(sources.anchor(r, page) for r in refs) + '</div>'
+    return '<div class="sources">' + ''.join(sources.anchor(r, page) for r in {item['path']: item for item in refs}.values()) + '</div>'
 
 
 def blocker_html(record, records, sources, page):
@@ -133,7 +133,7 @@ def config_preview(config, sources, page, allow_unmaterialized_candidate=False):
         raise ValueError('Invalid YAML: ' + config['path']) from exc
     if not isinstance(parsed, dict):
         raise ValueError('Experiment config must be a mapping: ' + config['path'])
-    role = {'current': '现行入口', 'reference': '辅助配置', 'historical': '历史配置', 'candidate': '候选 / 不代表已执行'}[config['role']]
+    role = {'current': '现行文件', 'reference': '辅助配置', 'historical': '历史配置', 'candidate': '候选 / 不代表已执行'}[config['role']]
     return f'<details class="yaml"><summary>{esc(path.name)} <span>{role}</span></summary><p>{sources.anchor(config, page)}</p><p class="path">{esc(config["path"])}</p><pre>{esc(yaml.safe_dump(parsed, allow_unicode=True, sort_keys=False))}</pre></details>'
 
 
@@ -159,7 +159,7 @@ def submission_facts(attempt, sources):
 def attempt_rows(record, sources, page):
     if not record['attempts']:
         return '<p class="muted">本页未逐次登记运行；已交付结果见上方实验分析。提交时间与作业耗时未登记，不影响已有交付事实。</p>'
-    body = '<div class="table-scroll"><table class="runs"><thead><tr><th>运行 / Recipe</th><th>提交时间</th><th>状态</th><th>GPU 实耗</th><th>记录与证据</th></tr></thead><tbody>'
+    body = '<div class="table-scroll"><table class="runs"><thead><tr><th>运行</th><th>提交时间</th><th>状态</th><th>GPU 实耗</th><th>记录与证据</th></tr></thead><tbody>'
     for a in record['attempts']:
         rt = a.get('runtime') or {}
         submitted, recipe, ref = submission_facts(a, sources)
@@ -168,7 +168,8 @@ def attempt_rows(record, sources, page):
         elapsed = seconds_text(rt.get('actual_seconds'))
         if rt.get('job_started') is False:
             elapsed = '未启动'
-        body += '<tr><td class="run-name">' + esc(a['run_id']) + '<small>Recipe · ' + esc(recipe) + '</small></td><td>' + esc(submitted) + '</td><td>' + esc(state) + '</td><td>' + esc(elapsed) + '</td><td><details><summary>详情与证据</summary><p>' + esc(a['scope']) + '</p>'
+        body += '<tr><td class="run-name">' + esc(a['run_id']) + '</td><td>' + esc(submitted) + '</td><td>' + esc(state) + '</td><td>' + esc(elapsed) + '</td><td><details><summary>详情与证据</summary><p>' + esc(a['scope']) + '</p>'
+        body += '<p class="path">Recipe：' + esc(recipe) + '</p>'
         if ref:
             body += '<p>提交时间来源：' + sources.anchor(ref, page) + '（保留源记录时区）</p>'
         body += '<p>' + esc(rt.get('actual_basis', '此运行未登记作业起止耗时。')) + '</p>'
@@ -205,26 +206,122 @@ def parameter_preview(config, sources):
     return '<dl class="parameters">' + ''.join(rows) + '</dl>' if rows else ''
 
 
+def experiment_groups(record, sources):
+    """Group by explicit config/run identities; filenames never establish execution."""
+    documents = {}
+    for config in record['configs']:
+        path = sources.resolve(config['path'])
+        documents[config['path']] = yaml.safe_load(path.read_text(encoding='utf-8')) if path.exists() else {}
+    groups = []
+    used = set()
+    for config in record['configs']:
+        data = documents[config['path']] or {}
+        if data.get('kind') != 'experiment' or config['role'] != 'current':
+            continue
+        recipes = [c for c in record['configs'] if (documents[c['path']] or {}).get('config_path') == config['path']]
+        recipe_ids = {(documents[c['path']] or {}).get('id') for c in recipes} - {None}
+        runs = {(documents[c['path']] or {}).get('run_identity', {}).get('run_id') for c in recipes} - {None}
+        attempts = []
+        for attempt in record['attempts']:
+            _, recipe, _ = submission_facts(attempt, sources)
+            match = recipe in recipe_ids or attempt['run_id'] in runs or attempt.get('config_path') == config['path']
+            manifest = attempt.get('manifest')
+            if not match and manifest:
+                path = sources.resolve(manifest['path'])
+                if path.exists():
+                    match = json.loads(path.read_text(encoding='utf-8')).get('config_path') == config['path']
+            if match:
+                attempts.append(attempt)
+        results = []
+        for ref in {item['path']: item for item in record['analysis']['evidence']}.values():
+            if not ref['path'].startswith('self/research/analyses/') or not ref['path'].endswith('.json'):
+                continue
+            path = sources.resolve(ref['path'])
+            if not path.exists():
+                continue
+            result = json.loads(path.read_text(encoding='utf-8'))
+            if result.get('config_path') == config['path'] or result.get('run_id') in {a['run_id'] for a in attempts}:
+                results.append((ref, result))
+            for case in result.get('cases', []):
+                identity = case.get('run', {})
+                if identity.get('config_path') == config['path'] or identity.get('run_id') in {a['run_id'] for a in attempts}:
+                    results.append((ref, case))
+        groups.append(dict(config=config, recipes=recipes, attempts=attempts, results=results,
+                           cells=[documents[c['path']]['logical_cells'] for c in recipes if 'logical_cells' in documents[c['path']]]))
+        used.update([config['path'], *[c['path'] for c in recipes]])
+    return groups, [c for c in record['configs'] if c['path'] not in used]
+
+
+def group_title(config):
+    stem = Path(config['path']).stem
+    if stem.startswith('validation_'):
+        return stem.removeprefix('validation_').upper() + ' 固定参数验证'
+    if stem.startswith('observer_candidates_'):
+        return stem.removeprefix('observer_candidates_').upper() + ' 参数校准'
+    return config['label'].removesuffix('.yaml')
+
+
+def group_view(group, sources, page, index):
+    config = group['config']
+    attempts = group['attempts']
+    states = [a.get('state', a.get('status')) for a in attempts]
+    status = '已完成' if states and all(x in {'completed', 'verified'} for x in states) else '有运行记录' if states else '未关联运行记录'
+    count = ' · ' + str(group['cells'][0]) + ' 格' if group['cells'] and len(set(group['cells'])) == 1 else ''
+    body = '<article class="experiment-group" id="group-' + str(index) + '"><h3>' + esc(group_title(config)) + '<span class="group-status">' + esc(count + ' · ' + status) + '</span></h3>'
+    if attempts:
+        body += '<p>' + esc(attempts[-1]['scope']) + '</p>'
+    else:
+        body += '<p class="muted">已登记实验配置；本页尚未关联到具体运行。</p>'
+    body += '<h4>分析结果</h4>'
+    if not group['results']:
+        body += '<p class="muted">本组暂无单独关联的结构化分析，已有结论见页面下方总体分析与证据。</p>'
+    for ref, result in group['results']:
+        if result.get('numerical_gate'):
+            body += '<p>数值检查：' + esc({'passed': '通过', 'failed': '未通过'}.get(result['numerical_gate'], result['numerical_gate'])) + '</p>'
+        if result.get('methods') and isinstance(result['methods'], dict):
+            for method, finding in result['methods'].items():
+                frozen = finding.get('frozen_parameters')
+                if frozen:
+                    body += '<p>' + esc(method) + ' · ' + esc({'stable': '数值稳定'}.get(finding.get('status'), finding.get('status', '未记录'))) + ' · 固定参数 ' + esc(', '.join(str(k) + '=' + str(v) for k, v in frozen.items())) + '</p>'
+        utility = result.get('utility', {})
+        if utility:
+            body += '<div class="table-scroll"><table><caption>原图评价 · F1（0–1）</caption><thead><tr><th>请求</th><th>GIF</th><th>IDEA</th><th>Retrain</th><th>GIF−Retrain</th></tr></thead><tbody>'
+            for seed, values in utility.items():
+                nums = [values.get('GIF', {}).get('f1'), values.get('IDEA', {}).get('f1'), values.get('retrain_f1'), values.get('GIF', {}).get('f1_minus_retrain')]
+                body += '<tr><td>' + esc(seed) + '</td>' + ''.join('<td>' + ('未记录' if v is None else f'{v:.6f}') + '</td>' for v in nums) + '</tr>'
+            body += '</tbody></table></div>'
+        body += references([ref], sources, page)
+    body += '<h4>运行记录</h4>' + attempt_rows({'attempts': attempts}, sources, page)
+    body += '<details class="group-files"><summary>实验参数与技术文件</summary>' + parameter_preview(config, sources)
+    body += '<h4>实验配置</h4>' + config_preview(config, sources, page)
+    if group['recipes']:
+        body += '<h4>提交 Recipe · 启动上面的实验配置</h4>' + ''.join(config_preview(c, sources, page) for c in group['recipes'])
+    return body + '</details></article>'
+
+
 def sheet_page(r, records, sources, page):
     body = '<main class="shell experiment-sheet">' + nav('../')
     body += f'<header><p class="eyebrow">{r["id"]} / {FAMILIES[r["family"]]}</p><h1>{esc(r["title"])}</h1><div class="status-line">' + ''.join('<span>' + name + ' ' + badge(key, r[key]['state']) + '</span>' for key, name in STAGE_NAMES.items()) + '</div></header>'
-    body += '<nav class="sheet-nav"><a href="#definition">实验定义</a><a href="#analysis">实验分析</a><a href="#runs">运行尝试</a><a href="#archive">历史与依赖</a></nav>'
+    groups, supporting = experiment_groups(r, sources)
+    grouped_runs = {a['run_id'] for g in groups for a in g['attempts']}
+    body += '<nav class="sheet-nav"><a href="#definition">研究问题</a><a href="#groups">实验组</a><a href="#analysis">总体分析</a><a href="#archive">历史与依赖</a></nav>'
     body += '<section id="definition"><h2>实验定义</h2><p class="question-text">' + esc(r['question']) + '</p>'
-    current = [c for c in r['configs'] if c['role'] == 'current']
-    body += '<p class="execution-note"><strong>执行记录</strong> · ' + esc(r['execution']['note']) + '</p>'
-    body += '<details><summary>实验参数与配置</summary><p>' + esc(r['scope']) + '</p>'
-    for c in current:
-        preview = parameter_preview(c, sources)
-        if preview:
-            body += '<h3>' + esc(c['label']) + '</h3>' + preview
-    body += ''.join('<p>' + esc(t) + '</p>' for t in r.get('narrative', []))
-    body += ''.join(config_preview(c, sources, page, model.canonical_state('preparation', r['preparation']['state']) in {'draft','preparing','ongoing'}) for c in r['configs'])
-    body += '<p class="muted">准备：' + esc(r['preparation']['note']) + '</p></details></section>'
-    body += '<section id="analysis"><h2>实验分析</h2><p>' + esc(r['analysis']['note']) + '</p>'
+    body += '<p class="execution-note">' + esc(r['execution']['note']) + '</p></section>'
+    body += '<section id="groups"><h2>实验组</h2>'
+    if groups:
+        body += ''.join(group_view(g, sources, page, i) for i, g in enumerate(groups, 1))
+    else:
+        body += '<p class="muted">本页没有现行实验配置组；已有分析及历史来源保留在下方。</p>'
+    if supporting:
+        body += '<details><summary>准备、候选与历史文件（不计作已运行实验）</summary>'
+        body += ''.join(config_preview(c, sources, page, model.canonical_state('preparation', r['preparation']['state']) in {'draft','preparing','ongoing'}) for c in supporting)
+        body += '</details>'
+    body += '</section>'
+    body += '<section id="analysis"><h2>总体分析与决定</h2><p>' + esc(r['analysis']['note']) + '</p>'
     published = r.get('published_analysis') or {}
     for point in published.get('analysis', {}).get('highlights', []):
         body += '<p class="finding">' + esc(point) + '</p>'
-    for table in published.get('analysis', {}).get('tables', []):
+    for table in ([] if any(g['results'] for g in groups) else published.get('analysis', {}).get('tables', [])):
         body += '<div class="table-scroll"><table><caption>' + esc(table['caption']) + '</caption><thead><tr>' + ''.join('<th>' + esc(x) + '</th>' for x in table['columns']) + '</tr></thead><tbody>'
         body += ''.join('<tr>' + ''.join('<td>' + esc(x) + '</td>' for x in row) + '</tr>' for row in table['rows']) + '</tbody></table></div>'
     body += references(r['analysis']['evidence'], sources, page)
@@ -237,8 +334,11 @@ def sheet_page(r, records, sources, page):
         for a in published['attempts']:
             body += '<p class="path">' + esc(a['run_id']) + ' · ' + esc(a.get('commit') or a.get('manifest', {}).get('commit', '版本见原始证据')) + '</p>'
         body += '</details>'
-    body += '</section><section id="runs"><h2>运行尝试 <small>' + str(len(r['attempts'])) + ' 条登记</small></h2>'
-    body += attempt_rows(r, sources, page) + time_budget_section(r, sources, page) + '</section>'
+    body += '</section><section id="runs">'
+    remaining = [a for a in r['attempts'] if a['run_id'] not in grouped_runs]
+    if remaining:
+        body += '<details><summary>其他历史运行（尚未关联到上方实验组）</summary>' + attempt_rows({'attempts': remaining}, sources, page) + '</details>'
+    body += time_budget_section(r, sources, page) + '</section>'
     body += '<section id="archive"><details><summary>历史、依赖与来源</summary>' + blocker_html(r, records, sources, page)
     body += '<ol class="timeline">'
     for event in reversed(r['history']):
