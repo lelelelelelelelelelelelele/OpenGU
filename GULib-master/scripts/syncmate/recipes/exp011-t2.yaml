@@ -1,12 +1,12 @@
 schema_version: 1
-id: opengu-exp011-table02-complete-metrics-20260925
+id: exp011-t2
 runner: experiment
 config_path: experiments/configs/aagu011/table02_v2.yaml
-config_sha256: e2d5d52510c4fc2a5667f0c57c58f312e5ab4c738bfe64bf1366e865df6324f5
-configuration_fingerprint: 4c53fe6d77d16c3e883ccae24ca074635ef40537f407d01a8ace8a69076a2201
+config_sha256: d41fe2701ee2f65109bf6fe083458e2b4226b0a877911dc3afdbb498afcf2652
+configuration_fingerprint: a5fa853214043104f6076b449fa06495155811d0991865c113651924f9359d28
 run_identity:
-  experiment_id: aagu011-table02-v2
-  run_id: exp011-table02-complete-metrics-20260925-v1
+  experiment_id: exp011-t2
+  run_id: 0925-v1
 timeout_seconds: 21600
 logical_cells: 1449
 stage: unlearning

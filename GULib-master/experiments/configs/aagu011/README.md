@@ -5,7 +5,7 @@
 [table02_v2.yaml](table02_v2.yaml) defines the complete 1449-cell matrix:
 207 selection conditions across GIF, IDEA, GNNDelete, MEGU, GraphEraser,
 GraphRevoker and Retrain. All methods use the current public instances and
-production code. Its experiment ID is `aagu011-table02-v2`; each execution
+production code. Its experiment ID is `exp011-t2`; each execution
 requires a fresh run ID. Existing artifacts are reused only on exact identity.
 Formal execution awaits user approval.
 
