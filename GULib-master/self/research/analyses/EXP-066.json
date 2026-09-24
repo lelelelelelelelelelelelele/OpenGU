@@ -18,18 +18,96 @@
       "path": "self/research/experiments/EXP-062.json"
     }
   ],
-  "attempts": [],
+  "attempts": [
+    {
+      "job_id": "aagu066-h16-validation-20260924",
+      "run_id": "aagu066-cora-h16-random-104246-104248-v1",
+      "commit": "b6f017987003ed8bef7d1c7284a80739e1c60792",
+      "status": "verified",
+      "scope": "Cora H16 21格；H64尚未提交",
+      "evidence": [
+        {
+          "label": "controller",
+          "path": ".syncmate/controller/aagu066-h16-validation-20260924.json"
+        },
+        {
+          "label": "runs",
+          "path": ".syncmate/runs/aagu066-h16-validation-20260924.json"
+        },
+        {
+          "label": "trusted delivery",
+          "path": ".syncmate/deliveries/aagu066-h16-validation-20260924.json"
+        }
+      ]
+    },
+    {
+      "job_id": "aagu066-h64-validation-20260924",
+      "run_id": "aagu066-cora-h64-random-104246-104248-v1",
+      "commit": "b6f017987003ed8bef7d1c7284a80739e1c60792",
+      "status": "verified",
+      "scope": "Cora H64 21格",
+      "evidence": [
+        {
+          "label": "controller",
+          "path": ".syncmate/controller/aagu066-h64-validation-20260924.json"
+        },
+        {
+          "label": "runs",
+          "path": ".syncmate/runs/aagu066-h64-validation-20260924.json"
+        }
+      ]
+    }
+  ],
   "analysis": {
-    "state": "not_started",
-    "note": "目前没有正式科研结果。",
-    "evidence": []
+    "state": "complete",
+    "note": "本次范围校准/验证分析已完成并随062收口。Cora H16/H64均完成。",
+    "evidence": [
+      {
+        "label": "Cora H16 Validate",
+        "path": "self/research/analyses/EXP-066/validation-h16-20260924.json"
+      },
+      {
+        "label": "Cora H64 Validate",
+        "path": "self/research/analyses/EXP-066/validation-h64-20260924.json"
+      }
+    ]
   },
   "decision": {
-    "state": "not_requested",
-    "note": "用户授权Agent按运行前冻结的判据作阶段放行判断；完整范围成功后继续下一阶段，无需逐阶段等待用户确认。失败、证据不足、身份不匹配或软件未就绪时不放行。阶段放行不代表用户最终科学验收，最终统一由062提交总报告。 本阶段尚未据此放行；未来只有完整范围成功且有证据时，Agent才将本阶段decision记为accepted、success_confirmed=true，并记录判据/范围/证据及判断者。失败或不充分保持success_confirmed=false。",
-    "evidence": [],
-    "success_confirmed": false
+    "state": "accepted",
+    "success_confirmed": true,
+    "note": "用户在确认四组参数及Validate通过后要求关闭062批次；接受范围为当前四组数值校准与验证，不扩展到暂缓H16或完整遗忘正确性。",
+    "evidence": [
+      {
+        "label": "Cora H16 Validate",
+        "path": "self/research/analyses/EXP-066/validation-h16-20260924.json"
+      },
+      {
+        "label": "Cora H64 Validate",
+        "path": "self/research/analyses/EXP-066/validation-h64-20260924.json"
+      },
+      {
+        "label": "Batch scope and acceptance boundary",
+        "path": "self/research/analyses/EXP-062/closeout-20260924.md"
+      }
+    ]
   },
-  "recorded_at": "2026-09-22",
-  "history": []
+  "recorded_at": "2026-09-24",
+  "history": [
+    {
+      "id": "four-condition-batch-closeout-20260924",
+      "at": "2026-09-24",
+      "stage": "decision",
+      "note": "本次范围校准/验证分析已完成并随062收口。Cora H16/H64均完成。",
+      "evidence": [
+        {
+          "label": "Cora H16 Validate",
+          "path": "self/research/analyses/EXP-066/validation-h16-20260924.json"
+        },
+        {
+          "label": "Cora H64 Validate",
+          "path": "self/research/analyses/EXP-066/validation-h64-20260924.json"
+        }
+      ]
+    }
+  ]
 }
