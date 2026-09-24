@@ -156,6 +156,12 @@
         "label": "GIF/IDEA gate manifest",
         "path": "results/runs/gpu4090/aagu077-table02-gif-idea-gate/aagu077-profile-gate-20260924-v1/run.json"
       }
+    ],
+    "highlights": [
+      "已有报告：828 GU + 207 Retrain，207 个请求组形成 828 条严格配对；复用 81 个不同 Selection Artifact，207 个训练条件组不等于 207 次独立选点。",
+      "相对同方法 Random 均值，报告中最低组合为：Cora GraphRevoker / PageRank −4.37 pp；CiteSeer GNNDelete / RR-16384 −2.58 pp；PubMed GraphRevoker / R-point −2.64 pp。",
+      "以上是原始整表报告的固定范围均值，分片方法的 GU−Retrain 差值还包含架构与聚合差异；F1 变化不证明遗忘正确性。",
+      "报告记载原始入口执行 3 小时 56 分 48 秒；当前运行列表绑定的是 ID 含9月19日的 Cache 恢复，回执实际起止为9月20日02:47:00至05:23:16，耗时2小时36分16秒。两批时间分别保留。"
     ]
   },
   "decision": {
@@ -164,36 +170,6 @@
     "evidence": []
   },
   "recorded_at": "2026-09-25",
-  "history": [
-    {
-      "id": "aagu077-gate-verified-20260925",
-      "at": "2026-09-25",
-      "stage": "analysis",
-      "note": "Six-cell real gate verified; 13 artifacts verified; Profile and GU cache identity matched. Scientific decision remains pending.",
-      "evidence": [
-        {
-          "label": "GIF/IDEA real gate analysis",
-          "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
-        },
-        {
-          "label": "GIF/IDEA gate manifest",
-          "path": "results/runs/gpu4090/aagu077-table02-gif-idea-gate/aagu077-profile-gate-20260924-v1/run.json"
-        }
-      ]
-    },
-    {
-      "id": "gif-idea-gate-accepted-20260925",
-      "at": "2026-09-25",
-      "stage": "decision",
-      "note": "User accepted the six-cell GIF/IDEA engineering gate. Full Table02 scientific decision unchanged; 414-cell supplement not started.",
-      "evidence": [
-        {
-          "label": "Accepted real gate report",
-          "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
-        }
-      ]
-    }
-  ],
   "gate_acceptance": {
     "state": "accepted",
     "scope": "Six-cell GIF/IDEA Profile engineering gate: mapping, execution and GU cache identity",

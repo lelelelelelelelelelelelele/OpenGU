@@ -2,6 +2,7 @@
 from __future__ import annotations
 import argparse
 import html
+import json
 import os
 from pathlib import Path
 from urllib.parse import quote
@@ -36,6 +37,7 @@ class Sources:
 
 
 def badge(stage, state):
+    state = model.canonical_state(stage, state)
     return f'<span class="badge {esc(state)}">{esc(model.STATES[stage][state])}</span>'
 
 
@@ -50,13 +52,13 @@ def nav(prefix=''):
 
 
 def references(refs, sources, page):
-    return '<div class="sources">' + ''.join(sources.anchor(r, page) for r in refs) + '</div>'
+    return '<div class="sources">' + ''.join(sources.anchor(r, page) for r in {item['path']: item for item in refs}.values()) + '</div>'
 
 
 def blocker_html(record, records, sources, page):
-    deps = model.dependencies(record, records, sources.canonical)
+    deps = [d for d in model.dependencies(record, records, sources.canonical) if not d['resolved']]
     if not deps:
-        return '<p class="muted">未登记实验或开发依赖。正式运行仍需执行准备检查。</p>'
+        return ''
     rows = []
     for dep in deps:
         label = 'Block' if dep['kind'] == 'block' else '实验'
@@ -65,50 +67,289 @@ def blocker_html(record, records, sources, page):
     return '<div class="table-scroll"><table><thead><tr><th>依赖对象</th><th>约束阶段</th><th>原因</th><th>当前记录</th><th>判断</th></tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div>'
 
 
-def config_preview(config, sources, page):
+def seconds_text(value):
+    return '未记录' if value is None else f'{value:,.2f} 秒'
+
+
+def cache_counts_text(counts):
+    if not counts:
+        return '未记录'
+    return '；'.join(
+        str(layer) + '：' + ' / '.join(f'{state} {count}' for state, count in values.items())
+        for layer, values in counts.items())
+
+
+def time_budget_section(record, sources, page):
+    summary = model.time_summary(record)
+    state = summary['match_status']
+    match_names = {
+        'not_applicable': '无需 GPU 作业',
+        'estimate_not_recorded': '估时未记录，暂不计算偏差',
+        'estimate_scope_mismatch': '估时范围与当前实验不一致，暂不计算偏差',
+        'estimate_basis_unconfirmed': '估算口径待确认，暂不计算偏差',
+        'scope_incomplete': '范围未完成，暂不计算偏差',
+        'actual_incomplete': (f'有 {summary["unstructured_attempts"]} 次历史尝试缺少 runtime 元数据，暂不计算偏差'
+                              if summary['unstructured_attempts'] else
+                              '暂无结构化已启动运行尝试，暂不计算偏差' if not summary['started_attempts'] else
+                              f'有 {summary["missing_actual_attempts"]} 次已启动作业缺少实际耗时，暂不计算偏差'),
+        'cache_incomplete': f'有 {summary["missing_cache_attempts"]} 次已启动作业缺少 Cache 统计，暂不计算偏差',
+        'close': '接近估时（偏差在 ±20% 内）',
+        'over': '超过估时',
+        'under': '低于估时',
+    }
+    if summary['deviation_seconds'] is None:
+        deviation = match_names[state]
+    else:
+        seconds = summary['deviation_seconds']
+        ratio = summary['deviation_ratio']
+        deviation = f'{match_names[state]}：{seconds:+,.2f} 秒（{ratio:+.1%}）'
+    if summary['started_attempts'] or summary['unstructured_attempts']:
+        actual = (f'{seconds_text(summary["actual_seconds"])}；记录中确认已启动 {summary["started_attempts"]} 次，'
+                  f'其中 {summary["recorded_actual_attempts"]} 次有实际耗时')
+        if summary['unstructured_attempts']:
+            actual += f'；{summary["unstructured_attempts"]} 次历史尝试未记录 runtime'
+    else:
+        actual = '本页未登记可累计的作业时间；已有执行结果见实验分析。'
+    scope_label = '完整' if summary['scope_complete'] else model.STATES['execution'][record['execution']['state']]
+    body = '<details class="timing"><summary>时间记录 · 预估 ' + esc(seconds_text(summary['estimated_seconds'])) + ' · 实耗 ' + esc(seconds_text(summary['actual_seconds'])) + '</summary>'
+    body += '<p>' + esc(actual) + '</p><p>' + esc(deviation) + '</p>'
+    body += '<dl><dt>估算范围</dt><dd>' + esc(summary['estimate_scope']) + '</dd><dt>估算依据</dt><dd>' + esc(summary['estimate_basis']) + '</dd><dt>运行覆盖</dt><dd>' + esc(scope_label) + '</dd></dl>'
+    body += '<p class="muted">实耗仅累计本页绑定且有起止耗时的作业，含失败和重跑；排队、回传单列。缺少时间不表示未执行。完整同范围且时间与 Cache 证据齐备时计算偏差，±20% 为接近。</p></details>'
+    return body
+
+
+def config_preview(config, sources, page, allow_unmaterialized_candidate=False):
     path = sources.resolve(config['path'])
+    if not path.exists():
+        if config['role'] == 'candidate' and allow_unmaterialized_candidate:
+            return (f'<details class="yaml"><summary>{esc(path.name)} '
+                    '<span>候选配置待创建</span></summary>'
+                    f'<p class="path">{esc(config["path"])}</p>'
+                    '<p class="muted">实验仍在草拟或准备阶段；配置文件创建后会自动出现在此处。</p></details>')
+        raise ValueError('Missing experiment config: ' + config['path'])
     try:
         parsed = yaml.safe_load(path.read_text(encoding='utf-8'))
     except yaml.YAMLError as exc:
         raise ValueError('Invalid YAML: ' + config['path']) from exc
     if not isinstance(parsed, dict):
         raise ValueError('Experiment config must be a mapping: ' + config['path'])
-    role = {'current': '现行入口', 'reference': '辅助配置', 'historical': '历史配置', 'candidate': '候选 / 不代表已执行'}[config['role']]
+    role = {'current': '现行文件', 'reference': '辅助配置', 'historical': '历史配置', 'candidate': '候选 / 不代表已执行'}[config['role']]
     return f'<details class="yaml"><summary>{esc(path.name)} <span>{role}</span></summary><p>{sources.anchor(config, page)}</p><p class="path">{esc(config["path"])}</p><pre>{esc(yaml.safe_dump(parsed, allow_unicode=True, sort_keys=False))}</pre></details>'
 
 
+def submission_facts(attempt, sources):
+    """Read only explicitly linked controller receipts, never infer dates from run IDs."""
+    submitted, recipe, ref = attempt.get('submitted_at'), attempt.get('recipe'), None
+    for item in attempt['evidence']:
+        if not item['path'].startswith('.syncmate/controller/'):
+            continue
+        path = sources.resolve(item['path'])
+        if not path.exists():
+            continue
+        controller = json.loads(path.read_text(encoding='utf-8'))
+        job = (controller.get('watch') or {}).get('job') or {}
+        receipt = job.get('receipt') or {}
+        submitted = submitted or receipt.get('submitted_at')
+        recipe = recipe or job.get('recipe') or controller.get('recipe')
+        ref = item
+        break
+    return submitted or '未记录', recipe or '未记录', ref
+
+
+def attempt_rows(record, sources, page):
+    if not record['attempts']:
+        return '<p class="muted">本页未逐次登记运行；已交付结果见上方实验分析。提交时间与作业耗时未登记，不影响已有交付事实。</p>'
+    body = '<div class="table-scroll"><table class="runs"><thead><tr><th>运行</th><th>提交时间</th><th>状态</th><th>作业起止 / 耗时</th><th>记录与证据</th></tr></thead><tbody>'
+    for a in record['attempts']:
+        rt = a.get('runtime') or {}
+        submitted, recipe, ref = submission_facts(a, sources)
+        state = a.get('state', a.get('status', 'unknown'))
+        state = {'completed': '完成', 'verified': '已核验', 'running': '运行中', 'failed': '失败', 'pending': '待运行'}.get(state, state)
+        elapsed = seconds_text(rt.get('actual_seconds'))
+        if rt.get('actual_seconds') is not None:
+            total = int(rt['actual_seconds']); elapsed = f'{total // 3600}小时{total % 3600 // 60}分{total % 60}秒' if total >= 3600 else f'{total // 60}分{total % 60}秒'
+        if rt.get('job_started') is False:
+            elapsed = '未启动'
+        recipe_path = 'scripts/syncmate/recipes/' + recipe + '.yaml'
+        recipe_link = sources.anchor({'label': recipe, 'path': recipe_path}, page) if recipe != '未记录' and sources.resolve(recipe_path).exists() else esc(recipe)
+        timing = '<br><small>' + esc(rt.get('started_at', '起始未记录')) + '<br>→ ' + esc(rt.get('finished_at', '结束未记录')) + '</small>'
+        body += '<tr><td class="run-name">' + esc(a['run_id']) + '<small>Recipe · ' + recipe_link + '</small>' + '</td><td>' + esc(submitted) + '</td><td>' + esc(state) + '</td><td>' + esc(elapsed) + timing + '</td><td><details><summary>详情与证据</summary><p>' + esc(a['scope']) + '</p>'
+        body += '<p class="path">Recipe：' + esc(recipe) + '</p>'
+        if ref:
+            body += '<p>提交时间来源：' + sources.anchor(ref, page) + '（保留源记录时区）</p>'
+        body += '<p>' + esc(rt.get('actual_basis', '此运行未登记作业起止耗时。')) + '</p>'
+        body += '<p>排队 ' + esc(seconds_text(rt.get('queue_seconds'))) + ' · 回传 ' + esc(seconds_text(rt.get('return_seconds'))) + '</p>'
+        cache = rt.get('cache') or {}
+        body += '<p>Cache：' + esc(cache.get('summary', '未记录')) + '</p>'
+        if cache.get('counts'):
+            body += '<p>' + esc(cache_counts_text(cache['counts'])) + '</p>'
+        refs = list({r['path']: r for r in a['evidence'] + rt.get('evidence', []) + cache.get('evidence', [])}.values())
+        body += references(refs, sources, page)
+        m = a.get('manifest', {})
+        body += '<p class="path">代码版本：' + esc(a.get('commit') or m.get('commit', '未记录')) + '</p>'
+        if m:
+            body += '<p class="path">Manifest SHA-256：' + esc(m['sha256']) + ' · 完成条件 ' + esc(m['completed']) + '</p>'
+        body += '</details></td></tr>'
+    return body + '</tbody></table></div>'
+
+
+def parameter_preview(config, sources):
+    path = sources.resolve(config['path'])
+    if not path.exists():
+        return ''
+    data = yaml.safe_load(path.read_text(encoding='utf-8')) or {}
+    labels = {'dataset_refs': '数据集', 'selector_refs': '选择策略', 'unlearning_refs': '遗忘 / 重训练', 'seeds': '训练 seed', 'random_selector_seeds': 'Random seed', 'im_selector_seeds': 'IM seed', 'budget_ratios': '删除比例'}
+    rows = []
+    for key, label in labels.items():
+        value = data.get(key)
+        if value is None:
+            continue
+        values = value if isinstance(value, list) else [value]
+        text = '、'.join(Path(str(x)).stem if key.endswith('_refs') else str(x) for x in values)
+        value_html = esc(text) if len(text) < 150 else '<details><summary>' + str(len(values)) + ' 项配置 · 展开</summary>' + esc(text) + '</details>'
+        rows.append('<dt>' + esc(label) + '</dt><dd>' + value_html + '</dd>')
+    return '<dl class="parameters">' + ''.join(rows) + '</dl>' if rows else ''
+
+
+def experiment_groups(record, sources):
+    """Group by explicit config/run identities; filenames never establish execution."""
+    documents = {}
+    for config in record['configs']:
+        path = sources.resolve(config['path'])
+        documents[config['path']] = yaml.safe_load(path.read_text(encoding='utf-8')) if path.exists() else {}
+    groups = []
+    used = set()
+    for config in record['configs']:
+        data = documents[config['path']] or {}
+        if data.get('kind') != 'experiment' or config['role'] not in {'current', 'candidate'}:
+            continue
+        recipes = [c for c in record['configs'] if (documents[c['path']] or {}).get('config_path') == config['path']]
+        recipe_ids = {(documents[c['path']] or {}).get('id') for c in recipes} - {None}
+        runs = {(documents[c['path']] or {}).get('run_identity', {}).get('run_id') for c in recipes} - {None}
+        attempts = []
+        for attempt in record['attempts']:
+            _, recipe, _ = submission_facts(attempt, sources)
+            match = recipe in recipe_ids or attempt['run_id'] in runs or attempt.get('config_path') == config['path']
+            manifest = attempt.get('manifest')
+            if not match and manifest:
+                path = sources.resolve(manifest['path'])
+                if path.exists():
+                    match = json.loads(path.read_text(encoding='utf-8')).get('config_path') == config['path']
+            if match:
+                attempts.append(attempt)
+        if config['role'] == 'candidate' and not attempts:
+            continue
+        results = []
+        for ref in {item['path']: item for item in record['analysis']['evidence']}.values():
+            if not ref['path'].startswith('self/research/analyses/') or not ref['path'].endswith('.json'):
+                continue
+            path = sources.resolve(ref['path'])
+            if not path.exists():
+                continue
+            result = json.loads(path.read_text(encoding='utf-8'))
+            if result.get('config_path') == config['path'] or result.get('run_id') in {a['run_id'] for a in attempts}:
+                results.append((ref, result))
+            for case in result.get('cases', []):
+                identity = case.get('run', {})
+                if identity.get('config_path') == config['path'] or identity.get('run_id') in {a['run_id'] for a in attempts}:
+                    results.append((ref, case))
+        groups.append(dict(config=config, recipes=recipes, attempts=attempts, results=results,
+                           cells=[documents[c['path']]['logical_cells'] for c in recipes if 'logical_cells' in documents[c['path']]]))
+        used.update([config['path'], *[c['path'] for c in recipes]])
+    return groups, [c for c in record['configs'] if c['path'] not in used]
+
+
+def group_title(config):
+    stem = Path(config['path']).stem
+    if stem.startswith('validation_'):
+        return stem.removeprefix('validation_').upper() + ' 固定参数验证'
+    if stem.startswith('observer_candidates_'):
+        return stem.removeprefix('observer_candidates_').upper() + ' 参数校准'
+    return config['label'].removesuffix('.yaml')
+
+
+def group_view(group, sources, page, index):
+    config = group['config']
+    attempts = group['attempts']
+    states = [a.get('state', a.get('status')) for a in attempts]
+    status = '已完成' if states and all(x in {'completed', 'verified'} for x in states) else '有运行记录' if states else '未关联运行记录'
+    count = ' · ' + str(group['cells'][0]) + ' 格' if group['cells'] and len(set(group['cells'])) == 1 else ''
+    body = '<article class="experiment-group" id="group-' + str(index) + '"><h3>' + esc(group_title(config)) + '<span class="group-status">' + esc(count + ' · ' + status) + '</span></h3>'
+    if attempts:
+        body += '<p>' + esc(attempts[-1]['scope']) + '</p>'
+    else:
+        body += '<p class="muted">已登记实验配置；本页尚未关联到具体运行。</p>'
+    body += '<h4>分析结果</h4>'
+    if not group['results']:
+        body += '<p class="muted">本组暂无单独关联的结构化分析，已有结论见页面下方总体分析与证据。</p>'
+    for ref, result in group['results']:
+        if result.get('numerical_gate'):
+            body += '<p>数值检查：' + esc({'passed': '通过', 'failed': '未通过'}.get(result['numerical_gate'], result['numerical_gate'])) + '</p>'
+        if result.get('methods') and isinstance(result['methods'], dict):
+            for method, finding in result['methods'].items():
+                frozen = finding.get('frozen_parameters')
+                if frozen:
+                    body += '<p>' + esc(method) + ' · ' + esc({'stable': '数值稳定'}.get(finding.get('status'), finding.get('status', '未记录'))) + ' · 固定参数 ' + esc(', '.join(str(k) + '=' + str(v) for k, v in frozen.items())) + '</p>'
+        utility = result.get('utility', {})
+        if utility:
+            body += '<div class="table-scroll"><table><caption>原图评价 · F1（0–1）</caption><thead><tr><th>请求</th><th>GIF</th><th>IDEA</th><th>Retrain</th><th>GIF−Retrain</th></tr></thead><tbody>'
+            for seed, values in utility.items():
+                nums = [values.get('GIF', {}).get('f1'), values.get('IDEA', {}).get('f1'), values.get('retrain_f1'), values.get('GIF', {}).get('f1_minus_retrain')]
+                body += '<tr><td>' + esc(seed) + '</td>' + ''.join('<td>' + ('未记录' if v is None else f'{v:.6f}') + '</td>' for v in nums) + '</tr>'
+            body += '</tbody></table></div>'
+        body += references([ref], sources, page)
+    body += '<h4>运行记录</h4>' + attempt_rows({'attempts': attempts}, sources, page)
+    body += '<details class="group-files"><summary>实验参数与技术文件</summary>' + parameter_preview(config, sources)
+    body += '<h4>实验配置</h4>' + config_preview(config, sources, page)
+    if group['recipes']:
+        body += '<h4>提交 Recipe · 启动上面的实验配置</h4>' + ''.join(config_preview(c, sources, page) for c in group['recipes'])
+    return body + '</details></article>'
+
+
 def sheet_page(r, records, sources, page):
-    body = '<main class="shell">' + nav('../') + f'<header><p class="eyebrow">{r["id"]} / {FAMILIES[r["family"]]}</p><h1>{esc(r["title"])}</h1><p class="lead">{esc(r["question"])}</p><p class="muted">核对日期 {r["reviewed_at"]} · 实验状态独立维护</p></header>'
-    body += '<div class="stages">' + ''.join(f'<div><label>{name}</label>{badge(key, r[key]["state"])}<p>{esc(r[key]["note"])}</p></div>' for key, name in STAGE_NAMES.items()) + '</div>'
-    body += '<section class="next"><h2>下一步</h2><p>' + esc(r['next_step']) + '</p></section>'
-    body += '<section><h2>依赖与阻塞</h2>' + blocker_html(r, records, sources, page) + '<p class="muted">Block 状态是生成页面时的只读观察。交付状态与本实验所需能力同时确认后，才解除对应依赖；不会自动启动。</p></section>'
-    body += '<section><h2>实验定义与 YAML</h2><p>' + esc(r['scope']) + '</p>'
-    body += ''.join(config_preview(c, sources, page) for c in r['configs']) if r['configs'] else '<p class="muted">没有主线执行 YAML 绑定。分析项直接消费结果；待准备项先完成定义或软件交付。</p>'
-    body += '</section><section><h2>运行尝试</h2>'
-    if not r['attempts']:
-        body += '<p class="muted">尚未在此逐次绑定 run_id。已有交付按下方来源报告阅读，不编造运行身份或重复计数。</p>'
-    for attempt in r['attempts']:
-        body += f'<article class="attempt"><h3>{esc(attempt["run_id"])}</h3><p>{esc(attempt["scope"])}</p>' + references(attempt['evidence'], sources, page)
-        if attempt.get('manifest'):
-            m = attempt['manifest']
-            body += f'<details><summary>运行身份</summary><dl><dt>experiment_id</dt><dd>{esc(m["experiment_id"])}</dd><dt>代码版本</dt><dd>{esc(m["commit"])}</dd><dt>manifest SHA-256</dt><dd>{m["sha256"]}</dd><dt>完成条件</dt><dd>{m["completed"]}</dd></dl></details>'
-        body += '</article>'
-    body += references(r['execution']['evidence'], sources, page) + '</section>'
-    for key in ['analysis', 'decision']:
-        body += f'<section><h2>{STAGE_NAMES[key]}与证据</h2>{badge(key,r[key]["state"])}<p>{esc(r[key]["note"])}</p>' + references(r[key]['evidence'], sources, page) + '</section>'
-    if r.get('published_analysis'):
-        published = r['published_analysis']
-        body += '<section><h2>已保存分析的范围与运行依据</h2><p>' + esc(published['scope']) + '</p>'
-        body += '<p>记录日期 ' + esc(published['recorded_at']) + '；该范围与当前计划分别维护，历史结论不自动覆盖新增范围。</p>'
+    body = '<main class="shell experiment-sheet">' + nav('../')
+    body += f'<header><p class="eyebrow">{r["id"]} / {FAMILIES[r["family"]]}</p><h1>{esc(r["title"])}</h1><div class="status-line">' + ''.join('<span>' + name + ' ' + badge(key, r[key]['state']) + '</span>' for key, name in STAGE_NAMES.items()) + '</div></header>'
+    groups, supporting = experiment_groups(r, sources)
+    grouped_runs = {a['run_id'] for g in groups for a in g['attempts']}
+    body += '<nav class="sheet-nav"><a href="#definition">研究问题</a><a href="#groups">实验组</a><a href="#analysis">总体分析</a></nav>'
+    body += '<section id="definition"><h2>实验定义</h2><p class="question-text">' + esc(r['question']) + '</p>'
+    body += '<p class="execution-note">' + esc(r['execution']['note']) + '</p></section>'
+    body += '<section id="groups"><h2>实验组</h2>'
+    if groups:
+        body += ''.join(group_view(g, sources, page, i) for i, g in enumerate(groups, 1))
+    else:
+        body += '<p class="muted">本页没有现行实验配置组；已有分析与证据保留在下方。</p>'
+    if supporting:
+        body += '<details><summary>准备、候选与历史文件（不计作已运行实验）</summary>'
+        body += ''.join(config_preview(c, sources, page, model.canonical_state('preparation', r['preparation']['state']) in {'draft','preparing','ongoing'}) for c in supporting)
+        body += '</details>'
+    body += '</section>'
+    body += '<section id="analysis"><h2>总体分析与决定</h2><p>' + esc(r['analysis']['note']) + '</p>'
+    published = r.get('published_analysis') or {}
+    for point in published.get('analysis', {}).get('highlights', []):
+        body += '<p class="finding">' + esc(point) + '</p>'
+    for table in ([] if any(g['results'] for g in groups) else published.get('analysis', {}).get('tables', [])):
+        body += '<div class="table-scroll"><table><caption>' + esc(table['caption']) + '</caption><thead><tr>' + ''.join('<th>' + esc(x) + '</th>' for x in table['columns']) + '</tr></thead><tbody>'
+        body += ''.join('<tr>' + ''.join('<td>' + esc(x) + '</td>' for x in row) + '</tr>' for row in table['rows']) + '</tbody></table></div>'
+    body += references(r['analysis']['evidence'], sources, page)
+    body += '<p class="decision-line"><strong>科学决定</strong> · ' + badge('decision', r['decision']['state']) + ' ' + esc(r['decision']['note']) + '</p>'
+    body += references(r['decision']['evidence'], sources, page)
+    body += '<p class="next-inline"><strong>下一步</strong> · ' + esc(r['next_step']) + '</p>'
+    if published:
+        body += '<details><summary>分析范围与来源</summary><p>' + esc(published['scope']) + '</p><p>记录日期 ' + esc(published['recorded_at']) + '</p>'
         body += sources.anchor({'label': '版本化分析记录', 'path': f'self/research/analyses/{r["id"]}.json'}, page)
-        for attempt in published['attempts']:
-            commit = attempt.get('commit') or attempt.get('manifest', {}).get('commit', '未记录；需查原始证据')
-            body += '<p>' + esc(attempt['run_id']) + ' · SHA ' + esc(commit) + '</p>' + references(attempt['evidence'], sources, page)
-        body += references(published['sources'], sources, page) + '</section>'
-    body += '<section><h2>过程记录</h2><ol class="timeline">'
-    for event in reversed(r['history']):
-        body += f'<li><time>{esc(event["at"])}</time><p>{esc(event["note"])}</p>' + references(event['evidence'], sources, page) + '</li>'
-    body += '</ol></section><footer><h2>定义与历史来源</h2>' + references(r['sources'], sources, page) + '<p>历史 WorkItem 保留原始定义、证据和开发交付；实验创建、运行与分析以本记录为入口。</p></footer></main>'
+        for a in published['attempts']:
+            body += '<p class="path">' + esc(a['run_id']) + ' · ' + esc(a.get('commit') or a.get('manifest', {}).get('commit', '版本见原始证据')) + '</p>'
+        body += '</details>'
+    body += '</section><section id="runs">'
+    remaining = [a for a in r['attempts'] if a['run_id'] not in grouped_runs]
+    if remaining:
+        body += '<details><summary>其他历史运行（尚未关联到上方实验组）</summary>' + attempt_rows({'attempts': remaining}, sources, page) + '</details>'
+    body += time_budget_section(r, sources, page) + '</section>'
+    blockers = blocker_html(r, records, sources, page)
+    if blockers:
+        body += '<section><h2>待满足的依赖</h2>' + blockers + '</section>'
+    body += '<footer>记录核对日期 ' + esc(r['reviewed_at']) + '</footer></main>'
     return shell(r['id'] + ' · ' + r['title'], body)
 
 

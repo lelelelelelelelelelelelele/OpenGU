@@ -4,7 +4,7 @@
 - 实验执行、重跑或分析先读取目标 experiments/EXP-NNN.json，再按 RUNBOOK.md；不Claim一个纯实验Block。
 - 只读取目标实验明确引用的Block，不扫描全体WorkItems，不改写其状态、graph或Claim。
 - 所有状态声明绑定证据和范围。原始结果、科学解释与用户接受分开维护。
-- 更新当前记录、追加history后重建；HTML/SVG禁止手改。参数只在正式YAML拥有，不复制参数树。
+- 更新当前记录后重建；不维护 history 流水；HTML/SVG禁止手改。参数只在正式YAML拥有，不复制参数树。
 - README.md拥有字段与维护命令；MIGRATION.md解释旧混合记录的剩余交接边界。
 
 - experiments/ 是持续维护、Git 忽略的状态目录；更新运行进度不得 commit，不要求三端为状态变动同步。不要删除状态文件或把它当作可再生缓存。

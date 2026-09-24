@@ -41,19 +41,5 @@
       }
     ]
   },
-  "recorded_at": "2026-09-22",
-  "history": [
-    {
-      "id": "existing-delivery-record",
-      "at": "2026-09-22",
-      "stage": "analysis",
-      "note": "两份PT、SSH训练与回传核验已交付。 用户接受基础模型交付；负曲率不等于求解稳定。",
-      "evidence": [
-        {
-          "label": "结果与分析报告",
-          "path": ".workblock/items/AAGU-061/REPORT.md"
-        }
-      ]
-    }
-  ]
+  "recorded_at": "2026-09-22"
 }
