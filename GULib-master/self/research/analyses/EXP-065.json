@@ -60,22 +60,188 @@
   ],
   "attempts": [
     {
-      "run_id": "aagu070-065-h16-v1",
-      "job_id": "aagu065-observer-h16-20260922",
-      "commit": "8f989cad9db5dc134b02fd3676353f697e94683d",
-      "status": "stopped_before_execution",
-      "scope": "用户要求停止：SSH提交进程26581及单次runner进程27694已终止，确认没有runner或实验子进程，GPU空闲。请求保留在inbox，未开始实验计算；未经用户恢复指令不再执行该请求。",
+      "run_id": "aagu065-cora-h16-theory-candidates-104245-v1",
+      "job_id": "aagu065-h16-theory-104245-20260923",
+      "recipe": "opengu-aagu065-cora-h16-theory-candidates-v1",
+      "commit": "024e5a0de7ff3e6546f196524f3f64995adb7571",
+      "config_path": "experiments/configs/aagu065/observer_candidates_h16.yaml",
+      "config_sha256": "91ca3b55647f725d1142e438a4c97dfe92b87d4ae143587d8fcdcb05a7638923",
+      "status": "verified",
+      "analysis_status": "case_stable",
+      "scope": "Cora H16 checkpoint theory candidates; GIF/IDEA x rho 0.8/0.5 x T=100/200/400; random selector seed 104245; one 10% deletion budget.",
+      "runtime": {
+        "estimated_seconds": null,
+        "estimate_status": "not_recorded_before_start",
+        "actual_seconds": 49,
+        "actual_basis": "runner receipt started_at 2026-09-23T20:01:58 to finished_at 2026-09-23T20:02:47, one-second timestamp precision",
+        "actual_scope": "GPU runner job elapsed time",
+        "queue_seconds": 6,
+        "submission_to_verified_return_seconds": 279,
+        "return_seconds": 224,
+        "return_basis": "delivery updated_at 2026-09-23T20:06:31 minus runner finished_at; included SSH reconnect delays",
+        "job_started": true,
+        "actual_status": "recorded"
+      },
+      "manifest": {
+        "path": "results/runs/gpu4090/aagu065-cora-h16-theory-candidates-v1/aagu065-cora-h16-theory-candidates-104245-v1/run.json",
+        "sha256": "e16945fcdae01cf837ac0e91996a496b634534d98257746a4e6546f0d2e6be28",
+        "experiment_id": "aagu065-cora-h16-theory-candidates-v1",
+        "commit": "024e5a0de7ff3e6546f196524f3f64995adb7571",
+        "completed": 12,
+        "expected_artifacts": 73,
+        "verified_artifacts": 73,
+        "sha256_status": "verified"
+      },
+      "analysis": {
+        "path": "self/research/experiments/drafts/AAGU-065-cora-h16-after-exp-20260923.json",
+        "overall_batch_status": "pending_or_failed",
+        "case_status": "stable",
+        "criteria_source": "AAGU-065 pre_run_gate",
+        "selected_candidate": {
+          "GIF": "target_rho_0p8",
+          "IDEA": "target_rho_0p8"
+        },
+        "parameters": {
+          "GIF": {
+            "scale": 8701,
+            "damp": 0.20028347851830353,
+            "mu": 1742.666546587759
+          },
+          "IDEA": {
+            "scale": 8701,
+            "damp": 0.2002834785183033,
+            "mu": 1742.666546587757
+          }
+        },
+        "candidate_rule": "Both candidates pass; selected the passing candidate with smaller mu per method. Single Cora H16 condition only; no cross-condition release."
+      },
       "evidence": [
         {
-          "label": "065 Observer提交身份与回传合同",
-          "path": ".syncmate/runs/aagu065-observer-h16-20260922.json"
+          "label": "H16 controller",
+          "path": ".syncmate/controller/aagu065-h16-theory-104245-20260923.json"
+        },
+        {
+          "label": "H16 trusted delivery",
+          "path": ".syncmate/deliveries/aagu065-h16-theory-104245-20260923.json"
+        },
+        {
+          "label": "H16 handoff",
+          "path": ".syncmate/runs/aagu065-h16-theory-104245-20260923.json"
+        },
+        {
+          "label": "H16 checksum verification",
+          "path": ".syncmate/last_verify_gpu4090.json"
+        },
+        {
+          "label": "H16 project acceptance",
+          "path": ".syncmate/project_acceptance_gpu4090.json"
+        },
+        {
+          "label": "H16 after-exp analysis draft",
+          "path": "self/research/experiments/drafts/AAGU-065-cora-h16-after-exp-20260923.json"
+        },
+        {
+          "label": "H16 run manifest",
+          "path": "results/runs/gpu4090/aagu065-cora-h16-theory-candidates-v1/aagu065-cora-h16-theory-candidates-104245-v1/run.json"
+        }
+      ]
+    },
+    {
+      "run_id": "aagu065-cora-h64-theory-candidates-104245-v1",
+      "job_id": "aagu065-h64-theory-104245-20260923",
+      "recipe": "opengu-aagu065-cora-h64-theory-candidates-v1",
+      "commit": "024e5a0de7ff3e6546f196524f3f64995adb7571",
+      "config_path": "experiments/configs/aagu065/observer_h64_calibration.yaml",
+      "config_sha256": "dcdd92fb930a3845537e9b062f1f30516935036c878b264dafaa21b35280d598",
+      "status": "verified",
+      "analysis_status": "case_stable",
+      "scope": "Cora H64 checkpoint theory candidates; GIF/IDEA x rho 0.8/0.5 x T=100/200/400; random selector seed 104245; one 10% deletion budget.",
+      "runtime": {
+        "estimated_seconds": null,
+        "estimate_status": "not_recorded_before_start",
+        "actual_seconds": 46,
+        "actual_basis": "runner receipt started_at 2026-09-23T20:12:50 to finished_at 2026-09-23T20:13:36, one-second timestamp precision",
+        "actual_scope": "GPU runner job elapsed time",
+        "queue_seconds": 5,
+        "submission_to_verified_return_seconds": 100,
+        "return_seconds": 49,
+        "return_basis": "delivery updated_at 2026-09-23T20:14:25 minus runner finished_at; elapsed time includes orchestration and SSH collection",
+        "job_started": true,
+        "actual_status": "recorded"
+      },
+      "manifest": {
+        "path": "results/runs/gpu4090/aagu065-cora-h64-theory-candidates-v1/aagu065-cora-h64-theory-candidates-104245-v1/run.json",
+        "sha256": "915929427868809b4b77ac86dd6a0f4f2336e0763595c64b887c6aa703dac8ec",
+        "experiment_id": "aagu065-cora-h64-theory-candidates-v1",
+        "commit": "024e5a0de7ff3e6546f196524f3f64995adb7571",
+        "completed": 12,
+        "expected_artifacts": 73,
+        "verified_artifacts": 73,
+        "sha256_status": "verified"
+      },
+      "analysis": {
+        "path": "self/research/experiments/drafts/AAGU-065-cora-h64-after-exp-20260923.json",
+        "combined_path": "self/research/experiments/drafts/AAGU-065-cora-after-exp-20260923.json",
+        "overall_batch_status": "pending_or_failed",
+        "case_status": "stable",
+        "criteria_source": "AAGU-065 pre_run_gate",
+        "selected_candidate": {
+          "GIF": "target_rho_0p8",
+          "IDEA": "target_rho_0p8"
+        },
+        "parameters": {
+          "GIF": {
+            "scale": 9791,
+            "damp": 0.20098238047209782,
+            "mu": 1967.8184872023098
+          },
+          "IDEA": {
+            "scale": 9791,
+            "damp": 0.20098238047209782,
+            "mu": 1967.8184872023098
+          }
+        },
+        "candidate_rule": "Both candidates pass; selected the passing candidate with smaller mu per method. H64 uses its own checkpoint and parameters; no transfer from H16."
+      },
+      "evidence": [
+        {
+          "label": "H64 controller",
+          "path": ".syncmate/controller/aagu065-h64-theory-104245-20260923.json"
+        },
+        {
+          "label": "H64 trusted delivery",
+          "path": ".syncmate/deliveries/aagu065-h64-theory-104245-20260923.json"
+        },
+        {
+          "label": "H64 handoff",
+          "path": ".syncmate/runs/aagu065-h64-theory-104245-20260923.json"
+        },
+        {
+          "label": "H64 checksum verification",
+          "path": ".syncmate/last_verify_gpu4090.json"
+        },
+        {
+          "label": "H64 project acceptance",
+          "path": ".syncmate/project_acceptance_gpu4090.json"
+        },
+        {
+          "label": "H64 after-exp analysis draft",
+          "path": "self/research/experiments/drafts/AAGU-065-cora-h64-after-exp-20260923.json"
+        },
+        {
+          "label": "Combined Cora H16/H64 after-exp draft",
+          "path": "self/research/experiments/drafts/AAGU-065-cora-after-exp-20260923.json"
+        },
+        {
+          "label": "H64 run manifest",
+          "path": "results/runs/gpu4090/aagu065-cora-h64-theory-candidates-v1/aagu065-cora-h64-theory-candidates-104245-v1/run.json"
         }
       ]
     }
   ],
   "analysis": {
-    "state": "working",
-    "note": "正式H16已完成可信回传并完成初步运行证据分析；H64独立校准与冻结仍未完成，不能将065整体标为成功。",
+    "state": "complete",
+    "note": "本次范围校准/验证分析已完成并随062收口。Cora H16/H64均完成。",
     "formal_h16": {
       "job_id": "smoke-20260922192413712661",
       "recipe": "opengu-aagu070-065-h16-v2",
@@ -125,21 +291,29 @@
       {
         "label": "正式H16结果",
         "path": "results/runs/gpu4090/aagu065-observer-h16/aagu070-065-h16-v2"
+      },
+      {
+        "label": "Cora H16/H64 calibration",
+        "path": "self/research/analyses/EXP-065/observer-calibration-20260924.json"
       }
     ]
   },
   "decision": {
-    "state": "not_requested",
-    "note": "用户授权Agent按运行前冻结的判据作阶段放行判断；完整范围成功后继续下一阶段，无需逐阶段等待用户确认。失败、证据不足、身份不匹配或软件未就绪时不放行。阶段放行不代表用户最终科学验收，最终统一由062提交总报告。 本阶段尚未据此放行；未来只有完整范围成功且有证据时，Agent才将本阶段decision记为accepted、success_confirmed=true，并记录判据/范围/证据及判断者。失败或不充分保持success_confirmed=false。 065此前H16原范围的用户接受保留于历史，不覆盖新增H64。",
+    "state": "accepted",
+    "success_confirmed": true,
+    "note": "用户在确认四组参数及Validate通过后要求关闭062批次；接受范围为当前四组数值校准与验证，不扩展到暂缓H16或完整遗忘正确性。",
     "evidence": [
       {
-        "label": "结果与分析报告",
-        "path": ".workblock/items/AAGU-065/REPORT.md"
+        "label": "Cora H16/H64 calibration",
+        "path": "self/research/analyses/EXP-065/observer-calibration-20260924.json"
+      },
+      {
+        "label": "Batch scope and acceptance boundary",
+        "path": "self/research/analyses/EXP-062/closeout-20260924.md"
       }
-    ],
-    "success_confirmed": false
+    ]
   },
-  "recorded_at": "2026-09-22",
+  "recorded_at": "2026-09-24",
   "history": [
     {
       "id": "existing-delivery-record",
@@ -178,6 +352,18 @@
         {
           "label": "H16验证报告",
           "path": ".syncmate/last_verify_gpu4090.json"
+        }
+      ]
+    },
+    {
+      "id": "four-condition-batch-closeout-20260924",
+      "at": "2026-09-24",
+      "stage": "decision",
+      "note": "本次范围校准/验证分析已完成并随062收口。Cora H16/H64均完成。",
+      "evidence": [
+        {
+          "label": "Cora H16/H64 calibration",
+          "path": "self/research/analyses/EXP-065/observer-calibration-20260924.json"
         }
       ]
     }

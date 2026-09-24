@@ -2,11 +2,16 @@
   "id": "EXP-068",
   "title": "PubMed H16/H64 固定 PT 校准与验证",
   "question": "PubMed各宽度baseline能否分别形成可用冻结组并通过多请求验证？",
-  "scope": "062 Batch第4项：核验/准备PubMed H16/H64 baseline；GIF/IDEA按方法及checkpoint分别校准冻结，seed104245校准，104246/104247/104248验证，10%预算，匹配同宽度Retrain；不直接迁移Cora参数。 本批采用062的用户委托阶段放行规则，最终科学验收集中在062。",
+  "scope": "PubMed H64校准与验证；本次收口仅覆盖H64，H16暂缓。",
   "configs": [
     {
       "label": "H64 Observer calibration table (completed)",
       "path": "experiments/configs/aagu068/observer_candidates_h64.yaml",
+      "role": "current"
+    },
+    {
+      "label": "H64 fixed-parameter Validate (completed)",
+      "path": "experiments/configs/aagu068/validation_h64.yaml",
       "role": "current"
     }
   ],
@@ -41,11 +46,44 @@
           "path": ".syncmate/deliveries/aagu068-h64-observer-20260924.json"
         }
       ]
+    },
+    {
+      "job_id": "aagu068-h64-validation-20260924",
+      "run_id": "aagu068-pubmed-h64-validation-104246-104248-v1",
+      "commit": "88e46cc66f95ae25e13c3eb40ea3f685f75cc6c4",
+      "status": "verified",
+      "scope": "H64 Validate 21 cells",
+      "time_budget": {
+        "estimate_status": "estimated",
+        "estimated_seconds": 1200,
+        "scope": "EXP-068 H64 Validate 21 cells",
+        "basis": "Uses completed H64 calibration timings (~75 seconds for 12 Observer cells) as reference; validation has 18 Observer cells and three paired 3000-epoch Retrain cells. Includes conservative Retrain, loading and collection allowance; serial estimate assumes GU cache misses.",
+        "prior_calibration_estimate": {
+          "estimate_status": "estimated",
+          "estimated_seconds": 1800,
+          "scope": "本次用户指定的现有四张表中的对应范围",
+          "basis": "12个PubMed H64 Observer格，无新PT/Retrain；每格预留120秒，加载和收集360秒。无GU Cache命中串行工程估计，非实测保证。"
+        }
+      },
+      "evidence": [
+        {
+          "label": "controller",
+          "path": ".syncmate/controller/aagu068-h64-validation-20260924.json"
+        },
+        {
+          "label": "runs",
+          "path": ".syncmate/runs/aagu068-h64-validation-20260924.json"
+        },
+        {
+          "label": "trusted delivery",
+          "path": ".syncmate/deliveries/aagu068-h64-validation-20260924.json"
+        }
+      ]
     }
   ],
   "analysis": {
-    "state": "working",
-    "note": "H64理论与单请求Observer校准分析已完成，GIF/IDEA均stable，按既定规则选定rho=0.8。H16及后续多请求验证未完成；不代表完整实验科学验收。",
+    "state": "complete",
+    "note": "本次范围校准/验证分析已完成并随062收口。H16暂缓，不计入已完成范围。",
     "h64_theory": {
       "state": "complete",
       "source_commit": "501716bc30d59e39fa21d75c1f7af43a4ff47572",
@@ -80,6 +118,22 @@
       {
         "label": "H64 Observer calibration analysis",
         "path": "self/research/analyses/EXP-068/observer-calibration-h64-20260924.json"
+      },
+      {
+        "label": "H64 Validate numerical and utility analysis",
+        "path": "self/research/analyses/EXP-068/validation-h64-20260924.json"
+      },
+      {
+        "label": "H64 Validate report",
+        "path": "self/research/analyses/EXP-068/validation-h64-20260924.md"
+      },
+      {
+        "label": "PubMed calibration",
+        "path": "self/research/analyses/EXP-068/observer-calibration-h64-20260924.json"
+      },
+      {
+        "label": "PubMed Validate",
+        "path": "self/research/analyses/EXP-068/validation-h64-20260924.json"
       }
     ],
     "h64_observer_calibration": {
@@ -122,13 +176,63 @@
           "path": "self/research/analyses/EXP-068/observer-calibration-h64-20260924.json"
         }
       ]
+    },
+    "h64_validation": {
+      "scope": "Three registered Random requests at 10% train-mask deletion; same H64 checkpoint, fixed parameters; T100 production and T200/400 consistency diagnostics.",
+      "execution_sha": "88e46cc66f95ae25e13c3eb40ea3f685f75cc6c4",
+      "run_id": "aagu068-pubmed-h64-validation-104246-104248-v1",
+      "job_id": "aagu068-h64-validation-20260924",
+      "run_sha256": "5c7836cc9ff6cc223e91b19c0a185dad710dc8edcc38084d21d79f31c911c8e6",
+      "verified_artifacts": 115,
+      "cells": 21,
+      "numerical_gate": "passed",
+      "method_cache_counts": {
+        "GIF": {
+          "disabled": 9
+        },
+        "IDEA": {
+          "disabled": 9
+        },
+        "Retrain": {
+          "miss": 3
+        }
+      },
+      "limitations": [
+        "F1 differences are descriptive paired utility comparisons, not prediction/parameter retrain-gap metrics.",
+        "Does not establish stability for other selectors, budgets, training seeds or widths.",
+        "No final user scientific acceptance is inferred."
+      ],
+      "state": "complete",
+      "evidence": [
+        {
+          "label": "H64 Validate numerical and utility analysis",
+          "path": "self/research/analyses/EXP-068/validation-h64-20260924.json"
+        },
+        {
+          "label": "H64 Validate report",
+          "path": "self/research/analyses/EXP-068/validation-h64-20260924.md"
+        }
+      ]
     }
   },
   "decision": {
-    "state": "not_requested",
-    "note": "用户授权Agent按运行前冻结的判据作阶段放行判断；完整范围成功后继续下一阶段，无需逐阶段等待用户确认。失败、证据不足、身份不匹配或软件未就绪时不放行。阶段放行不代表用户最终科学验收，最终统一由062提交总报告。 本阶段尚未据此放行；未来只有完整范围成功且有证据时，Agent才将本阶段decision记为accepted、success_confirmed=true，并记录判据/范围/证据及判断者。失败或不充分保持success_confirmed=false。",
-    "evidence": [],
-    "success_confirmed": false
+    "state": "accepted",
+    "success_confirmed": true,
+    "note": "用户在确认四组参数及Validate通过后要求关闭062批次；接受范围为当前四组数值校准与验证，不扩展到暂缓H16或完整遗忘正确性。",
+    "evidence": [
+      {
+        "label": "PubMed calibration",
+        "path": "self/research/analyses/EXP-068/observer-calibration-h64-20260924.json"
+      },
+      {
+        "label": "PubMed Validate",
+        "path": "self/research/analyses/EXP-068/validation-h64-20260924.json"
+      },
+      {
+        "label": "Batch scope and acceptance boundary",
+        "path": "self/research/analyses/EXP-062/closeout-20260924.md"
+      }
+    ]
   },
   "recorded_at": "2026-09-24",
   "history": [
@@ -157,6 +261,38 @@
         {
           "label": "H64 Observer calibration analysis",
           "path": "self/research/analyses/EXP-068/observer-calibration-h64-20260924.json"
+        }
+      ]
+    },
+    {
+      "id": "h64-validate-analysis-20260924",
+      "at": "2026-09-24",
+      "stage": "analysis",
+      "note": "H64固定参数多请求Validate完成：21/21格，115/115产物校验通过；3个Random请求的GIF/IDEA数值稳定性均通过。H16暂缓；不代表完整双宽度范围或最终科学验收。",
+      "evidence": [
+        {
+          "label": "H64 Validate numerical and utility analysis",
+          "path": "self/research/analyses/EXP-068/validation-h64-20260924.json"
+        },
+        {
+          "label": "H64 Validate report",
+          "path": "self/research/analyses/EXP-068/validation-h64-20260924.md"
+        }
+      ]
+    },
+    {
+      "id": "four-condition-batch-closeout-20260924",
+      "at": "2026-09-24",
+      "stage": "decision",
+      "note": "本次范围校准/验证分析已完成并随062收口。H16暂缓，不计入已完成范围。",
+      "evidence": [
+        {
+          "label": "PubMed calibration",
+          "path": "self/research/analyses/EXP-068/observer-calibration-h64-20260924.json"
+        },
+        {
+          "label": "PubMed Validate",
+          "path": "self/research/analyses/EXP-068/validation-h64-20260924.json"
         }
       ]
     }
