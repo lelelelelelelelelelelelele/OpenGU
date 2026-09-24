@@ -59,11 +59,86 @@
         "commit": "b51cf184b375ae924c619ec0afa5a9ef65fa76fb",
         "completed": 1035
       }
+    },
+    {
+      "run_id": "aagu077-profile-gate-20260924-v1",
+      "scope": "3 datasets H64/seed42/PageRank/10% deletion/GIF+IDEA: 6 cells",
+      "state": "completed",
+      "evidence": [
+        {
+          "label": "GIF/IDEA real gate analysis",
+          "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
+        },
+        {
+          "label": "GIF/IDEA gate manifest",
+          "path": "results/runs/gpu4090/aagu077-table02-gif-idea-gate/aagu077-profile-gate-20260924-v1/run.json"
+        }
+      ],
+      "manifest": {
+        "label": "GIF/IDEA gate manifest",
+        "path": "results/runs/gpu4090/aagu077-table02-gif-idea-gate/aagu077-profile-gate-20260924-v1/run.json",
+        "sha256": "1a9d49d80c08466d922c126f9ec54480af9d1234da647f0110ed5deaa64aff95",
+        "experiment_id": "aagu077-table02-gif-idea-gate",
+        "commit": "6594debe4a7247d2274f65ffc435cb6ea4f27a4e",
+        "completed": 6
+      },
+      "runtime": {
+        "job_started": true,
+        "estimate_status": "estimated",
+        "estimated_seconds": 1260,
+        "actual_status": "observed",
+        "actual_seconds": 116,
+        "actual_basis": "Runner receipt started_at 21:01:31 to finished_at 21:03:27",
+        "actual_scope": "6-cell GPU gate job",
+        "queue_seconds": 6,
+        "return_seconds": null,
+        "evidence": [
+          {
+            "label": "GIF/IDEA real gate analysis",
+            "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
+          },
+          {
+            "label": "GIF/IDEA gate manifest",
+            "path": "results/runs/gpu4090/aagu077-table02-gif-idea-gate/aagu077-profile-gate-20260924-v1/run.json"
+          }
+        ],
+        "cache": {
+          "status": "observed",
+          "summary": "Per-cell cache counts",
+          "counts": {
+            "score": {
+              "hit": 6
+            },
+            "selection": {
+              "hit": 6
+            },
+            "method": {
+              "miss": 6
+            },
+            "selector_checkpoint": {
+              "not_applicable": 6
+            },
+            "method_checkpoint": {
+              "hit": 6
+            }
+          },
+          "evidence": [
+            {
+              "label": "GIF/IDEA real gate analysis",
+              "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
+            },
+            {
+              "label": "GIF/IDEA gate manifest",
+              "path": "results/runs/gpu4090/aagu077-table02-gif-idea-gate/aagu077-profile-gate-20260924-v1/run.json"
+            }
+          ]
+        }
+      }
     }
   ],
   "analysis": {
     "state": "review",
-    "note": "已交付 1035 格 Table02 的描述性分析，待科学复核；1449 格 v2 不在此分析范围。",
+    "note": "主表分析已交付，科学决定待确认。 GIF/IDEA six-cell engineering gate passed; full supplement not run.",
     "evidence": [
       {
         "label": "结果与分析报告",
@@ -72,6 +147,14 @@
       {
         "label": "当前运行manifest",
         "path": "results/runs/gpu4090/aagu011-table02-budget10/aagu011-v1-recovery-full-20260919/run.json"
+      },
+      {
+        "label": "GIF/IDEA real gate analysis",
+        "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
+      },
+      {
+        "label": "GIF/IDEA gate manifest",
+        "path": "results/runs/gpu4090/aagu077-table02-gif-idea-gate/aagu077-profile-gate-20260924-v1/run.json"
       }
     ],
     "highlights": [
@@ -86,6 +169,47 @@
     "note": "实验定义、执行交付与科学判断分别记录。",
     "evidence": []
   },
-  "recorded_at": "2026-09-22",
-  "history": []
+  "recorded_at": "2026-09-25",
+  "history": [
+    {
+      "id": "aagu077-gate-verified-20260925",
+      "at": "2026-09-25",
+      "stage": "analysis",
+      "note": "Six-cell real gate verified; 13 artifacts verified; Profile and GU cache identity matched. Scientific decision remains pending.",
+      "evidence": [
+        {
+          "label": "GIF/IDEA real gate analysis",
+          "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
+        },
+        {
+          "label": "GIF/IDEA gate manifest",
+          "path": "results/runs/gpu4090/aagu077-table02-gif-idea-gate/aagu077-profile-gate-20260924-v1/run.json"
+        }
+      ]
+    },
+    {
+      "id": "gif-idea-gate-accepted-20260925",
+      "at": "2026-09-25",
+      "stage": "decision",
+      "note": "User accepted the six-cell GIF/IDEA engineering gate. Full Table02 scientific decision unchanged; 414-cell supplement not started.",
+      "evidence": [
+        {
+          "label": "Accepted real gate report",
+          "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
+        }
+      ]
+    }
+  ],
+  "gate_acceptance": {
+    "state": "accepted",
+    "scope": "Six-cell GIF/IDEA Profile engineering gate: mapping, execution and GU cache identity",
+    "owner": "user",
+    "at": "2026-09-25",
+    "evidence": [
+      {
+        "label": "Accepted real gate report",
+        "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
+      }
+    ]
+  }
 }

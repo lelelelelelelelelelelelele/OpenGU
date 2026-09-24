@@ -1,0 +1,286 @@
+{
+  "execution_sha": "6594debe4a7247d2274f65ffc435cb6ea4f27a4e",
+  "run_id": "aagu077-profile-gate-20260924-v1",
+  "job_id": "aagu077-profile-gate-20260924",
+  "completed_cells": 6,
+  "verified_artifacts": 13,
+  "actual_seconds": 116,
+  "cache_counts": {
+    "score": {
+      "hit": 6
+    },
+    "selection": {
+      "hit": 6
+    },
+    "method": {
+      "miss": 6
+    },
+    "selector_checkpoint": {
+      "not_applicable": 6
+    },
+    "method_checkpoint": {
+      "hit": 6
+    }
+  },
+  "cells": [
+    {
+      "dataset": "Cora",
+      "method": "GIF",
+      "cell_id": "c3ae072ae62e4931b818",
+      "parameters": {
+        "GIF_method": "GIF",
+        "damp": 0.20098238047209782,
+        "iteration": 100,
+        "scale": 9791
+      },
+      "mu": 1967.8184872023098,
+      "profile_match": true,
+      "cache": {
+        "score": "hit",
+        "selection": "hit",
+        "method": "miss",
+        "selector_checkpoint": "not_applicable",
+        "method_checkpoint": "hit"
+      },
+      "producer_called": {
+        "score": false,
+        "selection": false,
+        "method": true
+      },
+      "output": {
+        "artifact_id": "pred_3dd616ef_c7e17098",
+        "recipe_hash": "3dd616ef5178e306689357d16b7a82e3732e621eeed2f7a1221b5bae5d10623f",
+        "content_hash": "c7e17098ef87be9ab024a080aa7d1234bf648f6470940694b7c42d4f3720d17e"
+      },
+      "changed_parameter_recipe_hashes": {
+        "scale": "01d90d7ed72aee73373f1aea0b53e2b1934e60bf8623f74b83cbbe14cd818867",
+        "damp": "b3a469eb923ea997a29c1d258bb317e0c582abb9314cd30ac5456ba439f15310"
+      },
+      "utility": {
+        "f1_before": 0.9022140221402214,
+        "f1_after": 0.9040590405904059,
+        "f1_drop": -0.0018450184501844769,
+        "f1_drop_ratio": -0.20449897750510973
+      }
+    },
+    {
+      "dataset": "Cora",
+      "method": "IDEA",
+      "cell_id": "597cb5c3c4bfa39e58e2",
+      "parameters": {
+        "damp": 0.20098238047209782,
+        "gaussian_mean": 0.0,
+        "gaussian_std": 0.0,
+        "iteration": 100,
+        "scale": 9791
+      },
+      "mu": 1967.8184872023098,
+      "profile_match": true,
+      "cache": {
+        "score": "hit",
+        "selection": "hit",
+        "method": "miss",
+        "selector_checkpoint": "not_applicable",
+        "method_checkpoint": "hit"
+      },
+      "producer_called": {
+        "score": false,
+        "selection": false,
+        "method": true
+      },
+      "output": {
+        "artifact_id": "pred_9d205f4f_7027f789",
+        "recipe_hash": "9d205f4f7fa340b4314654a21146cec4579aef94262159d5095a44b7e5389624",
+        "content_hash": "7027f7890568d01e3f0c3f72277762bca64f3aa646f7f737ccf881d8402f0aac"
+      },
+      "changed_parameter_recipe_hashes": {
+        "scale": "0d5ed1747c5b6b46c28dcc9f8778ca1d8c04b94d4b4ea03f80f3dadbfb3395e7",
+        "damp": "b783874582ed1c08fdac351f4ab30a44e5e9fba8375419d403df2e4ed8ccab01"
+      },
+      "utility": {
+        "f1_before": 0.9022140221402214,
+        "f1_after": 0.9040590405904059,
+        "f1_drop": -0.0018450184501844769,
+        "f1_drop_ratio": -0.20449897750510973
+      }
+    },
+    {
+      "dataset": "CiteSeer",
+      "method": "GIF",
+      "cell_id": "44aa14ba4e87d8185a0f",
+      "parameters": {
+        "GIF_method": "GIF",
+        "damp": 0.20094722036615764,
+        "iteration": 100,
+        "scale": 23004
+      },
+      "mu": 4622.58985730309,
+      "profile_match": true,
+      "cache": {
+        "score": "hit",
+        "selection": "hit",
+        "method": "miss",
+        "selector_checkpoint": "not_applicable",
+        "method_checkpoint": "hit"
+      },
+      "producer_called": {
+        "score": false,
+        "selection": false,
+        "method": true
+      },
+      "output": {
+        "artifact_id": "pred_5f6bc948_0c388bbf",
+        "recipe_hash": "5f6bc948dc85bc69896ebdc6e2dac23e32f935ee9d7fbcc6938e81a2cbe545fd",
+        "content_hash": "0c388bbf6d39a2659f8c9d722b8e90dd1a72b068e7ca9665072816f0fd8a861a"
+      },
+      "changed_parameter_recipe_hashes": {
+        "scale": "f6bf66a853c5df868cf19cc552c9e1404aaa1cb4f6b2349c4695f69805f06dbc",
+        "damp": "85318e9062b74b43ef7721a408282fe3d124be621429197512c12ef0ebca5d81"
+      },
+      "utility": {
+        "f1_before": 0.7447447447447447,
+        "f1_after": 0.7477477477477478,
+        "f1_drop": -0.0030030030030030463,
+        "f1_drop_ratio": -0.4032258064516187
+      }
+    },
+    {
+      "dataset": "CiteSeer",
+      "method": "IDEA",
+      "cell_id": "0086584e2553f42c86a9",
+      "parameters": {
+        "damp": 0.20094722036615764,
+        "gaussian_mean": 0.0,
+        "gaussian_std": 0.0,
+        "iteration": 100,
+        "scale": 23004
+      },
+      "mu": 4622.58985730309,
+      "profile_match": true,
+      "cache": {
+        "score": "hit",
+        "selection": "hit",
+        "method": "miss",
+        "selector_checkpoint": "not_applicable",
+        "method_checkpoint": "hit"
+      },
+      "producer_called": {
+        "score": false,
+        "selection": false,
+        "method": true
+      },
+      "output": {
+        "artifact_id": "pred_1c8b0422_c4652598",
+        "recipe_hash": "1c8b042299d1677c1df8ec2d3c025dc20293f2dba7bb8d1d20c68457786b2721",
+        "content_hash": "c465259893a3e1635b6ae6eb4028a626001495483b607429a2a7f6b10e6e65f8"
+      },
+      "changed_parameter_recipe_hashes": {
+        "scale": "d404d79e7e2dadf4f6140d9b40bc8652a5ce4ee2873a8c3ecfdd9f4952463512",
+        "damp": "b4506a5fd9087ecda6182743761c6612511f7bd3448199224e006c4911cd36a8"
+      },
+      "utility": {
+        "f1_before": 0.7447447447447447,
+        "f1_after": 0.7477477477477478,
+        "f1_drop": -0.0030030030030030463,
+        "f1_drop_ratio": -0.4032258064516187
+      }
+    },
+    {
+      "dataset": "PubMed",
+      "method": "GIF",
+      "cell_id": "657912cd239113248a83",
+      "parameters": {
+        "GIF_method": "GIF",
+        "damp": 0.20037196190824003,
+        "iteration": 100,
+        "scale": 173215
+      },
+      "mu": 34707.4293819358,
+      "profile_match": true,
+      "cache": {
+        "score": "hit",
+        "selection": "hit",
+        "method": "miss",
+        "selector_checkpoint": "not_applicable",
+        "method_checkpoint": "hit"
+      },
+      "producer_called": {
+        "score": false,
+        "selection": false,
+        "method": true
+      },
+      "output": {
+        "artifact_id": "pred_5f450364_d9408b21",
+        "recipe_hash": "5f450364e16135fc42f603841c4f616a863ea3f726c259707f54628df41ccef7",
+        "content_hash": "d9408b21ea84a54bab1a0127c85fc7980b361b3addbe6186de73147a71ddeb37"
+      },
+      "changed_parameter_recipe_hashes": {
+        "scale": "d664fe28d81e0a405cc2d2841d99a6d1804bfa85903c879f13b8680f403b03c6",
+        "damp": "c1a9787077ac6c41d874bf149c9d48b0d30152729a2f8dc66e129dd74919351b"
+      },
+      "utility": {
+        "f1_before": 0.8856490872210954,
+        "f1_after": 0.8836206896551724,
+        "f1_drop": 0.0020283975659229903,
+        "f1_drop_ratio": 0.22902948754652944
+      }
+    },
+    {
+      "dataset": "PubMed",
+      "method": "IDEA",
+      "cell_id": "8850cb2b6e47479b7ded",
+      "parameters": {
+        "damp": 0.20037196190823992,
+        "gaussian_mean": 0.0,
+        "gaussian_std": 0.0,
+        "iteration": 100,
+        "scale": 173215
+      },
+      "mu": 34707.42938193578,
+      "profile_match": true,
+      "cache": {
+        "score": "hit",
+        "selection": "hit",
+        "method": "miss",
+        "selector_checkpoint": "not_applicable",
+        "method_checkpoint": "hit"
+      },
+      "producer_called": {
+        "score": false,
+        "selection": false,
+        "method": true
+      },
+      "output": {
+        "artifact_id": "pred_f951af06_f414866e",
+        "recipe_hash": "f951af06eec8c11f3af11ff940f1a07b137d5889d3feec00ab0a902120186482",
+        "content_hash": "f414866e5328fe2410c61420ca80489b0a724d4d3295afa640f82693f872ba6b"
+      },
+      "changed_parameter_recipe_hashes": {
+        "scale": "692a6f84d11be93b98b704529d2e53a741b8929470de013d6a78353f0d694b1d",
+        "damp": "1bbbe929868ba116c061af2994adeb55d5b61c3a051e0444fe35c5a689fea051"
+      },
+      "utility": {
+        "f1_before": 0.8856490872210954,
+        "f1_after": 0.8836206896551724,
+        "f1_drop": 0.0020283975659229903,
+        "f1_drop_ratio": 0.22902948754652944
+      }
+    }
+  ],
+  "delivery_path": ".syncmate/deliveries/aagu077-profile-gate-20260924.json",
+  "cache_headers_path": ".syncmate/aagu077-gate-cache-headers.json",
+  "cache_headers_sha256": "cb68b1019745c10bc576e86844c44da3492479100dc0f23461de0adc921ebfb0",
+  "scientific_acceptance": "not_evaluated",
+  "gate_acceptance": {
+    "state": "accepted",
+    "scope": "Six-cell GIF/IDEA Profile engineering gate: mapping, execution and GU cache identity",
+    "owner": "user",
+    "at": "2026-09-25",
+    "evidence": [
+      {
+        "label": "Accepted real gate report",
+        "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
+      }
+    ]
+  }
+}
