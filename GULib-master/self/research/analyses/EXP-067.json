@@ -8,6 +8,11 @@
       "label": "H64 Observer calibration table (completed)",
       "path": "experiments/configs/aagu067/observer_candidates_h64.yaml",
       "role": "current"
+    },
+    {
+      "label": "H64 fixed-parameter Validate (completed)",
+      "path": "experiments/configs/aagu067/validation_h64.yaml",
+      "role": "current"
     }
   ],
   "sources": [
@@ -41,11 +46,48 @@
           "path": ".syncmate/deliveries/aagu067-h64-observer-20260924.json"
         }
       ]
+    },
+    {
+      "job_id": "aagu067-h64-validation-20260924",
+      "run_id": "aagu067-citeseer-h64-validation-104246-104248-v1",
+      "commit": "88e46cc66f95ae25e13c3eb40ea3f685f75cc6c4",
+      "status": "verified",
+      "scope": "H64 Validate 21 cells",
+      "time_budget": {
+        "estimate_status": "estimated",
+        "estimated_seconds": 600,
+        "scope": "EXP-067 H64 Validate 21 cells",
+        "basis": "Uses completed H64 calibration timings (~75 seconds for 12 Observer cells) as reference; validation has 18 Observer cells and three paired 3000-epoch Retrain cells. Includes conservative Retrain, loading and collection allowance; serial estimate assumes GU cache misses.",
+        "prior_calibration_estimate": {
+          "estimate_status": "estimated",
+          "estimated_seconds": 600,
+          "scope": "本次用户指定的现有四张表中的对应范围",
+          "basis": "12个H64 Observer格，无新PT/Retrain；每格预留30秒，加载和收集240秒。无GU Cache命中串行工程估计，非实测保证。"
+        }
+      },
+      "evidence": [
+        {
+          "label": "controller",
+          "path": ".syncmate/controller/aagu067-h64-validation-20260924.json"
+        },
+        {
+          "label": "runs",
+          "path": ".syncmate/runs/aagu067-h64-validation-20260924.json"
+        },
+        {
+          "label": "blocked delivery",
+          "path": ".syncmate/deliveries/aagu067-h64-validation-20260924.json"
+        },
+        {
+          "label": "trusted delivery",
+          "path": ".syncmate/deliveries/aagu067-h64-validation-20260924.json"
+        }
+      ]
     }
   ],
   "analysis": {
     "state": "working",
-    "note": "H64理论与单请求Observer校准分析已完成，GIF/IDEA均stable，按既定规则选定rho=0.8。H16及后续多请求验证未完成；不代表完整实验科学验收。",
+    "note": "H64固定参数多请求Validate完成：21/21格，115/115产物校验通过；3个Random请求的GIF/IDEA数值稳定性均通过。H16暂缓；不代表完整双宽度范围或最终科学验收。",
     "h64_theory": {
       "state": "complete",
       "source_commit": "501716bc30d59e39fa21d75c1f7af43a4ff47572",
@@ -80,6 +122,14 @@
       {
         "label": "H64 Observer calibration analysis",
         "path": "self/research/analyses/EXP-067/observer-calibration-h64-20260924.json"
+      },
+      {
+        "label": "H64 Validate numerical and utility analysis",
+        "path": "self/research/analyses/EXP-067/validation-h64-20260924.json"
+      },
+      {
+        "label": "H64 Validate report",
+        "path": "self/research/analyses/EXP-067/validation-h64-20260924.md"
       }
     ],
     "h64_observer_calibration": {
@@ -122,6 +172,43 @@
           "path": "self/research/analyses/EXP-067/observer-calibration-h64-20260924.json"
         }
       ]
+    },
+    "h64_validation": {
+      "scope": "Three registered Random requests at 10% train-mask deletion; same H64 checkpoint, fixed parameters; T100 production and T200/400 consistency diagnostics.",
+      "execution_sha": "88e46cc66f95ae25e13c3eb40ea3f685f75cc6c4",
+      "run_id": "aagu067-citeseer-h64-validation-104246-104248-v1",
+      "job_id": "aagu067-h64-validation-20260924",
+      "run_sha256": "25570071799ccf884edc3c766d9bc8704d29dc5bab2e12ccccbfd3f91d213a25",
+      "verified_artifacts": 115,
+      "cells": 21,
+      "numerical_gate": "passed",
+      "method_cache_counts": {
+        "GIF": {
+          "disabled": 9
+        },
+        "IDEA": {
+          "disabled": 9
+        },
+        "Retrain": {
+          "miss": 3
+        }
+      },
+      "limitations": [
+        "F1 differences are descriptive paired utility comparisons, not prediction/parameter retrain-gap metrics.",
+        "Does not establish stability for other selectors, budgets, training seeds or widths.",
+        "No final user scientific acceptance is inferred."
+      ],
+      "state": "complete",
+      "evidence": [
+        {
+          "label": "H64 Validate numerical and utility analysis",
+          "path": "self/research/analyses/EXP-067/validation-h64-20260924.json"
+        },
+        {
+          "label": "H64 Validate report",
+          "path": "self/research/analyses/EXP-067/validation-h64-20260924.md"
+        }
+      ]
     }
   },
   "decision": {
@@ -157,6 +244,22 @@
         {
           "label": "H64 Observer calibration analysis",
           "path": "self/research/analyses/EXP-067/observer-calibration-h64-20260924.json"
+        }
+      ]
+    },
+    {
+      "id": "h64-validate-analysis-20260924",
+      "at": "2026-09-24",
+      "stage": "analysis",
+      "note": "H64固定参数多请求Validate完成：21/21格，115/115产物校验通过；3个Random请求的GIF/IDEA数值稳定性均通过。H16暂缓；不代表完整双宽度范围或最终科学验收。",
+      "evidence": [
+        {
+          "label": "H64 Validate numerical and utility analysis",
+          "path": "self/research/analyses/EXP-067/validation-h64-20260924.json"
+        },
+        {
+          "label": "H64 Validate report",
+          "path": "self/research/analyses/EXP-067/validation-h64-20260924.md"
         }
       ]
     }
