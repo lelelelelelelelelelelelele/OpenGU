@@ -159,16 +159,21 @@ def submission_facts(attempt, sources):
 def attempt_rows(record, sources, page):
     if not record['attempts']:
         return '<p class="muted">本页未逐次登记运行；已交付结果见上方实验分析。提交时间与作业耗时未登记，不影响已有交付事实。</p>'
-    body = '<div class="table-scroll"><table class="runs"><thead><tr><th>运行</th><th>提交时间</th><th>状态</th><th>GPU 实耗</th><th>记录与证据</th></tr></thead><tbody>'
+    body = '<div class="table-scroll"><table class="runs"><thead><tr><th>运行</th><th>提交时间</th><th>状态</th><th>作业起止 / 耗时</th><th>记录与证据</th></tr></thead><tbody>'
     for a in record['attempts']:
         rt = a.get('runtime') or {}
         submitted, recipe, ref = submission_facts(a, sources)
         state = a.get('state', a.get('status', 'unknown'))
         state = {'completed': '完成', 'verified': '已核验', 'running': '运行中', 'failed': '失败', 'pending': '待运行'}.get(state, state)
         elapsed = seconds_text(rt.get('actual_seconds'))
+        if rt.get('actual_seconds') is not None:
+            total = int(rt['actual_seconds']); elapsed = f'{total // 3600}小时{total % 3600 // 60}分{total % 60}秒' if total >= 3600 else f'{total // 60}分{total % 60}秒'
         if rt.get('job_started') is False:
             elapsed = '未启动'
-        body += '<tr><td class="run-name">' + esc(a['run_id']) + '</td><td>' + esc(submitted) + '</td><td>' + esc(state) + '</td><td>' + esc(elapsed) + '</td><td><details><summary>详情与证据</summary><p>' + esc(a['scope']) + '</p>'
+        recipe_path = 'scripts/syncmate/recipes/' + recipe + '.yaml'
+        recipe_link = sources.anchor({'label': recipe, 'path': recipe_path}, page) if recipe != '未记录' and sources.resolve(recipe_path).exists() else esc(recipe)
+        timing = '<small>' + esc(rt.get('started_at', '起始未记录')) + '<br>→ ' + esc(rt.get('finished_at', '结束未记录')) + '</small>'
+        body += '<tr><td class="run-name">' + esc(a['run_id']) + '<small>Recipe · ' + recipe_link + '</small>' + '</td><td>' + esc(submitted) + '</td><td>' + esc(state) + '</td><td>' + esc(elapsed) + '</td><td><details><summary>详情与证据</summary><p>' + esc(a['scope']) + '</p>'
         body += '<p class="path">Recipe：' + esc(recipe) + '</p>'
         if ref:
             body += '<p>提交时间来源：' + sources.anchor(ref, page) + '（保留源记录时区）</p>'
