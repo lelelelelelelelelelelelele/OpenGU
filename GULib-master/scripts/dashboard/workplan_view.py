@@ -56,9 +56,9 @@ def references(refs, sources, page):
 
 
 def blocker_html(record, records, sources, page):
-    deps = model.dependencies(record, records, sources.canonical)
+    deps = [d for d in model.dependencies(record, records, sources.canonical) if not d['resolved']]
     if not deps:
-        return '<p class="muted">未登记实验或开发依赖。正式运行仍需执行准备检查。</p>'
+        return ''
     rows = []
     for dep in deps:
         label = 'Block' if dep['kind'] == 'block' else '实验'
@@ -311,14 +311,14 @@ def sheet_page(r, records, sources, page):
     body += f'<header><p class="eyebrow">{r["id"]} / {FAMILIES[r["family"]]}</p><h1>{esc(r["title"])}</h1><div class="status-line">' + ''.join('<span>' + name + ' ' + badge(key, r[key]['state']) + '</span>' for key, name in STAGE_NAMES.items()) + '</div></header>'
     groups, supporting = experiment_groups(r, sources)
     grouped_runs = {a['run_id'] for g in groups for a in g['attempts']}
-    body += '<nav class="sheet-nav"><a href="#definition">研究问题</a><a href="#groups">实验组</a><a href="#analysis">总体分析</a><a href="#archive">历史与依赖</a></nav>'
+    body += '<nav class="sheet-nav"><a href="#definition">研究问题</a><a href="#groups">实验组</a><a href="#analysis">总体分析</a></nav>'
     body += '<section id="definition"><h2>实验定义</h2><p class="question-text">' + esc(r['question']) + '</p>'
     body += '<p class="execution-note">' + esc(r['execution']['note']) + '</p></section>'
     body += '<section id="groups"><h2>实验组</h2>'
     if groups:
         body += ''.join(group_view(g, sources, page, i) for i, g in enumerate(groups, 1))
     else:
-        body += '<p class="muted">本页没有现行实验配置组；已有分析及历史来源保留在下方。</p>'
+        body += '<p class="muted">本页没有现行实验配置组；已有分析与证据保留在下方。</p>'
     if supporting:
         body += '<details><summary>准备、候选与历史文件（不计作已运行实验）</summary>'
         body += ''.join(config_preview(c, sources, page, model.canonical_state('preparation', r['preparation']['state']) in {'draft','preparing','ongoing'}) for c in supporting)
@@ -346,11 +346,9 @@ def sheet_page(r, records, sources, page):
     if remaining:
         body += '<details><summary>其他历史运行（尚未关联到上方实验组）</summary>' + attempt_rows({'attempts': remaining}, sources, page) + '</details>'
     body += time_budget_section(r, sources, page) + '</section>'
-    body += '<section id="archive"><details><summary>历史、依赖与来源</summary>' + blocker_html(r, records, sources, page)
-    body += '<ol class="timeline">'
-    for event in reversed(r['history']):
-        body += '<li><time>' + esc(event['at']) + '</time><p>' + esc(event['note']) + '</p>' + references(event['evidence'], sources, page) + '</li>'
-    body += '</ol>' + references(r['sources'], sources, page) + '</details></section>'
+    blockers = blocker_html(r, records, sources, page)
+    if blockers:
+        body += '<section><h2>待满足的依赖</h2>' + blockers + '</section>'
     body += '<footer>记录核对日期 ' + esc(r['reviewed_at']) + '</footer></main>'
     return shell(r['id'] + ' · ' + r['title'], body)
 

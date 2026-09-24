@@ -37,20 +37,6 @@
     ]
   },
   "recorded_at": "2026-09-24",
-  "history": [
-    {
-      "id": "four-condition-batch-closeout-20260924",
-      "at": "2026-09-24",
-      "stage": "decision",
-      "note": "本次关闭四组条件：Cora H16、Cora H64、CiteSeer H64、PubMed H64；每组GIF/IDEA独立固定参数，完成单请求校准及三个Random请求验证。原六条件定义中的CiteSeer H16、PubMed H16暂缓，不计入本次完成范围。",
-      "evidence": [
-        {
-          "label": "Four-condition batch closeout",
-          "path": "self/research/analyses/EXP-062/closeout-20260924.md"
-        }
-      ]
-    }
-  ],
   "deferred_scope": [
     "CiteSeer H16",
     "PubMed H16"

@@ -36,19 +36,5 @@
     "note": "实验定义、执行交付与科学判断分别记录。",
     "evidence": []
   },
-  "recorded_at": "2026-09-22",
-  "history": [
-    {
-      "id": "existing-delivery-record",
-      "at": "2026-09-22",
-      "stage": "analysis",
-      "note": "报告确认1条件2文件，真实MISS，Selector366.55秒。 执行已接受，但可行性分析明确仍待完成。",
-      "evidence": [
-        {
-          "label": "结果与分析报告",
-          "path": ".workblock/items/AAGU-056/REPORT.md"
-        }
-      ]
-    }
-  ]
+  "recorded_at": "2026-09-22"
 }

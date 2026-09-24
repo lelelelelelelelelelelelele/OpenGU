@@ -51,7 +51,7 @@ def load(root, canonical=None):
         if published:
             if {'preparation', 'execution', 'next_step', 'blocks', 'dependencies'} & published.keys():
                 raise ValueError('Live state belongs in experiments/: ' + key)
-            for field in ('title', 'question', 'scope', 'recorded_at', 'configs', 'sources', 'attempts', 'history'):
+            for field in ('title', 'question', 'scope', 'recorded_at', 'configs', 'sources', 'attempts'):
                 if field not in published:
                     raise ValueError('Missing analysis context: ' + field)
             record.update({stage: published[stage] for stage in ('analysis', 'decision')})
@@ -78,7 +78,7 @@ def validate(records):
     for r in records:
         if not EXPERIMENT_ID.fullmatch(r['id']):
             raise ValueError('Invalid experiment ID')
-        for field in ('title', 'question', 'scope', 'next_step', 'reviewed_at', 'history', 'sources'):
+        for field in ('title', 'question', 'scope', 'next_step', 'reviewed_at', 'sources'):
             if not r.get(field):
                 raise ValueError('Missing experiment field: ' + field)
         if r['category'] not in {'active', 'planned', 'history'}:
@@ -106,12 +106,6 @@ def validate(records):
                 raise ValueError('Invalid Block dependency')
             if not b['delivery_note'] or type(b['delivery_confirmed']) is not bool:
                 raise ValueError('Block delivery observation required')
-        events = r['history']
-        if len({e['id'] for e in events}) != len(events):
-            raise ValueError('Duplicate event ID')
-        for event in events:
-            if not event['at'] or not event['note'] or not event['evidence']:
-                raise ValueError('History needs dated evidence')
         budget = r.get('time_budget')
         legacy_runtime = budget is None or (
             isinstance(budget, dict) and budget.get('legacy_unrecorded') is True)

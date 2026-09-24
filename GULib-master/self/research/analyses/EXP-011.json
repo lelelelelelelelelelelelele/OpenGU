@@ -170,36 +170,6 @@
     "evidence": []
   },
   "recorded_at": "2026-09-25",
-  "history": [
-    {
-      "id": "aagu077-gate-verified-20260925",
-      "at": "2026-09-25",
-      "stage": "analysis",
-      "note": "Six-cell real gate verified; 13 artifacts verified; Profile and GU cache identity matched. Scientific decision remains pending.",
-      "evidence": [
-        {
-          "label": "GIF/IDEA real gate analysis",
-          "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
-        },
-        {
-          "label": "GIF/IDEA gate manifest",
-          "path": "results/runs/gpu4090/aagu077-table02-gif-idea-gate/aagu077-profile-gate-20260924-v1/run.json"
-        }
-      ]
-    },
-    {
-      "id": "gif-idea-gate-accepted-20260925",
-      "at": "2026-09-25",
-      "stage": "decision",
-      "note": "User accepted the six-cell GIF/IDEA engineering gate. Full Table02 scientific decision unchanged; 414-cell supplement not started.",
-      "evidence": [
-        {
-          "label": "Accepted real gate report",
-          "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
-        }
-      ]
-    }
-  ],
   "gate_acceptance": {
     "state": "accepted",
     "scope": "Six-cell GIF/IDEA Profile engineering gate: mapping, execution and GU cache identity",

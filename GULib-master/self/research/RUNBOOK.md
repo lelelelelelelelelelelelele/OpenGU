@@ -57,7 +57,7 @@ SyncMate 的 runbook、checklist 和 handoff 命令提供设备级操作指导�
 
 后续运行使用新的 run ID；若原 Recipe 仍被排队或运行中的任务引用，保留其声明，为新提交使用新的 recipe ID 和文件。配置变更则重新生成哈希并完成审阅、提交、同步与 readiness。不要在同一目录原地覆盖产物；失败恢复先按已有恢复流程确认范围，不因修改了 YAML 就自动重跑。
 
-提交后把实际 job_id、run_id、代码版本、配置入口、范围及handoff/回执引用追加到该实验 attempts 和 history。提交中断时先找回原请求；running时不自动重试。需要重跑时新增运行身份并明确retry_of和原因，不覆盖旧attempt。
+提交后把实际 job_id、run_id、代码版本、配置入口、范围及handoff/回执引用追加到该实验 attempts。提交中断时先找回原请求；running时不自动重试。需要重跑时新增运行身份并明确retry_of和原因，不覆盖旧attempt。
 
 ## 4. 监控与回传
 
@@ -73,6 +73,6 @@ Agent 按确切 job_id 读取本地 controller、delivery 和 handoff 回执，�
 
 ## 6. 更新总表
 
-更新实验阶段与下一步，追加有证据的history事件，再运行 README.md 中的生成和检查命令。实验依赖及Block阻塞在前端可见；它们不会改变原Block，也不会自动提交下一项实验。
+更新实验阶段与下一步，将证据归入对应运行或科学决定，再运行 README.md 中的生成和检查命令。实验依赖及Block阻塞在前端可见；它们不会改变原Block，也不会自动提交下一项实验。
 
 运行中的状态更新和页面重建不做 commit。分析提交后，下一次正式运行前重新同步并核对三端 SHA。状态目录缺失时先取回维护副本，不用 Git 历史里的旧计划或已完成分析推断当前状态。

@@ -45,19 +45,5 @@
       }
     ]
   },
-  "recorded_at": "2026-09-22",
-  "history": [
-    {
-      "id": "existing-delivery-record",
-      "at": "2026-09-22",
-      "stage": "analysis",
-      "note": "已交付最小正式验证；不等于主矩阵完成。 本范围已接受。",
-      "evidence": [
-        {
-          "label": "结果与分析报告",
-          "path": ".workblock/items/AAGU-007/REPORT.md"
-        }
-      ]
-    }
-  ]
+  "recorded_at": "2026-09-22"
 }

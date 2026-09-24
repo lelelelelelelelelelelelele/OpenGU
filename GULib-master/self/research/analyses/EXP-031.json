@@ -45,19 +45,5 @@
       }
     ]
   },
-  "recorded_at": "2026-09-22",
-  "history": [
-    {
-      "id": "existing-delivery-record",
-      "at": "2026-09-22",
-      "stage": "analysis",
-      "note": "历史报告交付72个条件；此次未重新计算。 已有排名和相似度分析；保留已接受范围。",
-      "evidence": [
-        {
-          "label": "历史定义",
-          "path": ".workblock/items/AAGU-031/WORKITEM.md"
-        }
-      ]
-    }
-  ]
+  "recorded_at": "2026-09-22"
 }

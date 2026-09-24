@@ -91,23 +91,5 @@
       }
     ]
   },
-  "recorded_at": "2026-09-24",
-  "history": [
-    {
-      "id": "four-condition-batch-closeout-20260924",
-      "at": "2026-09-24",
-      "stage": "decision",
-      "note": "本次范围校准/验证分析已完成并随062收口。Cora H16/H64均完成。",
-      "evidence": [
-        {
-          "label": "Cora H16 Validate",
-          "path": "self/research/analyses/EXP-066/validation-h16-20260924.json"
-        },
-        {
-          "label": "Cora H64 Validate",
-          "path": "self/research/analyses/EXP-066/validation-h64-20260924.json"
-        }
-      ]
-    }
-  ]
+  "recorded_at": "2026-09-24"
 }
