@@ -63,6 +63,7 @@ def _plan_summary(config):
         'execution': config.get('execution', {}),
         'effective_datasets': config['datasets'],
         'configuration_sources': config['configuration_sources'],
+        'effective_parameter_profile': config.get('effective_parameter_profile'),
         'experiment_annotations': {
             key: config[key]
             for key in ('round',) if key in config

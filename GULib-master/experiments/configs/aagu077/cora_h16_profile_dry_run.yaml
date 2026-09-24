@@ -1,0 +1,16 @@
+# Representative AAGU-077 contract; use for dry-run validation only.
+kind: experiment
+schema_version: 1
+experiment_id: aagu077-cora-h16-profile-contract
+stage: unlearning
+dataset_refs:
+- ../datasets/cora.yaml
+selector_refs:
+- ../selectors/random.yaml
+unlearning_refs:
+- ./gif_cora_h16.yaml
+- ./idea_cora_h16.yaml
+parameter_profile_ref: ../profiles/gif_idea_fixed_pt.yaml
+random_selector_seeds: [104245]
+budget_ratios: [0.1]
+matrix: cartesian_product

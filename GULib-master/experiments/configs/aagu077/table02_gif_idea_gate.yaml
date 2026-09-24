@@ -1,0 +1,21 @@
+# Minimal Table02 supplement subset: three datasets x GIF/IDEA = 6 cells.
+kind: experiment
+schema_version: 1
+experiment_id: aagu077-table02-gif-idea-gate
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- pagerank.yaml
+unlearning_refs:
+- ./gif_h64.yaml
+- ./idea_h64.yaml
+parameter_profile_ref: ../profiles/gif_idea_fixed_pt.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+matrix: cartesian_product
+seeds: [42]
+budget_ratios: [0.10]
+return_scores: false

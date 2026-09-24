@@ -16,6 +16,10 @@ REFERENCE_DIRECTORIES = {
     'unlearning_refs': 'unlearning',
     'evaluation_refs': 'evaluations',
 }
+PARAMETER_PROFILE_METHODS = {
+    'GIF': {'scale', 'damp', 'GIF_method'},
+    'IDEA': {'scale', 'damp', 'gaussian_mean', 'gaussian_std'},
+}
 
 
 def resolve_reference(field, reference, source_directory):
@@ -40,6 +44,116 @@ def resolve_reference(field, reference, source_directory):
     if path.suffix not in ('.yaml', '.yml') or not path.is_file():
         raise ConfigurationError(f'{field}: YAML file does not exist: {path}')
     return path.resolve()
+
+
+def resolve_parameter_profile_ref(reference, source_directory):
+    if not isinstance(reference, str) or not reference.strip():
+        raise ConfigurationError('parameter_profile_ref requires a YAML file path')
+    path = Path(reference)
+    if not path.is_absolute():
+        if ':' in reference:
+            raise ConfigurationError('parameter_profile_ref: drive-relative paths are not allowed')
+        path = Path(source_directory) / reference.replace('\\', '/')
+    if path.suffix not in ('.yaml', '.yml') or not path.is_file():
+        raise ConfigurationError(f'parameter_profile_ref: YAML file does not exist: {path}')
+    return path.resolve()
+
+
+def load_parameter_profile(path):
+    value = read_yaml(path)
+    fields(value, {'kind', 'schema_version', 'profiles'},
+           {'kind', 'schema_version', 'profiles'}, 'parameter profile')
+    if value['kind'] != 'parameter_profile' or type(value['schema_version']) is not int or value['schema_version'] != 1:
+        raise ConfigurationError(f'{path}: expected parameter_profile schema_version 1')
+    if not isinstance(value['profiles'], list) or not value['profiles']:
+        raise ConfigurationError('parameter profile requires a nonempty profiles list')
+    names = set()
+    keys = set()
+    for profile in value['profiles']:
+        fields(profile, {'name', 'dataset', 'model', 'methods'},
+               {'name', 'dataset', 'model', 'methods'}, 'parameter profile entry')
+        name = profile['name']
+        dataset = profile['dataset']
+        if not isinstance(name, str) or not name.strip() or name in names:
+            raise ConfigurationError('parameter profile names must be distinct nonempty strings')
+        if not isinstance(dataset, str) or not dataset.strip():
+            raise ConfigurationError('parameter profile dataset must be a nonempty string')
+        names.add(name)
+        model = profile['model']
+        fields(model, {'architecture', 'hidden_channels'},
+               {'architecture', 'hidden_channels'}, 'parameter profile model')
+        if (model['architecture'] != 'OpenGU.GCNNet'
+                or type(model['hidden_channels']) is not int or model['hidden_channels'] <= 0):
+            raise ConfigurationError('GIF/IDEA profiles require a GCN architecture and positive hidden_channels')
+        key = (dataset, model['architecture'], model['hidden_channels'])
+        if key in keys:
+            raise ConfigurationError(
+                'ambiguous parameter profile entries for dataset={0}, GCN hidden_channels={1}'.format(
+                    dataset, model['hidden_channels']))
+        keys.add(key)
+        methods = profile['methods']
+        if not isinstance(methods, dict) or not methods or set(methods) - set(PARAMETER_PROFILE_METHODS):
+            raise ConfigurationError('parameter profile methods must contain GIF and/or IDEA')
+        for method, parameters in methods.items():
+            expected = PARAMETER_PROFILE_METHODS[method]
+            fields(parameters, expected, expected, 'parameter profile {0} parameters'.format(method))
+            scale = parameters['scale']
+            damp = parameters['damp']
+            if (not isinstance(scale, (int, float)) or isinstance(scale, bool)
+                    or not math.isfinite(scale) or scale <= 0
+                    or not isinstance(damp, (int, float)) or isinstance(damp, bool)
+                    or not math.isfinite(damp) or not 0 <= damp < 1):
+                raise ConfigurationError('invalid {0} parameter profile scale/damp'.format(method))
+            if method == 'GIF':
+                choice(parameters['GIF_method'], ('GIF', 'IF'), 'GIF_method')
+            else:
+                mean = parameters['gaussian_mean']
+                std = parameters['gaussian_std']
+                if (not isinstance(mean, (int, float)) or isinstance(mean, bool)
+                        or not math.isfinite(mean) or not isinstance(std, (int, float))
+                        or isinstance(std, bool) or not math.isfinite(std) or std < 0):
+                    raise ConfigurationError('invalid IDEA parameter profile gaussian settings')
+    return value['profiles']
+
+
+def parameter_profile_match(profiles, dataset, unlearning_path):
+    method_value = read_yaml(unlearning_path)
+    method = method_value.get('method')
+    if method not in PARAMETER_PROFILE_METHODS:
+        return None
+    model = method_value.get('model', {})
+    if not isinstance(model, dict):
+        raise ConfigurationError('unlearning model must be a mapping')
+    architecture = model.get('architecture', 'OpenGU.GCNNet')
+    hidden_channels = model.get('hidden_channels', 64)
+    if architecture != 'OpenGU.GCNNet':
+        raise ConfigurationError('GIF/IDEA parameter profiles require OpenGU.GCNNet')
+    if type(hidden_channels) is not int or hidden_channels <= 0:
+        raise ConfigurationError('GIF/IDEA parameter profile matching requires positive model.hidden_channels')
+    dataset_name = dataset['dataset']['name']
+    matches = [profile for profile in profiles
+               if profile['dataset'] == dataset_name
+               and profile['model']['architecture'] == architecture
+               and profile['model']['hidden_channels'] == hidden_channels]
+    if len(matches) != 1:
+        raise ConfigurationError(
+            '{0} GIF/IDEA parameter profile matches for dataset={1}, GCN hidden_channels={2}'.format(
+                'missing' if not matches else 'ambiguous', dataset_name, hidden_channels))
+    profile = matches[0]
+    if method not in profile['methods']:
+        raise ConfigurationError(
+            'parameter profile {0} has no {1} parameters for dataset={2}, GCN hidden_channels={3}'.format(
+                profile['name'], method, dataset_name, hidden_channels))
+    parameters = profile['methods'][method]
+    supplied = method_value.get('parameters', {})
+    if not isinstance(supplied, dict):
+        raise ConfigurationError('unlearning parameters must be a mapping')
+    overlap = set(supplied) & set(parameters)
+    if overlap:
+        raise ConfigurationError(
+            'parameters supplied by both unlearning reference and parameter profile: {0}'.format(
+                ', '.join(sorted(overlap))))
+    return {'profile': profile, 'method': method, 'parameters': parameters}
 
 
 def model_training(value, *, pretrained=False):
@@ -147,10 +261,20 @@ def gu_defaults(method):
     raise ConfigurationError('supported GU methods: GNNDelete, GIF, MEGU, IDEA, GraphEraser, GraphRevoker, Retrain')
 
 
-def unlearning(value):
+def unlearning(value, *, parameter_profile_parameters=None):
     fields(value, {'kind', 'schema_version', 'method', 'model', 'training', 'parameters', 'checkpoint', 'deletion'},
                   {'kind', 'schema_version', 'method'}, 'unlearning')
-    params = effective(value.get('parameters', {}), gu_defaults(value['method']))
+    supplied_parameters = value.get('parameters', {})
+    if parameter_profile_parameters is not None:
+        if not isinstance(supplied_parameters, dict):
+            raise ConfigurationError('unlearning parameters must be a mapping')
+        overlap = set(supplied_parameters) & set(parameter_profile_parameters)
+        if overlap:
+            raise ConfigurationError(
+                'parameters supplied by both unlearning reference and parameter profile: {0}'.format(
+                    ', '.join(sorted(overlap))))
+        supplied_parameters = {**supplied_parameters, **parameter_profile_parameters}
+    params = effective(supplied_parameters, gu_defaults(value['method']))
     if value['method'] == 'GraphEraser':
         from experiments.modular_shards import validate_grapheraser
         validate_grapheraser(params)
@@ -201,7 +325,7 @@ def unlearning(value):
             'deletion': resolve_deletion(value.get('deletion'))}
 
 
-def load_instance(path, expected_kind):
+def load_instance(path, expected_kind, *, parameter_profile_parameters=None):
     value = read_yaml(path)
     if value.get('kind') != expected_kind or type(value.get('schema_version')) is not int or value.get('schema_version') != 1:
         raise ConfigurationError(f'{path}: expected {expected_kind} schema_version 1')
@@ -216,7 +340,7 @@ def load_instance(path, expected_kind):
     if expected_kind == 'selector':
         return selector(value)
     if expected_kind == 'unlearning':
-        return unlearning(value)
+        return unlearning(value, parameter_profile_parameters=parameter_profile_parameters)
     if expected_kind == 'evaluation':
         from experiments.modular_evaluation import resolve_evaluation
         return resolve_evaluation(value)
@@ -236,7 +360,7 @@ def load_instance(path, expected_kind):
     return value
 
 
-def configuration_sources(path, resolved):
+def configuration_sources(path, resolved, *, parameter_profile_parameters=None, parameter_profile_source=None):
     """Per-field provenance is recorded outside all computational identities."""
     original = read_yaml(path)
     sources = {}
@@ -245,6 +369,9 @@ def configuration_sources(path, resolved):
             name = prefix + key
             if isinstance(item, dict):
                 visit(item, supplied.get(key, {}), name + '.')
+            elif (name.startswith('parameters.') and parameter_profile_parameters is not None
+                  and name[len('parameters.'):] in parameter_profile_parameters):
+                sources[name] = 'parameter_profile:' + str(Path(parameter_profile_source).resolve())
             elif name in ('training.lr', 'training.weight_decay', 'training.epochs',
                           'training.optimizer', 'training.scheduler') and item is None and resolved.get('checkpoint'):
                 sources[name] = 'not_applicable:external_checkpoint'
@@ -288,7 +415,8 @@ def load_experiment(path):
     required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_refs', 'matrix'}
     fields(value, required | {'round',
         'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
-        'seeds', 'random_selector_seeds', 'budget_ratios', 'im_selector_seeds', 'return_scores', 'execution', 'observers'},
+        'seeds', 'random_selector_seeds', 'budget_ratios', 'im_selector_seeds', 'return_scores',
+        'execution', 'observers', 'parameter_profile_ref'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
@@ -327,12 +455,59 @@ def load_experiment(path):
     result['dataset_directories'] = [str(p.parent) for p in paths]
     result['configuration_sources'] = {
         'datasets': [str(p) for p in paths], 'selectors': [], 'unlearnings': [], 'evaluations': []}
+    profile_path = None
+    profile_entries = None
+    if 'parameter_profile_ref' in value:
+        if value['stage'] != 'unlearning':
+            raise ConfigurationError('parameter_profile_ref belongs to the unlearning stage')
+        profile_path = resolve_parameter_profile_ref(value['parameter_profile_ref'], path.parent)
+        profile_entries = load_parameter_profile(profile_path)
+        result['configuration_sources']['parameter_profile'] = str(profile_path)
     for field, kind in (('selector_refs', 'selector'), ('unlearning_refs', 'unlearning'),
                         ('evaluation_refs', 'evaluation')):
         refs = value.get(field, [])
         if not isinstance(refs, list) or any(not isinstance(ref, str) for ref in refs):
             raise ConfigurationError(f'{field} must be a list of file references')
         paths = [resolve_reference(field, ref, path.parent) for ref in refs]
+        if field == 'unlearning_refs' and profile_entries is not None:
+            unlearnings_by_dataset = []
+            sources_by_dataset = []
+            profiles_by_dataset = []
+            for dataset in result['datasets']:
+                unlearnings = []
+                sources = []
+                selections = {}
+                for ref_path in paths:
+                    match = parameter_profile_match(profile_entries, dataset, ref_path)
+                    if match is None:
+                        instance = load_instance(ref_path, kind)
+                        source = configuration_sources(ref_path, instance)
+                    else:
+                        profile = match['profile']
+                        parameters = match['parameters']
+                        instance = load_instance(ref_path, kind, parameter_profile_parameters=parameters)
+                        source = configuration_sources(ref_path, instance,
+                            parameter_profile_parameters=parameters, parameter_profile_source=profile_path)
+                        selected = selections.setdefault(profile['name'], {
+                            'name': profile['name'], 'dataset': profile['dataset'],
+                            'model': copy.deepcopy(profile['model']), 'methods': {}})
+                        selected['methods'][match['method']] = copy.deepcopy(parameters)
+                    unlearnings.append(instance)
+                    sources.append(source)
+                if not selections:
+                    raise ConfigurationError('parameter_profile_ref requires at least one GIF or IDEA unlearning reference')
+                unlearnings_by_dataset.append(unlearnings)
+                sources_by_dataset.append(sources)
+                profiles_by_dataset.append({'reference': str(profile_path),
+                    'selections': list(selections.values())})
+            result['unlearnings_by_dataset'] = unlearnings_by_dataset
+            result['configuration_sources']['unlearnings_by_dataset'] = sources_by_dataset
+            result['effective_parameter_profiles'] = profiles_by_dataset
+            result['unlearnings'] = unlearnings_by_dataset[0]
+            result['configuration_sources']['unlearnings'] = sources_by_dataset[0]
+            result['effective_parameter_profile'] = {
+                'reference': str(profile_path), 'by_dataset': profiles_by_dataset}
+            continue
         result[kind + 's'] = [load_instance(ref_path, kind) for ref_path in paths]
         result['configuration_sources'][kind + 's'] = [configuration_sources(ref_path, item)
             for ref_path, item in zip(paths, result[kind + 's'])]
@@ -415,6 +590,12 @@ def experiment_batches(config):
                 batch['dataset'] = dataset
                 batch['dataset_directory'] = config['dataset_directories'][index]
                 batch['matrix_values'] = {**dataset_binding(config, index), 'training_seed': seed, 'budget_ratio': ratio}
+                if 'unlearnings_by_dataset' in config:
+                    batch['unlearnings'] = copy.deepcopy(config['unlearnings_by_dataset'][index])
+                    batch['configuration_sources']['unlearnings'] = copy.deepcopy(
+                        config['configuration_sources']['unlearnings_by_dataset'][index])
+                    batch['effective_parameter_profile'] = copy.deepcopy(
+                        config['effective_parameter_profiles'][index])
                 for kind in ('selector', 'unlearning'):
                     for instance_index, instance in enumerate(batch[kind + 's']):
                         sources = batch['configuration_sources'][kind + 's'][instance_index]
@@ -483,6 +664,8 @@ def configuration_fingerprint(path):
         refs = []
         for field in ('dataset_refs', 'selector_refs', 'unlearning_refs', 'evaluation_refs'):
             refs.extend(resolve_reference(field, ref, current.parent) for ref in value.get(field, []))
+        if 'parameter_profile_ref' in value:
+            refs.append(resolve_parameter_profile_ref(value['parameter_profile_ref'], current.parent))
         children = [document(ref) for ref in refs]
         visited.remove(current)
         return {'document': value, 'references': children}
