@@ -32,6 +32,6 @@ experiments/modular_gu.py使用同一instance.parameters构造target身份和方
 
 ## 结论与范围
 
-Profile映射、真实方法调用、GU缓存身份及产物回传通过工程验证。本次覆盖三个H64数据集共六格，不覆盖Cora H16、其他训练seed或414格完整补充表。科学验收仍待用户决定，414格尚未启动。
+Profile映射、真实方法调用、GU缓存身份及产物回传通过工程验证。用户于2026-09-25明确接受本次六格gate。范围为三个H64数据集共六格，不覆盖Cora H16、其他训练seed或414格完整补充表。Table02整体科学决定保持原状态，414格尚未启动。
 
 旧controller快照停在running；恢复后以同一job的最终receipt及已校验delivery确认完成，未手工改写controller。
