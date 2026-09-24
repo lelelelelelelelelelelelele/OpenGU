@@ -63,7 +63,7 @@
   ],
   "analysis": {
     "state": "review",
-    "note": "主表分析已交付，科学决定待确认。",
+    "note": "已交付 1035 格 Table02 的描述性分析，待科学复核；1449 格 v2 不在此分析范围。",
     "evidence": [
       {
         "label": "结果与分析报告",
@@ -73,6 +73,12 @@
         "label": "当前运行manifest",
         "path": "results/runs/gpu4090/aagu011-table02-budget10/aagu011-v1-recovery-full-20260919/run.json"
       }
+    ],
+    "highlights": [
+      "已有报告：828 GU + 207 Retrain，207 个请求组形成 828 条严格配对；复用 81 个不同 Selection Artifact，207 个训练条件组不等于 207 次独立选点。",
+      "相对同方法 Random 均值，报告中最低组合为：Cora GraphRevoker / PageRank −4.37 pp；CiteSeer GNNDelete / RR-16384 −2.58 pp；PubMed GraphRevoker / R-point −2.64 pp。",
+      "以上是原始整表报告的固定范围均值，分片方法的 GU−Retrain 差值还包含架构与聚合差异；F1 变化不证明遗忘正确性。",
+      "报告记载原始入口执行 3 小时 56 分 48 秒；当前运行列表绑定的是 9 月 19 日 Cache 恢复，缺少该次作业总耗时。两批时间不可互填。"
     ]
   },
   "decision": {

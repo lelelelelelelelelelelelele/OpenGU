@@ -23,12 +23,16 @@
   "attempts": [],
   "analysis": {
     "state": "complete",
-    "note": "本范围已接受。",
+    "note": "最小正式链路的 4 个输出已交付并接受，无需重复运行。",
     "evidence": [
       {
         "label": "结果与分析报告",
         "path": ".workblock/items/AAGU-007/REPORT.md"
       }
+    ],
+    "highlights": [
+      "Cora / GCN，Degree 删除 1%，训练 seed 122、722；各运行 GNNDelete 与独立 Retrain，共 4 个输出。",
+      "GNNDelete / Retrain F1：seed 122 为 0.6328 / 0.8893；seed 722 为 0.6513 / 0.8801。仅支持这两个 seed 的链路验证与观察，不推广为通用科研结论。"
     ]
   },
   "decision": {

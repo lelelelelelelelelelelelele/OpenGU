@@ -2,6 +2,7 @@
 from __future__ import annotations
 import argparse
 import html
+import json
 import os
 from pathlib import Path
 from urllib.parse import quote
@@ -108,61 +109,13 @@ def time_budget_section(record, sources, page):
         if summary['unstructured_attempts']:
             actual += f'；{summary["unstructured_attempts"]} 次历史尝试未记录 runtime'
     else:
-        actual = '暂无已启动 GPU 作业'
+        actual = '本页未登记可累计的作业时间；已有执行结果见实验分析。'
     scope_label = '完整' if summary['scope_complete'] else model.STATES['execution'][record['execution']['state']]
-    rows = [
-        ('预估耗时', seconds_text(summary['estimated_seconds']), summary['estimate_scope']),
-        ('估算依据', ('Cache 未命中、按作业串行累计' if summary['estimate_calculation_confirmed'] else '估算口径待确认') if summary['estimate_status'] == 'estimated' else '未记录' if summary['estimate_status'] == 'not_recorded' else '不适用', summary['estimate_basis']),
-        ('累计实际耗时', actual, '只累计已启动 GPU 作业；排队与回传时间单列，不计入实际耗时。'),
-        ('范围完成状态', scope_label, '只有完整范围、完整实际耗时和 Cache 统计齐备时才计算偏差。'),
-        ('估时偏差', deviation, '接近阈值为 ±20%；偏差 = 累计实际耗时 − 预估耗时。'),
-    ]
-    body = '<section class="time-budget"><h2>时间预算与实际耗时</h2><div class="table-scroll"><table><thead><tr><th>指标</th><th>结果</th><th>范围与口径</th></tr></thead><tbody>'
-    body += ''.join(f'<tr><th>{esc(label)}</th><td>{esc(value)}</td><td>{esc(detail)}</td></tr>' for label, value, detail in rows)
-    body += '</tbody></table></div>'
-    if record['attempts']:
-        body += '<h3>运行尝试</h3><div class="table-scroll"><table><thead><tr><th>Run</th><th>GPU 作业耗时</th><th>排队</th><th>回传</th><th>Cache 情况</th><th>证据</th></tr></thead><tbody>'
-        for attempt in record['attempts']:
-            runtime = attempt.get('runtime')
-            if not isinstance(runtime, dict):
-                runtime = {}
-                elapsed = '未记录'
-                actual_basis = '历史尝试未保存 runtime 元数据'
-                cache = {'status': 'not_recorded', 'summary': '历史尝试未保存 Cache 状态',
-                         'counts': {}, 'evidence': []}
-            elif runtime['actual_status'] == 'recorded':
-                elapsed = seconds_text(runtime['actual_seconds'])
-                actual_basis = runtime['actual_basis']
-                cache = runtime.get('cache') or {
-                    'status': 'not_recorded', 'summary': '历史尝试未保存 Cache 状态',
-                    'counts': {}, 'evidence': []}
-            elif not runtime['job_started']:
-                elapsed = '未启动'
-                actual_basis = runtime['actual_basis']
-                cache = runtime.get('cache') or {
-                    'status': 'not_applicable', 'summary': 'GPU 作业未启动',
-                    'counts': {}, 'evidence': []}
-            else:
-                elapsed = '未记录'
-                actual_basis = runtime['actual_basis']
-                cache = runtime.get('cache') or {
-                    'status': 'not_recorded', 'summary': 'Cache 状态未记录',
-                    'counts': {}, 'evidence': []}
-            counts = cache_counts_text(cache['counts'])
-            cache_text = esc(cache['summary'])
-            if cache['status'] == 'observed':
-                cache_text += '<br><small>' + esc(counts) + '</small>'
-            refs = list({ref['path']: ref for ref in
-                         (runtime.get('evidence') or []) + (cache.get('evidence') or [])}.values())
-            if not refs:
-                refs = attempt['evidence']
-            body += ('<tr><td>' + esc(attempt['run_id']) + '</td><td>' + esc(elapsed)
-                     + '<br><small>' + esc(actual_basis) + '</small></td><td>'
-                     + esc(seconds_text(runtime.get('queue_seconds'))) + '</td><td>'
-                     + esc(seconds_text(runtime.get('return_seconds'))) + '</td><td>'
-                     + cache_text + '</td><td>' + references(refs, sources, page) + '</td></tr>')
-        body += '</tbody></table></div>'
-    return body + '</section>'
+    body = '<details class="timing"><summary>时间记录 · 预估 ' + esc(seconds_text(summary['estimated_seconds'])) + ' · 实耗 ' + esc(seconds_text(summary['actual_seconds'])) + '</summary>'
+    body += '<p>' + esc(actual) + '</p><p>' + esc(deviation) + '</p>'
+    body += '<dl><dt>估算范围</dt><dd>' + esc(summary['estimate_scope']) + '</dd><dt>估算依据</dt><dd>' + esc(summary['estimate_basis']) + '</dd><dt>运行覆盖</dt><dd>' + esc(scope_label) + '</dd></dl>'
+    body += '<p class="muted">实耗仅累计本页绑定且有起止耗时的作业，含失败和重跑；排队、回传单列。缺少时间不表示未执行。完整同范围且时间与 Cache 证据齐备时计算偏差，±20% 为接近。</p></details>'
+    return body
 
 
 def config_preview(config, sources, page, allow_unmaterialized_candidate=False):
@@ -184,41 +137,111 @@ def config_preview(config, sources, page, allow_unmaterialized_candidate=False):
     return f'<details class="yaml"><summary>{esc(path.name)} <span>{role}</span></summary><p>{sources.anchor(config, page)}</p><p class="path">{esc(config["path"])}</p><pre>{esc(yaml.safe_dump(parsed, allow_unicode=True, sort_keys=False))}</pre></details>'
 
 
+def submission_facts(attempt, sources):
+    """Read only explicitly linked controller receipts, never infer dates from run IDs."""
+    submitted, recipe, ref = attempt.get('submitted_at'), attempt.get('recipe'), None
+    for item in attempt['evidence']:
+        if not item['path'].startswith('.syncmate/controller/'):
+            continue
+        path = sources.resolve(item['path'])
+        if not path.exists():
+            continue
+        controller = json.loads(path.read_text(encoding='utf-8'))
+        job = (controller.get('watch') or {}).get('job') or {}
+        receipt = job.get('receipt') or {}
+        submitted = submitted or receipt.get('submitted_at')
+        recipe = recipe or job.get('recipe') or controller.get('recipe')
+        ref = item
+        break
+    return submitted or '未记录', recipe or '未记录', ref
+
+
+def attempt_rows(record, sources, page):
+    if not record['attempts']:
+        return '<p class="muted">本页未逐次登记运行；已交付结果见上方实验分析。提交时间与作业耗时未登记，不影响已有交付事实。</p>'
+    body = '<div class="table-scroll"><table class="runs"><thead><tr><th>运行 / Recipe</th><th>提交时间</th><th>状态</th><th>GPU 实耗</th><th>记录与证据</th></tr></thead><tbody>'
+    for a in record['attempts']:
+        rt = a.get('runtime') or {}
+        submitted, recipe, ref = submission_facts(a, sources)
+        state = a.get('state', a.get('status', 'unknown'))
+        state = {'completed': '完成', 'verified': '已核验', 'running': '运行中', 'failed': '失败', 'pending': '待运行'}.get(state, state)
+        elapsed = seconds_text(rt.get('actual_seconds'))
+        if rt.get('job_started') is False:
+            elapsed = '未启动'
+        body += '<tr><td class="run-name">' + esc(a['run_id']) + '<small>Recipe · ' + esc(recipe) + '</small></td><td>' + esc(submitted) + '</td><td>' + esc(state) + '</td><td>' + esc(elapsed) + '</td><td><details><summary>详情与证据</summary><p>' + esc(a['scope']) + '</p>'
+        if ref:
+            body += '<p>提交时间来源：' + sources.anchor(ref, page) + '（保留源记录时区）</p>'
+        body += '<p>' + esc(rt.get('actual_basis', '此运行未登记作业起止耗时。')) + '</p>'
+        body += '<p>排队 ' + esc(seconds_text(rt.get('queue_seconds'))) + ' · 回传 ' + esc(seconds_text(rt.get('return_seconds'))) + '</p>'
+        cache = rt.get('cache') or {}
+        body += '<p>Cache：' + esc(cache.get('summary', '未记录')) + '</p>'
+        if cache.get('counts'):
+            body += '<p>' + esc(cache_counts_text(cache['counts'])) + '</p>'
+        refs = list({r['path']: r for r in a['evidence'] + rt.get('evidence', []) + cache.get('evidence', [])}.values())
+        body += references(refs, sources, page)
+        m = a.get('manifest', {})
+        body += '<p class="path">代码版本：' + esc(a.get('commit') or m.get('commit', '未记录')) + '</p>'
+        if m:
+            body += '<p class="path">Manifest SHA-256：' + esc(m['sha256']) + ' · 完成条件 ' + esc(m['completed']) + '</p>'
+        body += '</details></td></tr>'
+    return body + '</tbody></table></div>'
+
+
+def parameter_preview(config, sources):
+    path = sources.resolve(config['path'])
+    if not path.exists():
+        return ''
+    data = yaml.safe_load(path.read_text(encoding='utf-8')) or {}
+    labels = {'dataset_refs': '数据集', 'selector_refs': '选择策略', 'unlearning_refs': '遗忘 / 重训练', 'seeds': '训练 seed', 'random_selector_seeds': 'Random seed', 'im_selector_seeds': 'IM seed', 'budget_ratios': '删除比例'}
+    rows = []
+    for key, label in labels.items():
+        value = data.get(key)
+        if value is None:
+            continue
+        values = value if isinstance(value, list) else [value]
+        text = '、'.join(Path(str(x)).stem if key.endswith('_refs') else str(x) for x in values)
+        value_html = esc(text) if len(text) < 150 else '<details><summary>' + str(len(values)) + ' 项配置 · 展开</summary>' + esc(text) + '</details>'
+        rows.append('<dt>' + esc(label) + '</dt><dd>' + value_html + '</dd>')
+    return '<dl class="parameters">' + ''.join(rows) + '</dl>' if rows else ''
+
+
 def sheet_page(r, records, sources, page):
-    body = '<main class="shell">' + nav('../') + f'<header><p class="eyebrow">{r["id"]} / {FAMILIES[r["family"]]}</p><h1>{esc(r["title"])}</h1><p class="lead">{esc(r["question"])}</p><p class="muted">核对日期 {r["reviewed_at"]} · 实验状态独立维护</p></header>'
-    body += '<div class="stages">' + ''.join(f'<div><label>{name}</label>{badge(key, r[key]["state"])}<p>{esc(r[key]["note"])}</p></div>' for key, name in STAGE_NAMES.items()) + '</div>'
-    body += '<section class="next"><h2>下一步</h2><p>' + esc(r['next_step']) + '</p></section>'
-    body += time_budget_section(r, sources, page)
-    body += '<section><h2>依赖与阻塞</h2>' + blocker_html(r, records, sources, page) + '<p class="muted">Block 状态是生成页面时的只读观察。交付状态与本实验所需能力同时确认后，才解除对应依赖；不会自动启动。</p></section>'
-    body += '<section><h2>实验定义与 YAML</h2><p>' + esc(r['scope']) + '</p>'
-    body += ''.join(config_preview(c, sources, page, model.canonical_state(
-        'preparation', r['preparation']['state']) in {'draft', 'preparing', 'ongoing'})
-                    for c in r['configs']) if r['configs'] else '<p class="muted">没有主线执行 YAML 绑定。分析项直接消费结果；待准备项先完成定义或软件交付。</p>'
-    body += '</section><section><h2>运行尝试</h2>'
-    if not r['attempts']:
-        body += '<p class="muted">尚未在此逐次绑定 run_id。已有交付按下方来源报告阅读，不编造运行身份或重复计数。</p>'
-    for attempt in r['attempts']:
-        body += f'<article class="attempt"><h3>{esc(attempt["run_id"])}</h3><p>{esc(attempt["scope"])}</p>' + references(attempt['evidence'], sources, page)
-        if attempt.get('manifest'):
-            m = attempt['manifest']
-            body += f'<details><summary>运行身份</summary><dl><dt>experiment_id</dt><dd>{esc(m["experiment_id"])}</dd><dt>代码版本</dt><dd>{esc(m["commit"])}</dd><dt>manifest SHA-256</dt><dd>{m["sha256"]}</dd><dt>完成条件</dt><dd>{m["completed"]}</dd></dl></details>'
-        body += '</article>'
-    body += references(r['execution']['evidence'], sources, page) + '</section>'
-    for key in ['analysis', 'decision']:
-        body += f'<section><h2>{STAGE_NAMES[key]}与证据</h2>{badge(key,r[key]["state"])}<p>{esc(r[key]["note"])}</p>' + references(r[key]['evidence'], sources, page) + '</section>'
-    if r.get('published_analysis'):
-        published = r['published_analysis']
-        body += '<section><h2>已保存分析的范围与运行依据</h2><p>' + esc(published['scope']) + '</p>'
-        body += '<p>记录日期 ' + esc(published['recorded_at']) + '；该范围与当前计划分别维护，历史结论不自动覆盖新增范围。</p>'
+    body = '<main class="shell experiment-sheet">' + nav('../')
+    body += f'<header><p class="eyebrow">{r["id"]} / {FAMILIES[r["family"]]}</p><h1>{esc(r["title"])}</h1><div class="status-line">' + ''.join('<span>' + name + ' ' + badge(key, r[key]['state']) + '</span>' for key, name in STAGE_NAMES.items()) + '</div></header>'
+    body += '<nav class="sheet-nav"><a href="#definition">实验定义</a><a href="#analysis">实验分析</a><a href="#runs">运行尝试</a><a href="#archive">历史与依赖</a></nav>'
+    body += '<section id="definition"><h2>实验定义</h2><p class="question-text">' + esc(r['question']) + '</p>'
+    current = [c for c in r['configs'] if c['role'] == 'current']
+    body += ''.join(('<p class="muted">' + esc(c['label']) + '</p>' if len(current) > 1 else '') + parameter_preview(c, sources) for c in current)
+    body += '<p class="execution-note"><strong>执行记录</strong> · ' + esc(r['execution']['note']) + '</p>'
+    body += '<details><summary>实验参数与配置</summary><p>' + esc(r['scope']) + '</p>'
+    body += ''.join('<p>' + esc(t) + '</p>' for t in r.get('narrative', []))
+    body += ''.join(config_preview(c, sources, page, model.canonical_state('preparation', r['preparation']['state']) in {'draft','preparing','ongoing'}) for c in r['configs'])
+    body += '<p class="muted">准备：' + esc(r['preparation']['note']) + '</p></details></section>'
+    body += '<section id="analysis"><h2>实验分析</h2><p>' + esc(r['analysis']['note']) + '</p>'
+    published = r.get('published_analysis') or {}
+    for point in published.get('analysis', {}).get('highlights', []):
+        body += '<p class="finding">' + esc(point) + '</p>'
+    for table in published.get('analysis', {}).get('tables', []):
+        body += '<div class="table-scroll"><table><caption>' + esc(table['caption']) + '</caption><thead><tr>' + ''.join('<th>' + esc(x) + '</th>' for x in table['columns']) + '</tr></thead><tbody>'
+        body += ''.join('<tr>' + ''.join('<td>' + esc(x) + '</td>' for x in row) + '</tr>' for row in table['rows']) + '</tbody></table></div>'
+    body += references(r['analysis']['evidence'], sources, page)
+    body += '<p class="decision-line"><strong>科学决定</strong> · ' + badge('decision', r['decision']['state']) + ' ' + esc(r['decision']['note']) + '</p>'
+    body += references(r['decision']['evidence'], sources, page)
+    body += '<p class="next-inline"><strong>下一步</strong> · ' + esc(r['next_step']) + '</p>'
+    if published:
+        body += '<details><summary>分析范围与来源</summary><p>' + esc(published['scope']) + '</p><p>记录日期 ' + esc(published['recorded_at']) + '</p>'
         body += sources.anchor({'label': '版本化分析记录', 'path': f'self/research/analyses/{r["id"]}.json'}, page)
-        for attempt in published['attempts']:
-            commit = attempt.get('commit') or attempt.get('manifest', {}).get('commit', '未记录；需查原始证据')
-            body += '<p>' + esc(attempt['run_id']) + ' · SHA ' + esc(commit) + '</p>' + references(attempt['evidence'], sources, page)
-        body += references(published['sources'], sources, page) + '</section>'
-    body += '<section><h2>过程记录</h2><ol class="timeline">'
+        for a in published['attempts']:
+            body += '<p class="path">' + esc(a['run_id']) + ' · ' + esc(a.get('commit') or a.get('manifest', {}).get('commit', '版本见原始证据')) + '</p>'
+        body += '</details>'
+    body += '</section><section id="runs"><h2>运行尝试 <small>' + str(len(r['attempts'])) + ' 条登记</small></h2>'
+    body += attempt_rows(r, sources, page) + time_budget_section(r, sources, page) + '</section>'
+    body += '<section id="archive"><details><summary>历史、依赖与来源</summary>' + blocker_html(r, records, sources, page)
+    body += '<ol class="timeline">'
     for event in reversed(r['history']):
-        body += f'<li><time>{esc(event["at"])}</time><p>{esc(event["note"])}</p>' + references(event['evidence'], sources, page) + '</li>'
-    body += '</ol></section><footer><h2>定义与历史来源</h2>' + references(r['sources'], sources, page) + '<p>历史 WorkItem 保留原始定义、证据和开发交付；实验创建、运行与分析以本记录为入口。</p></footer></main>'
+        body += '<li><time>' + esc(event['at']) + '</time><p>' + esc(event['note']) + '</p>' + references(event['evidence'], sources, page) + '</li>'
+    body += '</ol>' + references(r['sources'], sources, page) + '</details></section>'
+    body += '<footer>记录核对日期 ' + esc(r['reviewed_at']) + '</footer></main>'
     return shell(r['id'] + ' · ' + r['title'], body)
 
 

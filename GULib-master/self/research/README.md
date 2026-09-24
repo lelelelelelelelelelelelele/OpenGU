@@ -54,3 +54,9 @@ python -B -X utf8 -m pytest --noconftest tests/test_research_overview.py -q
 - 分析文件保留支撑结论的 run ID、实际代码 SHA、配置与证据引用；历史资料没有具体身份时保留原报告引用并注明缺失，不补造。分析范围或配置与当前计划不一致时，不自动放行依赖。
 
 既有估时若只覆盖部分运行或范围已变，页面保留原估值并显示范围不一致；缺少 calculation 时显示估算口径待确认。两种情况均不计算偏差。任何已有尝试缺少 runtime 时均显示未记录，即使实验已有估时也不将未知耗时当成零；新记录仍按上面的完整字段约定维护。
+
+## 实验页阅读顺序
+
+实验定义与已保存分析为正文；范围、完整 YAML、时间口径和历史来源可展开。运行尝试只展示一次，提交时间取显式 `submitted_at` 或关联 controller 的 `watch.job.receipt.submitted_at`，Recipe 同样来自明确关联记录；缺失时显示未记录，不解析 run_id 猜测日期。时间缺失不改变执行状态。
+
+分析记录可用 `analysis.highlights`（字符串列表）和 `analysis.tables`（caption、columns、rows）展示原证据中的关键观察；须保留原始来源、执行 SHA 和科学决定，不重新推断结果。参数摘要直接读取现行 YAML，不另存参数副本。

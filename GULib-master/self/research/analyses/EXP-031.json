@@ -19,12 +19,20 @@
   "attempts": [],
   "analysis": {
     "state": "complete",
-    "note": "已有排名和相似度分析；保留已接受范围。",
+    "note": "已交付 72 个条件的排名与选集相似度分析，保留原已接受范围。",
     "evidence": [
+      {
+        "label": "031/032 统一科研分析",
+        "path": ".workblock/items/AAGU-033/REPORT.md"
+      },
       {
         "label": "历史定义",
         "path": ".workblock/items/AAGU-031/WORKITEM.md"
       }
+    ],
+    "highlights": [
+      "已核验 72/72 个条件和 252 组排名相关性；10% 预算下，D-full 配置间选集重合约 85%–99%，与 Degree 仅约 10%–22%。低重合支持选择行为不同，不证明损害机制因果独立。",
+      "此项研究完整排名与选集相似性；独立 Retrain 效果由 EXP-032 负责，统一解释见 033 报告。早期运行未逐次登记提交时间，已有接受范围保留。"
     ]
   },
   "decision": {
