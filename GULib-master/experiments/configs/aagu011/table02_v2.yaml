@@ -1,7 +1,7 @@
 # Table 02: six GU methods plus Retrain, 1449 cells.
 kind: experiment
 schema_version: 1
-experiment_id: aagu011-table02-v2
+experiment_id: exp011-t2
 stage: unlearning
 
 dataset_refs:
