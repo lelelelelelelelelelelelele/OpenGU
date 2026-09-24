@@ -221,7 +221,7 @@ def experiment_groups(record, sources):
     used = set()
     for config in record['configs']:
         data = documents[config['path']] or {}
-        if data.get('kind') != 'experiment' or config['role'] != 'current':
+        if data.get('kind') != 'experiment' or config['role'] not in {'current', 'candidate'}:
             continue
         recipes = [c for c in record['configs'] if (documents[c['path']] or {}).get('config_path') == config['path']]
         recipe_ids = {(documents[c['path']] or {}).get('id') for c in recipes} - {None}
@@ -237,6 +237,8 @@ def experiment_groups(record, sources):
                     match = json.loads(path.read_text(encoding='utf-8')).get('config_path') == config['path']
             if match:
                 attempts.append(attempt)
+        if config['role'] == 'candidate' and not attempts:
+            continue
         results = []
         for ref in {item['path']: item for item in record['analysis']['evidence']}.values():
             if not ref['path'].startswith('self/research/analyses/') or not ref['path'].endswith('.json'):
