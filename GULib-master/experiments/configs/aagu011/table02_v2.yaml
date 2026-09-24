@@ -18,15 +18,18 @@ selector_refs:
 - ../im_group_discussion/rr_16384.yaml
 - ../im_group_discussion/rr_65536.yaml
 unlearning_refs:
-- gif.yaml
-- idea.yaml
+- gif_h64.yaml
+- idea_h64.yaml
 - gnndelete.yaml
 - megu.yaml
 - grapheraser.yaml
 - graphrevoker.yaml
 - retrain.yaml
+parameter_profile_ref: ../profiles/gif_idea_fixed_pt.yaml
+
 evaluation_refs:
-- post_method_metrics.yaml
+- post_unlearning_utility_and_retrain_gap.yaml
+- post_unlearning_flip_hop.yaml
 matrix: cartesian_product
 seeds: [42, 212, 2024]
 im_selector_seeds: [11, 22, 33]

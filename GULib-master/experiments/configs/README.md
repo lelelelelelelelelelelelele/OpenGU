@@ -2,8 +2,8 @@
 
 ## 配对 Flip / Hop Metrics
 
-在普通 Metrics 表的 `evaluation_refs` 追加
-`post_unlearning_flip_hop.yaml`，保留原有 evaluation 即可。
+在普通 Unlearning 或独立 Metrics 表的 `evaluation_refs` 追加
+`post_unlearning_flip_hop.yaml`。Unlearning 表同时声明 Retrain，收齐 Output 后自动配对评价；基础单方法指标与 utility 已自动导出，无需重复引用。
 [配置模板](flip_hop_metrics.template.yaml) 需要填写已有 GU/Retrain `run.json` 的路径及校验和。
 Flip 比较同请求 GU 与 Retrain，使用 `test_mask` 排除删除节点；Hop 使用绑定的删除前原图。
 各组输出节点数、不一致数、比例，空组比例为 null。
@@ -89,3 +89,7 @@ Selector/Unlearning只以 `selector_refs` 声明选点；后续方法使用相�
 IM的独立selector seed轴、单值/多值普通表示例及选集复用见 [AAGU-040](aagu040/README.md)。
 
 IM 算法由 `selector_refs` 显式选择：`selectors/im_rr_greedy.yaml` 配置固定 RR 最大覆盖贪心，`selectors/im_celf.yaml` 配置 MC-CELF。可与 IF 小表并列引用（不是 Hybrid 融合），见 [组合与参数语义及选型结论](aagu040/README.md)。
+
+## 公共 GIF/IDEA H64 实例
+
+`unlearning/gif_h64.yaml` 和 `unlearning/idea_h64.yaml` 声明双层 GCN、隐藏维度64、iteration=100。大表用 `parameter_profile_ref: ../profiles/gif_idea_fixed_pt.yaml` 按数据集匹配参数；每个训练seed使用自己的精确checkpoint缓存。完整实例见 [Table02 v2](aagu011/table02_v2.yaml)。

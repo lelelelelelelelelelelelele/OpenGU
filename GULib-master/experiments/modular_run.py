@@ -84,6 +84,10 @@ def _execute(path, *, context=None, dry_run=False, run_state):
         from experiments.modular_artifacts import planned_cells
         plan['logical_cells'] = len(planned_cells(config))
     plan['configuration_fingerprint'] = configuration_fingerprint(path)
+    if config['stage'] == 'unlearning' and any(
+            is_paired_evaluation(item) for item in config['evaluations']):
+        if not any(item['method'] == 'Retrain' for item in config['unlearnings']):
+            raise ConfigurationError('paired evaluations require an explicit Retrain in unlearning_refs')
     if dry_run:
         return {**plan, 'dry_run': True, 'execution_context_required': True,
                 'producer_called': False}
@@ -94,9 +98,6 @@ def _execute(path, *, context=None, dry_run=False, run_state):
         raise ConfigurationError('the current modular consumer evaluates GU results only')
     for evaluation in config['evaluations']:
         require_consumer(evaluation, 'modular_v1')
-    if config['stage'] == 'unlearning' and any(
-            is_paired_evaluation(item) for item in config['evaluations']):
-        raise ConfigurationError('retrain-gap and flip-hop belong to the independent metrics stage')
     if config['stage'] == 'metrics' and any(not v.get('run') or not v.get('sha256') for v in config['output_inputs']):
         raise ConfigurationError('metrics requires bound run.json paths and checksums')
     directory = Path(config['source_directory'])
