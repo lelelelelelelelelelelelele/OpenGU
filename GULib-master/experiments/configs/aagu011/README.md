@@ -9,6 +9,19 @@ production code. Its experiment ID is `aagu011-table02-v2`; each execution
 requires a fresh run ID. Existing artifacts are reused only on exact identity.
 Formal execution awaits user approval.
 
+The complete table uses public `gif_h64.yaml` / `idea_h64.yaml` instances and
+`profiles/gif_idea_fixed_pt.yaml`: two-layer GCN, hidden width 64, iteration 100,
+and the verified per-dataset scale/damp mapping. Training seeds remain separate.
+The two `evaluation_refs` request Retrain-gap and Flip/Hop. Ordinary Unlearning
+already exports single-method metrics and utility, so those need no extra refs.
+After all Outputs are available (cache hits or fresh computation), the same run
+pairs GU with its exact Retrain and exports the requested metrics. No second
+Metrics submission is required. Re-running under a fresh run ID can therefore
+backfill metrics while reusing exact Outputs; cache misses still compute normally.
+
+The ordinary independent Metrics stage remains available for explicitly bound
+historical Outputs. It does not redefine pairing or metric semantics.
+
 ## Additional Table 02 (2026-09-13)
 
 [Table 02](table02.md) adds a 10% IF / RR / naive comparison owned by

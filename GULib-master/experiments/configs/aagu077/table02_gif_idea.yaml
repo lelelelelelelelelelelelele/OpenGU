@@ -18,8 +18,8 @@ selector_refs:
 - ../im_group_discussion/rr_16384.yaml
 - ../im_group_discussion/rr_65536.yaml
 unlearning_refs:
-- ./gif_h64.yaml
-- ./idea_h64.yaml
+- gif_h64.yaml
+- idea_h64.yaml
 parameter_profile_ref: ../profiles/gif_idea_fixed_pt.yaml
 evaluation_refs:
 - post_method_metrics.yaml

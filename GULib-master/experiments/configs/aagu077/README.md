@@ -17,7 +17,7 @@ PageRank各1个，Random共10个，RR三种R各3个抽样seed。因此为
 
 两张大表的 `parameter_profile_ref` 均指向
 [`gif_idea_fixed_pt.yaml`](../profiles/gif_idea_fixed_pt.yaml)。
-`unlearning_refs` 分别读取 [GIF](gif_h64.yaml) 和 [IDEA](idea_h64.yaml)：
+`unlearning_refs` 分别读取 [GIF H64](../unlearning/gif_h64.yaml) 和 [IDEA H64](../unlearning/idea_h64.yaml)：
 这两个方法小表提供 `model.hidden_channels: 64` 和 `iteration: 100`，
 不填写 scale/damp。解析器从 `dataset_refs` 得到数据集名称，以“数据集 + GCN宽度”
 选择 Profile，再按 GIF/IDEA 取得参数。

@@ -1,8 +1,10 @@
 # Methods: paired Flip / Hop
 
 `post_unlearning_flip_hop` compares persisted GU predictions with independently
-persisted Retrain predictions for the **same deletion request**. It is a Metrics-only
-evaluation; it never trains, invokes a GU producer, or performs a model forward pass.
+persisted Retrain predictions for the **same deletion request**. The evaluation itself never trains, invokes a GU producer, or performs a model
+forward pass. An Unlearning table may request it after producing or reusing all
+Outputs, including an explicit same-request Retrain. The independent Metrics
+stage can also consume previously completed runs.
 Existing evaluation cases keep their definitions.
 
 Let S be the deleted nodes, T the bound Dataset/Split test mask, and E = T \\ S.
@@ -50,7 +52,11 @@ collateral diagnostics retain their historical definition in other cases.
 ## Configuration and bounded verification
 
 Use [the public evaluation](../../experiments/configs/evaluations/post_unlearning_flip_hop.yaml)
-in the ordinary `evaluation_refs` list, alongside any existing evaluations.
+in the ordinary `evaluation_refs` list. In an Unlearning table, declare an
+explicit Retrain in `unlearning_refs`; the same run evaluates the paired Outputs
+after all methods finish, irrespective of method order. Single-method metrics
+and utility are already exported by Unlearning and need no duplicate refs.
+The Metrics stage below is an optional historical-result-only entry.
 See [the Metrics template](../../experiments/configs/flip_hop_metrics.template.yaml).
 Bind each source `run.json` and SHA-256 to completed GU/Retrain runs and use the
 same bound Dataset/Split. Use a new output run ID. The template's null references

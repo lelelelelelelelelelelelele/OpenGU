@@ -322,8 +322,8 @@ def test_public_configuration_dry_run():
     assert planned['effective_evaluations'][-1]['case'] == 'post_unlearning_flip_hop'
 
 
-def test_paired_case_cannot_execute_in_unlearning_stage(persisted, tables):
-    with pytest.raises(ValueError, match='independent metrics stage'):
+def test_paired_case_requires_retrain_before_any_unlearning(persisted, tables):
+    with pytest.raises(ValueError, match='explicit Retrain'):
         run(tables, 'invalid-stage', stage='unlearning', selector_refs=['degree.yaml'],
             unlearning_refs=['gu.yaml'], evaluation_refs=['flip.yaml'])
 
