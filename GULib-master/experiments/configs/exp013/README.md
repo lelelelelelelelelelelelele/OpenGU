@@ -6,20 +6,21 @@
 
 [Gate YAML](gate.yaml) · [Gate Recipe](../../../scripts/syncmate/recipes/opengu-exp013-gate.yaml)
 
-Gate 使用 Cora、训练 seed 42、10% 删除比例，覆盖 GCN/SGC/GAT/GIN × r_point/gt_full × 六种 GU 与 Retrain，共 **56 个条件**。GCN 提供 direct 参照；SGC、GAT 是重点迁移链路，同时覆盖新增 GIN 及 GraphEraser/GraphRevoker。Random/Degree 不进入此 gate，它们仍在完整矩阵中。
+Gate 使用 Cora、训练 seed 42、10% 删除比例，仅覆盖 **SGC/GAT/GIN × r_point/gt_full × GNNDelete，共6个条件**。不重复 GCN direct，也不运行其他 GU 或 Retrain；Random/Degree 仍只在完整表中。
 
-Gate 与完整表使用同一个 experiment_id、相同 selector/GU 小表、Profile、训练参数和评价器，只缩小 dataset、seed、selector 范围。独立 RID `e13-g1` 表示 EXP-013 的首次 gate，避免和其他实验的共享 runtime 名字混淆；完整表继续使用 `r1`。不缩短训练步数、不临时降低 IF 参数。精确模型、Score、Selection 和 GU 缓存可按原合同被后续完整表复用；必须读取实际 HIT/MISS，不能保证全命中。
+Selector 和 GNNDelete 引用完整表的原小表，训练及算法参数不变，不缩短训练。使用同一个 experiment_id、独立 RID `e13-g1`；完整表继续使用 `r1`。模型、评分、选集和方法输出是否复用由精确缓存身份决定，报告实际 HIT/MISS，不承诺命中。
 
-执行顺序：正常入口 dry-run → Recipe preview → 同版本交付与同步 → 冻结 gate 及完整计划的串行耗时估算 → 获准后提交 gate → 可信回传与检查 → 决定是否扩展完整表。当前仅准备配置，不启动 GPU；6 小时仍只是任务超时上限。
+评价只引用现有 `post_method_metrics.yaml`，检查单方法指标；本 gate 不计算需要 Retrain 配对的 retrain-gap 或 Flip/Hop。没有 GIF/IDEA，不绑定其参数 Profile。
 
-Gate 通过必须核对以下证据，不能只看进程退出码：
+执行顺序：dry-run → Recipe preview → 交付与同步 → 冻结耗时估算 → 获准后提交 gate → 可信回传与检查 → 决定是否扩展。当前只准备配置，不运行；6小时是超时上限，不是耗时估计。
 
-- 56 个条件全部有可解析 Output/Metrics，正常 collect、哈希校验和项目结果读取通过；预期回传 113 个文件（1 个 run.json 加每条件 metrics.json、selection.json，未请求 scores.npz）。
-- GAT/SGC/GIN 的模型与选点身份正确，GCN GU 消费对应 Selection；同 source/算法的七个输出使用同一请求。节点来自绑定训练候选集，数量与解析出的预算一致，无重复或越界。
-- 单模型 GCN direct 的模型/训练身份与目标一致；分片集成单独保留全图参照含义。每个 GU 的 utility、同请求 Retrain-gap 及已声明评价可解析，必需数值有限，无 NaN/Inf 或缺失配对。
-- 记录每层实际缓存命中或计算事实。若 GAT/SGC 评分为 HIT，报告其已有 Artifact 来源；不能把 HIT 当作本次重新计算验证，不为证明冷启动手工清缓存。
+通过标准：
 
-效果弱或 retrain-gap 为负不构成工程 gate 失败；不得按效果挑选通过条件。该 gate 只覆盖 Cora/seed 42，不能替代 CiteSeer/PubMed 的数据特有检查、其他 seed 的完整运行，也不证明统计稳定性或灰盒等效白盒。
+- 6个条件全部完成，13个预期文件（run.json及每条件metrics.json、selection.json）可信回传、哈希校验及项目读取通过。
+- SGC/GAT/GIN模型与评分身份正确，GNNDelete消费对应选集；节点来自绑定训练候选集，数量符合有效预算，无重复或越界。
+- 必需单方法指标可解析且数值有限；实际缓存命中与计算来源可追溯。HIT不等于本次重新计算，不手工清缓存制造冷启动。
+
+此 gate 仅检查 surrogate 选点到单一 GU 的链路，不覆盖其他 GU、Retrain配对评价、其他数据集或seed，也不证明迁移效果或统计稳定性。效果弱不构成工程 gate 失败。
 
 本表只改变选点模型：GCN 是 direct 参照，SGC/GAT/GIN 是 surrogate。每个模型使用同样的 r_point、gt_full 参数语义；六种 GU 均采用 GCN backbone，其中 GraphEraser/GraphRevoker 是分片集成；Retrain 为全图 GCN。Random/Degree 只作为共同效果基线，不产生 surrogate 版本。所有可执行参数由 YAML 和小表拥有。
 

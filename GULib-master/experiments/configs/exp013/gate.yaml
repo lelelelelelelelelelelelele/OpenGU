@@ -1,4 +1,4 @@
-# Exact full-matrix subset; unchanged training, profile, budget and evaluation.
+# Surrogate selection and single-method consumption gate; full training settings.
 kind: experiment
 schema_version: 1
 experiment_id: exp013-surrogate-to-gcn
@@ -6,8 +6,6 @@ stage: unlearning
 dataset_refs:
 - cora.yaml
 selector_refs:
-- r_point.yaml
-- gt_full.yaml
 - ./selectors/r_point_sgc.yaml
 - ./selectors/gt_full_sgc.yaml
 - ./selectors/r_point_gat.yaml
@@ -16,16 +14,8 @@ selector_refs:
 - ./selectors/gt_full_gin.yaml
 unlearning_refs:
 - gnndelete.yaml
-- gif_h64.yaml
-- idea_h64.yaml
-- megu.yaml
-- grapheraser.yaml
-- graphrevoker.yaml
-- retrain.yaml
-parameter_profile_ref: ../profiles/gif_idea_fixed_pt.yaml
 evaluation_refs:
-- post_unlearning_utility_and_retrain_gap.yaml
-- post_unlearning_flip_hop.yaml
+- post_method_metrics.yaml
 matrix: cartesian_product
 seeds:
 - 42
