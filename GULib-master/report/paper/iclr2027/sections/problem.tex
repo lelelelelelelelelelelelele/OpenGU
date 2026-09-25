@@ -2,25 +2,40 @@
 \label{sec:problem}
 
 \subsection{Graph-unlearning setting}
-Let $\mathcal{G}=(V,E,X,Y)$ be a node-classification dataset with a fixed train/validation/test split. A canonical model trained on the original training graph produces the pre-request endpoint with utility $U_0$. A deletion request is a set $S\subseteq\mathcal{C}$, where $\mathcal{C}$ is the eligible candidate pool and $|S|=k$ is the request budget. For a GU method $M$, let $U_M(S)$ denote the utility of its output after processing $S$. Let $U_R(S)$ denote the utility of a model retrained from scratch on the corresponding retained training data. The GU and retraining procedures use the same request, graph split, test nodes, labels, and evaluation metric whenever a paired comparison is reported.
+We study node-deletion requests in graph unlearning. Let $\mathcal{G}=(V,E,X,Y)$ be a node-classification dataset with a fixed train/validation/test split. A canonical model trained on the original training graph produces the pre-request endpoint with utility $U_0$. A deletion request is a set $S\subseteq\mathcal{C}$, where $\mathcal{C}$ is the eligible candidate pool and $|S|=k$ is the request budget. For a GU method $M$, let $U_M(S)$ denote the utility of its output after processing $S$. Let $U_R(S)$ denote the utility of a model retrained from scratch on the corresponding retained training data. The GU and retraining procedures use the same request, graph split, test nodes, labels, and evaluation metric whenever a paired comparison is reported.
 
-This draft's primary matrices study node-deletion requests on Cora, CiteSeer, and PubMed with a GCN backbone. Edge- and feature-deletion requests are outside the current empirical scope. The method-specific pre-deletion endpoint $U_{M,0}$ is kept distinct from $U_0$; this distinction is especially important when the method has its own architecture or ensemble.
+The method-specific pre-deletion endpoint $U_{M,0}$ is kept distinct from $U_0$; this distinction is especially important when the method has its own architecture or ensemble.
 
-\subsection{Attacker capability}
-The attacker chooses $S$ using an information set $\mathcal{I}_a$ and a selector $q$. We use gray-box and white-box labels only as shorthand for declared information sets; each experiment must specify the graph structure, node attributes or labels, model parameters, and gradient or score information actually available to the selector. A label alone is not a complete capability definition.
+\subsection{Attacker knowledge and access model}
+\label{sec:attacker-access}
+A selector maps the attacker's permitted information and deletion budget to a request, $q(\mathcal I_a,\mathcal C,k)\mapsto S$. To reflect differences in data and model accessibility, we distinguish attacker settings by the graph information and model internals available for request selection (Table~\ref{tab:attacker-access}). All settings share the eligible candidate pool $\mathcal C$ and budget $k$.
 
-\todo{Complete the level-to-input mapping for each executed selector, including unavailable information and selection-time computation. Do not add surrogate access unless it is present in the final experiment matrix.}
+\begin{table}[!ht]
+\begin{minipage}[t]{0.43\linewidth}
+\vspace{0pt}
+Topology-based selection uses graph structure without a trained model. In the surrogate setting, the attacker trains its own model on the available graph data and transfers the resulting request to the target, without target-model queries. We call this setting gray-box because graph data are shared. In the target-direct white-box setting, model-dependent scores are computed at the target's pre-deletion checkpoint. These settings allow us to ask whether selected requests remain effective when target-model access is removed.
+\end{minipage}\hfill
+\begin{minipage}[t]{0.54\linewidth}
+\vspace{0pt}
+\centering
+\caption{Information available for request selection. T: topology; S: surrogate (gray-box); W: target-direct (white-box). Dashes indicate no access.}
+\label{tab:attacker-access}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Information & T & S & W \\
+\midrule
+Graph structure & Yes & Yes & Yes \\
+Node features & -- & Yes & Yes \\
+Train/validation labels & -- & Yes & Yes \\
+Target model architecture & -- & -- & Yes \\
+Target parameters / gradients & -- & -- & Yes \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{table}
 
-The attacker may inspect only the information assigned to its setting and may submit at most $k$ eligible records. The attacker does not change the training data outside the request, alter the victim method, or use test labels or retraining outcomes to tune the selector.
+Topology-based selectors, including influence maximization (IM), use graph structure without target-model access. Influence-function (IF) selectors use derivatives computed on either the target model in the white-box setting or an attacker-trained surrogate in the gray-box setting; both selection principles are detailed in Section~\ref{sec:selection}. Random requires only $\mathcal C$ and $k$.
 
-\subsection{Selection objective and audit outcomes}
-A selector maps the permitted information and budget to a request, $q(\mathcal{I}_a,\mathcal{C},k)\mapsto S$. The selector's score or proxy objective is kept separate from the audit outcome. Outcomes include post-request utility, the difference from a budget-matched random request, the signed difference from same-request retraining, and, when node-level predictions are available, prediction disagreement. The audit does not assume that the selector directly optimizes any one of these outcomes unless the selector's implementation and tuning protocol establish that fact.
-
-\subsection{Research questions}
-We organize the experiments around four questions:
-\begin{enumerate}
-  \item Do the selection mechanisms produce distinct deletion sets under matched candidates and budgets?
-  \item Do the selectors' reference or proxy objectives align with their stated targets?
-  \item Relative to a budget-matched random request, how does a selected request change the measured GU outcome?
-  \item How do these responses vary across GU methods and datasets, and how large is the signed gap from same-request retraining?
-\end{enumerate}
+The GU procedure remains fixed, and the attacker may only select existing eligible nodes for deletion, without injecting nodes, modifying graph data before the request, or using test labels or retraining outcomes for request construction or selector tuning.

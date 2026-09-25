@@ -1,58 +1,88 @@
 \section{Attack and Audit Framework}
 \label{sec:methods}
 
-\subsection{Overview}
-The audit has four stages. We fix the graph, split, candidate pool, model, and request budget; a selector uses only its declared information to produce $S$; the same $S$ is processed by the GU method and, where specified, by full retraining; and both endpoints are evaluated on the same held-out nodes. A budget-matched random request provides a request-selection reference. The selector and the GU method are separate components of this pipeline.
+\subsection{Framework overview and attacker access}
+% P1 candidate, 2026-09-25. Paragraph plan is maintained in DocMap's Methods chapter.
+As shown in Figure~\ref{fig:framework}, we study graph-unlearning responses through a request-selection and evaluation pipeline. Given a graph $\mathcal G$, an eligible candidate set $\mathcal C$, and a deletion budget $k$, a selector uses the information available to the attacker to construct a request $S\subseteq\mathcal C$ with $|S|=k$. The selected GU method $M$ then processes this request. Uniformly sampled requests from $\mathcal C$ at the same budget provide the random-selection reference.
 
-\todo{Insert the reviewed framework figure and map every arrow to an executed artifact or a declared reference endpoint.}
+% P2 candidate: protocol assumptions; selector-specific access is detailed with each strategy.
+Each selector operates on the information set $\mathcal I_a$ defined in Section~\ref{sec:attacker-access}. For loss-based selection, the nodes defining the target objective are specified separately from the deletion candidates.
+% Section 4.2 is the reviewed writing draft; Section 4.3 is the current decomposition candidate.
+
+% V5 is the author-selected placeholder; visual refinement belongs to AAGU-084.
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/method-framework-v5.pdf}
+  \caption{Overview of the attack and audit framework. A selector constructs a deletion request $S$, which is processed by GU and full retraining to compare their outcomes.}
+  \label{fig:framework}
+\end{figure}
 
 \subsection{Selection strategies}
-Random sampling selects $k$ candidates uniformly without replacement from $\mathcal{C}$. Degree and PageRank are structural baselines that rank candidates by their corresponding graph statistic; tie-breaking and graph scope must be stated with the experiment configuration. The random-request distribution is estimated only when multiple independent random selections are available.
+\label{sec:selection}
+To probe GU vulnerabilities, we construct deletion requests along two notions of node importance: how broadly a node set can propagate influence through the graph, and how strongly its removal is predicted to increase the model's target loss. We instantiate these criteria with influence maximization (IM) and influence functions (IF), respectively, using a common candidate pool $\mathcal C$ and deletion budget $k$.
 
-The influence-based selectors in the current matrices include R-point and D-full. At a high level, R-point uses candidate-node training information to estimate a parameter-level influence on a target objective; D-full additionally accounts for graph-structure changes associated with deletion. Their exact score source, sign convention, ranking direction, trainable parameter range, hop scope, and solver configuration are implementation details and must match the registered selector recipes.
+\paragraph{Influence maximization (IM): propagation coverage.}
+To target propagation coverage, IM seeks a set with large expected reach under the Independent Cascade model \citep{kempe2003maximizing}. Let $\operatorname{Reach}_{\omega}(S)$ denote the nodes activated from $S$, including $S$ itself, in a random cascade realization $\omega$. The objective is
+\begin{equation}
+\sigma(S)=\mathbb{E}_{\omega}\!\left[|\operatorname{Reach}_{\omega}(S)|\right],
+\qquad
+S_{\mathrm{IM}}^\star\in
+\arg\max_{\substack{S\subseteq\mathcal C\\ |S|=k}}\sigma(S).
+\label{eq:im-objective}
+\end{equation}
+Joint coverage accounts for overlap in the reach of selected nodes. We approximate this objective to obtain $S_{\mathrm{IM}}$; the estimator, optimization procedure, and parameters are given in Appendix~\ref{app:im-details}.
 
-\todo{Add the verified score equations and exact ranking direction for R-point and D-full. Add the reverse-reachable-set objective and estimator only for the RR recipes retained in the final paper.}
+\paragraph{Influence functions (IF): target-loss sensitivity.}
+To target loss sensitivity, IF estimates how removing a candidate would change the model's loss \citep{koh2017understanding}. At the trained parameters $\theta^\star$, let $g_{\mathcal Q}=\nabla_\theta L_{\mathcal Q}(\theta^\star)$ be the mean-loss gradient on validation nodes $\mathcal Q$, and $H$ the mean training-loss Hessian. We score candidates by
+\begin{equation}
+s_{\mathrm{IF}}(v;\mathcal Q)\approx
+q_v^\top(H+\lambda I)^{-1}g_{\mathcal Q}.
+\label{eq:if-score}
+\end{equation}
+where $q_v$ represents the deletion source and $\lambda$ is the damping shift. R-point uses $q_v=g_v=\nabla_\theta\ell_v(\theta^\star;\mathcal G)$, the node's own loss gradient on the fixed graph. D-full additionally includes deletion-induced changes in neighboring training losses, following graph influence formulations \citep{wu2023gif,chen2023characterizing}. This correction requires extra candidate-specific graph evaluations and gradients. For either source, we select the $k$ largest signed scores, corresponding to the largest predicted increases in target loss. Source formulas and solver details are in Appendix~\ref{app:if-details}, computational costs in Appendix~\ref{app:if-cost}, and IF variant comparisons in Appendix~\ref{app:if-comparisons}.
 
-\subsection{Endpoints and comparison protocol}
-Let $U$ be the paper's chosen utility metric, where larger values are better. Define $U_0$ as the canonical pre-deletion endpoint, $U_{M,0}$ as method $M$'s own pre-deletion endpoint, $U_M(S)$ as its post-request endpoint, and $U_R(S)$ as full retraining on the same request. Let $S_a$ be a selected request and $S_r$ a budget-matched random request. Differences are computed within matched dataset, model, split, budget, seed, and request identities before aggregation. All signed differences are retained.
+We quantify how differently these criteria select nodes through selected-set overlap (Appendix~\ref{app:selection-overlap}), then evaluate the resulting requests under a common GU protocol to examine how the choice of selection criterion affects GU responses.
 
-The first decomposition separates three sources of a total change:
+We use Random, Degree, and PageRank as baseline selectors under the same candidate pool and deletion budget.
+
+\subsection{Diagnosing GU vulnerability through performance decomposition}
+\label{sec:decomposition}
+A decline in utility after a selected deletion request can have different explanations: the removed data may also be important to a fully retrained model, or the GU procedure may produce an additional utility deficit. We distinguish these explanations using two references: full retraining on the same request and random requests at the same budget.
+
+\paragraph{GU gap: utility deficit relative to retraining.}
+Let $U_0$ denote the original model's utility, and $U_M(S)$ and $U_R(S)$ the utilities after GU and full retraining on request $S$, respectively; larger utility is better. We define the signed GU gap as $G_M(S)=U_R(S)-U_M(S)$ and decompose the observed drop as
+\begin{equation}
+U_0-U_M(S)
+=\underbrace{U_0-U_R(S)}_{\text{change under retraining}}
++\underbrace{G_M(S)}_{\text{GU gap}}.
+\label{eq:retrain-decomposition}
+\end{equation}
+This distinguishes requests that reduce utility even under retraining from requests under which GU falls further below that reference. The gap depends jointly on the GU method and the selected request. Positive values indicate a GU utility deficit; negative values indicate higher GU utility. Differences already present in a method's starting model are examined separately below.
+
+\paragraph{Selector-induced gap amplification.}
+To assess whether strategic selection exposes a larger deficit, compare $S_a$ with budget-matched random requests $S_r$. With $\bar G_{M,r}=\mathbb E_{S_r}[G_M(S_r)]$, define
+\begin{equation}
+E_M(S_a)=G_M(S_a)-\bar G_{M,r}.
+\label{eq:gap-amplification}
+\end{equation}
+A positive $E_M$ indicates a deterioration in GU utility relative to retraining, compared with Random. This separates a large gap already observed under random requests from an additional gap associated with strategic selection. Let $\bar U_{M,r}=\mathbb E_{S_r}[U_M(S_r)]$ and $A_M(S_a)=\bar U_{M,r}-U_M(S_a)$ denote the mean random-request utility and the selector's extra utility loss on GU. Define $A_R(S_a)$ analogously for retraining. Then
+\begin{equation}
+\underbrace{A_M(S_a)}_{\text{selection effect on GU}}
+=\underbrace{A_R(S_a)}_{\text{selection effect on retraining}}
++\underbrace{E_M(S_a)}_{\text{gap amplification}}.
+\label{eq:selection-decomposition}
+\end{equation}
+Thus a selector can damage the retraining reference without amplifying the GU gap, or amplify the gap while having little effect on retraining.
+
+\paragraph{Method starting point and random-request response.}
+To further interpret the total drop, let $U_{M,0}$ be the method's own pre-deletion utility. We separate
 \begin{equation}
 \begin{aligned}
 U_0-U_M(S_a)
-={}&\underbrace{U_0-U_{M,0}}_{\text{pre-deletion method baseline}}\\
-&+\underbrace{U_{M,0}-\bar U_{M,r}}_{\text{method response to random deletion}}\\
-&+\underbrace{\bar U_{M,r}-U_M(S_a)}_{\text{selected-request increment}},
+={}&\underbrace{U_0-U_{M,0}}_{\text{starting-point difference}}\\
+&+\underbrace{U_{M,0}-\bar U_{M,r}}_{\text{random-request response}}
++\underbrace{A_M(S_a)}_{\text{selection increment}}.
 \end{aligned}
 \label{eq:three-part}
 \end{equation}
-where $\bar U_{M,r}$ is the mean over independently selected, budget-matched random requests when such repeats are available. The first two terms are interpretable outcomes in their own right; they are not merely corrections to a selector comparison.
-
-The second decomposition compares a GU output with full retraining on the same request:
-\begin{equation}
-U_0-U_M(S)
-=\underbrace{U_0-U_R(S)}_{D(S):\ \text{retraining-reference change}}
-+\underbrace{U_R(S)-U_M(S)}_{G_M(S):\ \text{signed GU--retraining gap}}.
-\label{eq:retrain-decomposition}
-\end{equation}
-A positive $G_M(S)$ means the GU output has lower utility than retraining; a negative value means it has higher utility. Retraining is a reference, not a test-utility upper bound. For partition-based methods, $G_M$ can include architecture and aggregation differences and is not automatically a pure approximation error.
-
-We define the selector's extra utility loss relative to random as
-\begin{equation}
-A_M(S_a)=\bar U_{M,r}-U_M(S_a),
-\end{equation}
-so positive values indicate lower utility for the selected request than for the random-request mean. If the corresponding random-request gap is estimated, the selected-request change in the GU--retraining gap is
-\begin{equation}
-E_M(S_a)=G_M(S_a)-\mathbb{E}_{S_r}[G_M(S_r)].
-\end{equation}
-These quantities answer different questions: lower utility, a larger gap from retraining, and prediction disagreement are not interchangeable outcomes.
-
-\subsection{Complementary diagnostics}
-When per-node predictions are available, a prediction-disagreement rate can compare GU and retraining outputs on a fixed evaluation set:
-\begin{equation}
-\operatorname{Disagree}(M,R;S)
-=\frac{1}{|V_{\mathrm{test}}|}
-\sum_{v\in V_{\mathrm{test}}}
-\mathbf{1}\!\left[\hat y_M(v;S)\ne\hat y_R(v;S)\right].
-\end{equation}
-The current matched GNNDelete analysis also reports an update-detection AUC computed from prediction changes under its implemented positive/negative sampling rule. We call this an update-detection diagnostic, not a general membership-inference guarantee. Any privacy interpretation requires a separately specified attacker, controls, and evaluation protocol.
+The first term records differences present before deletion, including those of partition-based ensembles; the second measures the method's response to random deletion. Together with the selection increment, these terms distinguish changes that an aggregate drop would otherwise combine. We retain their signs and compute paired differences before aggregation. Matching rules, interpretation limits, and complementary prediction-level diagnostics are given in Appendix~\ref{app:evaluation-details}.
