@@ -1,0 +1,27 @@
+schema_version: 1
+id: opengu-exp013-surrogate-to-gcn
+runner: experiment
+config_path: experiments/configs/exp013/surrogate_to_gcn.yaml
+config_sha256: 1133a188a4826d95602323ffac9dd691965d65e5015ad920ae67d161e6bed9a8
+configuration_fingerprint: 8cd3f71b7b6a35da6b4b2b1c51dee1b332079633e681c91baf3334fa9dd7eb6c
+run_identity:
+  experiment_id: exp013-surrogate-to-gcn
+  run_id: exp013-surrogate-to-gcn-v1
+timeout_seconds: 21600
+logical_cells: 540
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

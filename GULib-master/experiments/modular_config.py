@@ -20,6 +20,10 @@ PARAMETER_PROFILE_METHODS = {
     'GIF': {'scale', 'damp', 'GIF_method'},
     'IDEA': {'scale', 'damp', 'gaussian_mean', 'gaussian_std'},
 }
+MODEL_PROPERTIES = {
+    'OpenGU.GCNNet': 'GCN.yaml', 'OpenGU.SGCNet': 'SGC.yaml',
+    'OpenGU.GATNet': 'GAT.yaml', 'OpenGU.GINNet': 'GIN.yaml',
+}
 
 
 def resolve_reference(field, reference, source_directory):
@@ -162,7 +166,7 @@ def model_training(value, *, pretrained=False):
     model = value.get('model', {})
     fields(model, {'architecture', 'layers', 'hidden_channels', 'dropout'}, (), 'model')
     architecture = choice(model.get('architecture', 'OpenGU.GCNNet'),
-                          ('OpenGU.GCNNet', 'OpenGU.SGCNet'), 'architecture')
+                          tuple(MODEL_PROPERTIES), 'architecture')
     default = {'architecture': architecture, 'layers': 2, 'hidden_channels': 64, 'dropout': 0.5}
     if architecture == 'OpenGU.SGCNet':
         default.update(layers=3, dropout=0.0)
@@ -174,6 +178,8 @@ def model_training(value, *, pretrained=False):
         raise ConfigurationError('model shape/dropout is outside the supported OpenGU implementation')
     if architecture == 'OpenGU.SGCNet' and model['hidden_channels'] != 64:
         raise ConfigurationError('OpenGU SGC has no hidden_channels override')
+    if architecture in ('OpenGU.GATNet', 'OpenGU.GINNet') and model['hidden_channels'] != 64:
+        raise ConfigurationError('OpenGU GAT/GIN require hidden_channels=64')
     if pretrained:
         supplied = value.get('training', {})
         unused = ('epochs', 'optimizer', 'lr', 'weight_decay', 'scheduler')
@@ -183,7 +189,7 @@ def model_training(value, *, pretrained=False):
             raise ConfigurationError('invalid training seed')
         # These settings describe no executed training in the external-weight lane.
         return model, {**dict.fromkeys(unused), 'seed': seed}
-    props = read_yaml(ROOT / 'model/properties' / ('GCN.yaml' if architecture.endswith('GCNNet') else 'SGC.yaml'))
+    props = read_yaml(ROOT / 'model/properties' / MODEL_PROPERTIES[architecture])
     training = effective(value.get('training', {}), {'epochs': 3000, 'optimizer': 'Adam', 'lr': float(props['lr']),
         'weight_decay': float(props['decay']), 'scheduler': 'none', 'seed': 42}, 'training')
     choice(training['optimizer'], ('Adam', 'SGD'), 'optimizer')
@@ -312,6 +318,8 @@ def unlearning(value, *, parameter_profile_parameters=None):
             raise ConfigurationError('checkpoint must be a nonempty pure state_dict file path')
     model, training = model_training({k: value[k] for k in ('model', 'training') if k in value},
                                      pretrained=checkpoint is not None)
+    if model['architecture'] not in ('OpenGU.GCNNet', 'OpenGU.SGCNet'):
+        raise ConfigurationError('GAT/GIN are selector-only; GU consumers support GCN/SGC')
     if value['method'] == 'GraphEraser' and model['architecture'] != 'OpenGU.GCNNet':
         raise ConfigurationError('GraphEraser modular node consumer currently supports GCN')
     if value['method'] == 'GNNDelete' and model['architecture'] != 'OpenGU.GCNNet':
@@ -384,7 +392,7 @@ def configuration_sources(path, resolved, *, parameter_profile_parameters=None, 
                 sources[name] = ('experiments/target_direct_v1/methods.py:parameter_defaults' if resolved['kind'] == 'selector'
                                  else 'parameter_parser.py + experiments/modular_config.py:gu_defaults')
             elif name in ('training.lr', 'training.weight_decay'):
-                sources[name] = 'model/properties/' + ('GCN.yaml' if resolved['model']['architecture'].endswith('GCNNet') else 'SGC.yaml')
+                sources[name] = 'model/properties/' + MODEL_PROPERTIES[resolved['model']['architecture']]
             else:
                 sources[name] = 'experiments/modular_config.py:declared_defaults'
     visit(resolved, original)

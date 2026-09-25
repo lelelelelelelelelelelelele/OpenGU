@@ -1,0 +1,43 @@
+# Four selector backbones; all GU and Retrain instances use the same GCN model/training.
+# GCN selectors are the exact-model direct references; Random/Degree are shared controls.
+kind: experiment
+schema_version: 1
+experiment_id: exp013-surrogate-to-gcn
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- r_point.yaml
+- gt_full.yaml
+- ./selectors/r_point_sgc.yaml
+- ./selectors/gt_full_sgc.yaml
+- ./selectors/r_point_gat.yaml
+- ./selectors/gt_full_gat.yaml
+- ./selectors/r_point_gin.yaml
+- ./selectors/gt_full_gin.yaml
+- degree.yaml
+- random.yaml
+unlearning_refs:
+- gnndelete.yaml
+- gif_h64.yaml
+- idea_h64.yaml
+- megu.yaml
+- retrain.yaml
+parameter_profile_ref: ../profiles/gif_idea_fixed_pt.yaml
+evaluation_refs:
+- post_unlearning_utility_and_retrain_gap.yaml
+- post_unlearning_flip_hop.yaml
+matrix: cartesian_product
+seeds:
+- 42
+- 212
+- 2024
+random_selector_seeds:
+- 11
+- 22
+- 33
+budget_ratios:
+- 0.1
+return_scores: false

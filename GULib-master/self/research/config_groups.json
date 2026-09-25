@@ -2,7 +2,7 @@
   "aagu077": {
     "owner": "EXP-011",
     "kind": "experiment",
-    "note": "Table02 GIF/IDEA Profile gate与完整补充表；六格gate已运行，全表待决定。"
+    "note": "GIF/IDEA Profile gate 与补充表；执行授权及状态以 EXP-011 记录为准。"
   },
   "aagu007": {
     "owner": "EXP-007",
@@ -104,9 +104,9 @@
     "kind": "experiment",
     "note": "Cora H64 多请求验证配置；现行入口以实验详情为准。"
   },
-  "aagu077": {
-    "owner": "EXP-011",
+  "exp013": {
+    "owner": "EXP-013",
     "kind": "experiment",
-    "note": "GIF/IDEA Profile gate 与补充表；执行授权及状态以 EXP-011 记录为准。"
+    "note": "不同surrogate→固定GCN；现行入口以EXP-013配置引用为准。"
   }
 }

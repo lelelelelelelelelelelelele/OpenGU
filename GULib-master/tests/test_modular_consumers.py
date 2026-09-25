@@ -84,6 +84,69 @@ def identities(result):
     return [(x['score']['recipe_hash'], x['selection']['artifact']['artifact_id']) for x in result['selectors']]
 
 
+@pytest.mark.parametrize('architecture', ['GCN', 'SGC', 'GAT', 'GIN'])
+def test_surrogate_to_gcn_real_scores_and_exact_reuse(tables, architecture):
+    """Both IF selectors train the same source, then feed a fixed GCN consumer."""
+    root, _, gu = tables
+    model = {'architecture': 'OpenGU.' + architecture + 'Net', 'layers': 2,
+             'hidden_channels': 64, 'dropout': 0.0 if architecture == 'SGC' else 0.5}
+    refs = []
+    for method in ('r_point', 'gt_full'):
+        name = method + '_source.yaml'
+        write_yaml(root / name, {'kind': 'selector', 'schema_version': 1, 'method': method,
+            'candidate': {'pool': 'train_mask'}, 'budget': {'mode': 'k', 'value': 1},
+            'model': model, 'training': {'epochs': 3},
+            'parameters': {'lissa': {'iterations': 2, 'scale': 25.0, 'damp': 0.01}}})
+        refs.append(name)
+    gu['model'] = {'architecture': 'OpenGU.GCNNet', 'hidden_channels': 64}
+    write_yaml(root / 'gu.yaml', gu)
+    cold = run(tables, 'surrogate_cold', selector_refs=refs, stage='unlearning', unlearning_refs=['gu.yaml'])
+    warm = run(tables, 'surrogate_warm', selector_refs=refs, stage='unlearning', unlearning_refs=['gu.yaml'])
+    assert identities(cold) == identities(warm)
+    assert [s['checkpoint']['hit'] for s in cold['selectors']] == [False, True]
+    assert all(s['checkpoint']['hit'] and s['score']['hit'] and s['selection']['cache']['hit'] for s in warm['selectors'])
+    assert all(x['hit'] for x in warm['unlearning'])
+    source_hash = cold['selectors'][0]['checkpoint']['state_hash']
+    assert all(s['checkpoint']['state_hash'] == source_hash for s in cold['selectors'])
+    victim_hashes = {x['checkpoint']['state_hash'] for x in cold['unlearning']}
+    assert len(victim_hashes) == 1
+    assert (source_hash in victim_hashes) == (architecture == 'GCN')
+    assert all(torch.isfinite(torch.tensor(s['scores'])).all() for s in cold['selectors'])
+
+
+@pytest.mark.parametrize('architecture', ['GAT', 'GIN'])
+def test_new_backbones_are_selector_only(tables, architecture):
+    from experiments.modular_config import load_instance
+    root, _, gu = tables
+    gu['model'] = {'architecture': 'OpenGU.' + architecture + 'Net'}
+    write_yaml(root / 'unsupported_gu.yaml', gu)
+    with pytest.raises(ValueError, match='selector-only'):
+        load_instance(root / 'unsupported_gu.yaml', 'unlearning')
+
+
+def test_exp013_full_matrix_keeps_exact_gcn_direct_and_shared_profiles():
+    from experiments.modular_config import load_experiment, experiment_batches
+    path = Path(__file__).resolve().parents[1] / 'experiments/configs/exp013/surrogate_to_gcn.yaml'
+    config = load_experiment(path)
+    for batch in experiment_batches(config):
+        direct = [s for s in batch['selectors'] if s.get('model', {}).get('architecture') == 'OpenGU.GCNNet']
+        if not direct:
+            assert all(s['method'] == 'random' for s in batch['selectors'])
+            continue
+        assert {s['method'] for s in direct} == {'r_point', 'gt_full'}
+        for gu in batch['unlearnings']:
+            assert gu['model']['architecture'] == 'OpenGU.GCNNet'
+            for selector in direct:
+                assert selector['model'] == gu['model']
+                assert selector['training'] == gu['training']
+        for source in ('SGC', 'GAT', 'GIN'):
+            selectors = [s for s in batch['selectors'] if s.get('model', {}).get('architecture') == 'OpenGU.' + source + 'Net']
+            assert {s['method'] for s in selectors} == {'r_point', 'gt_full'}
+            for selector in selectors:
+                reference = next(s for s in direct if s['method'] == selector['method'])
+                assert selector['parameters'] == reference['parameters']
+
+
 def test_method_cold_warm_and_hutch_isolation(tables, record_property):
     cold = run(tables, 'cold')
     warm = run(tables, 'different_experiment')
