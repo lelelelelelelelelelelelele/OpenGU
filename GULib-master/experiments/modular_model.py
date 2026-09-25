@@ -31,10 +31,21 @@ def create_model(model_config, dataset_name, data, device):
         from model.base_gnn.gcn import GCNNet
         args['base_model'] = 'GCN'
         model = GCNNet(args, data.x.shape[1], int(data.y.max()) + 1)
-    else:
+    elif model_config['architecture'] == 'OpenGU.SGCNet':
         from model.base_gnn.sgc import SGCNet
         args['base_model'] = 'SGC'
         model = SGCNet(args, data.x.shape[1], int(data.y.max()) + 1, num_layers=model_config['layers'])
+    elif model_config['architecture'] == 'OpenGU.GATNet':
+        from model.base_gnn.gat import GATNet
+        args['base_model'] = 'GAT'
+        model = GATNet(args, data.x.shape[1], int(data.y.max()) + 1,
+                       num_layers=model_config['layers'], dropout=model_config['dropout'])
+    elif model_config['architecture'] == 'OpenGU.GINNet':
+        from model.base_gnn.gin import GINNet
+        args['base_model'] = 'GIN'
+        model = GINNet(args, data.x.shape[1], int(data.y.max()) + 1, num_layers=model_config['layers'])
+    else:
+        raise ValueError('unsupported model architecture: ' + model_config['architecture'])
     return model.to(device)
 
 

@@ -43,6 +43,12 @@
 5. 本阶段代码、配置与全部 Recipe 完整交付后，对同一主线目标版本统一完成一次已授权的同步，消费安装回执中的精确 SHA 与工作区检查结果，随后由 dispatch 执行正式 preflight，不由 Agent 再 SSH 重复审计。预览、dispatch 均不负责同步工作区修改；候选工作树预览不代表部署完成。
 6. 使用 SyncMate“运行与回传”前端选择已审阅的 Recipe 与节点，检查就绪后提交。Recipe 生成和完整提交预览目前通过上述 CLI 完成，前端接入留待后续。Agent 需要提交命令时读取已安装 CLI 的 `--help` 和上述 README，不从历史示例猜测接口。
 
+### Run ID 命名
+
+新运行默认使用短 `run_id`（RID），如 `r1`、`r2`；`experiment_id` 已标识实验，不再把实验全名复制进 RID。纯数字也合法，但 YAML 中必须写成字符串，例如 `run_id: '1'`。只有需要区分特殊用途或避免路径冲突时加短说明，如 `gate1`、`retry1`、`e13-r1`。
+
+沿用现有身份及不覆盖规则：同一实验的新尝试使用未占用的 RID；跨实验并发还须检查实际共享 runtime 路径，必要时加短实验前缀。现有执行器的 runtime 路径包含 RID，不能仅凭结果目录按 experiment 分层就假定跨实验同名无冲突。已提交或已有产物的历史 RID 不重命名；仅修改尚未提交的 Recipe 时也须重新审阅声明和预览，不伪造一次运行记录。
+
 ### 回执和目录
 
 Recipe 是提交前维护的输入；提交时 Core 自动保存 `.syncmate/runs/<job_id>.json` handoff，队列执行产生对应 receipt/result。它们记录实际提交与执行事实，不由用户手写，也不会因为只创建或预览 Recipe 就产生一次执行回执。收集和校验记录在执行相应操作后生成；`dispatch --wait` 可在成功后自动收集校验，控制端必须持续运行，否则按 README 的 `runner-agent collect` 对原 job 收集。
