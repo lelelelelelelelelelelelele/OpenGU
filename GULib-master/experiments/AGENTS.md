@@ -47,6 +47,8 @@ Selector/Unlearning只以selector_refs声明选点规则；两阶段按同一有
 
 正式启动前核对run identity和现有产物。入口不支持强制覆盖、隐式截断或自动重试；发现已存在、部分、过时或损坏结果时按明确的修复链处理，保护历史Cache V2和结果。多预算前缀复用只适用于显式prefix-stable排序；仅精确MISS调用producer。
 
+新 `run_id`（RID）默认简短，如 `r1`、`r2`；不重复 `experiment_id`。只有特殊语义或避免路径冲突时增加短说明，细则见 [Runbook](../self/research/RUNBOOK.md#run-id-命名)。
+
 ### SSH 正式数据固定位置
 
 SSH 上正式数据的默认且固定根目录是 `/autodl-fs/data/OpenGU/GULib-master/data/processed`。正式实验读取的数据，以及获准执行的数据准备操作所写入的正式 dataset 内容，都必须解析到该目录下。
