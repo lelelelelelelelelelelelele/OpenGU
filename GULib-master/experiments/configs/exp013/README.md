@@ -2,6 +2,26 @@
 
 [实验 YAML](surrogate_to_gcn.yaml) · [SyncMate Recipe](../../../scripts/syncmate/recipes/opengu-exp013-surrogate-to-gcn-v2.yaml)
 
+## 启动前 gate
+
+[Gate YAML](gate.yaml) · [Gate Recipe](../../../scripts/syncmate/recipes/opengu-exp013-gate.yaml)
+
+Gate 使用 Cora、训练 seed 42、10% 删除比例，仅覆盖 **SGC/GAT/GIN × r_point/gt_full × GNNDelete，共6个条件**。不重复 GCN direct，也不运行其他 GU 或 Retrain；Random/Degree 仍只在完整表中。
+
+Selector 和 GNNDelete 引用完整表的原小表，训练及算法参数不变，不缩短训练。使用同一个 experiment_id、独立 RID `e13-g1`；完整表继续使用 `r1`。模型、评分、选集和方法输出是否复用由精确缓存身份决定，报告实际 HIT/MISS，不承诺命中。
+
+评价只引用现有 `post_method_metrics.yaml`，检查单方法指标；本 gate 不计算需要 Retrain 配对的 retrain-gap 或 Flip/Hop。没有 GIF/IDEA，不绑定其参数 Profile。
+
+执行顺序：dry-run → Recipe preview → 交付与同步 → 冻结耗时估算 → 获准后提交 gate → 可信回传与检查 → 决定是否扩展。当前只准备配置，不运行；6小时是超时上限，不是耗时估计。
+
+通过标准：
+
+- 6个条件全部完成，13个预期文件（run.json及每条件metrics.json、selection.json）可信回传、哈希校验及项目读取通过。
+- SGC/GAT/GIN模型与评分身份正确，GNNDelete消费对应选集；节点来自绑定训练候选集，数量符合有效预算，无重复或越界。
+- 必需单方法指标可解析且数值有限；实际缓存命中与计算来源可追溯。HIT不等于本次重新计算，不手工清缓存制造冷启动。
+
+此 gate 仅检查 surrogate 选点到单一 GU 的链路，不覆盖其他 GU、Retrain配对评价、其他数据集或seed，也不证明迁移效果或统计稳定性。效果弱不构成工程 gate 失败。
+
 本表只改变选点模型：GCN 是 direct 参照，SGC/GAT/GIN 是 surrogate。每个模型使用同样的 r_point、gt_full 参数语义；六种 GU 均采用 GCN backbone，其中 GraphEraser/GraphRevoker 是分片集成；Retrain 为全图 GCN。Random/Degree 只作为共同效果基线，不产生 surrogate 版本。所有可执行参数由 YAML 和小表拥有。
 
 GCN direct 与四种单模型 GU 的 model/training 配置一致，普通模型准备过程使用同一缓存身份；CPU 真实执行验证了 state hash 相等。Surrogate 不读取 victim 权重/梯度/预测来选点。双方共享图、训练划分与指定 validation labels；这属于明确共享数据假设下的 query-free 灰盒迁移。
@@ -15,7 +35,7 @@ GIF/IDEA 通过 `parameter_profile_ref` 消费现有 GCN H64 映射；不是把�
 ## 消费路径
 
 1. `experiments/run.py experiments/configs/exp013/surrogate_to_gcn.yaml --dry_run` 检查展开与有效参数。
-2. 审阅已生成的 Recipe，再通过 `scripts/syncmate/recipe.py preview opengu-exp013-surrogate-to-gcn-v2 --node gpu4090` 查看提交绑定。Recipe 不是一次已提交运行；候选尚需用户接受、落主线和按既有流程同步。
+2. 先审阅 gate，使用 `scripts/syncmate/recipe.py preview opengu-exp013-gate --node gpu4090` 查看绑定；完整表使用 `scripts/syncmate/recipe.py preview opengu-exp013-surrogate-to-gcn-v2 --node gpu4090`。新增配置须接受、落主线并同步，Recipe 不是一次已提交运行。
 3. 执行时每个 source 的模型/评分/Selection 都按精确身份查缓存；同一选集被各 GCN GU 消费，并产生同请求 Retrain。现有评价器计算基础指标、utility、retrain-gap 与 Flip/Hop。
 4. 执行端目录由 Recipe 的 outputs.root 确定；可信回传通常在 `results/runs/gpu4090/exp013-surrogate-to-gcn/<run_id>/`。以该 job 的 handoff/receipt 为实际定位，不从目录存在推断完成。
 5. 分析消费可信回传的 `run.json` 与每个 cell 的 `metrics.json`、`selection.json`。调用现有 `experiments.modular_artifacts.read_run(run_path, expected_sha256)` 校验文件；期望哈希取可信回传记录，不能自行计算一个哈希冒充可信来源。

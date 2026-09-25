@@ -42,8 +42,8 @@
     }
   ],
   "analysis": {
-    "state": "review",
-    "note": "2026-09-23 完成 100→3000 训练轮数描述性对照；48/48 个下游效果选择身份一致，RR10 采样分析维持独立范围，科学结论待审阅。",
+    "state": "complete",
+    "note": "已完成现有证据范围的论文用途审阅：RR扫描定位为IM配置诊断，既有下游结果保留为描述性材料，不作为独立论文贡献。",
     "evidence": [
       {
         "label": "结果与分析报告",
@@ -68,13 +68,28 @@
       {
         "label": "3000轮参数下论文结果分析草稿",
         "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
+      },
+      {
+        "label": "2026-09-25 用户接受的论文定位与科学收口",
+        "path": "self/research/analyses/EXP-053-closeout-20260925.md"
       }
+    ],
+    "highlights": [
+      "RR采样规模改变同一IM目标的估计精度，不构成本文独立机制轴；本实验不再追加运行。",
+      "主表暂选RR65536；未证明最优、最小充分或下游攻击充分。现有96格下游仅含RR1024/4096/16384。",
+      "保留36格采样与96格下游两套证据；IM与其他策略的论文对照由主表承担。"
     ]
   },
   "decision": {
-    "state": "pending",
-    "note": "实验定义、执行交付与科学判断分别记录。",
-    "evidence": []
+    "state": "accepted",
+    "success_confirmed": false,
+    "note": "用户于2026-09-25明确接受科学收口：EXP-053作为配置诊断结束，不将R扫描作为论文贡献，不再追加本实验；暂采用RR65536作为后续主表IM配置。接受的是收口与论文定位，不是攻击成功或采样充分性。",
+    "evidence": [
+      {
+        "label": "2026-09-25 用户接受的论文定位与科学收口",
+        "path": "self/research/analyses/EXP-053-closeout-20260925.md"
+      }
+    ]
   },
-  "recorded_at": "2026-09-23"
+  "recorded_at": "2026-09-25"
 }

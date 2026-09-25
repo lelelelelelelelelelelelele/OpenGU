@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-exp013-gate
+runner: experiment
+config_path: experiments/configs/exp013/gate.yaml
+config_sha256: 6e4fbfb4a240a6991b3f6b04c7e15711686249ac7fbbaf677e5a98666d0a2acf
+configuration_fingerprint: 3309111ddbdca9969e428409be8d0301d90e6d15e62063cd0337d7291563c7f0
+run_identity:
+  experiment_id: exp013-surrogate-to-gcn
+  run_id: e13-g1
+timeout_seconds: 21600
+logical_cells: 6
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
