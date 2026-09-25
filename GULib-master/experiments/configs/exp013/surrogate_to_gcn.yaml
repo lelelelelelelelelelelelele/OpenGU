@@ -1,5 +1,5 @@
-# Four selector backbones; all GU and Retrain instances use the same GCN model/training.
-# GCN selectors are the exact-model direct references; Random/Degree are shared controls.
+# Four selector backbones; GCN-based GU methods include two shard ensembles.
+# GCN is direct for single-model GU, a full-graph reference for shard ensembles.
 kind: experiment
 schema_version: 1
 experiment_id: exp013-surrogate-to-gcn
@@ -24,6 +24,8 @@ unlearning_refs:
 - gif_h64.yaml
 - idea_h64.yaml
 - megu.yaml
+- grapheraser.yaml
+- graphrevoker.yaml
 - retrain.yaml
 parameter_profile_ref: ../profiles/gif_idea_fixed_pt.yaml
 evaluation_refs:

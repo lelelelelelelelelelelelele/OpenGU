@@ -1,14 +1,14 @@
 schema_version: 1
-id: opengu-exp013-surrogate-to-gcn
+id: opengu-exp013-surrogate-to-gcn-v2
 runner: experiment
 config_path: experiments/configs/exp013/surrogate_to_gcn.yaml
-config_sha256: 1133a188a4826d95602323ffac9dd691965d65e5015ad920ae67d161e6bed9a8
-configuration_fingerprint: 8cd3f71b7b6a35da6b4b2b1c51dee1b332079633e681c91baf3334fa9dd7eb6c
+config_sha256: 664ff0c0ccc10f61ca10c512f3e1cdfd23d8a8cabf2f3e071f04964c83ee8c5a
+configuration_fingerprint: e4bf82c82a6d487bf4259a71b26f807f6784a30d8587f4200af808752bbad93e
 run_identity:
   experiment_id: exp013-surrogate-to-gcn
-  run_id: exp013-surrogate-to-gcn-v1
+  run_id: exp013-surrogate-to-gcn-v2
 timeout_seconds: 21600
-logical_cells: 540
+logical_cells: 756
 stage: unlearning
 expected_datasets:
 - num_nodes: 2708
