@@ -1,6 +1,14 @@
 \section{Experimental Design}
 \label{sec:experiments}
 
+We organize the experiments around four questions:
+\begin{enumerate}
+  \item Do the selection mechanisms produce distinct deletion sets under matched candidates and budgets?
+  \item Do the selectors' reference or proxy objectives align with their stated targets?
+  \item Relative to a budget-matched random request, how does a selected request change the measured GU outcome?
+  \item How do these responses vary across GU methods, datasets, and attacker access settings, and how large is the signed gap from same-request retraining?
+\end{enumerate}
+
 \subsection{Primary multi-method matrix}
 The primary matrix covers node-deletion requests on Cora, CiteSeer, and PubMed with an OpenGU GCN backbone. We compare six graph-unlearning methods: GIF, GNNDelete, MEGU, IDEA, GraphEraser, and GraphRevoker \cite{wu2023gif,cheng2023gnndelete,li2024towards,dong2024idea,chen2022graph}. Each request removes 10\% of the eligible training-node candidates. The five selectors are Random, Degree, PageRank, R-point, and D-full. R-point is the practical influence-based setting used in the main-text comparison; D-full is a last-layer, two-hop setting included for reference.
 

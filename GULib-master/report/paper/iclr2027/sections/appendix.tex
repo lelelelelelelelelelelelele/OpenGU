@@ -1,3 +1,282 @@
+\clearpage
+\section{Selection Objectives and Implementation}
+\label{app:selectors}
+
+\subsection{IM: diffusion objective and RR coverage}
+\label{app:im-details}
+
+\paragraph{Diffusion model.}
+The Independent Cascade process starts from the selected nodes. Each newly activated node has one independent opportunity to activate each inactive outgoing neighbor, with probability $p$. Equivalently, sample a live-edge graph $\omega$ once and count nodes reachable from the initial set \citep{kempe2003maximizing}. We use the original graph's directed edge list; an undirected edge represented by two directions yields two directed activation opportunities. Coverage is measured over all nodes, while selectable seeds remain restricted to $\mathcal C$.
+
+\paragraph{Reverse-reachable estimator.}
+We use reverse-reachable (RR) sampling \citep{tang2014influence}. Draw a root $r$ uniformly from $V$ and sample the nodes that can reach $r$ in an independent live-edge graph. Denote this set by $R(r,\omega)$. For any fixed request $S$,
+\begin{equation}
+\Pr_{r,\omega}\!\left[S\cap R(r,\omega)\ne\varnothing\right]
+=\frac{1}{|V|}\sum_{r\in V}
+\Pr_\omega\!\left[r\in\operatorname{Reach}_{\omega}(S)\right]
+=\frac{\sigma(S)}{|V|}.
+\label{eq:rr-identity}
+\end{equation}
+For $m$ independent RR samples $R_1,\ldots,R_m$, this identity gives the estimator
+\begin{equation}
+\widehat{\sigma}(S)=\frac{|V|}{m}
+\sum_{i=1}^{m}\mathbf{1}[S\cap R_i\ne\varnothing].
+\label{eq:im-rr}
+\end{equation}
+Only $R_i\cap\mathcal C$ must be stored: restricting the stored membership does not restrict root sampling or the diffusion domain. RR sets with no candidate members contribute zero and remain in the denominator $m$.
+
+\paragraph{Request construction.}
+Starting from $S_0=\varnothing$, use the same RR bundle throughout the greedy sequence:
+\begin{equation}
+v_t\in\arg\max_{v\in\mathcal C\setminus S_t}
+\left[\widehat{\sigma}(S_t\cup\{v\})-\widehat{\sigma}(S_t)\right],
+\qquad S_{t+1}=S_t\cup\{v_t\},\quad 0\le t<k.
+\label{eq:rr-greedy}
+\end{equation}
+The implementation maintains counts of previously uncovered RR sets and breaks equal gains by ascending node ID, continuing until exactly $k$ nodes have been selected. This differs from ranking nodes once by singleton spread: marginal gains change as overlapping coverage is removed. A fixed RR bundle gives a sampled coverage objective; it does not by itself certify the quality of the selected set under the population spread $\sigma$. Its empirical coverage on the selection samples is also not an independent estimate of the selected request's spread.
+
+\paragraph{Sampling configuration and the Monte Carlo variant.}
+The fixed-RR recipe uses $p=0.1$ and a selector seed of $2024$. Sample count $m$ is a recipe parameter: the base recipe uses $4096$ samples, while sample-budget comparisons vary this value. Reported results must identify their actual sample count. The earlier Monte Carlo/CELF variant estimates $\sigma(S)$ by averaging forward cascades and uses lazy marginal-gain updates \citep{leskovec2007cost}. Both variants target Eq.~\ref{eq:im-objective}, but use different estimators and selection computations; their selections and timings are kept distinct.
+
+\subsection{IF: deletion direction, numerical approximation, and sources}
+\label{app:if-details}
+
+\paragraph{Point-deletion direction.}
+Let $\mathcal T$ be the training nodes and $n=|\mathcal T|$. With the graph held fixed, define
+\begin{equation}
+L_{\mathrm{train}}(\theta)=\frac{1}{n}\sum_{u\in\mathcal T}
+\ell_u(\theta;\mathcal G),
+\qquad
+L_{\mathcal Q}(\theta)=\frac{1}{|\mathcal Q|}
+\sum_{u\in\mathcal Q}\ell_u(\theta;\mathcal G).
+\end{equation}
+To derive the score, consider the local stationary solution $\theta_{\epsilon,v}$ for
+$L_{\mathrm{train}}(\theta)-\epsilon\ell_v(\theta;\mathcal G)$.
+Assuming differentiability and an invertible Hessian at a stationary $\theta^\star$, differentiating the stationarity equation gives
+\begin{equation}
+\left.\frac{d\theta_{\epsilon,v}}{d\epsilon}\right|_{\epsilon=0}
+=H^{-1}g_v,
+\qquad
+\left.\frac{dL_{\mathcal Q}(\theta_{\epsilon,v})}{d\epsilon}\right|_{\epsilon=0}
+=g_{\mathcal Q}^{\top}H^{-1}g_v.
+\label{eq:if-derivation}
+\end{equation}
+Setting $\epsilon=1/n$ gives the first-order point-removal estimate; the common positive factor $1/n$ can be omitted when ranking candidates \citep{koh2017understanding}. The positive sign therefore corresponds to removal rather than upweighting. At a finite training checkpoint and for a finite deletion set, this is a local approximation. The pointwise source treats the graph as fixed while scoring; it does not include changes to neighboring training losses caused by graph deletion.
+
+\paragraph{Implemented inverse-Hessian direction.}
+The pointwise implementation (R-point) evaluates candidate cross-entropy gradients on the original graph, uses mean cross-entropy for both the training Hessian and the validation target, and computes one shared inverse-Hessian vector. Its main recipe differentiates the last layer, holding other parameters fixed. In this parameter subspace, the implemented iteration is
+\begin{equation}
+h_0=g_{\mathcal Q},\qquad
+h_{t+1}=g_{\mathcal Q}+(1-d)h_t-\frac{1}{a}Hh_t,
+\qquad \widehat u_{\mathcal Q}=\frac{h_T}{a}.
+\label{eq:selector-ihvp}
+\end{equation}
+Here $a>0$ is the scale, $d$ the damping coefficient, and $T$ the iteration count. Hessian-vector products are evaluated by automatic differentiation. If the iteration converges, its output solves
+\begin{equation}
+(H+adI)u_{\mathcal Q}=g_{\mathcal Q},
+\qquad \lambda=ad.
+\label{eq:selector-shift}
+\end{equation}
+Thus the implemented score uses a finite approximation to a shifted system. A finite output alone does not establish convergence or an accurate inverse of the unshifted Hessian. The base selector recipe uses $T=20$, $a=25$, and $d=0.01$ ($\lambda=0.25$); any override belongs to the corresponding experiment configuration. These are selector parameters, separate from solver parameters of an evaluated GU method such as GIF. Candidates are ranked by descending signed score, with ascending node ID for ties; absolute-value ranking is not used.
+
+\paragraph{Graph-aware source variant.}
+GIF corrects the deletion perturbation with the loss changes of affected neighbors \citep{wu2023gif}. The graph-element influence formulation \citep{chen2023characterizing} expresses structural changes through removal of original representations and addition of their modified counterparts, with derivations for SGC. Both motivate including the effect of graph deletion on retained training nodes.
+
+Our D-full selector adapts this source construction to a local neighborhood at the trained GNN checkpoint. Let $\mathcal A_h(v)$ contain training nodes within $h$ hops of $v$, including $v$. Let $\mathcal G^{-v}$ denote the graph with edges incident to $v$ removed, with $v$ excluded from retained supervision. Its source and score are
+\begin{equation}
+\begin{aligned}
+q_v^{\mathrm{graph}}
+={}&\nabla_\theta\sum_{u\in\mathcal A_h(v)}
+\ell_u(\theta^\star;\mathcal G)\\
+&-\nabla_\theta\sum_{u\in\mathcal A_h(v)\setminus\{v\}}
+\ell_u(\theta^\star;\mathcal G^{-v}),
+\qquad
+s_{\mathrm{graph}}(v;\mathcal Q)
+=(q_v^{\mathrm{graph}})^\top\widehat u_{\mathcal Q}.
+\end{aligned}
+\label{eq:if-graph-source}
+\end{equation}
+This is the removed node's gradient plus the original-minus-modified gradients of retained nodes in $\mathcal A_h(v)$. If the source includes every affected training loss, the same downweighting derivation gives $\Delta\theta_v\approx n^{-1}H^{-1}q_v^{\mathrm{graph}}$ before damping and numerical approximation; projecting onto $g_{\mathcal Q}$ gives the target-loss score, up to the common positive factor $1/n$. We use the removal sign convention of Eq.~\ref{eq:if-derivation} throughout.
+
+Both source gradients are evaluated at the same checkpoint; no candidate-specific retraining occurs during scoring. This variant uses summed source losses and the same mean-loss Hessian convention. The base recipe uses last-layer gradients and $h=2$; all-parameter and larger-hop settings are separate variants. The name D-full denotes the two-term source, not an all-parameter Hessian or a guarantee that the configured neighborhood contains every affected node. Neighborhood truncation, the parameter subspace, and the finite shifted solve make this an implemented approximation to graph influence. We do not transfer the SGC error bounds or claim an exact reproduction of either paper's experimental method. R-point retains only $q_v^{\mathrm{point}}=g_v$; comparing the two tests the effect of the graph-induced source correction.
+
+\paragraph{Source and curvature approximations.}
+For a fixed source $q_v$, replacing $\widehat u_{\mathcal Q}$ by $g_{\mathcal Q}$ yields the Hessian-free score $q_v^\top g_{\mathcal Q}$. The pointwise and graph-aware versions therefore retain different deletion sources even when both omit the curvature correction. These comparisons isolate a numerical approximation within a chosen source definition. Their agreement with a reference score and their effect after deleting a set are evaluated separately.
+
+\subsubsection{Computational cost}
+\label{app:if-cost}
+
+Let $c=|\mathcal C|$ be the number of candidates, $p$ the number of differentiated parameters, $F(\mathcal G)$ the cost of a full-graph forward pass, and $B(A;\mathcal G)$ the cost of differentiating the summed losses on nodes $A$ using that forward pass. Denote the shared target-gradient and inverse-Hessian computation by $C_{\mathrm{shared}}$, including $T$ Hessian-vector products. R-point reuses an original-graph forward pass across candidates, but still differentiates each candidate loss. Its point-gradient preparation costs
+\begin{equation}
+C_{\mathrm{point}}=
+O\!\left(F(\mathcal G)+
+\sum_{v\in\mathcal C} B(\{v\};\mathcal G)+cp\right).
+\end{equation}
+Constant-count target-gradient passes are included in $C_{\mathrm{shared}}$. The current D-full entry point also invokes this point-gradient routine to obtain the target gradient; its intermediate matrix can be reused when both selectors are computed together.
+
+For the additional graph source, define $\mathcal N_v=\mathcal A_h(v)\setminus\{v\}$ and let $W_h(v)$ be the cost of finding and filtering the configured neighborhood. The implementation builds adjacency lists once and reuses an original-graph forward pass for the first source term. Whenever $\mathcal N_v$ is nonempty, it scans the edge list to remove incident edges and runs the GNN on the modified graph. Consequently,
+\begin{equation}
+\begin{aligned}
+C_{\mathrm{graph}}=O\Bigg(&|V|+|E|+F(\mathcal G)\\
+&+\sum_{v\in\mathcal C}\Big[
+W_h(v)+B(\mathcal A_h(v);\mathcal G)+p\\
+&\qquad+\mathbf1_{\mathcal N_v\ne\varnothing}
+\big(|E|+F(\mathcal G^{-v})+B(\mathcal N_v;\mathcal G^{-v})\big)
+\Big]\Bigg).
+\end{aligned}
+\end{equation}
+Including score projection and the implemented full sorting, the current uncached execution costs are
+\begin{equation}
+\begin{aligned}
+C_{\mathrm{R\text{-}point}}&=C_{\mathrm{shared}}+C_{\mathrm{point}}
++O(cp+c\log c),\\
+C_{\mathrm{D\text{-}full}}&=C_{\mathrm{shared}}+C_{\mathrm{point}}
++C_{\mathrm{graph}}+O(cp+c\log c).
+\end{aligned}
+\end{equation}
+Thus D-full can require up to $c$ additional modified-graph forward passes, plus their gradients, even though its loss correction is restricted to a local neighborhood. Both routines iterate over candidates, so this distinction does not by itself establish different polynomial orders under a coarse full-graph backward-cost bound. It identifies the additional operations responsible for the practical cost difference. The current wrapper retains a $c\times p$ point-gradient matrix for either route; streaming it would be a different implementation. Wall-clock comparisons must match the model, parameter scope, neighborhood radius, solver iterations, hardware, and cache state.
+
+\subsection{Selected-set overlap across selection axes}
+\label{app:selection-overlap}
+
+For two requests $S_a,S_b\subseteq\mathcal C$ with $|S_a|=|S_b|=k$, we report
+\begin{equation}
+\operatorname{Common@}k(S_a,S_b)=\frac{|S_a\cap S_b|}{k},
+\qquad
+\operatorname{Jaccard}(S_a,S_b)=
+\frac{|S_a\cap S_b|}{|S_a\cup S_b|}.
+\label{eq:selection-overlap}
+\end{equation}
+These diagnostics quantify the extent to which different criteria select the same nodes. Comparisons hold the graph, candidate pool, and budget fixed, and pair model-dependent scores by their model checkpoint where applicable. Full-ranking correlations are reported only when both selectors produce comparable candidate scores; the changing marginal gains in RR greedy selection are not treated as a static full-candidate score.
+
+We distinguish comparisons across selection axes from comparisons of approximations to the same score. Low overlap across axes indicates distinct requests under the matched conditions; high overlap within a reference/approximation pair indicates selection agreement. Neither observation determines the magnitude or direction of the subsequent GU response. The same selected requests must be evaluated downstream to connect selection diversity with model behavior.
+
+\subsection{Comparisons within the IF family}
+\label{app:if-comparisons}
+
+\paragraph{Separating the source and curvature choices.}
+We compare four scores at a shared checkpoint and with a common target loss:
+\begin{equation}
+\begin{aligned}
+s_{\mathrm{R\text{-}point}}(v)&=g_v^\top\widehat u_{\mathcal Q},
+&s_{\mathrm{D\text{-}full}}(v)&=(q_v^{\mathrm{graph}})^\top\widehat u_{\mathcal Q},\\
+s_{\mathrm{P\text{-}point}}(v)&=g_v^\top g_{\mathcal Q},
+&s_{\mathrm{P\text{-}graph}}(v)&=(q_v^{\mathrm{graph}})^\top g_{\mathcal Q}.
+\end{aligned}
+\end{equation}
+R-point versus D-full changes the deletion source while retaining the inverse-Hessian direction. P-point versus R-point and P-graph versus D-full replace that direction with the target gradient while keeping the respective source fixed. The graph source is our implementation described in Appendix~\ref{app:if-details}; this is a comparison of implemented variants, rather than a reproduction of the complete experimental protocols of the cited papers.
+
+\paragraph{Within-family selection similarity.}
+For each pair above, we compare selected sets at the same dataset, training seed, and deletion budget using Common@$k$ and Jaccard as defined in Appendix~\ref{app:selection-overlap}. Table~\ref{tab:if-similarity} reports Common@$k$ over three paired training seeds for all four budgets. At 10\% deletion, mean R-point/D-full overlap is 37.9\% on Cora, 51.6\% on CiteSeer, and 65.7\% on PubMed. The corresponding P-point/R-point and P-graph/D-full overlaps exceed 99\% on each dataset. Within this matrix, changing the deletion source changes the selected sets more than replacing the implemented inverse-Hessian direction with the target gradient. This is agreement of selected sets, not a test of score-estimation accuracy or equivalence of GU outcomes. Full-ranking correlations require aligned scores on the complete candidate pool and are not inferred from the selected sets.
+
+% Same verified run and pairing as tab:if-family; exact intersections in runtime if-similarity-provenance.json.
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Within-family selection similarity: Common@$k$ (\%), mean $\pm$ sample SD over three paired training seeds. Each column names the two selectors being compared.}
+\label{tab:if-similarity}
+\begin{tabular}{llrrr}
+\toprule
+Dataset & Budget & R-point / D-full & P-point / R-point & P-graph / D-full \\
+\midrule
+Cora & 1\% & $20.4\pm11.6$ & $100.0\pm0.0$ & $100.0\pm0.0$ \\
+Cora & 5\% & $33.3\pm5.9$ & $100.0\pm0.0$ & $99.3\pm0.6$ \\
+Cora & 10\% & $37.9\pm5.5$ & $100.0\pm0.0$ & $99.6\pm0.3$ \\
+Cora & 15\% & $40.7\pm3.9$ & $99.6\pm0.4$ & $100.0\pm0.0$ \\
+CiteSeer & 1\% & $33.3\pm5.0$ & $100.0\pm0.0$ & $98.6\pm2.5$ \\
+CiteSeer & 5\% & $45.1\pm8.0$ & $100.0\pm0.0$ & $99.4\pm0.5$ \\
+CiteSeer & 10\% & $51.6\pm4.1$ & $99.9\pm0.2$ & $99.7\pm0.5$ \\
+CiteSeer & 15\% & $52.6\pm3.3$ & $99.8\pm0.2$ & $99.7\pm0.0$ \\
+PubMed & 1\% & $40.6\pm11.4$ & $98.1\pm1.1$ & $98.8\pm0.8$ \\
+PubMed & 5\% & $65.2\pm2.6$ & $99.6\pm0.3$ & $99.7\pm0.2$ \\
+PubMed & 10\% & $65.7\pm2.4$ & $99.6\pm0.2$ & $99.6\pm0.2$ \\
+PubMed & 15\% & $62.8\pm2.1$ & $99.4\pm0.1$ & $99.4\pm0.1$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+\paragraph{Paired downstream comparison.}
+Table~\ref{tab:if-family} reports results on Cora, CiteSeer, and PubMed with GCN, a training budget of 3000 epochs, and deletion budgets of 1\%, 5\%, 10\%, and 15\% of the eligible training nodes. Within each dataset and budget, we pair selectors by training seed (42, 212, and 2024), compute the accuracy difference for each pair, and report its mean and sample standard deviation. The endpoint is test accuracy after full retraining on each selected request. A negative difference means that the first selector leaves lower accuracy. These comparisons describe request-dependent outcomes at the retraining endpoint; they do not establish equivalence of approximate GU responses.
+
+% Evidence: AAGU-032 aagu032-recovery-full-20260920; execution ee4ea59509523a650fe67bacf9bc961dfe9db78b.
+% Manifest SHA256: 8391e397c1c12075e66249844fe93ca70423a0fede0785faae23185e0541e1ed.
+% Paired values recomputed from 720 hash-verified declared artifacts; utility.f1_after is test accuracy.
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Within-family IF comparisons: paired differences in post-retraining test accuracy (percentage points), mean $\pm$ sample SD over three training seeds. Each column subtracts the second selector from the first.}
+\label{tab:if-family}
+\begin{tabular}{llrrr}
+\toprule
+Dataset & Budget & R-point $-$ D-full & P-point $-$ R-point & P-graph $-$ D-full \\
+\midrule
+Cora & 1\% & $-0.49\pm0.11$ & $+0.06\pm0.21$ & $-0.12\pm0.21$ \\
+Cora & 5\% & $+0.31\pm0.28$ & $+0.06\pm0.11$ & $+0.12\pm0.28$ \\
+Cora & 10\% & $-1.05\pm0.56$ & $+0.12\pm0.21$ & $-0.31\pm0.38$ \\
+Cora & 15\% & $-0.98\pm1.30$ & $-0.37\pm0.18$ & $+0.06\pm0.43$ \\
+CiteSeer & 1\% & $-0.05\pm0.77$ & $+0.15\pm0.54$ & $-0.05\pm0.17$ \\
+CiteSeer & 5\% & $-0.70\pm0.92$ & $+0.15\pm0.26$ & $-0.25\pm0.63$ \\
+CiteSeer & 10\% & $+0.10\pm1.11$ & $+0.10\pm0.23$ & $-0.10\pm0.38$ \\
+CiteSeer & 15\% & $-0.05\pm0.68$ & $+0.00\pm0.54$ & $-0.15\pm0.15$ \\
+PubMed & 1\% & $-0.05\pm0.16$ & $+0.23\pm0.12$ & $-0.03\pm0.34$ \\
+PubMed & 5\% & $-0.03\pm0.19$ & $-0.14\pm0.20$ & $+0.18\pm0.40$ \\
+PubMed & 10\% & $-0.37\pm1.00$ & $+0.01\pm0.38$ & $+0.23\pm0.22$ \\
+PubMed & 15\% & $-0.74\pm1.04$ & $+0.04\pm0.22$ & $+0.10\pm0.67$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The sign of the R-point--D-full difference varies across dataset--budget conditions. The curvature comparisons likewise have no uniform direction across all conditions. Comparable uncached selector timings are unavailable for this matrix, so these results do not support a selection-cost claim.
+
+\clearpage
+\section{Evaluation Details and Complementary Diagnostics}
+\label{app:evaluation-details}
+
+\subsection{Matched comparisons and signed differences}
+\label{app:matching}
+In the node-deletion experiments reported here, the candidate pool consists of eligible training nodes. GU and retraining are paired on the same deletion request, original dataset and split, retained-data semantics, and fixed test nodes and labels. The utility metric and its averaging rule must also match. Random requests use the same eligible candidate pool and deletion budget as the strategic request. Training seeds are paired where the experimental design permits, with architecture-specific references declared explicitly. Training-seed variation and random-request variation are distinct sources of variability; averaging is performed after constructing the matched differences.
+
+For each matched condition, write $\bar U_{M,r}=\mathbb E_{S_r}[U_M(S_r)]$ and $\bar U_{R,r}=\mathbb E_{S_r}[U_R(S_r)]$, using the same distribution over random requests for both endpoints. In finite experiments these expectations are estimated by the corresponding random-request averages. The number of requests and training seeds belongs to the experimental setup. A single random request supplies a single-request baseline; it does not estimate request-to-request variability.
+
+With $A_R(S_a)=\bar U_{R,r}-U_R(S_a)$, the expansion of the gap-amplification score is
+\begin{equation}
+\begin{aligned}
+E_M(S_a)
+&=[U_R(S_a)-U_M(S_a)]-[\bar U_{R,r}-\bar U_{M,r}]\\
+&=[\bar U_{M,r}-U_M(S_a)]-[\bar U_{R,r}-U_R(S_a)]\\
+&=A_M(S_a)-A_R(S_a).
+\end{aligned}
+\end{equation}
+The Random averages must use matched requests and the same weights for this relation to hold for the reported summaries. Accuracy differences are expressed in percentage points when accuracy is reported as a percentage.
+
+\paragraph{Interpretation and validation.}
+$G_M$ is a signed utility difference, rather than a distance between predictive distributions. Retraining is a reference, not a test-utility upper bound. A negative gap therefore remains meaningful and is not clipped or replaced by its absolute value. For methods with their own architecture or ensemble, the gap can contain differences already present before deletion; it is not automatically a pure update-approximation error. Subtracting the Random gap measures how that relative deficit changes with request selection, without establishing a causal mechanism for the change.
+
+The decompositions preserve observed endpoint differences. Their diagnostic value is assessed through comparisons showing which components vary across methods, selectors, budgets, or access conditions, and whether those components distinguish cases with similar aggregate utility changes. Algebraic closure alone does not establish such empirical value. Performance agreement and gap reduction also do not independently establish that deleted information has been forgotten.
+
+\subsection{Prediction disagreement}
+\label{app:prediction-disagreement}
+Aggregate utility can agree even when two models predict different labels on individual nodes. Following prediction-level comparisons with retraining \citep{jain2026practice}, when node-level predictions are available we report
+\begin{equation}
+\operatorname{Disagree}(M,R;S)
+=\frac{1}{|V_{\mathrm{test}}|}
+\sum_{v\in V_{\mathrm{test}}}
+\mathbf 1[\hat y_M(v;S)\ne\hat y_R(v;S)].
+\end{equation}
+On the same evaluation nodes with the same prediction rule, this equals one minus prediction fidelity. It complements the signed utility gap by measuring label disagreement, and is an existing diagnostic rather than a new metric introduced by our decomposition.
+
+\subsection{Update-detection diagnostic}
+\label{app:update-detection}
+The matched GNNDelete analysis uses deleted nodes as positives and test nodes as negatives, with the $\ell_2$ change in predicted class probabilities between the pre-request and post-request model as its score. The resulting ROC AUC measures how well these two groups are distinguished by the observed update. It is reported as an update-detection diagnostic. A membership-inference or forgetting interpretation would require its own attacker definition, sampling controls, and validation; this diagnostic is not used as a general privacy guarantee.
+
+\subsection{Cost reporting}
+\label{app:evaluation-cost}
+Selection, GU processing, and full-retraining time are reported separately when comparable measurements are available. Timing boundaries specify whether shared precomputation, graph preprocessing, and cache reuse are included. Model, parameter scope, hardware, and cache state must match the intended comparison; cached artifact access is not a measurement of uncached selection or unlearning. Hardware, repetition counts, and any peak-memory measurements are documented with the experiment configuration.
+
+\clearpage
 \section{Full Multi-Method Results}
 \label{app:full-matrix}
 
