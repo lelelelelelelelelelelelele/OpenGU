@@ -43,7 +43,7 @@ def workspace(tables):
     paths = [p.relative_to(ROOT).as_posix() for directory in ('experiments', 'scripts', 'model', 'utils', 'attack', 'cache_v2', 'task', 'pipeline', 'unlearning', 'dataset') for p in (ROOT / directory).rglob('*') if p.is_file()] + [p.name for p in ROOT.glob('*.py')]
     for relative in filter(None, paths):
         source = ROOT / relative
-        if (source.suffix != '.py' and not relative.startswith('model/properties/')) or relative.startswith('tests/') or not source.is_file():
+        if (source.suffix != '.py' and relative != 'cache_v2/source_compatibility.json' and not relative.startswith('model/properties/')) or relative.startswith('tests/') or not source.is_file():
             continue
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)

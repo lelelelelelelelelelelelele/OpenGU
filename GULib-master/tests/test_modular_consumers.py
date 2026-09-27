@@ -381,7 +381,7 @@ def degree_implementation_variant(c, p):
     return score_degree(c, p) + 1
 
 
-def test_source_changes_require_explicit_invalidation_but_parameter_changes_miss(tables, monkeypatch):
+def test_actual_dependency_implementation_changes(tables, monkeypatch):
     import experiments.target_direct_v1.methods as methods
     from model.base_gnn.gcn import GCNNet
     global ORIGINAL_REASON_ONCE
@@ -395,11 +395,11 @@ def test_source_changes_require_explicit_invalidation_but_parameter_changes_miss
     changed = run(tables, 'gu_code_changed', **kwargs)
     assert identities(first) == identities(changed)
     assert all(x['score']['hit'] for x in changed['selectors'])
-    assert all(not x['producer_called'] for x in changed['unlearning'])
-    assert all(a['recipe_hash'] == b['recipe_hash'] for a,b in zip(first['unlearning'], changed['unlearning']))
+    assert all(x['producer_called'] for x in changed['unlearning'])
+    assert all(a['recipe_hash'] != b['recipe_hash'] for a,b in zip(first['unlearning'], changed['unlearning']))
     monkeypatch.setitem(methods.METHODS, 'degree', degree_implementation_variant)
     related = run(tables, 'selector_code_changed', selector_refs=['degree.yaml', 'b_param_hutch.yaml'])
-    assert [x['score']['hit'] for x in related['selectors']] == [True, True]
+    assert [x['score']['hit'] for x in related['selectors']] == [False, True]
     monkeypatch.setattr(methods, 'LISSA_DEFAULTS', {'iterations': 2, 'scale': 25., 'damp': .01})
     default_changed = run(tables, 'declared_default_changed', selector_refs=['degree.yaml', 'b_param_hutch.yaml'])
     assert [x['score']['hit'] for x in default_changed['selectors']] == [True, False]
@@ -618,3 +618,38 @@ def test_new_default_training_reuses_explicit_cache_across_consumers(tables):
         assert observed['path'] == first['path']
     # Retrain's execution still initializes its own retained-graph model;
     # the above checks only its parsed training settings and model identity.
+
+
+def test_registered_selector_score_and_selection_sources_reuse_original_references(tables, monkeypatch):
+    from cache_v2 import CacheIndex
+    from cache_v2.source_compatibility import stored_recipe
+    import cache_v2.source_compatibility as compatibility
+    import experiments.target_direct_v1.recipe as score_recipe
+    import experiments.target_direct_v1.method_cache as selection_cache
+    root, _, _ = tables
+    cold = run(tables, 'selector_sources_cold', selector_refs=['degree.yaml'])
+    row = cold['selectors'][0]
+    index = CacheIndex(root/'results/cache_v2/index.sqlite')
+    score = stored_recipe(index.get_artifact(row['score']['artifact_id']))
+    selection = stored_recipe(index.get_artifact(row['selection']['artifact']['artifact_id']))
+    groups = []
+    for scope, recipe, slot in [('score', score, 'producer'), ('selection', selection, 'producer_version')]:
+        original = recipe.fields[slot]['source_fingerprint']
+        groups.append(dict(cache_scope=scope, producer='degree', applies_to={},
+            fingerprints=[{'source_fingerprint': original}, {'source_fingerprint': original+'-observer'}]))
+    monkeypatch.setattr(compatibility, 'registry', lambda: groups)
+    original_score = score_recipe.implementation_fingerprint
+    original_selection = selection_cache.implementation_fingerprint
+    monkeypatch.setattr(score_recipe, 'implementation_fingerprint', lambda *args: original_score(*args)+'-observer')
+    monkeypatch.setattr(selection_cache, 'implementation_fingerprint', lambda *args: original_selection(*args)+'-observer')
+    warm = run(tables, 'selector_sources_warm', selector_refs=['degree.yaml'])
+    assert identities(cold) == identities(warm)
+    assert not warm['selectors'][0]['score']['producer_called']
+    assert not warm['selectors'][0]['selection']['cache']['producer_called']
+
+    from cache_v2.runtime import _decode_exact_mapping
+    from cache_v2 import ArtifactRecipe
+    score_result = warm['selectors'][0]['score']
+    wrapper = score_result['recipe']
+    assert ArtifactRecipe(wrapper['fields'], recipe_version=wrapper['recipe_version']).recipe_hash == score_result['recipe_hash']
+    assert score_result['generation_producer'] != score_result['consumption_producer']

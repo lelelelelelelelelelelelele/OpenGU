@@ -383,8 +383,8 @@ class ScoreBundleStore:
         recipe: ArtifactRecipe,
         miss_reasons: Tuple[str, ...],
     ) -> ScoreStoreResult:
-        from cache_v2.computation_identity import stored_recipe
-        recipe = stored_recipe(candidate, recipe)
+        from cache_v2.source_compatibility import stored_recipe
+        recipe = stored_recipe(candidate, recipe, ArtifactType.SCORE)
         semantic = candidate.get("semantic_path")
         if not isinstance(semantic, str):
             raise ScoreBundleIntegrityError(
@@ -461,7 +461,7 @@ class ScoreBundleStore:
         if not isinstance(recipe, ArtifactRecipe):
             raise ContractValidationError("recipe must be ArtifactRecipe")
         with self._recipe_lock(recipe):
-            explanation = ArtifactResolver(self.index).explain_exact(
+            explanation = ArtifactResolver(self.index).explain_compatible(
                 ArtifactType.SCORE, recipe
             )
             if explanation.hit and explanation.exact_candidate is not None:

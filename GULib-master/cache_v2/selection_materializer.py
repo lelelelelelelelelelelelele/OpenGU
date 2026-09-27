@@ -114,8 +114,7 @@ def build_selection_recipe(
                 "source_score_artifact_id must identify a Score Artifact"
             )
         fields["source_score_artifact_id"] = source_score
-    from .computation_identity import effective_fields
-    return ArtifactRecipe(effective_fields(fields))
+    return ArtifactRecipe(fields)
 
 
 @dataclass(frozen=True)
@@ -177,8 +176,7 @@ class SelectionArtifactRequest:
         )
         if not isinstance(fields.get("selector_parameters"), Mapping):
             raise ContractValidationError("Recipe selector_parameters must be a mapping")
-        from cache_v2.computation_identity import effective_fields
-        if effective_fields(fields).get("producer_version") != effective_fields({"producer_version": producer})["producer_version"]:
+        if fields.get("producer_version") != producer:
             raise ContractValidationError(
                 "Recipe producer_version does not match Artifact producer_version"
             )
@@ -247,7 +245,7 @@ def resolve_selection_artifact(
         return SelectionResolution(False, None, ("store_not_initialized",))
     index = CacheIndex(index_path)
     index.check_schema()
-    explanation = ArtifactResolver(index).explain_exact(
+    explanation = ArtifactResolver(index).explain_compatible(
         ArtifactType.SELECTION, request.recipe
     )
     if explanation.hit and explanation.exact_candidate is not None:
@@ -406,12 +404,11 @@ def _covering_recipe_from_record(
         normalized_fields,
         "indexed Selection Recipe",
     )
-    from .computation_identity import computation_recipe, stored_recipe
+    from .source_compatibility import recipe_candidates, stored_recipe
     wrapper = _decode_exact_mapping(normalized_recipe, "covering Recipe")
     normalized = ArtifactRecipe(wrapper["fields"], recipe_version=wrapper["recipe_version"])
-    if computation_recipe(normalized) != computation_recipe(request.recipe):
+    if not any(normalized == candidate for candidate in recipe_candidates(ArtifactType.SELECTION, request.recipe)):
         return None
-
     recipe = stored_recipe(record)
     if recipe.recipe_hash != record.get("recipe_hash"):
         raise CacheResolutionError(

@@ -95,16 +95,17 @@ def prepare_graphrevoker_ensemble(instance, data, checkpoint_root):
     from utils.target_checkpoint import data_identity, load_cached_weights, save_cached_weights, capture_state
     from experiments.modular_model import create_model, train_supervised, numerical_environment
     from experiments.modular_shards import ShardEnsemble, train_shard
-    from experiments.implementation_identity import implementation_fingerprint, model_functions
+    from experiments.implementation_identity import implementation_fingerprint, model_functions, model_factory_fingerprint
     from unlearning.unlearning_methods.GraphRevoker.lib_partition.partition_gpa import Partitioner
     from attack.cache_identity import seeded_execution
     encoder = create_model(instance['model'], 'graphrevoker', data, data.x.device)
     metadata = {'format': 'ensemble-state-dict-v1', 'method': 'GraphRevoker', 'data_identity': data_identity(data),
         'model': instance['model'], 'training': instance['training'], 'parameters': instance['parameters'],
         'numerics': numerical_environment(data),
-        'implementation': implementation_fingerprint(initial_graphrevoker_ensemble,
+        'implementation': canonical_sha256({'factory': model_factory_fingerprint(instance['model']),
+            'computation': implementation_fingerprint(initial_graphrevoker_ensemble,
             *graphrevoker_implementation_functions(), ShardEnsemble, train_shard,
-            create_model, train_supervised, *model_functions(encoder))}
+            train_supervised, *model_functions(encoder))})}
     from utils.target_checkpoint import resolve_cached_weights
     path = resolve_cached_weights(checkpoint_root, metadata, 'graphrevoker-')
     hit = path.exists()

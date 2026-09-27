@@ -53,5 +53,4 @@ def build_recipe(*, name, computations, parameters, model_config=None, training=
             fields['final_state_hash'] = state_hash(c.final_state)
     if uses_target(name):
         fields['target_ids_hash'] = ids_hash(c.targets)
-    from cache_v2.computation_identity import effective_fields
-    return ArtifactRecipe(effective_fields(fields)), producer
+    return ArtifactRecipe(fields), producer

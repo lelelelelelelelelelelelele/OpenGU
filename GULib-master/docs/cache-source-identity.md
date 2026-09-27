@@ -1,59 +1,88 @@
 # Cache source identity and generation provenance
 
-Ordinary experiment cache matching excludes only the source-code member of the
-Recipe's top-level `producer` / `producer_version` mapping. The mapping retains
-its existing semantic version. New ordinary requests store `source_fingerprint:
-null` in the Recipe; the Artifact header still records the real producer source.
-No manual computation version or per-experiment reuse permission is introduced.
+Every cache position retains its real source fingerprint. Source-only reuse is
+explicitly registered in [one JSON file](../cache_v2/source_compatibility.json).
+The [candidate helper](../cache_v2/source_compatibility.py) supplies ordered source
+candidates; each storage layer retains its full identity and integrity checks.
 
-| Field | Effective matching | Preserved evidence |
-|---|---|---|
-| `producer[_version].source_fingerprint` | Excluded | Original header; generation and consumption producer in run cell |
-| Existing producer semantic version | Included | Recipe and header |
-| Checkpoint `implementation`, `trajectory_implementation` | Excluded | Unmodified checkpoint metadata; generation/consumption metadata |
-| Dataset, graph, split and candidate hashes | Included | Original Recipe and payload validation |
-| Parameters, Selection references and content hashes | Included | Original dependency checks |
-| Actual checkpoint / ensemble state hash | Included | Verified tensor state |
+## Lookup and maintenance
 
-Historical Recipe bytes, hash, Artifact ID, header and payload are never rewritten.
-The resolver builds a process-local effective-input projection from index rows,
-invalidated when the SQLite database or WAL changes. It reads no payload directory
-to find candidates and persists no alias index or migrated identity. The selected
-candidate is then verified against its original Recipe, header, payload hash and
-dependencies. Downstream references retain that original Artifact's Recipe hash.
+- Each group declares a stable `cache_scope`, `producer`, optional `applies_to`
+  conditions, ordered `fingerprints`, a reason and evidence references. A scope is
+  a cache purpose, never a disk path, function name, run or individual cache file.
+- Artifact scopes use existing type names (`prediction`, `score`, `selection`,
+  etc.). Producers are the GU method, Selector name, or the existing semantic
+  version for other formal Artifacts. Conditions retain semantic version and,
+  where needed, the exact model configuration.
+- Checkpoint scopes are `training_checkpoint`, `ensemble_checkpoint`, and
+  `selector_trajectory`. GraphRevoker upper and lower caches are separate groups.
+  Selector training, trajectory, Score and Selection each retain their identity.
+- An unregistered position or unknown current source yields only the current
+  source. No null fingerprint, automatic grouping or speculative history entry.
+- Query the current complete Recipe or deterministic checkpoint path first.
+  Only after a clean MISS, try other members of directly applicable groups in
+  file/member order, deduplicated. The current source must itself belong to each
+  group used; there is no transitive expansion or unique-group requirement.
+- Multiple source fields are stored as complete reviewed combinations; never
+  take their Cartesian product. All non-source fields remain unchanged.
+- Stop at the first valid HIT. Do not compare payloads across different Recipes.
+  Invalid, unverified, corrupt or natively conflicting candidates retain existing
+  fail-closed behavior; they are not converted into clean MISSes.
+- The registry loads once per process, on the first lookup needing historical
+  candidates. Restart the consumer after changing it. `explain_exact` remains
+  exact; `explain_compatible` performs the ordered source queries.
 
-Different content hashes under identical effective inputs fail closed, even when
-an exact historical Recipe exists. Identical bytes may reuse the earliest known
-Artifact; explicit historical references remain exact. Invalid/unverified members
-also block automatic reuse. Dependency conflicts block their consumers. A source
-fingerprint must never be used to override a content or actual ensemble-state
-conflict. Immutable provenance embedded in a payload can itself cause different
-content hashes; this is still a reported conflict, not permission to ignore hash
-validation or select one result.
+No source-compatibility path scans the Artifact index, checkpoint directory or
+trajectory payloads. No database columns, aliases, rewritten identities or cache
+migration are added. Existing explicit Selection prefix-budget coverage remains
+its separate, pre-existing feature.
 
-Training/ensemble checkpoint lookup compares the producer-owned effective
-metadata, then verifies the stored file SHA and tensor state hash. Multiple actual
-states for the same inputs block reuse. Trajectories also retain every checkpoint
-step, update learning rate and state hash. External checkpoint bytes remain exact.
+## Preserved evidence
 
-Algorithm bugs require explicit scope analysis and invalidation of affected
-Artifacts and their real descendants before re-execution. Ordinary code changes
-no longer perform that scientific/operational decision implicitly. Do not promote
-historical results to scientific validity solely because effective matching succeeds.
+Recipe, Artifact ID, header, payload, dependencies and checkpoint metadata keep
+their original values. Generation and consumption source are recorded separately.
+The actual loaded checkpoint/ensemble state continues into downstream identity;
+its hash is never substituted to force a GU HIT. Writes use the current complete
+source identity. Unknown algorithm changes remain ineligible for historical reuse.
 
-## Read-only audit
+GraphRevoker fingerprints the selected model factory branch and common setup,
+plus actual model initialization/forward, ensemble, partition and training
+implementations. Unselected Backbone branches no longer affect its upper key.
+The selected factory projection uses Python AST with normalized subscript nodes,
+so Python 3.8/3.11 representation differences do not change that component.
 
-From the active checkout, `python -B -m scripts.cache_source_audit --store
-<absolute-cache-root> --run <historical-run.json>` reports every historical cell's
-metadata-level eligibility and the original references, conflicts and reasons.
-Representative existing payloads are read through the real materialization seam
-with a producer sentinel; their hashes/mtimes and the SQLite hash are compared.
-This is engineering evidence, not a matrix run, result collection or scientific
-acceptance. It does not claim all payload bytes were read or that current model
-state was reconstructed for every historical cell.
+Observer presence permits result-cache reuse. A HIT emits no execution callbacks;
+its declared observation documents say `not_executed` / `result_cache_hit`, contain
+no new steps or measurements, and bind the actual consumed Output. An explicitly
+requested uncached run still produces fresh observations.
 
-The current project has no formal Artifact retire/unlink/GC writer. The audit is
-not that writer and never modifies Cache V2 or SQLite. Exact deletion eligibility
-requires original source, byte-level duplicate evidence, all dependency/consumer
-references, retained objects, exclusive operational ownership and an approved
-project-owned retirement operation. A timeout's timestamp window is only a lead.
+## Reviewed sources
+
+AAGU-086 registers the five affected old GU methods for the reviewed GCN model,
+and GraphRevoker ensemble checkpoints. Other positions use the same interface
+without fabricated historical members. Fingerprints are centralized in JSON.
+
+Evidence: canonical [AAGU-086 method review](../.workblock/items/AAGU-086/design/consensus.md),
+[checkpoint metadata](../.workblock/items/AAGU-086/evidence/graphrevoker-checkpoint-metadata.json),
+and the original `.syncmate/sequence-20260925-precheck/` producer/GraphRevoker
+comparisons. These local evidence paths belong to the canonical project, not a
+second copy in each code worktree. Historical `b51cf184` versus `116cc714` reviews
+identify Observer hooks and unused factory branches; current candidate changes
+restore exact identity and query/observation/provenance behavior, not algorithms.
+Only those reviewed sources are included; mere presence in an inventory is not
+an equivalence proof. Detailed actual read evidence is in the canonical Report.
+
+## Read-only audit and retirement
+
+`python -B -m scripts.cache_source_audit --store <absolute-cache-root> --run
+<historical-run.json>` checks historical cells using current measured GU sources,
+unchanged other inputs and the registered candidate chain. It reads representative
+payloads with a producer sentinel and compares bytes/mtimes and index SHA.
+This audits historical effective inputs, not a forecast of every future live
+checkpoint choice or scientific acceptance. Offline inventory enumeration is
+separate from normal source lookup.
+
+No formal Artifact retire/unlink/GC writer currently exists. The audit is not
+that writer. Cross-source content differences alone require neither deletion nor
+query blocking. Preserve raw historical differences; retire only exact confirmed
+objects through an authorized project-owned operation when available.

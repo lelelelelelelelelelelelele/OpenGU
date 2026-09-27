@@ -1,0 +1,172 @@
+{
+  "groups": [
+    {
+      "cache_scope": "prediction",
+      "producer": "GNNDelete",
+      "applies_to": {
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "dropout": 0.5,
+          "hidden_channels": 64,
+          "layers": 2
+        },
+        "semantic_version": "opengu-independent-node-output-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "05197336573d7298a1df86ab51697c997a9501c9e2ad8336e40747a565ba637b"
+        },
+        {
+          "source_fingerprint": "b7eecaea7a0f76a6a25d39aed8e923234bf7ffa53a74bc5fb9eee8928aa7ece8"
+        },
+        {
+          "source_fingerprint": "8902822640d7ce40b0fe669ff487b802836430ccf8c72cec88ba269b80f11cb2"
+        }
+      ],
+      "reason": "Reviewed Observer/provenance/query-only changes and unused factory branches; calculation and all non-source Recipe fields remain unchanged.",
+      "evidence": [
+        "docs/cache-source-identity.md#reviewed-sources"
+      ]
+    },
+    {
+      "cache_scope": "prediction",
+      "producer": "MEGU",
+      "applies_to": {
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "dropout": 0.5,
+          "hidden_channels": 64,
+          "layers": 2
+        },
+        "semantic_version": "opengu-independent-node-output-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "63e44f26151a8f67debf3508f19cc8a61aa72ba2a0dea97fc19f32bf879c7739"
+        },
+        {
+          "source_fingerprint": "40b807199472b49fc038cd1829b09d5868c6e3dee22c17f02422c3a097ade318"
+        },
+        {
+          "source_fingerprint": "e9c471dca40448fd081c9ed1cf2631608a240e68ea83ed0bd6a06341937bdd3c"
+        }
+      ],
+      "reason": "Reviewed Observer/provenance/query-only changes and unused factory branches; calculation and all non-source Recipe fields remain unchanged.",
+      "evidence": [
+        "docs/cache-source-identity.md#reviewed-sources"
+      ]
+    },
+    {
+      "cache_scope": "prediction",
+      "producer": "GraphEraser",
+      "applies_to": {
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "dropout": 0.5,
+          "hidden_channels": 64,
+          "layers": 2
+        },
+        "semantic_version": "opengu-independent-grapheraser-output-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "77c3e515a11778eb6084c15c97367b12f295794b19f11121ac57772990350037"
+        },
+        {
+          "source_fingerprint": "fd8563efe39f5be47966f2969828685ce5cf228e6bb7f5bcfa80e551deb964e5"
+        },
+        {
+          "source_fingerprint": "112176d596f8b929d0f4bce628effcc0c852cefe9b74286e66f0fdd14029322d"
+        }
+      ],
+      "reason": "Reviewed Observer/provenance/query-only changes and unused factory branches; calculation and all non-source Recipe fields remain unchanged.",
+      "evidence": [
+        "docs/cache-source-identity.md#reviewed-sources"
+      ]
+    },
+    {
+      "cache_scope": "prediction",
+      "producer": "Retrain",
+      "applies_to": {
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "dropout": 0.5,
+          "hidden_channels": 64,
+          "layers": 2
+        },
+        "semantic_version": "opengu-independent-node-output-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "3142c46d6b309a8369b89fbfc900b0bea1b5fb28cfa2701932a38306e879c7b6"
+        },
+        {
+          "source_fingerprint": "35a667b7c7fd26031b416b8e18f78b8fb337b9aeaf7f1e5acb407b4d6f215974"
+        },
+        {
+          "source_fingerprint": "31e847b58a5d6ab4aea6bb542b9a3765191b27ccd7344f65d45312e1dc2f07f0"
+        }
+      ],
+      "reason": "Reviewed Observer/provenance/query-only changes and unused factory branches; calculation and all non-source Recipe fields remain unchanged.",
+      "evidence": [
+        "docs/cache-source-identity.md#reviewed-sources"
+      ]
+    },
+    {
+      "cache_scope": "prediction",
+      "producer": "GraphRevoker",
+      "applies_to": {
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "dropout": 0.5,
+          "hidden_channels": 64,
+          "layers": 2
+        },
+        "semantic_version": "opengu-independent-graphrevoker-output-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "05a91246530a1a8225fead817a7e501ba5464476bb955f948b519de640c7020d"
+        },
+        {
+          "source_fingerprint": "5a46efdfe4236c41e52de03f39336477adf1a6341e949cd408179bf30d9d12a8"
+        },
+        {
+          "source_fingerprint": "7398f295ca630567f7a60b81c5b8bad7162bb084df7fe420975be310ddd13680"
+        }
+      ],
+      "reason": "Reviewed Observer/provenance/query-only changes and unused factory branches; calculation and all non-source Recipe fields remain unchanged.",
+      "evidence": [
+        "docs/cache-source-identity.md#reviewed-sources"
+      ]
+    },
+    {
+      "cache_scope": "ensemble_checkpoint",
+      "producer": "GraphRevoker",
+      "applies_to": {
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "dropout": 0.5,
+          "hidden_channels": 64,
+          "layers": 2
+        },
+        "format": "ensemble-state-dict-v1"
+      },
+      "fingerprints": [
+        {
+          "implementation": "4c5134fb21d609a49069cf0f1452925cf5d340662a594e0a5cb29f35456bb5f6"
+        },
+        {
+          "implementation": "89674b513345f0ae88b92fa1d01aff0e0d077fdd3f0dd6d7ab126fd7831b5b51"
+        },
+        {
+          "implementation": "f93b25d60eb2d4806df392802c8764e3f352159e16ff1e7ef87be5a2cd039d0f"
+        }
+      ],
+      "reason": "Selected GCN initialization and ensemble computation retained; unused factory branches excluded.",
+      "evidence": [
+        "docs/cache-source-identity.md#reviewed-sources"
+      ]
+    }
+  ]
+}

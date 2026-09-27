@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 import yaml
+import pytest
 
 from test_modular_consumers import tables, write_yaml
 from test_syncmate_execution_contract import workspace, cli, commit, declaration
@@ -11,7 +12,8 @@ from opengu_adapter import OpenGUProjectExtension
 from syncmate_core import context
 
 
-def test_observer_cli_collect_verify_and_accept(workspace, record_property):
+@pytest.mark.parametrize('cache_hit', [False, True])
+def test_observer_cli_collect_verify_and_accept(workspace, record_property, cache_hit):
     runner, path, config = workspace
     gu = yaml.safe_load((runner/'gu.yaml').read_text())
     gu.update(method='GIF', parameters={'iteration': 2, 'scale': 100, 'damp': .1})
@@ -22,6 +24,13 @@ def test_observer_cli_collect_verify_and_accept(workspace, record_property):
         seeds=[42], budget_ratios=[.1], execution={'gu_cache': {'GIF': 'disabled', 'IDEA': 'disabled', 'Retrain': 'reuse'}},
         observers=[dict(name=name, methods=['GIF', 'IDEA']) for name in ('linear_solver_trace', 'same_graph_change')] +
         [dict(name='hessian_calibration', methods=['GIF', 'IDEA'], parameters={'lanczos_steps': 3})])
+    if cache_hit:
+        plain = dict(config, observers=[], execution={'gu_cache': {'GIF': 'reuse', 'IDEA': 'reuse', 'Retrain': 'reuse'}})
+        write_yaml(path, plain)
+        commit(runner)
+        cold = cli(runner, path, 'cold')
+        assert cold.returncode == 0, cold.stdout + cold.stderr
+        config['execution'] = plain['execution']
     write_yaml(path, config)
     sha = commit(runner)
     definition = declaration(runner, path, 'unlearning')

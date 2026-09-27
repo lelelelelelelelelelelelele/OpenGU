@@ -43,8 +43,6 @@ def validate_capabilities(method, specs, cache_policy):
         for event, required in OBSERVERS[spec['name']].requires.items():
             if not required <= CAPABILITIES.get(method, {}).get(event, set()):
                 raise ConfigurationError(f'{method} does not provide {event} fields required by {spec["name"]}')
-        if cache_policy != 'disabled':
-            raise ConfigurationError('Observer coverage requires execution.gu_cache disabled: ' + method)
 
 
 def observer_specs(config, method):
@@ -82,7 +80,10 @@ class ObserverSession:
             # Scalar extraction synchronizes CUDA; count all observer compute here.
             self.seconds += time.perf_counter() - started
 
-    def finish(self, error=None):
+    def finish(self, error=None, cache_hit=False):
+        if cache_hit:
+            if error is not None or self.events:
+                raise ValueError('cache-hit Observer must not contain execution events')
         from experiments.implementation_identity import implementation_fingerprint
         references = self.references
         save_errors = []
@@ -91,9 +92,11 @@ class ObserverSession:
             folder.mkdir(parents=True, exist_ok=False)
             metadata = dict(identity=self.identity, name=spec['name'], semantic_version=observer.version,
                 implementation=implementation_fingerprint(type(observer)), parameters=spec['parameters'],
-                status='failed' if error else 'completed', error=str(error)[:1000] if error else None,
+                status='failed' if error else 'not_executed' if cache_hit else 'completed', error=str(error)[:1000] if error else None,
                 observer_seconds=self.seconds, timing='total callbacks; scalar CPU extraction synchronizes CUDA',
                 events=self.events)
+            if cache_hit:
+                metadata['reason'] = 'result_cache_hit'
             try:
                 observer.save(folder, metadata)
             except BaseException as exc:
@@ -104,7 +107,9 @@ class ObserverSession:
             references.append(dict(name=spec['name'], semantic_version=observer.version,
                 status=metadata['status'], error=metadata['error'], identity=self.identity,
                 parameters=spec['parameters'], implementation=metadata['implementation'], files=files))
-            if metadata['status'] == 'completed' and len(files) != len(observer.files):
+            if cache_hit:
+                references[-1]['reason'] = 'result_cache_hit'
+            if metadata['status'] in ('completed', 'not_executed') and len(files) != len(observer.files):
                 references[-1]['status'] = 'failed'
                 save_errors.append(ValueError('Observer did not save all declared files'))
         if save_errors:

@@ -64,13 +64,10 @@ class FormalArtifactRequest:
             raise ContractValidationError(
                 "producer_version must identify its producer"
             )
-        from cache_v2.computation_identity import effective_fields
-        if effective_fields(self.recipe.fields).get("producer_version") != effective_fields({"producer_version": self.producer_version.to_dict()})["producer_version"]:
+        if self.recipe.fields.get("producer_version") != self.producer_version.to_dict():
             raise ContractValidationError(
                 "Recipe producer_version does not match Artifact producer_version"
             )
-        from cache_v2.computation_identity import computation_recipe
-        object.__setattr__(self, "recipe", computation_recipe(self.recipe))
         payload_type_for(artifact_type)
         object.__setattr__(self, "artifact_type", artifact_type)
 
@@ -102,7 +99,7 @@ def resolve_formal_artifact(
         return None
     index = CacheIndex(index_path)
     index.check_schema()
-    explanation = ArtifactResolver(index).explain_exact(
+    explanation = ArtifactResolver(index).explain_compatible(
         request.artifact_type, request.recipe
     )
     if explanation.hit and explanation.exact_candidate is not None:

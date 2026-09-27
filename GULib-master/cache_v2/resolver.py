@@ -73,6 +73,18 @@ class ArtifactResolver:
         self.index = index
         self.resolutions = ConflictResolutionLedger(index)
 
+    def explain_compatible(self, artifact_type, recipe):
+        from .source_compatibility import recipe_candidates
+        value = recipe if isinstance(recipe, ArtifactRecipe) else ArtifactRecipe(recipe)
+        first = None
+        for candidate in recipe_candidates(artifact_type, value):
+            result = self.explain_exact(artifact_type, candidate)
+            if first is None:
+                first = result
+            if result.hit or result.miss_reasons != ("no_exact_candidate",):
+                return result
+        return first
+
     def explain_exact(
         self,
         artifact_type: Union[ArtifactType, str],
@@ -82,12 +94,10 @@ class ArtifactResolver:
         recipe_value = (
             recipe if isinstance(recipe, ArtifactRecipe) else ArtifactRecipe(recipe)
         )
-        from .computation_identity import matching_records
-        candidates = matching_records(self.index, type_value, recipe_value)
-        candidate = next((row for row in candidates if row["recipe_hash"] == recipe_value.recipe_hash),
-                         candidates[0] if candidates else None)
-        all_conflicts = [conflict for digest in {recipe_value.recipe_hash, *[r["recipe_hash"] for r in candidates]}
-                         for conflict in self.index.conflicts(artifact_type=type_value, recipe_hash=digest)]
+        candidate = self.index.find_artifact(type_value, recipe_value.recipe_hash)
+        all_conflicts: List[Dict[str, Any]] = self.index.conflicts(
+            artifact_type=type_value, recipe_hash=recipe_value.recipe_hash
+        )
         resolved_conflicts, conflicts = self.resolutions.classify(all_conflicts)
         legacy_candidates: List[Dict[str, Any]] = self.index.legacy_sources(
             artifact_type=type_value, recipe_hash=recipe_value.recipe_hash
@@ -140,12 +150,6 @@ class ArtifactResolver:
         # A conflicting content observation never becomes a second formal
         # Artifact, but its existence makes the Recipe unsafe to resolve
         # automatically. Keep the original row unchanged and fail closed.
-        if len({r["content_hash"] for r in candidates}) > 1:
-            miss_reasons.append("effective_input_content_conflict")
-            hit = False
-        if any(r["status"] != "valid" or r["verification_status"] != "verified" for r in candidates):
-            miss_reasons.append("effective_candidate_not_valid_verified")
-            hit = False
         if conflicts:
             miss_reasons.append("recipe_conflict_present")
             hit = False
@@ -204,14 +208,10 @@ class ArtifactResolver:
                     reasons.append(
                         "verification_{0}".format(parent_verification.value)
                     )
-                from .computation_identity import matching_records, stored_recipe
-                equivalent = matching_records(self.index, parent["artifact_type"], stored_recipe(parent))
-                if len({row["content_hash"] for row in equivalent}) > 1:
-                    reasons.append("effective_input_content_conflict")
-                if any(row["status"] != "valid" or row["verification_status"] != "verified" for row in equivalent):
-                    reasons.append("effective_candidate_not_valid_verified")
-                parent_conflicts_all = [conflict for row in equivalent
-                    for conflict in self.index.conflicts(artifact_type=parent["artifact_type"], recipe_hash=row["recipe_hash"])]
+                parent_conflicts_all = self.index.conflicts(
+                    artifact_type=parent["artifact_type"],
+                    recipe_hash=parent["recipe_hash"],
+                )
                 _, parent_conflicts = self.resolutions.classify(parent_conflicts_all)
                 if parent_conflicts:
                     reasons.append("conflict_present")

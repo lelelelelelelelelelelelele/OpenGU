@@ -63,8 +63,7 @@ def test_capabilities_and_cache_fail_closed():
     spec = {'name': 'linear_solver_trace', 'parameters': {}}
     with pytest.raises(ValueError, match='does not provide'):
         validate_capabilities('Retrain', [spec], 'disabled')
-    with pytest.raises(ValueError, match='requires'):
-        validate_capabilities('GIF', [spec], 'reuse')
+    validate_capabilities('GIF', [spec], 'reuse')
 
 
 @pytest.mark.parametrize('method', ['GIF', 'IDEA'])
@@ -264,3 +263,27 @@ def test_calibration_preserves_rng_gradients_and_mode(tables):
     assert not model.training and all(torch.equal(p.grad, torch.ones_like(p)) for p in params)
     assert all(torch.equal(state[k], value) for k, value in model.state_dict().items())
     assert torch.isfinite(matvec(torch.ones(sum(sizes)))).all()
+
+
+def test_result_hit_with_observers_has_no_execution_trace(tables, monkeypatch):
+    from experiments.modular_artifacts import read_run
+    import experiments.modular_gu as gu_module
+    root, _, gu = tables
+    gu.update(method='GIF', parameters={'iteration': 2, 'scale': 100, 'damp': .1})
+    write_yaml(root/'method.yaml', gu)
+    opts = dict(stage='unlearning', selector_refs=['degree.yaml'], unlearning_refs=['method.yaml'])
+    cold = run(tables, 'observer_cache_cold', **opts)
+    observed = run(tables, 'observer_cache_hit', **opts,
+        observers=[dict(name=name, methods=['GIF']) for name in ('linear_solver_trace', 'same_graph_change', 'hessian_calibration')])
+    row = observed['unlearning'][0]
+    assert row['hit'] and not row['producer_called']
+    assert row['output'] == cold['unlearning'][0]['output']
+    paths = list(root.rglob('run.json'))
+    path = next(p for p in paths if json.loads(p.read_text())['run_id'] == 'observer_cache_hit')
+    document, _ = read_run(path, hashlib.sha256(path.read_bytes()).hexdigest())
+    assert all(ref['status'] == 'not_executed' for ref in document['cells'][0]['observers'])
+    for p in path.parent.rglob('trace.jsonl'):
+        assert p.read_bytes() == b''
+    for p in path.parent.rglob('result.json'):
+        value = json.loads(p.read_text())
+        assert value['events'] == [] and value['reason'] == 'result_cache_hit'

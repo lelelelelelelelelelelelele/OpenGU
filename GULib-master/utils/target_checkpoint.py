@@ -131,8 +131,9 @@ def save_cached_weights(path, state, metadata):
 
 def load_cached_weights(path, metadata, model=None):
     record = json.loads(Path(path).with_suffix('.json').read_text(encoding='utf-8'))
-    from cache_v2.computation_identity import checkpoint_inputs
-    if checkpoint_inputs(record['metadata']) != checkpoint_inputs(metadata):
+    from cache_v2.source_compatibility import checkpoint_candidates
+    scope = 'ensemble_checkpoint' if 'method' in metadata else 'training_checkpoint'
+    if not any(record['metadata'] == candidate for candidate in checkpoint_candidates(metadata, scope)):
         raise TargetCheckpointError('cached weight metadata mismatch')
     loaded = load_weights(path, model)
     if any(record[key] != loaded[key] for key in ('file_sha256', 'state_hash')):
@@ -143,21 +144,15 @@ def load_cached_weights(path, metadata, model=None):
 
 
 def resolve_cached_weights(root, metadata, prefix=''):
-    """Select immutable weights by inputs; differing actual states fail closed."""
-    from cache_v2.computation_identity import checkpoint_inputs
+    """Current deterministic path first, then registered source paths; never scan."""
+    from cache_v2.source_compatibility import checkpoint_candidates
     from cache_v2 import canonical_sha256
     root = Path(root)
-    effective = checkpoint_inputs(metadata)
-    matches = []
-    for sidecar in root.glob(prefix + '*.json'):
-        record = json.loads(sidecar.read_text(encoding='utf-8'))
-        if checkpoint_inputs(record['metadata']) == effective:
-            path = sidecar.with_suffix('.pt')
-            loaded = load_cached_weights(path, metadata)
-            matches.append((path, loaded['state_hash']))
-    if len({digest for _, digest in matches}) > 1:
-        raise TargetCheckpointError('effective checkpoint inputs have conflicting states: ' +
-                                    ', '.join(str(path) for path, _ in matches))
-    if matches:
-        return min((path for path, _ in matches), key=lambda path: (path.stat().st_mtime_ns, str(path)))
-    return root / (prefix + canonical_sha256(effective) + '.pt')
+    scope = 'ensemble_checkpoint' if 'method' in metadata else 'training_checkpoint'
+    current_path = root / (prefix + canonical_sha256(metadata) + '.pt')
+    for candidate in checkpoint_candidates(metadata, scope):
+        path = root / (prefix + canonical_sha256(candidate) + '.pt')
+        if path.exists() or path.with_suffix('.json').exists():
+            load_cached_weights(path, candidate)
+            return path
+    return current_path

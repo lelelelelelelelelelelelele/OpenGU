@@ -113,6 +113,5 @@ class UnlearningOutputPayload:
         return result
 
     def validate_against(self, recipe):
-        from .computation_identity import effective_fields
-        if effective_fields(recipe.fields) != effective_fields({'artifact_contract': OUTPUT_CONTRACT, **self.identity}):
+        if recipe.fields != {'artifact_contract': OUTPUT_CONTRACT, **self.identity}:
             raise ArtifactIntegrityError('unlearning output identity differs from Recipe')

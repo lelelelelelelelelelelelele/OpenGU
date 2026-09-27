@@ -66,3 +66,35 @@ def model_functions(model):
     if hasattr(model, 'load_config'):
         functions.append(type(model).load_config)
     return functions
+
+
+def model_factory_fingerprint(model_config):
+    """Hash common initialization plus only the selected factory branch."""
+    from experiments.modular_model import create_model, runtime_defaults
+    tree = ast.parse(computation_source(create_model))
+    function = tree.body[0]
+    for i, node in enumerate(function.body):
+        if not isinstance(node, ast.If):
+            continue
+        branch = node
+        while isinstance(branch, ast.If):
+            test = branch.test
+            if (not isinstance(test, ast.Compare) or not isinstance(test.left, ast.Subscript)
+                    or ast.literal_eval(test.left.slice.value if isinstance(test.left.slice, ast.Index) else test.left.slice) != 'architecture'
+                    or len(test.comparators) != 1 or not isinstance(test.ops[0], ast.Eq)):
+                raise ValueError('unrecognized model factory branch')
+            if ast.literal_eval(test.comparators[0]) == model_config['architecture']:
+                function.body[i:i + 1] = branch.body
+                break
+            branch = branch.orelse[0] if len(branch.orelse) == 1 else None
+        else:
+            raise ValueError('model architecture has no factory branch')
+        break
+    else:
+        raise ValueError('model factory has no architecture dispatch')
+    class NormalizeSlice(ast.NodeTransformer):
+        def visit_Index(self, node):
+            return self.visit(node.value)
+    tree = NormalizeSlice().visit(tree)
+    return hashlib.sha256((ast.dump(tree, include_attributes=False) +
+        implementation_fingerprint(runtime_defaults)).encode()).hexdigest()

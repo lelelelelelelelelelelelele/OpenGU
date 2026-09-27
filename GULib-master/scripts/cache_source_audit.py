@@ -1,4 +1,4 @@
-"""Read-only historical-cell audit for source-independent Cache V2 lookup.
+"""Read-only historical-cell audit for registered source-compatible Cache V2 lookup.
 
 Run in the active checkout against existing assets. Never computes, repairs,
 retires or writes cache/index/run files. JSON output is an inspection artifact.
@@ -10,7 +10,7 @@ import hashlib
 import json
 from pathlib import Path
 from cache_v2 import ArtifactRecipe, ArtifactResolver, ArtifactType, CacheIndex, ProducerVersion
-from cache_v2.computation_identity import stored_recipe, matching_records
+from cache_v2.source_compatibility import stored_recipe
 from cache_v2.runtime import _decode_exact_mapping
 from experiments.artifact_producer import FormalArtifactRequest, materialize_formal_artifact
 
@@ -24,6 +24,7 @@ def audit(store_root, run_path):
     before = hashlib.sha256(index.database_path.read_bytes()).hexdigest()
     resolver = ArtifactResolver(index)
     rows, samples, sampled = [], [], set()
+    producers = {}
     for cell in run['cells']:
         reference = cell.get('output', {})
         row = {'cell_id': cell['cell_id'], 'conditions': cell['conditions'], 'historical_output': reference}
@@ -33,12 +34,16 @@ def audit(store_root, run_path):
                 raise ValueError('historical output reference differs from index')
             recipe = stored_recipe(record)
             fields = recipe.fields
-            producer = ProducerVersion(**{**fields['producer_version'], 'source_fingerprint': 'aagu086-read-only-consumer-probe'})
+            from experiments.modular_gu import gu_producer
+            key = (fields['target']['method'], json.dumps(fields['pairing']['model'], sort_keys=True))
+            if key not in producers:
+                producers[key] = gu_producer(fields['target']['method'], fields['pairing']['model'])
+            producer = producers[key]
             fields['producer_version'] = producer.to_dict()
             request = FormalArtifactRequest(ArtifactType.PREDICTION, ArtifactRecipe(fields), producer)
-            resolved = resolver.explain_exact(ArtifactType.PREDICTION, request.recipe)
-            candidates = matching_records(index, ArtifactType.PREDICTION, request.recipe)
-            row.update(status='reusable' if resolved.hit else 'conflict' if any('conflict' in r for r in resolved.miss_reasons) else 'invalid',
+            resolved = resolver.explain_compatible(ArtifactType.PREDICTION, request.recipe)
+            candidates = [resolved.exact_candidate] if resolved.exact_candidate else []
+            row.update(status='reusable' if resolved.hit else 'conflict' if any('conflict' in r for r in resolved.miss_reasons) else 'missing' if resolved.miss_reasons == ('no_exact_candidate',) else 'invalid',
                        reasons=list(resolved.miss_reasons), candidates=[
                            {key: r[key] for key in ('artifact_id', 'recipe_hash', 'content_hash', 'created_at', 'status')} for r in candidates])
             method = cell['conditions']['method']

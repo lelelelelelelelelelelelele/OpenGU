@@ -86,8 +86,7 @@ class FormalArtifactStore(ArtifactStore):
     def _validate_recipe_producer(self, recipe: ArtifactRecipe) -> None:
         if not isinstance(recipe, ArtifactRecipe):
             raise ContractValidationError("recipe must be ArtifactRecipe")
-        from cache_v2.computation_identity import effective_fields
-        if effective_fields(recipe.fields).get("producer_version") != effective_fields({"producer_version": self.producer_version.to_dict()})["producer_version"]:
+        if recipe.fields.get("producer_version") != self.producer_version.to_dict():
             raise ContractValidationError(
                 "Recipe producer_version does not match ArtifactStore producer_version"
             )
@@ -648,12 +647,8 @@ class FormalArtifactStore(ArtifactStore):
         artifact_type: ArtifactType,
         miss_reasons: Tuple[str, ...] = (),
     ) -> FormalStoreResult:
-        from cache_v2.computation_identity import stored_recipe
-        recipe = stored_recipe(candidate, recipe)
-        from cache_v2.computation_identity import matching_records
-        for equivalent in matching_records(self.index, artifact_type, recipe):
-            original = stored_recipe(equivalent)
-            self._assert_typed_no_conflict_marker(artifact_type, original.recipe_hash)
+        from cache_v2.source_compatibility import stored_recipe
+        recipe = stored_recipe(candidate, recipe, artifact_type)
         self._assert_typed_no_conflict_marker(artifact_type, recipe.recipe_hash)
         type_value = self._formal_type(artifact_type)
         payload_class = payload_type_for(type_value, recipe)
@@ -969,7 +964,7 @@ class FormalArtifactStore(ArtifactStore):
             self._assert_typed_no_conflict_marker(
                 artifact_type, recipe.recipe_hash
             )
-            explanation = ArtifactResolver(self.index).explain_exact(
+            explanation = ArtifactResolver(self.index).explain_compatible(
                 artifact_type, recipe
             )
             if (
@@ -1015,7 +1010,7 @@ class FormalArtifactStore(ArtifactStore):
         type_value = self._formal_type(artifact_type)
         self._validate_recipe_producer(recipe)
         self._assert_typed_no_conflict_marker(type_value, recipe.recipe_hash)
-        before = ArtifactResolver(self.index).explain_exact(type_value, recipe)
+        before = ArtifactResolver(self.index).explain_compatible(type_value, recipe)
         if not before.hit or before.exact_candidate is None:
             raise CacheResolutionError(
                 "exact {0} Artifact is not resolvable: {1}".format(
@@ -1035,7 +1030,7 @@ class FormalArtifactStore(ArtifactStore):
             miss_reasons=before.miss_reasons,
         )
         self._assert_typed_no_conflict_marker(type_value, recipe.recipe_hash)
-        after = ArtifactResolver(self.index).explain_exact(type_value, recipe)
+        after = ArtifactResolver(self.index).explain_compatible(type_value, recipe)
         if (
             not after.hit
             or after.exact_candidate is None
