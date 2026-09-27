@@ -210,3 +210,22 @@ def test_invalid_current_candidate_does_not_fall_through_to_valid_history(tmp_pa
         [{'source_fingerprint': PREDICTION_VERSION.source_fingerprint}, {'source_fingerprint': current.source_fingerprint}])
     with pytest.raises(CacheResolutionError, match='status_invalid'):
         materialize_formal_artifact(tmp_path, FormalArtifactRequest(ArtifactType.PREDICTION, request, current), fail_producer)
+
+
+def test_factory_fingerprint_ignores_optional_ast_representation(monkeypatch):
+    import ast
+    import experiments.implementation_identity as identity
+    model = {'architecture': 'OpenGU.GCNNet'}
+    original_parse = ast.parse
+    expected = identity.model_factory_fingerprint(model)
+    def omit_optional(*args, **kwargs):
+        tree = original_parse(*args, **kwargs)
+        for node in ast.walk(tree):
+            node._fields = tuple(name for name in node._fields
+                if getattr(node, name, None) is not None or name == 'value')
+            if isinstance(node, ast.FunctionDef):
+                node._fields += ('type_params',)
+                node.type_params = []
+        return tree
+    monkeypatch.setattr(ast, 'parse', omit_optional)
+    assert identity.model_factory_fingerprint(model) == expected

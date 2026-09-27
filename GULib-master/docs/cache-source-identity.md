@@ -48,8 +48,10 @@ source identity. Unknown algorithm changes remain ineligible for historical reus
 GraphRevoker fingerprints the selected model factory branch and common setup,
 plus actual model initialization/forward, ensemble, partition and training
 implementations. Unselected Backbone branches no longer affect its upper key.
-The selected factory projection uses Python AST with normalized subscript nodes,
-so Python 3.8/3.11 representation differences do not change that component.
+The selected factory projection uses structured Python AST with normalized
+subscript nodes and optional fields; it does not hash the runtime-specific
+`ast.dump` rendering. Python 3.8/3.10 representation differences therefore do
+not change that component.
 
 Observer presence permits result-cache reuse. A HIT emits no execution callbacks;
 its declared observation documents say `not_executed` / `result_cache_hit`, contain

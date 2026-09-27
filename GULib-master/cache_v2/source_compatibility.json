@@ -160,7 +160,7 @@
           "implementation": "89674b513345f0ae88b92fa1d01aff0e0d077fdd3f0dd6d7ab126fd7831b5b51"
         },
         {
-          "implementation": "f93b25d60eb2d4806df392802c8764e3f352159e16ff1e7ef87be5a2cd039d0f"
+          "implementation": "e4d5310092d569bc1e20626c62662096e5413d521b465ef778ea79fc05e038dd"
         }
       ],
       "reason": "Selected GCN initialization and ensemble computation retained; unused factory branches excluded.",

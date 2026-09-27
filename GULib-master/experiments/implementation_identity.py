@@ -4,6 +4,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import inspect
+import json
 from pathlib import Path
 
 
@@ -96,5 +97,14 @@ def model_factory_fingerprint(model_config):
         def visit_Index(self, node):
             return self.visit(node.value)
     tree = NormalizeSlice().visit(tree)
-    return hashlib.sha256((ast.dump(tree, include_attributes=False) +
-        implementation_fingerprint(runtime_defaults)).encode()).hexdigest()
+    def structural(value):
+        if isinstance(value, ast.AST):
+            return [type(value).__name__, {name: structural(member)
+                for name, member in ast.iter_fields(value)
+                if (member is not None and member != []) or name == 'value'}]
+        if isinstance(value, list):
+            return [structural(member) for member in value]
+        return value
+    # ast.dump omits optional None fields on newer Python, but prints them on 3.8.
+    source = json.dumps(structural(tree), sort_keys=True, separators=(',', ':'))
+    return hashlib.sha256((source + implementation_fingerprint(runtime_defaults)).encode()).hexdigest()
