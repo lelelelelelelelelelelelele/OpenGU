@@ -177,7 +177,8 @@ def test_plan_deduplicates_im_and_structurally_skips_future_producers(
     assert fields["selector_parameters"]["mc_rounds"] == 7
     assert fields["selector_parameters"]["im_batch_size"] == 1
     assert fields["dataset_fingerprint"] == fake_producer_layer.dataset_fingerprint
-    assert fields["producer_version"] == plan.jobs[0].producer_version.to_dict()
+    assert fields["producer_version"] == {**plan.jobs[0].producer_version.to_dict(), "source_fingerprint": None}
+    assert plan.jobs[0].producer_version.source_fingerprint
     semantic_fields = {
         key: value
         for key, value in fields.items()

@@ -8,6 +8,36 @@ collected.
 It is guidance, not an automatic deletion command. Prefer plan, archive,
 verify, rerun, and recollect over silent destructive cleanup.
 
+
+## Current Cache V2 source-fingerprint repair
+
+The ResultCache/SelectionCache procedures below describe historical layers; they
+are not an executable retirement procedure for current immutable Cache V2.
+For ordinary experiments follow [source identity and provenance](../../docs/cache-source-identity.md).
+A source-only change is not an invalidation reason. Compare effective inputs,
+then retain all original Recipe/header/content/reference checks. Different actual
+GraphRevoker ensemble states remain different computations.
+
+Use `python -B -m scripts.cache_source_audit --store <absolute-cache-root> --run
+<historical-run.json>` for a zero-write inventory. Review every candidate Artifact
+ID, original source, content comparison, retained item and all consumers/children.
+Do not derive a deletion list from a job's timestamp window or count. A source-only
+Recipe match with different payload hash is a conflict until explicitly resolved;
+it is not a duplicate deletion authorization.
+
+**Formal retirement is currently blocked:** cachectl has no Artifact retire,
+consumer unlink or reference-aware GC write operation. Do not use direct SQLite
+updates, filesystem deletion or the legacy repair instructions as a substitute.
+Report the exact affected IDs and missing capability. Software acceptance and
+later deployment do not constitute a completed formal cleanup receipt. Before
+any future write, verify the active checkout/deployment boundary and shared
+occupancy, review the exact dry-run list, then use a project-owned operation with
+index/reference and out-of-scope before/after verification.
+
+Algorithm bugs still require an explicit affected computation range and real
+DAG descendants; source-independent matching is not permission to reuse invalid
+results. No full-matrix rerun or automatic failed-job recovery is part of this repair.
+
 ## Mental Model
 
 OpenGU has four different state layers that can disagree:

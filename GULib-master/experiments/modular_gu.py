@@ -212,7 +212,8 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
     from experiments.unlearning_outputs import load_output
     verified = load_output(reference, store_root, data=data, dataset_root=dataset_root)
     from experiments.output_metrics import evaluate_method
-    return {**reference, 'output': reference, 'cache_policy': gu_cache, 'hit': hit, 'producer_called': not hit,
+    return {**reference, 'output': reference, 'cache_policy': gu_cache, 'consumption_producer': producer.to_dict(),
+        'generation_producer': stored.generation_producer if stored else producer.to_dict(), 'hit': hit, 'producer_called': not hit,
             'compute_seconds': seconds, 'result': utility(verified), 'target': target,
             'evaluation': evaluate_method(reference, verified)}
 

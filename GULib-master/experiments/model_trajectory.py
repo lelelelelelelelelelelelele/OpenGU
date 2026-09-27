@@ -26,7 +26,24 @@ def prepare_trajectory(model, instance, data, checkpoint_root):
     steps = trajectory_steps(instance)
     metadata = {**training_metadata(model, instance, data), 'steps': steps,
                 'trajectory_implementation': implementation_fingerprint(trajectory_steps, prepare_trajectory)}
-    path = Path(checkpoint_root) / 'selector-trajectories' / (canonical_sha256(metadata) + '.pt')
+    from cache_v2.computation_identity import checkpoint_inputs
+    folder = Path(checkpoint_root) / 'selector-trajectories'
+    matches = []
+    for existing in folder.glob('*.pt'):
+        candidate = torch.load(existing, map_location='cpu', weights_only=True)
+        if checkpoint_inputs(candidate['metadata']) == checkpoint_inputs(metadata):
+            states = [candidate['final_state']] + [c['state'] for c in candidate['checkpoints']]
+            hashes = [state_hash(state) for state in states]
+            expected_hashes = [candidate['final_state_hash']] + [c['state_hash'] for c in candidate['checkpoints']]
+            if hashes != expected_hashes:
+                raise ValueError('corrupt selector trajectory checkpoint')
+            signature = canonical_sha256({'hashes': hashes, 'steps': [
+                (c['global_step'], c['update_lr']) for c in candidate['checkpoints']]})
+            matches.append((existing, signature))
+    if len({signature for _, signature in matches}) > 1:
+        raise ValueError('effective trajectory inputs have conflicting states')
+    path = (min((path for path, _ in matches), key=lambda path: (path.stat().st_mtime_ns, str(path)))
+            if matches else folder / (canonical_sha256(checkpoint_inputs(metadata)) + '.pt'))
     hit = path.exists()
     if not hit:
         with seeded_execution(instance['training']['seed']):
@@ -36,7 +53,7 @@ def prepare_trajectory(model, instance, data, checkpoint_root):
         with path.open('xb') as stream:
             torch.save(payload, stream)
     payload = torch.load(path, map_location='cpu', weights_only=True)
-    if payload['metadata'] != metadata or [c['global_step'] for c in payload['checkpoints']] != steps:
+    if checkpoint_inputs(payload['metadata']) != checkpoint_inputs(metadata) or [c['global_step'] for c in payload['checkpoints']] != steps:
         raise ValueError('selector trajectory identity mismatch')
     expected = model.state_dict()
     for state in [payload['final_state']] + [c['state'] for c in payload['checkpoints']]:
@@ -53,4 +70,4 @@ def prepare_trajectory(model, instance, data, checkpoint_root):
     from utils.target_checkpoint import sha256_file
     return model, payload['checkpoints'], {'path': str(path), 'file_sha256': sha256_file(path),
         'state_hash': state_hash(payload['final_state']), 'hit': hit, 'source': 'selector_trajectory',
-        'effective_identity': metadata}
+        'effective_identity': metadata, 'generation_metadata': payload['metadata'], 'consumption_metadata': metadata}

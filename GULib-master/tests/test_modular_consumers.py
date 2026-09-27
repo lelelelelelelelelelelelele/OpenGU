@@ -381,7 +381,7 @@ def degree_implementation_variant(c, p):
     return score_degree(c, p) + 1
 
 
-def test_actual_dependency_implementation_changes(tables, monkeypatch):
+def test_source_changes_require_explicit_invalidation_but_parameter_changes_miss(tables, monkeypatch):
     import experiments.target_direct_v1.methods as methods
     from model.base_gnn.gcn import GCNNet
     global ORIGINAL_REASON_ONCE
@@ -395,11 +395,11 @@ def test_actual_dependency_implementation_changes(tables, monkeypatch):
     changed = run(tables, 'gu_code_changed', **kwargs)
     assert identities(first) == identities(changed)
     assert all(x['score']['hit'] for x in changed['selectors'])
-    assert all(x['producer_called'] for x in changed['unlearning'])
-    assert all(a['recipe_hash'] != b['recipe_hash'] for a,b in zip(first['unlearning'], changed['unlearning']))
+    assert all(not x['producer_called'] for x in changed['unlearning'])
+    assert all(a['recipe_hash'] == b['recipe_hash'] for a,b in zip(first['unlearning'], changed['unlearning']))
     monkeypatch.setitem(methods.METHODS, 'degree', degree_implementation_variant)
     related = run(tables, 'selector_code_changed', selector_refs=['degree.yaml', 'b_param_hutch.yaml'])
-    assert [x['score']['hit'] for x in related['selectors']] == [False, True]
+    assert [x['score']['hit'] for x in related['selectors']] == [True, True]
     monkeypatch.setattr(methods, 'LISSA_DEFAULTS', {'iterations': 2, 'scale': 25., 'damp': .01})
     default_changed = run(tables, 'declared_default_changed', selector_refs=['degree.yaml', 'b_param_hutch.yaml'])
     assert [x['score']['hit'] for x in default_changed['selectors']] == [True, False]

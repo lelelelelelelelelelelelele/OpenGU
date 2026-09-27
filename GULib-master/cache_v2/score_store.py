@@ -583,6 +583,13 @@ class ScoreArtifactStore:
         recipe: ArtifactRecipe,
         miss_reasons: Tuple[str, ...],
     ) -> ScoreStoreResult:
+        from cache_v2.computation_identity import stored_recipe
+        recipe = stored_recipe(candidate, recipe)
+        from cache_v2.computation_identity import matching_records
+        for equivalent in matching_records(self.index, ArtifactType.SCORE, recipe):
+            original = stored_recipe(equivalent)
+            self._assert_no_conflict_marker(original)
+        self._assert_no_conflict_marker(recipe)
         semantic = candidate.get("semantic_path")
         if not isinstance(semantic, str):
             raise ScoreArtifactIntegrityError(
@@ -661,7 +668,7 @@ class ScoreArtifactStore:
             "semantic_path": normalized,
             "status": ArtifactStatus.VALID.value,
             "verification_status": VerificationStatus.VERIFIED.value,
-            "producer_version": canonicalize(self.producer_version.to_dict()),
+            "producer_version": canonicalize(producer_value),
             "metadata": canonicalize(expected_metadata),
         }
         for key, expected in expectations.items():

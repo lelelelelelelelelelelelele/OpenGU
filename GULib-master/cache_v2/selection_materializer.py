@@ -114,7 +114,8 @@ def build_selection_recipe(
                 "source_score_artifact_id must identify a Score Artifact"
             )
         fields["source_score_artifact_id"] = source_score
-    return ArtifactRecipe(fields)
+    from .computation_identity import effective_fields
+    return ArtifactRecipe(effective_fields(fields))
 
 
 @dataclass(frozen=True)
@@ -176,7 +177,8 @@ class SelectionArtifactRequest:
         )
         if not isinstance(fields.get("selector_parameters"), Mapping):
             raise ContractValidationError("Recipe selector_parameters must be a mapping")
-        if fields.get("producer_version") != producer:
+        from cache_v2.computation_identity import effective_fields
+        if effective_fields(fields).get("producer_version") != effective_fields({"producer_version": producer})["producer_version"]:
             raise ContractValidationError(
                 "Recipe producer_version does not match Artifact producer_version"
             )
@@ -265,7 +267,7 @@ def resolve_selection_artifact(
             result,
             explanation.miss_reasons,
             source_k=int(request.recipe.fields["k"]),
-            source_recipe_hash=request.recipe.recipe_hash,
+            source_recipe_hash=explanation.exact_candidate["recipe_hash"],
             source_budget=request.recipe.fields["selector_parameters"].get("budget"),
         )
     if (
@@ -404,11 +406,13 @@ def _covering_recipe_from_record(
         normalized_fields,
         "indexed Selection Recipe",
     )
-    if canonical_json(normalized_recipe) != canonical_json(request.recipe.canonical_form):
+    from .computation_identity import computation_recipe, stored_recipe
+    wrapper = _decode_exact_mapping(normalized_recipe, "covering Recipe")
+    normalized = ArtifactRecipe(wrapper["fields"], recipe_version=wrapper["recipe_version"])
+    if computation_recipe(normalized) != computation_recipe(request.recipe):
         return None
 
-    fields["k"] = candidate_k
-    recipe = ArtifactRecipe(fields, recipe_version=request.recipe.recipe_version)
+    recipe = stored_recipe(record)
     if recipe.recipe_hash != record.get("recipe_hash"):
         raise CacheResolutionError(
             "indexed covering Selection Recipe hash is inconsistent"

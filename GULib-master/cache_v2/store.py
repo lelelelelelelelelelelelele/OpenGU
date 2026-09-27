@@ -1041,6 +1041,13 @@ class ArtifactStore:
         candidate_nodes: Optional[Sequence[int]],
         miss_reasons: Tuple[str, ...] = (),
     ) -> StoreResult:
+        from cache_v2.computation_identity import stored_recipe
+        recipe = stored_recipe(candidate, recipe)
+        from cache_v2.computation_identity import matching_records
+        for equivalent in matching_records(self.index, ArtifactType.SELECTION, recipe):
+            original = stored_recipe(equivalent)
+            self._assert_no_conflict_marker(original)
+        self._assert_no_conflict_marker(recipe)
         if candidate.get("artifact_type") != ArtifactType.SELECTION.value:
             raise ArtifactIntegrityError("indexed candidate is not a Selection Artifact")
         if candidate.get("recipe_hash") != recipe.recipe_hash:

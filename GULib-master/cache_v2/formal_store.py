@@ -7,7 +7,7 @@ execution remains an experiment-layer responsibility.
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Mapping, Optional, Tuple, Union
 
@@ -62,6 +62,9 @@ class FormalStoreResult:
     payload: Any
     producer_called: bool = False
     miss_reasons: Tuple[str, ...] = ()
+    recipe_hash: Optional[str] = None
+    generation_producer: Optional[Mapping[str, Any]] = None
+    consumption_producer: Optional[Mapping[str, Any]] = None
 
 
 class FormalArtifactStore(ArtifactStore):
@@ -83,7 +86,8 @@ class FormalArtifactStore(ArtifactStore):
     def _validate_recipe_producer(self, recipe: ArtifactRecipe) -> None:
         if not isinstance(recipe, ArtifactRecipe):
             raise ContractValidationError("recipe must be ArtifactRecipe")
-        if recipe.fields.get("producer_version") != self.producer_version.to_dict():
+        from cache_v2.computation_identity import effective_fields
+        if effective_fields(recipe.fields).get("producer_version") != effective_fields({"producer_version": self.producer_version.to_dict()})["producer_version"]:
             raise ContractValidationError(
                 "Recipe producer_version does not match ArtifactStore producer_version"
             )
@@ -644,6 +648,13 @@ class FormalArtifactStore(ArtifactStore):
         artifact_type: ArtifactType,
         miss_reasons: Tuple[str, ...] = (),
     ) -> FormalStoreResult:
+        from cache_v2.computation_identity import stored_recipe
+        recipe = stored_recipe(candidate, recipe)
+        from cache_v2.computation_identity import matching_records
+        for equivalent in matching_records(self.index, artifact_type, recipe):
+            original = stored_recipe(equivalent)
+            self._assert_typed_no_conflict_marker(artifact_type, original.recipe_hash)
+        self._assert_typed_no_conflict_marker(artifact_type, recipe.recipe_hash)
         type_value = self._formal_type(artifact_type)
         payload_class = payload_type_for(type_value, recipe)
         if candidate.get("artifact_type") != type_value.value:
@@ -796,6 +807,9 @@ class FormalArtifactStore(ArtifactStore):
             payload=payload,
             producer_called=False,
             miss_reasons=miss_reasons,
+            recipe_hash=recipe.recipe_hash,
+            generation_producer=producer_value,
+            consumption_producer=self.producer_version.to_dict(),
         )
 
     def _write_typed_formal(
@@ -976,6 +990,10 @@ class FormalArtifactStore(ArtifactStore):
                 compute_seconds,
                 explanation.miss_reasons,
             )
+            if result.recipe_hash is None:
+                result = replace(result, recipe_hash=recipe.recipe_hash,
+                    generation_producer=self.producer_version.to_dict(),
+                    consumption_producer=self.producer_version.to_dict())
             self._trace(
                 "upstream_formal_artifact_stored",
                 artifact_type=artifact_type.value,

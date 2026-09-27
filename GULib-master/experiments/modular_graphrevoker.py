@@ -105,7 +105,8 @@ def prepare_graphrevoker_ensemble(instance, data, checkpoint_root):
         'implementation': implementation_fingerprint(initial_graphrevoker_ensemble,
             *graphrevoker_implementation_functions(), ShardEnsemble, train_shard,
             create_model, train_supervised, *model_functions(encoder))}
-    path = Path(checkpoint_root) / ('graphrevoker-' + canonical_sha256(metadata) + '.pt')
+    from utils.target_checkpoint import resolve_cached_weights
+    path = resolve_cached_weights(checkpoint_root, metadata, 'graphrevoker-')
     hit = path.exists()
     if not hit:
         with seeded_execution(instance['training']['seed']):
@@ -120,7 +121,8 @@ def prepare_graphrevoker_ensemble(instance, data, checkpoint_root):
     ensemble.partitioner = Partitioner(int(data.y.max()) + 1,
         instance['parameters']['gpa_hidden_channels'], instance['parameters']['num_shards']).to(data.x.device)
     ensemble.load_state_dict(state, strict=True)
-    return ensemble.eval(), {'state_hash': loaded['state_hash'], 'file_sha256': loaded['file_sha256'], 'hit': hit}
+    return ensemble.eval(), {'state_hash': loaded['state_hash'], 'file_sha256': loaded['file_sha256'], 'hit': hit,
+        'generation_metadata': loaded['generation_metadata'], 'consumption_metadata': metadata}
 
 
 def run_graphrevoker(instance, data, nodes, ensemble):
@@ -193,6 +195,7 @@ def run_graphrevoker_unlearning(instance, *, selection, model, data, dataset_nam
     reference = output_reference(stored, request.recipe.recipe_hash)
     verified = load_output(reference, store_root, data=data, dataset_root=dataset_root)
     return {**reference, 'output': reference, 'hit': hit, 'producer_called': not hit,
+        'generation_producer': stored.generation_producer, 'consumption_producer': producer.to_dict(),
             'compute_seconds': seconds, 'result': utility(verified), 'target': target, 'ensemble_preparation': preparation,
             'evaluation': evaluate_method(reference, verified)}
 

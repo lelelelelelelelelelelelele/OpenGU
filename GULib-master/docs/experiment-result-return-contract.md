@@ -121,3 +121,12 @@ SyncMate 按 Observer 的文件声明收集、核验哈希和索引；Adapter �
 分别运行 GIF/IDEA 的100/200/400步。两表均禁用 GU 缓存，只有前者挂载 Observer。
 `python -m experiments.aagu065_observer_comparison` 只读比较两次 Output 并解释自己的观测文件，
 不启动实验、不修改方法预算、不进行科研验收。正式执行仍遵守 SSH 版本与部署边界。
+
+
+### Cache generation and consumption source
+
+Ordinary run cells may carry `cache_provenance.generation_producer` and
+`cache_provenance.consumption_producer`. Generation identifies the immutable
+Artifact's original producer; consumption identifies this run's source. A HIT
+must not relabel the former as the latter. These diagnostic fields do not change
+Artifact references, payload integrity checks or scientific acceptance.

@@ -73,7 +73,7 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
         if key in results:
             raise ValueError('duplicate selector instance in one invocation')
         selection_seconds = time.perf_counter() - started
-        results[key] = {'score': {'artifact_id': score.artifact_id, 'recipe_hash': recipe.recipe_hash,
+        results[key] = {'score': {'artifact_id': score.artifact_id, 'recipe_hash': index.get_artifact(score.artifact_id)['recipe_hash'],
             'content_hash': score.content_hash, 'hit': score.hit, 'producer_called': score.producer_called,
             'access_seconds': access_seconds,
             'cold_total_seconds': None if score.hit else access_seconds,
