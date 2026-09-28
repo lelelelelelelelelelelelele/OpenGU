@@ -78,7 +78,8 @@ def prepare_model(instance, *, data, dataset_name, checkpoint_root, device, refe
         from experiments.model_trajectory import prepare_trajectory
         return prepare_trajectory(model, instance, data, checkpoint_root)
     metadata = training_metadata(model, instance, data)
-    path = Path(checkpoint_root) / (canonical_sha256(metadata) + '.pt')
+    from utils.target_checkpoint import resolve_cached_weights
+    path = resolve_cached_weights(checkpoint_root, metadata)
     hit = path.exists()
     if not hit:
         with seeded_execution(training['seed']):
@@ -86,7 +87,8 @@ def prepare_model(instance, *, data, dataset_name, checkpoint_root, device, refe
         save_cached_weights(path, capture_state(model), metadata)
     loaded = load_cached_weights(path, metadata, model)
     return model, [], {**{key: loaded[key] for key in ('path', 'file_sha256', 'state_hash')},
-        'hit': hit, 'source': 'training_cache', 'effective_identity': metadata}
+        'hit': hit, 'source': 'training_cache', 'effective_identity': metadata,
+        'generation_metadata': loaded['generation_metadata'], 'consumption_metadata': metadata}
 
 
 def numerical_environment(data):

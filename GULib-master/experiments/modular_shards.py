@@ -150,7 +150,8 @@ def prepare_ensemble(instance, data, checkpoint_root):
         'numerics': str(data.x.dtype),
         'implementation': implementation_fingerprint(initial_ensemble, partition_nodes, ConstrainedLPABase,
             ShardEnsemble, train_shard, train_supervised, GCNNet, aggregate_weights, OptimalAggregator)}
-    path = Path(checkpoint_root) / ('grapheraser-' + canonical_sha256(metadata) + '.pt')
+    from utils.target_checkpoint import resolve_cached_weights
+    path = resolve_cached_weights(checkpoint_root, metadata, 'grapheraser-')
     hit = path.exists()
     if not hit:
         with seeded_execution(instance['training']['seed']):
@@ -162,7 +163,8 @@ def prepare_ensemble(instance, data, checkpoint_root):
     models = [create_model(instance['model'], 'shard', data, data.x.device) for _ in state['weights']]
     ensemble = ShardEnsemble(models, state['assignment'].to(data.x.device), state['weights'].to(data.x.device))
     ensemble.load_state_dict(state, strict=True)
-    return ensemble.eval(), {'state_hash': loaded['state_hash'], 'file_sha256': loaded['file_sha256'], 'hit': hit}
+    return ensemble.eval(), {'state_hash': loaded['state_hash'], 'file_sha256': loaded['file_sha256'], 'hit': hit,
+        'generation_metadata': loaded['generation_metadata'], 'consumption_metadata': metadata}
 
 
 def run_grapheraser(instance, data, nodes, ensemble):
@@ -241,5 +243,6 @@ def run_shard_unlearning(instance, *, selection, model, data, dataset_name, chec
     reference = output_reference(stored, request.recipe.recipe_hash)
     verified = load_output(reference, store_root, data=data, dataset_root=dataset_root)
     return {**reference, 'output': reference, 'hit': hit, 'producer_called': not hit,
+        'generation_producer': stored.generation_producer, 'consumption_producer': producer.to_dict(),
             'compute_seconds': seconds, 'result': utility(verified), 'target': target, 'ensemble_preparation': preparation,
             'evaluation': evaluate_method(reference, verified)}

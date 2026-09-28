@@ -73,6 +73,18 @@ class ArtifactResolver:
         self.index = index
         self.resolutions = ConflictResolutionLedger(index)
 
+    def explain_compatible(self, artifact_type, recipe):
+        from .source_compatibility import recipe_candidates
+        value = recipe if isinstance(recipe, ArtifactRecipe) else ArtifactRecipe(recipe)
+        first = None
+        for candidate in recipe_candidates(artifact_type, value):
+            result = self.explain_exact(artifact_type, candidate)
+            if first is None:
+                first = result
+            if result.hit or result.miss_reasons != ("no_exact_candidate",):
+                return result
+        return first
+
     def explain_exact(
         self,
         artifact_type: Union[ArtifactType, str],

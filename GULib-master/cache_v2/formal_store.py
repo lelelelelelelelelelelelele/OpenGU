@@ -7,7 +7,7 @@ execution remains an experiment-layer responsibility.
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Mapping, Optional, Tuple, Union
 
@@ -62,6 +62,9 @@ class FormalStoreResult:
     payload: Any
     producer_called: bool = False
     miss_reasons: Tuple[str, ...] = ()
+    recipe_hash: Optional[str] = None
+    generation_producer: Optional[Mapping[str, Any]] = None
+    consumption_producer: Optional[Mapping[str, Any]] = None
 
 
 class FormalArtifactStore(ArtifactStore):
@@ -644,6 +647,9 @@ class FormalArtifactStore(ArtifactStore):
         artifact_type: ArtifactType,
         miss_reasons: Tuple[str, ...] = (),
     ) -> FormalStoreResult:
+        from cache_v2.source_compatibility import stored_recipe
+        recipe = stored_recipe(candidate, recipe, artifact_type)
+        self._assert_typed_no_conflict_marker(artifact_type, recipe.recipe_hash)
         type_value = self._formal_type(artifact_type)
         payload_class = payload_type_for(type_value, recipe)
         if candidate.get("artifact_type") != type_value.value:
@@ -796,6 +802,9 @@ class FormalArtifactStore(ArtifactStore):
             payload=payload,
             producer_called=False,
             miss_reasons=miss_reasons,
+            recipe_hash=recipe.recipe_hash,
+            generation_producer=producer_value,
+            consumption_producer=self.producer_version.to_dict(),
         )
 
     def _write_typed_formal(
@@ -955,7 +964,7 @@ class FormalArtifactStore(ArtifactStore):
             self._assert_typed_no_conflict_marker(
                 artifact_type, recipe.recipe_hash
             )
-            explanation = ArtifactResolver(self.index).explain_exact(
+            explanation = ArtifactResolver(self.index).explain_compatible(
                 artifact_type, recipe
             )
             if (
@@ -976,6 +985,10 @@ class FormalArtifactStore(ArtifactStore):
                 compute_seconds,
                 explanation.miss_reasons,
             )
+            if result.recipe_hash is None:
+                result = replace(result, recipe_hash=recipe.recipe_hash,
+                    generation_producer=self.producer_version.to_dict(),
+                    consumption_producer=self.producer_version.to_dict())
             self._trace(
                 "upstream_formal_artifact_stored",
                 artifact_type=artifact_type.value,
@@ -997,7 +1010,7 @@ class FormalArtifactStore(ArtifactStore):
         type_value = self._formal_type(artifact_type)
         self._validate_recipe_producer(recipe)
         self._assert_typed_no_conflict_marker(type_value, recipe.recipe_hash)
-        before = ArtifactResolver(self.index).explain_exact(type_value, recipe)
+        before = ArtifactResolver(self.index).explain_compatible(type_value, recipe)
         if not before.hit or before.exact_candidate is None:
             raise CacheResolutionError(
                 "exact {0} Artifact is not resolvable: {1}".format(
@@ -1017,7 +1030,7 @@ class FormalArtifactStore(ArtifactStore):
             miss_reasons=before.miss_reasons,
         )
         self._assert_typed_no_conflict_marker(type_value, recipe.recipe_hash)
-        after = ArtifactResolver(self.index).explain_exact(type_value, recipe)
+        after = ArtifactResolver(self.index).explain_compatible(type_value, recipe)
         if (
             not after.hit
             or after.exact_candidate is None

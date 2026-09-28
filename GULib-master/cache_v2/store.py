@@ -1041,6 +1041,9 @@ class ArtifactStore:
         candidate_nodes: Optional[Sequence[int]],
         miss_reasons: Tuple[str, ...] = (),
     ) -> StoreResult:
+        from cache_v2.source_compatibility import stored_recipe
+        recipe = stored_recipe(candidate, recipe, ArtifactType.SELECTION)
+        self._assert_no_conflict_marker(recipe)
         if candidate.get("artifact_type") != ArtifactType.SELECTION.value:
             raise ArtifactIntegrityError("indexed candidate is not a Selection Artifact")
         if candidate.get("recipe_hash") != recipe.recipe_hash:
@@ -1210,7 +1213,7 @@ class ArtifactStore:
         candidates = _validate_candidate_input(recipe, num_nodes, candidate_nodes)
         with self._recipe_lock(recipe):
             self._assert_no_conflict_marker(recipe)
-            explanation = ArtifactResolver(self.index).explain_exact(
+            explanation = ArtifactResolver(self.index).explain_compatible(
                 ArtifactType.SELECTION, recipe
             )
             if not explanation.hit or explanation.exact_candidate is None:
@@ -1248,7 +1251,7 @@ class ArtifactStore:
             raise ContractValidationError("recipe must be ArtifactRecipe")
         candidates = _validate_candidate_input(recipe, num_nodes, candidate_nodes)
         self._assert_no_conflict_marker(recipe)
-        before = ArtifactResolver(self.index).explain_exact(
+        before = ArtifactResolver(self.index).explain_compatible(
             ArtifactType.SELECTION, recipe
         )
         if not before.hit or before.exact_candidate is None:
@@ -1269,7 +1272,7 @@ class ArtifactStore:
             miss_reasons=before.miss_reasons,
         )
         self._assert_no_conflict_marker(recipe)
-        after = ArtifactResolver(self.index).explain_exact(
+        after = ArtifactResolver(self.index).explain_compatible(
             ArtifactType.SELECTION, recipe
         )
         if (
@@ -1314,7 +1317,7 @@ class ArtifactStore:
         payload.validate_against(recipe, num_nodes, candidate_nodes=candidates)
         with self._recipe_lock(recipe):
             self._assert_no_conflict_marker(recipe)
-            explanation = ArtifactResolver(self.index).explain_exact(
+            explanation = ArtifactResolver(self.index).explain_compatible(
                 ArtifactType.SELECTION, recipe
             )
             if (

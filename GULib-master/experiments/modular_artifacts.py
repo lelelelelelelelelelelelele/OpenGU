@@ -183,6 +183,8 @@ def export_outputs(summary, *, config, context, run):
                     ('method_checkpoint', row.get('checkpoint') if config['stage'] == 'unlearning' else None)):
                 cell['cache'][name] = ('hit' if checkpoint['hit'] else 'miss') if (
                     checkpoint and checkpoint.get('source') != 'external_state_dict') else 'not_applicable'
+            cell['cache_provenance'] = {key: row.get(key) for key in
+                ('generation_producer', 'consumption_producer') if row.get(key) is not None}
             cell['producer_called'] = {'score': selected['score']['producer_called'],
                 'selection': selection['cache']['producer_called'], 'method': row.get('producer_called')}
         cell['selection_id'] = selection_id
@@ -250,7 +252,7 @@ def read_run(path, expected_sha256):
     documents = []
     for cell in run['cells']:
         if set(cell) - {'cell_id', 'path', 'conditions', 'status', 'files', 'results', 'output',
-                        'selection_id', 'timing', 'cache', 'producer_called', 'scores', 'source', 'observers'}:
+                        'selection_id', 'timing', 'cache', 'producer_called', 'scores', 'source', 'observers', 'cache_provenance'}:
             raise ValueError('unexpected cell fields')
         if cell['status'] != 'completed' or cell['cell_id'] in seen or cell['path'] in seen:
             raise ValueError('duplicate or incomplete result cell')
@@ -264,8 +266,11 @@ def read_run(path, expected_sha256):
         for reference in cell.get('observers', []):
             from experiments.observers import OBSERVERS, declared_files
             name = reference['name']
-            if name in observer_names or name not in OBSERVERS or reference['status'] != 'completed':
+            if name in observer_names or name not in OBSERVERS or reference['status'] not in ('completed', 'not_executed'):
                 raise ValueError('invalid Observer reference')
+            if reference['status'] == 'not_executed' and (
+                    reference.get('reason') != 'result_cache_hit' or cell['cache'].get('method') != 'hit'):
+                raise ValueError('invalid skipped Observer reference')
             observer_names.add(name)
             expected = {f'observers/{name}/{file}' for file in declared_files(OBSERVERS[name])}
             if set(reference['files']) != expected or reference['semantic_version'] != OBSERVERS[name].version:

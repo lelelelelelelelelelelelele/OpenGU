@@ -131,9 +131,28 @@ def save_cached_weights(path, state, metadata):
 
 def load_cached_weights(path, metadata, model=None):
     record = json.loads(Path(path).with_suffix('.json').read_text(encoding='utf-8'))
-    if record['metadata'] != metadata:
+    from cache_v2.source_compatibility import checkpoint_candidates
+    scope = 'ensemble_checkpoint' if 'method' in metadata else 'training_checkpoint'
+    if not any(record['metadata'] == candidate for candidate in checkpoint_candidates(metadata, scope)):
         raise TargetCheckpointError('cached weight metadata mismatch')
     loaded = load_weights(path, model)
     if any(record[key] != loaded[key] for key in ('file_sha256', 'state_hash')):
         raise TargetCheckpointError('cached weight contents differ from provenance')
+    loaded['generation_metadata'] = record['metadata']
+    loaded['consumption_metadata'] = metadata
     return loaded
+
+
+def resolve_cached_weights(root, metadata, prefix=''):
+    """Current deterministic path first, then registered source paths; never scan."""
+    from cache_v2.source_compatibility import checkpoint_candidates
+    from cache_v2 import canonical_sha256
+    root = Path(root)
+    scope = 'ensemble_checkpoint' if 'method' in metadata else 'training_checkpoint'
+    current_path = root / (prefix + canonical_sha256(metadata) + '.pt')
+    for candidate in checkpoint_candidates(metadata, scope):
+        path = root / (prefix + canonical_sha256(candidate) + '.pt')
+        if path.exists() or path.with_suffix('.json').exists():
+            load_cached_weights(path, candidate)
+            return path
+    return current_path

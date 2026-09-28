@@ -99,7 +99,7 @@ def resolve_formal_artifact(
         return None
     index = CacheIndex(index_path)
     index.check_schema()
-    explanation = ArtifactResolver(index).explain_exact(
+    explanation = ArtifactResolver(index).explain_compatible(
         request.artifact_type, request.recipe
     )
     if explanation.hit and explanation.exact_candidate is not None:

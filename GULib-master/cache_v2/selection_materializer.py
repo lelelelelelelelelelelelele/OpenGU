@@ -245,7 +245,7 @@ def resolve_selection_artifact(
         return SelectionResolution(False, None, ("store_not_initialized",))
     index = CacheIndex(index_path)
     index.check_schema()
-    explanation = ArtifactResolver(index).explain_exact(
+    explanation = ArtifactResolver(index).explain_compatible(
         ArtifactType.SELECTION, request.recipe
     )
     if explanation.hit and explanation.exact_candidate is not None:
@@ -265,7 +265,7 @@ def resolve_selection_artifact(
             result,
             explanation.miss_reasons,
             source_k=int(request.recipe.fields["k"]),
-            source_recipe_hash=request.recipe.recipe_hash,
+            source_recipe_hash=explanation.exact_candidate["recipe_hash"],
             source_budget=request.recipe.fields["selector_parameters"].get("budget"),
         )
     if (
@@ -404,11 +404,12 @@ def _covering_recipe_from_record(
         normalized_fields,
         "indexed Selection Recipe",
     )
-    if canonical_json(normalized_recipe) != canonical_json(request.recipe.canonical_form):
+    from .source_compatibility import recipe_candidates, stored_recipe
+    wrapper = _decode_exact_mapping(normalized_recipe, "covering Recipe")
+    normalized = ArtifactRecipe(wrapper["fields"], recipe_version=wrapper["recipe_version"])
+    if not any(normalized == candidate for candidate in recipe_candidates(ArtifactType.SELECTION, request.recipe)):
         return None
-
-    fields["k"] = candidate_k
-    recipe = ArtifactRecipe(fields, recipe_version=request.recipe.recipe_version)
+    recipe = stored_recipe(record)
     if recipe.recipe_hash != record.get("recipe_hash"):
         raise CacheResolutionError(
             "indexed covering Selection Recipe hash is inconsistent"

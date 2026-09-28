@@ -13,7 +13,7 @@ from experiments.node_deletion import pairing_identity, retained_graph
 
 
 def output_reference(result, recipe_hash):
-    return {'artifact_id': result.artifact_id, 'recipe_hash': recipe_hash,
+    return {'artifact_id': result.artifact_id, 'recipe_hash': result.recipe_hash or recipe_hash,
             'content_hash': result.content_hash}
 
 
@@ -45,8 +45,8 @@ def load_output(reference, store_root, *, data=None, dataset_root=None):
         if payload.content_hash != reference['content_hash'] or recipe.recipe_hash != reference['recipe_hash']:
             raise ConfigurationError('run output digest mismatch')
         from experiments.modular_gu import gu_producer
-        if ProducerVersion(**payload.identity['producer_version']) != gu_producer(
-                payload.identity['target']['method'], payload.identity['pairing']['model']):
+        current = gu_producer(payload.identity['target']['method'], payload.identity['pairing']['model'])
+        if not _allowed_output_source(recipe, current):
             raise ConfigurationError('run output producer changed')
         index = CacheIndex(Path(store_root) / 'index.sqlite')
         index.check_schema()
@@ -77,7 +77,7 @@ def load_output(reference, store_root, *, data=None, dataset_root=None):
     producer = ProducerVersion(**identity['producer_version'])
     from experiments.modular_gu import gu_producer
     current = gu_producer(identity['target']['method'], identity['pairing']['model'])
-    if producer != current:
+    if not _allowed_output_source(recipe, current):
         raise ConfigurationError('method output producer changed; explicit new execution required')
     request = FormalArtifactRequest(ArtifactType.PREDICTION, recipe, producer)
     resolved = resolve_formal_artifact(root, request)
@@ -190,3 +190,11 @@ def restore_model(payload):
     if payload.identity['target']['method'] == 'MEGU':
         model.megu_pseudo_labels = torch.tensor(payload.auxiliary['megu_pseudo_labels'])
     return model.eval()
+
+
+def _allowed_output_source(recipe, current):
+    from cache_v2.source_compatibility import recipe_candidates
+    fields = recipe.fields
+    fields['producer_version'] = current.to_dict()
+    request = ArtifactRecipe(fields, recipe_version=recipe.recipe_version)
+    return any(recipe == candidate for candidate in recipe_candidates(ArtifactType.PREDICTION, request))

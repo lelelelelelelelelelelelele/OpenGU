@@ -618,3 +618,38 @@ def test_new_default_training_reuses_explicit_cache_across_consumers(tables):
         assert observed['path'] == first['path']
     # Retrain's execution still initializes its own retained-graph model;
     # the above checks only its parsed training settings and model identity.
+
+
+def test_registered_selector_score_and_selection_sources_reuse_original_references(tables, monkeypatch):
+    from cache_v2 import CacheIndex
+    from cache_v2.source_compatibility import stored_recipe
+    import cache_v2.source_compatibility as compatibility
+    import experiments.target_direct_v1.recipe as score_recipe
+    import experiments.target_direct_v1.method_cache as selection_cache
+    root, _, _ = tables
+    cold = run(tables, 'selector_sources_cold', selector_refs=['degree.yaml'])
+    row = cold['selectors'][0]
+    index = CacheIndex(root/'results/cache_v2/index.sqlite')
+    score = stored_recipe(index.get_artifact(row['score']['artifact_id']))
+    selection = stored_recipe(index.get_artifact(row['selection']['artifact']['artifact_id']))
+    groups = []
+    for scope, recipe, slot in [('score', score, 'producer'), ('selection', selection, 'producer_version')]:
+        original = recipe.fields[slot]['source_fingerprint']
+        groups.append(dict(cache_scope=scope, producer='degree', applies_to={},
+            fingerprints=[{'source_fingerprint': original}, {'source_fingerprint': original+'-observer'}]))
+    monkeypatch.setattr(compatibility, 'registry', lambda: groups)
+    original_score = score_recipe.implementation_fingerprint
+    original_selection = selection_cache.implementation_fingerprint
+    monkeypatch.setattr(score_recipe, 'implementation_fingerprint', lambda *args: original_score(*args)+'-observer')
+    monkeypatch.setattr(selection_cache, 'implementation_fingerprint', lambda *args: original_selection(*args)+'-observer')
+    warm = run(tables, 'selector_sources_warm', selector_refs=['degree.yaml'])
+    assert identities(cold) == identities(warm)
+    assert not warm['selectors'][0]['score']['producer_called']
+    assert not warm['selectors'][0]['selection']['cache']['producer_called']
+
+    from cache_v2.runtime import _decode_exact_mapping
+    from cache_v2 import ArtifactRecipe
+    score_result = warm['selectors'][0]['score']
+    wrapper = score_result['recipe']
+    assert ArtifactRecipe(wrapper['fields'], recipe_version=wrapper['recipe_version']).recipe_hash == score_result['recipe_hash']
+    assert score_result['generation_producer'] != score_result['consumption_producer']

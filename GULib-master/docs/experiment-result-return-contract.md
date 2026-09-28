@@ -108,7 +108,8 @@ GIF/IDEA 提供 unlearning_start/end、loss_ready、solver_system_ready、solver
 内容读取、格式解释和数值分析由 Observer 或它的消费者实现承担。公共层不调用科学判据。
 保存异常和算法失败保留已生成文件及失败引用，不能伪装成完成。
 
-请求运行期事件的方法必须使用 `execution.gu_cache: {GIF: disabled, IDEA: disabled}`，确保实际执行。
+明确要求新运行期事件时使用 `execution.gu_cache: {GIF: disabled, IDEA: disabled}`，确保实际执行；
+仅启用 Observer 不强制禁用缓存。
 可同时保留 `Retrain: reuse`；checkpoint、Score、Selection 的复用规则不变。
 禁用 GU 缓存时最终 Output 使用运行独立的 output.npz，统一 metrics 仍能读取。
 
@@ -121,3 +122,18 @@ SyncMate 按 Observer 的文件声明收集、核验哈希和索引；Adapter �
 分别运行 GIF/IDEA 的100/200/400步。两表均禁用 GU 缓存，只有前者挂载 Observer。
 `python -m experiments.aagu065_observer_comparison` 只读比较两次 Output 并解释自己的观测文件，
 不启动实验、不修改方法预算、不进行科研验收。正式执行仍遵守 SSH 版本与部署边界。
+
+
+### Cache generation and consumption source
+
+Ordinary run cells may carry `cache_provenance.generation_producer` and
+`cache_provenance.consumption_producer`. Generation identifies the immutable
+Artifact's original producer; consumption identifies this run's source. A HIT
+must not relabel the former as the latter. These diagnostic fields do not change
+Artifact references, payload integrity checks or scientific acceptance.
+
+
+Observer 可与结果缓存复用同时启用。HIT 时不执行回调，仍按原声明返回观察文件，
+但状态为 `not_executed`、原因 `result_cache_hit`，事件/轨迹及测量为空；不是一次新的
+观测成功。引用绑定实际复用的 Output，现有收集/哈希核验仍适用。需要新执行轨迹时
+由配置显式禁用该方法缓存，不由 Observer 开关隐式触发重算。

@@ -583,6 +583,9 @@ class ScoreArtifactStore:
         recipe: ArtifactRecipe,
         miss_reasons: Tuple[str, ...],
     ) -> ScoreStoreResult:
+        from cache_v2.source_compatibility import stored_recipe
+        recipe = stored_recipe(candidate, recipe, ArtifactType.SCORE)
+        self._assert_no_conflict_marker(recipe)
         semantic = candidate.get("semantic_path")
         if not isinstance(semantic, str):
             raise ScoreArtifactIntegrityError(
@@ -661,7 +664,7 @@ class ScoreArtifactStore:
             "semantic_path": normalized,
             "status": ArtifactStatus.VALID.value,
             "verification_status": VerificationStatus.VERIFIED.value,
-            "producer_version": canonicalize(self.producer_version.to_dict()),
+            "producer_version": canonicalize(producer_value),
             "metadata": canonicalize(expected_metadata),
         }
         for key, expected in expectations.items():
@@ -691,7 +694,7 @@ class ScoreArtifactStore:
         miss_reasons: Tuple[str, ...],
         producer_called: bool,
     ) -> ScoreStoreResult:
-        explanation = ArtifactResolver(self.index).explain_exact(
+        explanation = ArtifactResolver(self.index).explain_compatible(
             ArtifactType.SCORE, recipe
         )
         if explanation.exact_candidate is not None:
@@ -794,7 +797,7 @@ class ScoreArtifactStore:
             raise ContractValidationError("recipe must be ArtifactRecipe")
         with self._recipe_lock(recipe):
             self._assert_no_conflict_marker(recipe)
-            explanation = ArtifactResolver(self.index).explain_exact(
+            explanation = ArtifactResolver(self.index).explain_compatible(
                 ArtifactType.SCORE, recipe
             )
             if not explanation.hit or explanation.exact_candidate is None:
@@ -853,7 +856,7 @@ class ScoreArtifactStore:
             raise ContractValidationError("producer must be callable")
         with self._recipe_lock(recipe):
             self._assert_no_conflict_marker(recipe)
-            explanation = ArtifactResolver(self.index).explain_exact(
+            explanation = ArtifactResolver(self.index).explain_compatible(
                 ArtifactType.SCORE, recipe
             )
             if explanation.hit and explanation.exact_candidate is not None:

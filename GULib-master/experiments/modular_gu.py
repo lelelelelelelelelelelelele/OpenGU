@@ -149,12 +149,12 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
         raise ValueError('unknown GU cache policy')
     if observer is not None and instance['method'] not in ('GIF', 'IDEA'):
         raise ValueError('method does not provide Observer events')
-    if observer is not None and gu_cache != 'disabled':
-        raise ValueError('observer requires actual method execution')
     if gu_cache == 'disabled' and output_path is None:
         raise ValueError('uncached execution requires run output_path')
     stored = resolve_formal_artifact(Path(store_root), request) if gu_cache == 'reuse' else None
     hit = stored is not None
+    if hit and observer is not None and hasattr(observer, 'identity'):
+        observer.identity['output_identity'] = stored.payload.identity
     seconds = 0.0
     if not hit:
         args = runtime_defaults()
@@ -212,7 +212,8 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
     from experiments.unlearning_outputs import load_output
     verified = load_output(reference, store_root, data=data, dataset_root=dataset_root)
     from experiments.output_metrics import evaluate_method
-    return {**reference, 'output': reference, 'cache_policy': gu_cache, 'hit': hit, 'producer_called': not hit,
+    return {**reference, 'output': reference, 'cache_policy': gu_cache, 'consumption_producer': producer.to_dict(),
+        'generation_producer': stored.generation_producer if stored else producer.to_dict(), 'hit': hit, 'producer_called': not hit,
             'compute_seconds': seconds, 'result': utility(verified), 'target': target,
             'evaluation': evaluate_method(reference, verified)}
 

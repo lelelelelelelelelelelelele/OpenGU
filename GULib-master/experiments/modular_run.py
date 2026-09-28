@@ -243,6 +243,7 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                 policy = config.get('execution', {}).get('gu_cache', {}).get(item['method'], 'reuse')
                 options = dict(gu_cache=policy, observer=session, output_path=folder/'output.npz') if consumer is run_unlearning else {}
                 error = None
+                result = None
                 try:
                     result = consumer(item, selection=loaded_selections[selector_ref], model=model, data=data,
                         dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
@@ -253,7 +254,7 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                 finally:
                     if session is not None:
                         try:
-                            session.finish(error)
+                            session.finish(error, cache_hit=bool(result and result["hit"]))
                         finally:
                             cell['observers'] = session.references
                             for reference in cell['observers']:

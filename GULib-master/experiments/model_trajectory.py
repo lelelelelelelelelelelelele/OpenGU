@@ -26,7 +26,15 @@ def prepare_trajectory(model, instance, data, checkpoint_root):
     steps = trajectory_steps(instance)
     metadata = {**training_metadata(model, instance, data), 'steps': steps,
                 'trajectory_implementation': implementation_fingerprint(trajectory_steps, prepare_trajectory)}
-    path = Path(checkpoint_root) / 'selector-trajectories' / (canonical_sha256(metadata) + '.pt')
+    from cache_v2.source_compatibility import checkpoint_candidates
+    folder = Path(checkpoint_root) / 'selector-trajectories'
+    path = folder / (canonical_sha256(metadata) + '.pt')
+    selected_metadata = metadata
+    for candidate in checkpoint_candidates(metadata, 'selector_trajectory'):
+        candidate_path = folder / (canonical_sha256(candidate) + '.pt')
+        if candidate_path.exists():
+            path, selected_metadata = candidate_path, candidate
+            break
     hit = path.exists()
     if not hit:
         with seeded_execution(instance['training']['seed']):
@@ -36,7 +44,7 @@ def prepare_trajectory(model, instance, data, checkpoint_root):
         with path.open('xb') as stream:
             torch.save(payload, stream)
     payload = torch.load(path, map_location='cpu', weights_only=True)
-    if payload['metadata'] != metadata or [c['global_step'] for c in payload['checkpoints']] != steps:
+    if payload['metadata'] != selected_metadata or [c['global_step'] for c in payload['checkpoints']] != steps:
         raise ValueError('selector trajectory identity mismatch')
     expected = model.state_dict()
     for state in [payload['final_state']] + [c['state'] for c in payload['checkpoints']]:
@@ -53,4 +61,4 @@ def prepare_trajectory(model, instance, data, checkpoint_root):
     from utils.target_checkpoint import sha256_file
     return model, payload['checkpoints'], {'path': str(path), 'file_sha256': sha256_file(path),
         'state_hash': state_hash(payload['final_state']), 'hit': hit, 'source': 'selector_trajectory',
-        'effective_identity': metadata}
+        'effective_identity': metadata, 'generation_metadata': payload['metadata'], 'consumption_metadata': metadata}
