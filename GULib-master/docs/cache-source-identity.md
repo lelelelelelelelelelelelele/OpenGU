@@ -84,7 +84,10 @@ This audits historical effective inputs, not a forecast of every future live
 checkpoint choice or scientific acceptance. Offline inventory enumeration is
 separate from normal source lookup.
 
-No formal Artifact retire/unlink/GC writer currently exists. The audit is not
-that writer. Cross-source content differences alone require neither deletion nor
-query blocking. Preserve raw historical differences; retire only exact confirmed
-objects through an authorized project-owned operation when available.
+The audit does not delete Artifacts. Cross-source content differences alone
+require neither deletion nor query blocking. An explicitly authorized cleanup may
+retire exact redundant computations even when their payload bytes differ; preserve
+that distinction and the original provenance in its evidence. A general
+retire/unlink/GC command is not a prerequisite: use the bounded, exact-list
+procedure in the [repair Runbook](../scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md#exact-list-retirement),
+including index status updates, retained-object checks and a deletion receipt.

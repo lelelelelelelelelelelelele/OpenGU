@@ -1,267 +1,48 @@
 # OpenGU Cache And Result Repair Runbook
 
-This runbook is the OpenGU-specific repair profile for SyncMate. It describes
-how a local collector, a runner/server, and their AI agents should coordinate
-when a result is discovered to be wrong after it has already been produced or
-collected.
+用于已确认范围的 Cache V2 修复与清理。科学影响范围由研究计划确定；本页负责机器操作。源码兼容规则见 [source identity](../../docs/cache-source-identity.md)，运行、回传和接受见 [实验 Runbook](../../self/research/RUNBOOK.md)。
 
-It is guidance, not an automatic deletion command. Prefer plan, archive,
-verify, rerun, and recollect over silent destructive cleanup.
+## 确定范围
 
+| 情况 | 处理范围 |
+|---|---|
+| 仅源码指纹变化，计算已确认兼容 | 登记兼容组恢复查询；是否清理重复计算产物另按用户授权决定 |
+| 指标实现错误 | 核对指标产物、结果和可信索引；不因此删除正确的 Score、Selection 或模型输出 |
+| GU / Selector 实现错误 | 定位错误计算及实际下游依赖；Selector 错误可能影响消费它的多个方法 |
+| 数据、划分、参数或实际模型状态不同 | 属于不同计算，不能按“仅源码变化”合并或删除 |
+| 产物损坏或执行中断 | 保留诊断证据，核对具体对象；不自动恢复有效或重跑 |
 
-## Current Cache V2 source-fingerprint repair
+清单必须按 Artifact ID、完整 Recipe、来源、内容哈希及引用确定，不按时间窗口、数量或目录名推断。源码兼容不等于结果科学有效；输出字节不同也不自动禁止清理已确认冗余的计算。
 
-The ResultCache/SelectionCache procedures below describe historical layers; they
-are not an executable retirement procedure for current immutable Cache V2.
-For ordinary experiments follow [source identity and provenance](../../docs/cache-source-identity.md).
-A reviewed source-only change may join an explicit compatibility group. Query
-current first, then registered source candidates; retain all original
-Recipe/header/content/reference checks. Unknown sources remain exact-only. Different actual
-GraphRevoker ensemble states remain different computations.
-
-Use `python -B -m scripts.cache_source_audit --store <absolute-cache-root> --run
-<historical-run.json>` for a zero-write inventory. Review every candidate Artifact
-ID, original source, content comparison, retained item and all consumers/children.
-Do not derive a deletion list from a job's timestamp window or count. Different source Recipes may have different payload hashes; first valid HIT
-wins without cross-Recipe conflict blocking. This grants no duplicate deletion
-authorization. Single-Recipe conflicts and invalid objects remain blocked.
-
-**Formal retirement is currently blocked:** cachectl has no Artifact retire,
-consumer unlink or reference-aware GC write operation. Do not use direct SQLite
-updates, filesystem deletion or the legacy repair instructions as a substitute.
-Report the exact affected IDs and missing capability. Software acceptance and
-later deployment do not constitute a completed formal cleanup receipt. Before
-any future write, verify the active checkout/deployment boundary and shared
-occupancy, review the exact dry-run list, then use a project-owned operation with
-index/reference and out-of-scope before/after verification.
-
-Algorithm bugs still require an explicit affected computation range and real
-DAG descendants; registered source compatibility is not permission to reuse invalid
-results. No full-matrix rerun or automatic failed-job recovery is part of this repair.
-
-## Mental Model
-
-OpenGU has four different state layers that can disagree:
-
-| Layer | Path | Meaning | Trust rule |
-|---|---|---|---|
-| Runner result artifacts | `results/runs/<cell>/<method_strategy>/seedN/` | `attack.json`, `collateral.json`, `predictions.npz`, `_meta.json` from one experiment leaf | Complete only if files parse and `_meta.json` fingerprint matches the intended config |
-| ResultCache | `results/cache/*.json` | Full attack-run metrics for one `(method, dataset, model, ratio, seed, strategy, ...)` config | Method/metric/output cache; hash name is not human semantic |
-| SelectionCache | `results/selection_cache/*.json` | Selected node IDs for one strategy config | Cross-GU-method selector cache; hash name is not human semantic |
-| Collector trusted state | `.syncmate/artifact_index.json`, `.syncmate/results_table.*` | Checksummed and parsed artifacts after collection | Trusted only after SHA-256 verification |
-
-The two cache directories are not interchangeable:
-
-- `results/cache/` answers: "Can I reuse this finished attack result and its
-  metrics?"
-- `results/selection_cache/` answers: "Can I reuse this selected node set for
-  this strategy config?"
-
-## Decision Matrix
-
-| Problem found | Clear or quarantine runner `results/runs`? | Invalidate `results/cache`? | Invalidate `selection_cache`? | Notes |
-|---|---:|---:|---:|---|
-| Metric/evaluator bug, such as F1 drop, MIA AUC, retrain gap, collateral metrics | Yes, affected leaves | Yes, affected configs | No | The selected nodes are still valid; only downstream metrics are wrong. |
-| GU method bug, such as GraphRevoker/GraphEraser/GIF/GNNDelete/IDEA method behavior | Yes, affected method leaves | Yes, affected method configs | No, unless selector also changed | This is the user's "revoker class" case: result cache and result artifacts are the primary repair targets. |
-| Selector bug, such as TracIn gradient/scoring, IM formula, Hybrid fusion, PageRank/degree implementation | Yes, all leaves using the bad strategy output | Yes, all downstream method configs using that strategy output | Yes, affected strategy configs | This is the user's "TracIn wrong" case. Bad selected nodes poison all downstream GU metrics. |
-| Dataset split, node indexing, preprocessing, train/val/test mask semantics changed | Yes, affected dataset/cell | Yes | Yes | Node IDs may no longer mean the same thing. Method checkpoints may also be stale. |
-| Config mistake, such as wrong ratio, alpha, strategy, seed, method list, or yaml override | Yes, wrong leaves | Usually yes for wrong configs that may be reused | Only if the mistake changed selected nodes and cache key cannot distinguish it | A new correct config may produce a new hash, but old wrong artifacts can still be collected or trusted if not marked invalid. |
-| Architecture shape change, such as `gcn_hidden` or `gcn_num_layers` | Yes, affected leaves | Usually yes; ResultCache key includes these fields | Usually no | Also clear method checkpoint/data caches that do not encode shape, such as `data/GNNDelete/`, `data/UTU/`, and relevant partition/checkpoint dirs. |
-| Corrupt or interrupted artifact file | Yes, that leaf | Only if the cache entry was written from the corrupt/incomplete run | No | `experiments/run.py` can rerun corrupt/stale leaves, but SyncMate trusted state must also stop trusting old collected copies. |
-
-Rule of thumb:
+只读审计入口：
 
 ```text
-metric or GU method wrong -> result artifacts + ResultCache
-selector or node-ID semantics wrong -> SelectionCache + all downstream result artifacts + ResultCache
-collector trust wrong -> .syncmate index/results table must be rebuilt after artifact quarantine
+python -B -m scripts.cache_source_audit --store <absolute-cache-root> --run <historical-run.json>
 ```
 
-## OpenGU Key Details
+## Exact-list retirement
 
-`ResultCache` identity is defined in `attack/result_cache.py`. The current key
-includes dataset, base model, unlearning method, ratio/k, seed, strategy, task
-flags, GCN architecture, `alpha`, `hybrid_alpha`, Hybrid/IM hyperparameters,
-and `im_selector_seed`.
+已有清理授权时，复用项目的一次性脚本即可；无需先开发通用 `cachectl` 退役命令，也不重复索要同范围授权。合并或部署本身不代表清理授权。
 
-`SelectionCache` identity is defined in `attack/selection_cache.py` and
-`attack/attack_manager.py`. It hashes a strategy config containing dataset,
-base model, ratio, seed anchor, strategy name, k, split flags, graph
-fingerprint, and strategy-parameter fingerprint. The key intentionally does
-not include GU method, because one selected node set can be reused by multiple
-unlearning methods.
+1. **列清单。** 指定待删 ID、保留对象、理由、精确路径和哈希。检查索引 consumers/children 及相关结果 JSON（含 cell 文件）。有引用的对象须先明确引用处置，不能静默解除。
+2. **确认现场。** 核对 SSH 活跃检出、共享占用及在途作业。生成 dry-run 清单和摘要，记录范围外保护对象；只适配旧脚本的做法，不重用旧删除名单。
+3. **保存证据。** 在 canonical `.syncmate/<本次清理>/` 保存索引备份、原 header 和清单，回传并校验。它们不包含完整 payload，不能称为可完整恢复的数据备份。
+4. **逐项执行。** 写入前复核现场与清单一致；仅将目标行标为 `retired / missing`，再校验路径边界和哈希，逐项删除已列出的文件并记日志。保留索引身份、来源和依赖记录，不改写 Recipe，不额外清理 checkpoint 或运行目录。
+5. **核对结果。** 检查索引完整性、外键和目标外记录；核对保留产物 SHA、范围外文件及当前兼容查询仍能命中保留对象。明确哪些检查是 SHA、哪些只是路径/大小/mtime；保存实际数量、字节数和回执。
 
-TracIn and Hybrid deserve special care:
+中断后先检查 started 标记、索引和删除日志，再决定如何恢复；不盲目重跑 apply，不将文件已缺失的对象改回 valid。清理不自动启动实验，也不要求全矩阵重测。
 
-- A pure TracIn scoring bug invalidates `selection_cache` entries for
-  `strategy_name=tracin` and every result leaf/cache entry generated from those
-  selected nodes.
-- If Hybrid uses the same broken TracIn score path, invalidate Hybrid
-  selection entries and downstream results too.
-- If only a TracIn CLI/config parameter was wrong and the key already encodes
-  it, the correct rerun can create a separate cache entry, but the wrong entry
-  still needs an invalidation record so collectors do not continue to trust it.
+## 结果与后续运行
 
-## Two-Sided Repair Protocol
+保留失败运行的日志、配置和诊断。若获准处置已被引用的结果，还需同步处理本地可信索引并由生成器重建结果表，不能继续把失效结果当作可信证据。不要手改生成的报告或表格。
 
-### 1. Freeze The Affected Scope
+重跑、回传和重新接受属于独立步骤，按实验 Runbook 的授权与校验链执行。缓存命中、删除完成或进程退出均不等于科学接受。
 
-Before collecting more data, name the scope in structured terms:
+## 已执行先例
 
-```yaml
-bug_id: 2026-07-03-tracin-gradient-example
-reason: tracin selected nodes were computed with the wrong gradient score
-datasets: [cora]
-base_models: [GCN]
-ratios: [0.05]
-methods: [GIF, GNNDelete, GraphEraser, GraphRevoker]
-strategies: [tracin, hybrid]
-seeds: [42, 212, 722]
-runner_nodes: [gpu4090]
-cache_layers: [selection_cache, result_cache, results_runs, syncmate_trust]
-remote_action: quarantine_then_rerun
-```
+以下证据位于 canonical 项目的本地 `.syncmate/`，供查阅脚本和回执，不可直接再次执行：
 
-If the issue is a GraphRevoker/GU-method bug, the same record should usually
-look like:
+- `cleanup-unlearning-20260908/REPORT.md`：292 项 Output v1 退役。
+- `cache-cleanup-20260928/REVIEW.md`：447 项源码变化导致的重复计算产物退役。
 
-```yaml
-cache_layers: [result_cache, results_runs, syncmate_trust]
-methods: [GraphRevoker]
-strategies: [random, degree, pagerank, tracin, im, hybrid]
-```
-
-### 2. Preserve Evidence
-
-On the collector:
-
-```bash
-python scripts/syncmate/syncmate.py handoff-pack --write
-python scripts/syncmate/syncmate.py index --check
-python scripts/syncmate/syncmate.py results --write --check
-python scripts/syncmate/syncmate.py trace --check
-```
-
-Save the generated `.syncmate/` evidence before changing local landings or
-trusted indexes.
-
-### 3. Build A Repair Plan
-
-For every affected leaf, identify:
-
-- runner node id
-- result leaf path under `results/runs/<cell>/<method_strategy>/seedN/`
-- cache layer(s) to invalidate
-- whether the selector output is bad or only the downstream method/metric is bad
-- whether method-local checkpoint/data caches are stale
-- rerun command or yaml config that will regenerate the leaf
-
-Do not identify cache entries by hash filename alone. Inspect the `config`
-field inside each cache JSON and match it to the structured scope.
-
-### 4. Runner-Side Action
-
-Runner-side action should be explicit and preferably reversible:
-
-1. Move affected `results/runs/<cell>/<method_strategy>/seedN/` leaves to a
-   dated quarantine folder, or delete only after a backup exists.
-2. Invalidate matching `results/cache/*.json` entries whose `config` matches
-   the affected method/metric scope.
-3. Invalidate matching `results/selection_cache/*.json` entries only when the
-   selected node IDs are wrong.
-4. Clear method-local checkpoint/data caches only when their semantics are
-   stale, especially for architecture-shape changes.
-5. Rerun the exact intended yaml/cell.
-6. Re-run the project gate for the regenerated result root.
-
-For selector bugs, remember the fan-out:
-
-```text
-bad SelectionCache entry
-  -> bad selected_nodes
-  -> bad attack.json/collateral.json for every GU method using that strategy
-  -> bad ResultCache entries for those method/strategy/seed configs
-  -> bad collector trusted rows if already collected
-```
-
-### 5. Collector-Side Action
-
-The collector must not keep trusting previously collected copies after a runner
-has invalidated them.
-
-Current SyncMate can archive orphaned peer state, verify checksums, and rebuild
-trusted result tables, but it does not yet implement project-aware invalidation.
-Until that exists, treat the collector cleanup as a manual/profile action:
-
-1. Quarantine affected local landing leaves under
-   `results/runs/<node_id>/<cell>/<method_strategy>/seedN/`.
-2. Rebuild or rewrite `.syncmate/artifact_index.json` so invalid artifacts are
-   no longer trusted.
-3. Regenerate `.syncmate/results_table.json` and `.syncmate/results_table.csv`
-   from the remaining trusted index.
-4. Collect regenerated runner artifacts.
-5. Verify and gate before using the results downstream.
-
-Normal verification sequence:
-
-```bash
-python scripts/syncmate/syncmate.py remote-status <node_id> --apply
-python scripts/syncmate/syncmate.py collect <node_id> --diff
-python scripts/syncmate/syncmate.py collect <node_id> --apply
-python scripts/syncmate/syncmate.py verify <node_id> --apply
-python scripts/syncmate/syncmate.py results --write --check
-python scripts/syncmate/syncmate.py trace --check
-python scripts/syncmate/syncmate.py gate --require-preflight --require-verify --require-results
-```
-
-## Future SyncMate State Model
-
-The durable version should make invalidation a first-class sync state, not an
-ad hoc deletion.
-
-Suggested statuses:
-
-```text
-trusted
-invalidated
-prune-requested
-pruned-local
-pruned-remote
-rerun-needed
-rerun-complete
-recollected
-accepted
-```
-
-Suggested future commands:
-
-```bash
-python scripts/syncmate/syncmate.py invalidate-plan --profile opengu --scope <scope.yaml>
-python scripts/syncmate/syncmate.py invalidate-export <bug_id>
-python scripts/syncmate/syncmate.py invalidate-import <request.json>
-python scripts/syncmate/syncmate.py repair-plan --profile opengu --bug-id <bug_id>
-python scripts/syncmate/syncmate.py repair-apply --profile opengu --bug-id <bug_id> --confirm <bug_id>
-```
-
-The intended flow is:
-
-```text
-collector detects bad result
-  -> writes invalidation request with scope and evidence
-  -> runner imports request and performs a dry-run repair plan
-  -> runner archives/invalidates/reruns
-  -> collector recollects and verifies
-  -> both sides converge on accepted state
-```
-
-## Do Not
-
-- Do not rename hash-named cache files.
-- Do not edit cache JSON by hand to "fix" metrics or selected node IDs.
-- Do not clear `selection_cache/` for a pure metric bug.
-- Do not keep collector `.syncmate/artifact_index.json` entries for artifacts
-  that the runner has invalidated.
-- Do not rely on `results/runs` presence alone; use `_meta.json`,
-  config fingerprints, SHA-256 verification, and the trusted index.
-- Do not make generic SyncMate silently delete remote cache. OpenGU cache repair
-  needs a profile, a scope, and a reversible plan.
+旧 `results/cache/`、`results/selection_cache/` 的历史操作不适用于 Cache V2；处理旧层时须另核实其消费者和合同。

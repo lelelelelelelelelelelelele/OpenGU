@@ -13,7 +13,7 @@ migrated_from: "E:/project/agent for planning/obsidian/GNN_跨架构复查对齐
 > Status: idea / future-work candidate
 > Role: 跨架构共识（cross-backbone consensus）作为"可信信号"验证原则的研究 idea；2026-06-15 从 Obsidian vault 迁入。
 > Use this when: 讨论 paper 的跨 backbone 泛化论述强度、reframe 方向、或下一篇 follow-up 的选题。
-> See also: `dashboard/EXPERIMENT_DASHBOARD.md`, `limitations.md` (L6 future-work 同 tier), `generalization_experiment_checklist.md` §7.3, `report/paper/overleaf/sec/5_results.tex` §5.1/§5.2
+> See also: `dashboard/EXPERIMENT_DASHBOARD.md`, `limitations.md` (L6 future-work 同 tier), `report/paper/overleaf/sec/5_results.tex` §5.1/§5.2
 
 # GNN · 跨架构"复查 / 对齐" idea
 
@@ -75,7 +75,7 @@ migrated_from: "E:/project/agent for planning/obsidian/GNN_跨架构复查对齐
 | 含义 | **跨 backbone 共识**：同一信号在 GCN / GAT / … 上是否都成立 | **selector ↔ 结构对齐**：一个 selector 选的点的平均度数 $\bar d$ 是否预测攻击效果（同一 backbone 内） |
 | 已有 | ❌ 没有当成显式方法 | ✅ `sec:results-alignment`，FIG-5，Pearson r≈0.24，objective-misalignment 机制 |
 
-- **已落地的一半**：paper §5.1 Vulnerability Fingerprint（`sec:results-fingerprint`）和 §5.3 arxiv scale check 已经在**两个 backbone（GCN+GAT）**上跑，并声称"fingerprint ordering 跨 backbone 存活"。`generalization_experiment_checklist.md` §7.3 还规划了 GCN/GAT/GIN/SAGE 跨模型。所以"换 backbone 复查"这件事，项目**已经在做、也已有数据**（`results/runs/4090/cora_GCN_r0.05` + `cora_GAT_r0.05` 两套满矩阵）。
+- **已落地的一半**：paper §5.1 Vulnerability Fingerprint（`sec:results-fingerprint`）和 §5.3 arxiv scale check 已经在**两个 backbone（GCN+GAT）**上跑，并声称"fingerprint ordering 跨 backbone 存活"。当时还规划了 GCN/GAT/GIN/SAGE 跨模型。所以"换 backbone 复查"这件事，项目**已经在做、也已有数据**（`results/runs/4090/cora_GCN_r0.05` + `cora_GAT_r0.05` 两套满矩阵）。
 - **空白的一半（= 这条 idea 的净新价值）**：项目从没把"跨 backbone 一致"**当成一个显式的 consensus filter / validation 原则**来写。现在是"我们在两个 backbone 上都看到 X"，而不是"跨架构共识本身是我们用来筛可信信号的方法"。这条 idea 把后者讲清楚了。
 
 ## 2. 最锋利的一点：caveat #1 直接戳中当前 paper 的软肋
@@ -83,7 +83,7 @@ migrated_from: "E:/project/agent for planning/obsidian/GNN_跨架构复查对齐
 idea 的**前提 #1（架构要真不同，别全是 MP）**不是泛泛之谈——它**正好命中**本项目当前跨架构论述的弱点：
 
 - paper 现在的"跨 backbone 泛化"= **GCN + GAT**，两者**都是 message-passing**。
-- `generalization_experiment_checklist.md` §7.3 计划的扩展 = GCN/GAT/**GIN/SAGE**，**还是全 MP**。
+- 当时计划的跨模型扩展 = GCN/GAT/**GIN/SAGE**，**还是全 MP**。
 - 按 caveat #1：这种"跨架构一致"很可能是 **MP 家族的共同盲点**，不是真·架构无关。一个挑剔 reviewer 完全可以这么捅。
 
 **可操作的强化**：model zoo 里有非 attention / 更偏谱方法的 backbone 现成可用——`Cheb`（ChebNet 谱）、`SGC`/`S2GC`/`SIGN`/`APPNP`/`TAG`（decoupled propagation）。加 **1 个非-MP 家族**的 backbone（首选 `Cheb` 或 `APPNP`），把"跨架构"从"GCN/GAT 都 MP"升级到"跨 MP / 非-MP 家族"，泛化论述才真正立得住。这是这条 idea 给 paper 最直接的增量。

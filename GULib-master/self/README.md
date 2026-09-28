@@ -39,7 +39,7 @@
 - [Thesis transition memo](thesis_transition_memo.md)：2026-05 的课程报告到 thesis 过渡判断。
 - [PROJECT_MASTER_CONTEXT](PROJECT_MASTER_CONTEXT.md)：项目最初的目标、方法族和实现概览。
 - [flow](flow.md)、[attack flow](attack_flow.md)、[代码综述](GU代码综述_2026-02-16.md)：历史设计与代码阅读材料；函数名、路径和耗时应重新核对。
-- [早期分析](analysis_phase_a.md)、[实验覆盖清单](generalization_experiment_checklist.md)、[参数备忘](experiment_params.md)、[宏观规划](宏观plan.md)：早期实验与规划记录。
+- [早期分析](analysis_phase_a.md)、[参数备忘](experiment_params.md)、[宏观规划](宏观plan.md)：早期实验与规划记录。
 - [旧 paper todo](paper_todo.md)、[冻结实验看板](dashboard/EXPERIMENT_DASHBOARD.md)、[配置清单验收](dashboard/CONFIG_INVENTORY_ACCEPTANCE.md)：对应阶段的任务或验收记录。
 - [2026-02 阶段报告](../report/paper/stage_report_2026-02-27.md)、[EE5003 课程报告](../report/progress/2026-04-17_EE5003-report/main_report/msc_project_report.md)、[答辩讲稿](../report/progress/2026-04-17_EE5003-report/ppt/final_15min_script.md)：已交付的阶段成果。
 

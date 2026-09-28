@@ -363,8 +363,6 @@ paper 里建议单列一节 "Are informed selectors just importance proxies?" �
   保存项目的早期统一背景和原始目标设定，适合作为背景参考。
 - `flow.md` + `plan_flow_v2_delta.md`
   保存方法、指标与归因框架的实现参考。
-- `generalization_experiment_checklist.md`
-  保存 2026-02 阶段实验覆盖与完成度。
 - `../report/paper/stage_report_2026-02-27.md`
   对应中期阶段的阶段报告。
 - `../report/progress/2026-04-17_EE5003-report/main_report/msc_project_report.md`
