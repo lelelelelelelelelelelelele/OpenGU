@@ -32,8 +32,10 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
     c = Computations(model, data, checkpoints)
     inputs = make_dataset_selection_inputs(data, dataset_name=dataset_name)
     index = CacheIndex(store_root / 'index.sqlite')
+    # Score identity owns ranking computation; Selection only takes its prefix.
+    # Cache lookup/storage helpers must not change this computation identity.
     selection_producer = ProducerVersion('target-direct-method-prefix-v1',
-        implementation_fingerprint(project_ranking, materialize_budget_selection))
+        implementation_fingerprint(project_ranking))
     results = {}
     for instance in selectors:
         name, budget = instance['method'], instance['budget']
