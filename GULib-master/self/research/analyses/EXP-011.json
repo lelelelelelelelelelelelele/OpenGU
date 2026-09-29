@@ -1,18 +1,18 @@
 {
   "id": "EXP-011",
   "title": "GU 主矩阵 · Table02",
-  "question": "四GU与Retrain、三数据集、三训练seed，比较IF、RR与共同基线。",
-  "scope": "四GU与Retrain、三数据集、三训练seed，比较IF、RR与共同基线。",
+  "question": "六GU与同请求Retrain，三个数据集、三个训练seed、10%删除预算，比较结构化请求的效用损害与重训偏离。",
+  "scope": "六GU与同请求Retrain，三个数据集、三个训练seed、10%删除预算，比较结构化请求的效用损害与重训偏离。",
   "configs": [
     {
       "label": "table02.yaml",
       "path": "experiments/configs/aagu011/table02.yaml",
-      "role": "current"
+      "role": "historical"
     },
     {
       "label": "table02_v2.yaml",
       "path": "experiments/configs/aagu011/table02_v2.yaml",
-      "role": "candidate"
+      "role": "current"
     },
     {
       "label": "table02_v2_gate.yaml",
@@ -134,34 +134,46 @@
           ]
         }
       }
+    },
+    {
+      "run_id": "0925-v1",
+      "job_id": "exp011-t2-retry-20260929-183235",
+      "scope": "1449 cells, 1242 paired GU outputs, 81 distinct Selection Artifacts",
+      "state": "completed",
+      "evidence": [
+        {
+          "label": "Table02 v2 full analysis",
+          "path": "self/research/analyses/EXP-011/table02-v2-analysis.md"
+        }
+      ],
+      "manifest": {
+        "label": "Verified Table02 v2",
+        "path": "results/runs/gpu4090/exp011-t2/0925-v1/run.json",
+        "sha256": "ae24efa4a348cdcee1e87efd6aa15714c679c7a0a8591787c41cf1c6e95e7720",
+        "experiment_id": "exp011-t2",
+        "commit": "1f5cfec08494ef1a78eda16bd3f69428ac47b0bd",
+        "completed": 1449
+      }
     }
   ],
   "analysis": {
     "state": "review",
-    "note": "主表分析已交付，科学决定待确认。 GIF/IDEA six-cell engineering gate passed; full supplement not run.",
+    "note": "完整GIF/IDEA补充矩阵已分析；科学决定待确认。",
     "evidence": [
       {
-        "label": "结果与分析报告",
-        "path": ".workblock/items/AAGU-011/REPORT.md"
+        "label": "Table02 v2 full analysis",
+        "path": "self/research/analyses/EXP-011/table02-v2-analysis.md"
       },
       {
-        "label": "当前运行manifest",
-        "path": "results/runs/gpu4090/aagu011-table02-budget10/aagu011-v1-recovery-full-20260919/run.json"
-      },
-      {
-        "label": "GIF/IDEA real gate analysis",
-        "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
-      },
-      {
-        "label": "GIF/IDEA gate manifest",
-        "path": "results/runs/gpu4090/aagu077-table02-gif-idea-gate/aagu077-profile-gate-20260924-v1/run.json"
+        "label": "Full summary CSV",
+        "path": "self/research/analyses/EXP-011/table02-v2-summary.csv"
       }
     ],
     "highlights": [
-      "已有报告：828 GU + 207 Retrain，207 个请求组形成 828 条严格配对；复用 81 个不同 Selection Artifact，207 个训练条件组不等于 207 次独立选点。",
-      "相对同方法 Random 均值，报告中最低组合为：Cora GraphRevoker / PageRank −4.37 pp；CiteSeer GNNDelete / RR-16384 −2.58 pp；PubMed GraphRevoker / R-point −2.64 pp。",
-      "以上是原始整表报告的固定范围均值，分片方法的 GU−Retrain 差值还包含架构与聚合差异；F1 变化不证明遗忘正确性。",
-      "报告记载原始入口执行 3 小时 56 分 48 秒；当前运行列表绑定的是 ID 含9月19日的 Cache 恢复，回执实际起止为9月20日02:47:00至05:23:16，耗时2小时36分16秒。两批时间分别保留。"
+      "1449格及1242条GU–Retrain严格配对完整；所有逐格文件哈希通过本地复核。",
+      "GIF/IDEA在207组对应条件的F1相同；不能据此认为输出或算法相同。",
+      "GIF/IDEA：PubMed D-full相对Random降低0.942pp；CiteSeer R-point/D-full提高0.430pp，不支持普遍效用攻击。",
+      "R-point在三个数据集均增加GIF/IDEA相对Retrain的预测分歧；效用与一致性需要分开判断。"
     ]
   },
   "decision": {
@@ -169,7 +181,7 @@
     "note": "实验定义、执行交付与科学判断分别记录。",
     "evidence": []
   },
-  "recorded_at": "2026-09-25",
+  "recorded_at": "2026-09-30",
   "gate_acceptance": {
     "state": "accepted",
     "scope": "Six-cell GIF/IDEA Profile engineering gate: mapping, execution and GU cache identity",
