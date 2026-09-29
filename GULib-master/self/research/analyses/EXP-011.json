@@ -157,8 +157,8 @@
     }
   ],
   "analysis": {
-    "state": "review",
-    "note": "完整GIF/IDEA补充矩阵已分析；科学决定待确认。",
+    "state": "complete",
+    "note": "完整主表分析已完成，用户同意收口；GIF/IDEA机制差异保留疑问，不阻塞本次描述性结论。",
     "evidence": [
       {
         "label": "Table02 v2 full analysis",
@@ -177,9 +177,16 @@
     ]
   },
   "decision": {
-    "state": "pending",
-    "note": "实验定义、执行交付与科学判断分别记录。",
-    "evidence": []
+    "state": "accepted",
+    "note": "用户明确同意EXP-011收口，接受固定设置下的完整主表及限定描述性分析；不等同于GIF/IDEA机制等价或独立鲁棒性证明。",
+    "owner": "user",
+    "scope": "1449 cells / 1242 GU-Retrain pairs; Table02 v2 descriptive results",
+    "evidence": [
+      {
+        "label": "Accepted analysis and paper positioning",
+        "path": "self/research/analyses/EXP-011/table02-v2-analysis.md"
+      }
+    ]
   },
   "recorded_at": "2026-09-30",
   "gate_acceptance": {
@@ -193,5 +200,8 @@
         "path": "self/research/analyses/EXP-011/profile-gate-20260924.md"
       }
     ]
-  }
+  },
+  "open_questions": [
+    "GIF与IDEA逐条件F1相同的机制解释：尚未逐格验证梯度、参数更新或logits等价；不作为两份独立机制证据。"
+  ]
 }
