@@ -76,6 +76,42 @@ an equivalence proof. Detailed actual read evidence is in the canonical Report.
 
 ## Read-only audit and retirement
 
+### Selection prefix reuse
+
+The target-direct Selection producer fingerprints `project_ranking` only. Its
+input is the exact Score Artifact and its computation takes the requested ordered
+prefix. Dataset, candidate set, budget, selector parameters and Score reference
+remain in the complete Selection Recipe. Cache lookup/materialization code is
+not a ranking computation dependency: including it made AAGU-086's query changes
+change Selection identities and consequently invalidate downstream GU references.
+
+The registry contains the reviewed historical orchestration fingerprints and the
+computation-only fingerprint for r_point, gt_full, degree, random and pagerank.
+For the new computation identity, an exact hit still wins; on a clean miss the
+original historical identity is tried before the later orchestration identity.
+The two historical versions use identical `project_ranking` and budget
+materialization computations; their transitive differences are the reviewed
+cache query, stored-reference and provenance changes. No Score/Selection IDs,
+payloads or source provenance are rewritten. An unknown ranking implementation
+does not join these groups automatically.
+
+Regression coverage starts at the real selector consumer and follows its
+returned Selection reference into GNNDelete, with Score, Selection and GU
+producer sentinels. It includes both historical and newer duplicate objects,
+which a GU-only audit supplied with historical Selection IDs cannot exercise.
+
+Run `python -B scripts/verify_exp011_cache.py` in the synchronized SSH active
+checkout for the EXP-011 **cache-hit gate**. It consumes the unchanged Table02
+YAML, Cora seed42 and its first configured budget, and requires all 25 combinations
+of the five target-direct selectors and GNNDelete/MEGU/GraphEraser/GraphRevoker/
+Retrain to hit. It constructs current selections and loads actual model/ensemble
+checkpoints; it never substitutes historical Selection IDs or ensemble state.
+Every producer is prohibited and a Prediction MISS raises before execution.
+The gate reads existing assets on CPU, changes no cache index, and reports the
+actual IDs and GraphRevoker ensemble state. It deliberately excludes GIF/IDEA,
+which were newly added lanes without complete historical outputs. This small
+cache-consumption gate is not GPU execution or full-matrix acceptance.
+
 `python -B -m scripts.cache_source_audit --store <absolute-cache-root> --run
 <historical-run.json>` checks historical cells using current measured GU sources,
 unchanged other inputs and the registered candidate chain. It reads representative

@@ -167,6 +167,116 @@
       "evidence": [
         "docs/cache-source-identity.md#reviewed-sources"
       ]
+    },
+    {
+      "cache_scope": "selection",
+      "producer": "r_point",
+      "applies_to": {
+        "semantic_version": "target-direct-method-prefix-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "478e61a1077d338e99cc3bdb4cba75f036c34f74b36eb27e36ea366d37705c4b"
+        },
+        {
+          "source_fingerprint": "b593fa9155d203f523c4c5754eab5b819bff0cb9ac764c6d970c5ae4329c2114"
+        },
+        {
+          "source_fingerprint": "8a57e25fa994a48866b268f2f59e77e0fc79b2d3e9e95b282bad110149c7e0eb"
+        }
+      ],
+      "reason": "Reviewed identical ranking prefix computation; historical fingerprints included cache orchestration. Score artifact, budget, data and all non-source fields remain exact.",
+      "evidence": [
+        "docs/cache-source-identity.md#selection-prefix-reuse"
+      ]
+    },
+    {
+      "cache_scope": "selection",
+      "producer": "gt_full",
+      "applies_to": {
+        "semantic_version": "target-direct-method-prefix-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "478e61a1077d338e99cc3bdb4cba75f036c34f74b36eb27e36ea366d37705c4b"
+        },
+        {
+          "source_fingerprint": "b593fa9155d203f523c4c5754eab5b819bff0cb9ac764c6d970c5ae4329c2114"
+        },
+        {
+          "source_fingerprint": "8a57e25fa994a48866b268f2f59e77e0fc79b2d3e9e95b282bad110149c7e0eb"
+        }
+      ],
+      "reason": "Reviewed identical ranking prefix computation; historical fingerprints included cache orchestration. Score artifact, budget, data and all non-source fields remain exact.",
+      "evidence": [
+        "docs/cache-source-identity.md#selection-prefix-reuse"
+      ]
+    },
+    {
+      "cache_scope": "selection",
+      "producer": "degree",
+      "applies_to": {
+        "semantic_version": "target-direct-method-prefix-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "478e61a1077d338e99cc3bdb4cba75f036c34f74b36eb27e36ea366d37705c4b"
+        },
+        {
+          "source_fingerprint": "b593fa9155d203f523c4c5754eab5b819bff0cb9ac764c6d970c5ae4329c2114"
+        },
+        {
+          "source_fingerprint": "8a57e25fa994a48866b268f2f59e77e0fc79b2d3e9e95b282bad110149c7e0eb"
+        }
+      ],
+      "reason": "Reviewed identical ranking prefix computation; historical fingerprints included cache orchestration. Score artifact, budget, data and all non-source fields remain exact.",
+      "evidence": [
+        "docs/cache-source-identity.md#selection-prefix-reuse"
+      ]
+    },
+    {
+      "cache_scope": "selection",
+      "producer": "random",
+      "applies_to": {
+        "semantic_version": "target-direct-method-prefix-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "478e61a1077d338e99cc3bdb4cba75f036c34f74b36eb27e36ea366d37705c4b"
+        },
+        {
+          "source_fingerprint": "b593fa9155d203f523c4c5754eab5b819bff0cb9ac764c6d970c5ae4329c2114"
+        },
+        {
+          "source_fingerprint": "8a57e25fa994a48866b268f2f59e77e0fc79b2d3e9e95b282bad110149c7e0eb"
+        }
+      ],
+      "reason": "Reviewed identical ranking prefix computation; historical fingerprints included cache orchestration. Score artifact, budget, data and all non-source fields remain exact.",
+      "evidence": [
+        "docs/cache-source-identity.md#selection-prefix-reuse"
+      ]
+    },
+    {
+      "cache_scope": "selection",
+      "producer": "pagerank",
+      "applies_to": {
+        "semantic_version": "target-direct-method-prefix-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "478e61a1077d338e99cc3bdb4cba75f036c34f74b36eb27e36ea366d37705c4b"
+        },
+        {
+          "source_fingerprint": "b593fa9155d203f523c4c5754eab5b819bff0cb9ac764c6d970c5ae4329c2114"
+        },
+        {
+          "source_fingerprint": "8a57e25fa994a48866b268f2f59e77e0fc79b2d3e9e95b282bad110149c7e0eb"
+        }
+      ],
+      "reason": "Reviewed identical ranking prefix computation; historical fingerprints included cache orchestration. Score artifact, budget, data and all non-source fields remain exact.",
+      "evidence": [
+        "docs/cache-source-identity.md#selection-prefix-reuse"
+      ]
     }
   ]
 }
