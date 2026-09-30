@@ -1,5 +1,7 @@
 # EXP-013 · Surrogate → GCN：哪些攻击效果能迁移？
 
+后续主分析已按用户确认的三个层次展开：[选点一致性、F1效果相关性与效果接近程度](post_REPORT.html)。本页保留原幅度与retrain-gap分析作为补充；不要只用攻击大小判断迁移。
+
 这轮结果支持**特定数据集、方法和选点算法上的迁移**，不支持“任意代理模型都能复现白盒效果”。最清晰的现象来自 GNNDelete + gt_full：Cora 的 GIN 代理接近 direct，PubMed 的 SGC 代理明显超过 direct。完整结果同时包含弱效果、负增益和 utility / retrain-gap 分离的组合。
 
 ## 先看这张图

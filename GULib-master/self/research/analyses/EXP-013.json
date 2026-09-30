@@ -1,7 +1,7 @@
 {
   "id": "EXP-013",
   "title": "代理模型选集迁移",
-  "question": "固定GCN victim，SGC/GAT/GIN选点能否迁移utility损失与同请求signed retrain-gap？",
+  "question": "跨架构选点一致性是否伴随GCN victim上F1/drop效果排序相关与幅度接近？",
   "scope": "r1全部756单元：3数据集、3训练seed、10%删除预算，六GU与同请求Retrain；不排除任何完成单元。",
   "configs": [
     {
@@ -53,8 +53,24 @@
   ],
   "analysis": {
     "state": "complete",
-    "note": "本轮描述性分析完成：迁移依赖dataset/GU/selector；GNNDelete gt_full呈现Cora GIN接近direct、PubMed SGC超过direct的案例；同时保留Random/Degree反例和utility/gap分离。科学接受待用户评议。",
+    "note": "Post分析完成：模型内/跨模型选集对照、分层F1/drop Pearson/Spearman、配对幅度差与算法/seed/Random敏感性；三层关系可区分，存在高相关但幅度不同或更强攻击但低相关的条件。每格仅3seed，探索性描述，科学接受待评议。",
     "evidence": [
+      {
+        "label": "Post主报告HTML",
+        "path": "self/research/analyses/EXP-013/post_REPORT.html"
+      },
+      {
+        "label": "Post主报告Markdown",
+        "path": "self/research/analyses/EXP-013/post_REPORT.md"
+      },
+      {
+        "label": "相关与敏感性全表",
+        "path": "self/research/analyses/EXP-013/post_correlations.csv"
+      },
+      {
+        "label": "Post核验",
+        "path": "self/research/analyses/EXP-013/post_audit.json"
+      },
       {
         "label": "Surrogate分析报告",
         "path": "self/research/analyses/EXP-013/REPORT.md"
@@ -78,5 +94,5 @@
     "note": "待用户审阅；未声明统计等效、普遍迁移或科学接受。",
     "evidence": []
   },
-  "recorded_at": "2026-09-30"
+  "recorded_at": "2026-10-01"
 }
