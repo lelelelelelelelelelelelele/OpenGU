@@ -1,0 +1,33 @@
+{
+  "job_id": "exp013-full-20260930-r1",
+  "run_id": "r1",
+  "execution_sha": "62926d95b843af137076eb9dd0a15e1c54c75663",
+  "manifest_sha256": "70588d5793760e44ae268dfe55b3648e0638b71fde3a4db0eee998dc51760a49",
+  "verified_files": 1513,
+  "cells": 756,
+  "paired_gu_cells": 648,
+  "cache_counts_per_cell_access": {
+    "score": {
+      "hit": 420,
+      "miss": 336
+    },
+    "selection": {
+      "hit": 420,
+      "miss": 336
+    },
+    "method": {
+      "hit": 384,
+      "miss": 372
+    },
+    "selector_checkpoint": {
+      "hit": 392,
+      "not_applicable": 252,
+      "miss": 112
+    },
+    "method_checkpoint": {
+      "hit": 648,
+      "not_applicable": 108
+    }
+  },
+  "scientific_acceptance": "not_requested"
+}

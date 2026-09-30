@@ -1,25 +1,82 @@
 {
   "id": "EXP-013",
   "title": "代理模型选集迁移",
-  "question": "固定目标模型，只改变选点使用的代理模型，比较迁移效果。",
-  "scope": "固定目标模型，只改变选点使用的代理模型，比较迁移效果。",
-  "configs": [],
+  "question": "固定GCN victim，SGC/GAT/GIN选点能否迁移utility损失与同请求signed retrain-gap？",
+  "scope": "r1全部756单元：3数据集、3训练seed、10%删除预算，六GU与同请求Retrain；不排除任何完成单元。",
+  "configs": [
+    {
+      "label": "Surrogate to GCN",
+      "path": "experiments/configs/exp013/surrogate_to_gcn.yaml",
+      "role": "current"
+    }
+  ],
   "sources": [
     {
       "label": "历史定义",
       "path": ".workblock/items/AAGU-013/WORKITEM.md"
     }
   ],
-  "attempts": [],
+  "attempts": [
+    {
+      "run_id": "r1",
+      "job_id": "exp013-full-20260930-r1",
+      "git_sha": "62926d95b843af137076eb9dd0a15e1c54c75663",
+      "scope": "r1全部756单元：3数据集、3训练seed、10%删除预算，六GU与同请求Retrain；不排除任何完成单元。",
+      "state": "completed",
+      "evidence": [
+        {
+          "label": "Surrogate分析报告",
+          "path": "self/research/analyses/EXP-013/REPORT.md"
+        },
+        {
+          "label": "Surrogate图表HTML",
+          "path": "self/research/analyses/EXP-013/REPORT.html"
+        },
+        {
+          "label": "完整统计CSV",
+          "path": "self/research/analyses/EXP-013/summary.csv"
+        },
+        {
+          "label": "身份核验",
+          "path": "self/research/analyses/EXP-013/audit.json"
+        }
+      ],
+      "manifest": {
+        "label": "原始运行manifest",
+        "path": "results/runs/gpu4090/exp013-surrogate-to-gcn/r1/run.json",
+        "sha256": "70588d5793760e44ae268dfe55b3648e0638b71fde3a4db0eee998dc51760a49",
+        "experiment_id": "exp013-surrogate-to-gcn",
+        "commit": "62926d95b843af137076eb9dd0a15e1c54c75663",
+        "completed": 756
+      }
+    }
+  ],
   "analysis": {
-    "state": "not_started",
-    "note": "暂无本轮分析证据。",
-    "evidence": []
+    "state": "complete",
+    "note": "本轮描述性分析完成：迁移依赖dataset/GU/selector；GNNDelete gt_full呈现Cora GIN接近direct、PubMed SGC超过direct的案例；同时保留Random/Degree反例和utility/gap分离。科学接受待用户评议。",
+    "evidence": [
+      {
+        "label": "Surrogate分析报告",
+        "path": "self/research/analyses/EXP-013/REPORT.md"
+      },
+      {
+        "label": "Surrogate图表HTML",
+        "path": "self/research/analyses/EXP-013/REPORT.html"
+      },
+      {
+        "label": "完整统计CSV",
+        "path": "self/research/analyses/EXP-013/summary.csv"
+      },
+      {
+        "label": "身份核验",
+        "path": "self/research/analyses/EXP-013/audit.json"
+      }
+    ]
   },
   "decision": {
     "state": "not_requested",
-    "note": "实验定义、执行交付与科学判断分别记录。",
+    "note": "待用户审阅；未声明统计等效、普遍迁移或科学接受。",
     "evidence": []
   },
-  "recorded_at": "2026-09-22"
+  "recorded_at": "2026-09-30"
 }
