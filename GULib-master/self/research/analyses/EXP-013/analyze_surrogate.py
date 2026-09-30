@@ -40,6 +40,8 @@ def digest(path):
 def save(fig, name):
     fig.savefig(OUT / (name + '.png'), dpi=170, bbox_inches='tight', facecolor='white')
     fig.savefig(OUT / (name + '.svg'), bbox_inches='tight', facecolor='white')
+    svg = OUT / (name + '.svg')
+    svg.write_text('\n'.join(line.rstrip() for line in svg.read_text(encoding='utf-8').splitlines())+'\n', encoding='utf-8')
     plt.close(fig)
 
 
