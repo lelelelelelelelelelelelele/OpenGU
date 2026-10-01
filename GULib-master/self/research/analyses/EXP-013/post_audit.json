@@ -12,6 +12,8 @@
   "rank_rounding_decimals_pp": 10,
   "undefined_drop_correlations": 2,
   "excluded_completed_cells": 0,
-  "figures": 10,
+  "figures": 11,
+  "paired_view_settings": 36,
+  "paired_view_observations_per_setting": 9,
   "scientific_decision": "not_requested"
 }

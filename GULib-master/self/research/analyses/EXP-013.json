@@ -53,7 +53,7 @@
   ],
   "analysis": {
     "state": "complete",
-    "note": "Post分析完成：模型内/跨模型选集对照、分层F1/drop Pearson/Spearman、配对幅度差与算法/seed/Random敏感性；三层关系可区分，存在高相关但幅度不同或更强攻击但低相关的条件。每格仅3seed，探索性描述，科学接受待评议。",
+    "note": "Post分析完成；阅读主图改为固定方法/算法/surrogate的逐seed配对变化，HTML支持36种组合；原混合算法相关热图降为补充。保留选点、效果相关、幅度三层证据及敏感性检查；3seed仅支持探索性描述，科学接受待评议。",
     "evidence": [
       {
         "label": "Post主报告HTML",
@@ -94,5 +94,5 @@
     "note": "待用户审阅；未声明统计等效、普遍迁移或科学接受。",
     "evidence": []
   },
-  "recorded_at": "2026-10-01"
+  "recorded_at": "2026-10-02"
 }

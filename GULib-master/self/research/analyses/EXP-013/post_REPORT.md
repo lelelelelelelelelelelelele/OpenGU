@@ -4,7 +4,19 @@
 
 本报告是用户提出新分析视角后的探索性 post 分析，基于既有、可信回传的 r1。没有新运行、参数调整或结果筛除；原幅度报告保留为[补充分析](REPORT.html)。主要指标是 F1 drop 和删除后 F1，retrain-gap 不参与本报告主结论。
 
-## 先看一张：效果强弱排序是否保留？
+## 先看一张：同一个 seed，换模型选点后 F1 下降改变多少？
+
+![同seed真实F1下降配对](post_paired_reading.png)
+
+先固定 **GNNDelete × gt_full × GIN**，只读三条实际配对线。左端是 GCN 选点，右端是 GIN 选点；同色连接同一个 seed，纵轴是 F1 下降百分点。线水平表示下降相同，向上表示换成 GIN 后下降更多。各数据集单独缩放纵轴，只在面板内部比较斜率；负值代表 F1 提升。两端最终都评估 GCN victim。
+
+这是延续讨论的一个阅读示例，不代表 GIN 是所有条件下最优。HTML 可切换全部六种遗忘方法、两个选点算法和三种 surrogate，并显示九对原始数值；一次只看一个组合。JavaScript 不可用时保留默认静态图。
+
+在这个示例中，Cora 的三次均值从 20.48 到 20.23 pp，三对绝对差均约 0.74 pp；PubMed 从 1.41 到 1.43 pp，三对绝对差约 0.05～0.51 pp。**在这些具体配对上下降幅度相近**，但不等于通过统计等效检验。CiteSeer 两边的变化都在 1 pp 内，并未显示明显 F1 损伤。判断攻击是否优于 Random 仍需基线。
+
+这个图让幅度、方向和 seed 差异可直接检查，不能取代相关性问题。后者仍保留在下方作为补充。旧主图把两个算法合并，PubMed/GNNDelete/GIN 的 0.03 不能概括当前 gt_full 子集的幅度差，更不能直接判断其攻击效果很差。
+
+## 补充：六个混合条件的排序相关
 
 ![分层 F1 drop Spearman 相关](post_drop_correlation.png)
 
@@ -188,7 +200,7 @@ CSV 同时给出 Pearson/Spearman after F1。两种指标回答不同问题：af
 - [逐效果配对](post_effect_pairs.csv)、[逐选集配对](post_selection_pairs.csv)、[选集统计](post_selection_summary.csv)、[重叠与效果关系](post_overlap_effect.csv)。
 - [核验记录](post_audit.json)：162组相关统计与 scipy 独立实现对照；配对drop和after F1的绝对差一致。
 - [生成器](post_analysis.py)：仓库根运行 `python -X utf8 self/research/analyses/EXP-013/post_analysis.py`。本地依赖 numpy/pandas/matplotlib/markdown-it-py/scipy，无GPU或远端模型输入。
-- [主图SVG](post_drop_correlation.svg) · [幅度差SVG](post_drop_agreement.svg) · [选点参照SVG](post_selection_reference.svg) · [F1相关SVG](post_f1_correlation.svg)。HTML内嵌所有图像，可独立查看；CSV/SVG作为配套下载文件。
+- [配对主图SVG](post_paired_reading.svg) · [相关性补充SVG](post_drop_correlation.svg) · [幅度差SVG](post_drop_agreement.svg) · [选点参照SVG](post_selection_reference.svg) · [F1相关SVG](post_f1_correlation.svg)。HTML内嵌所有图像和配对数据，可独立查看；CSV/SVG作为配套下载文件。
 
 ## 完整六点统计
 
