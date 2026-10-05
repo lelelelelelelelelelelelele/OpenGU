@@ -1,5 +1,22 @@
 # 公共实验配置
 
+## Surrogate selector 文件名引用
+
+SGC、GAT、GIN 的 R-point / GT-full 公共实例位于 `selectors/`，后续实验直接引用文件名：
+
+```yaml
+selector_refs:
+- r_point_sgc.yaml
+- gt_full_sgc.yaml
+- r_point_gat.yaml
+- gt_full_gat.yaml
+- r_point_gin.yaml
+- gt_full_gin.yaml
+parameter_profile_ref: gif_idea_fixed_pt.yaml
+```
+
+公共实例初始参数与 EXP-013 已验证输入一致。EXP-013 的原实例与 Recipe 绑定，保留为已运行实验的输入记录；后续实验使用公共实例。解析器不搜索实验私有目录，也不回退到同目录的同名文件。
+
 ## 配对 Flip / Hop Metrics
 
 在普通 Unlearning 或独立 Metrics 表的 `evaluation_refs` 追加

@@ -143,3 +143,31 @@ def test_profile_fingerprint_tracks_content_and_explicit_paths(tmp_path, monkeyp
     # A local namesake must not silently replace a missing public profile.
     with pytest.raises(ValueError, match='YAML file does not exist'):
         configuration_fingerprint(table)
+
+
+def test_surrogate_public_names_preserve_exp013_selection_and_moved_matrix(tmp_path, monkeypatch):
+    original = ROOT / 'experiments/configs/exp013/surrogate_to_gcn.yaml'
+    expected = load_experiment(original)
+    value = yaml.safe_load(original.read_text(encoding='utf-8'))
+    value['selector_refs'] = [Path(ref).name for ref in value['selector_refs']]
+    value['parameter_profile_ref'] = 'gif_idea_fixed_pt.yaml'
+    table = tmp_path / 'deep/drafts/experiment.yaml'
+    table.parent.mkdir(parents=True)
+    table.write_text(yaml.safe_dump(value), encoding='utf-8')
+    for architecture in ('sgc', 'gat', 'gin'):
+        for method in ('r_point', 'gt_full'):
+            name = method + '_' + architecture + '.yaml'
+            public = ROOT / 'experiments/configs/selectors' / name
+            historical = original.parent / 'selectors' / name
+            assert public.read_bytes() == historical.read_bytes()
+            (table.parent / name).write_text('invalid local selector', encoding='utf-8')
+    fingerprint = configuration_fingerprint(table)
+    moved = tmp_path / 'moved.yaml'
+    moved.write_bytes(table.read_bytes())
+    monkeypatch.chdir(tmp_path)
+    for path in (table, moved):
+        actual = load_experiment(path)
+        for field in ('datasets', 'selectors', 'unlearnings', 'evaluations'):
+            assert actual[field] == expected[field]
+        assert configuration_fingerprint(path) == fingerprint
+        assert execute(path, dry_run=True)['logical_cells'] == 756
