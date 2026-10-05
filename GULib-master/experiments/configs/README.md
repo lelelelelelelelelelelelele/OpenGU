@@ -92,4 +92,4 @@ IM 算法由 `selector_refs` 显式选择：`selectors/im_rr_greedy.yaml` 配置
 
 ## 公共 GIF/IDEA H64 实例
 
-`unlearning/gif_h64.yaml` 和 `unlearning/idea_h64.yaml` 声明双层 GCN、隐藏维度64、iteration=100。大表用 `parameter_profile_ref: ../profiles/gif_idea_fixed_pt.yaml` 按数据集匹配参数；每个训练seed使用自己的精确checkpoint缓存。完整实例见 [Table02 v2](aagu011/table02_v2.yaml)。
+`unlearning/gif_h64.yaml` 和 `unlearning/idea_h64.yaml` 声明双层 GCN、隐藏维度64、iteration=100。大表用 `parameter_profile_ref: gif_idea_fixed_pt.yaml` 从公共 `profiles/` 目录读取并按数据集匹配参数，不受大表所在目录影响；每个训练seed使用自己的精确checkpoint缓存。完整实例见 [Table02 v2](aagu011/table02_v2.yaml)。

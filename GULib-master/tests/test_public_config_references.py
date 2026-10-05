@@ -32,8 +32,10 @@ def test_moved_table_and_cwd_keep_public_instances_and_fingerprint(tmp_path, mon
 @pytest.mark.parametrize('reference', ['../cora.yaml', 'datasets/cora.yaml',
     '..\\cora.yaml', 'C:cora.yaml', '', None, 'missing.yaml'])
 def test_invalid_public_reference_fails_for_load_and_fingerprint(tmp_path, field, reference):
-    value = yaml.safe_load((ROOT / 'experiments/configs/aagu007/experiment.yaml').read_text())
-    value[field] = [reference]
+    source = ('experiments/configs/aagu077/table02_gif_idea_gate.yaml'
+              if field == 'parameter_profile_ref' else 'experiments/configs/aagu007/experiment.yaml')
+    value = yaml.safe_load((ROOT / source).read_text(encoding='utf-8'))
+    value[field] = reference if field == 'parameter_profile_ref' else [reference]
     path = tmp_path / 'invalid.yaml'
     path.write_text(yaml.safe_dump(value))
     for consumer in (load_experiment, configuration_fingerprint):
@@ -73,6 +75,8 @@ def test_explicit_relative_paths_resolve_from_table_not_cwd(tmp_path, monkeypatc
     value = yaml.safe_load(original.read_text())
     public = load_experiment(original)
     for field, directory in REFERENCE_DIRECTORIES.items():
+        if field not in value:
+            continue
         names = value[field]
         target = tmp_path / directory
         target.mkdir()
@@ -96,3 +100,46 @@ def test_explicit_relative_paths_resolve_from_table_not_cwd(tmp_path, monkeypatc
     local.write_bytes((ROOT / 'experiments/configs/selectors/degree.yaml').read_bytes())
     assert resolve_reference('selector_refs', './degree.yaml', table.parent) == local
     assert resolve_reference('selector_refs', '.\\degree.yaml', table.parent) == local
+
+
+def test_public_profile_survives_table_move_and_cannot_be_shadowed(tmp_path, monkeypatch):
+    original = ROOT / 'experiments/configs/aagu077/table02_gif_idea_gate.yaml'
+    expected = load_experiment(original)
+    value = yaml.safe_load(original.read_text(encoding='utf-8'))
+    value['parameter_profile_ref'] = 'gif_idea_fixed_pt.yaml'
+    table = tmp_path / 'nested/table.yaml'
+    table.parent.mkdir()
+    table.write_text(yaml.safe_dump(value), encoding='utf-8')
+    (table.parent / 'gif_idea_fixed_pt.yaml').write_text('invalid local profile', encoding='utf-8')
+    fingerprint = configuration_fingerprint(table)
+    moved = tmp_path / 'moved.yaml'
+    moved.write_bytes(table.read_bytes())
+    monkeypatch.chdir(tmp_path)
+    for path in (table, moved):
+        actual = load_experiment(path)
+        for field in ('datasets', 'selectors', 'unlearnings', 'effective_parameter_profiles'):
+            assert actual[field] == expected[field]
+        assert configuration_fingerprint(path) == fingerprint
+        assert execute(path, dry_run=True)['logical_cells'] == 6
+
+
+def test_profile_fingerprint_tracks_content_and_explicit_paths(tmp_path, monkeypatch):
+    import experiments.modular_config as config
+    monkeypatch.setattr(config, 'ROOT', tmp_path)
+    profile = tmp_path / 'experiments/configs/profiles/params.yaml'
+    profile.parent.mkdir(parents=True)
+    profile.write_text('value: 1', encoding='utf-8')
+    table = tmp_path / 'table.yaml'
+    table.write_text('parameter_profile_ref: params.yaml', encoding='utf-8')
+    before = configuration_fingerprint(table)
+    profile.write_text('value: 2', encoding='utf-8')
+    assert configuration_fingerprint(table) != before
+    local = tmp_path / 'params.yaml'
+    local.write_text('value: local', encoding='utf-8')
+    monkeypatch.chdir(ROOT)
+    for reference in ('./params.yaml', '.\\params.yaml', str(local)):
+        assert resolve_reference('parameter_profile_ref', reference, table.parent) == local
+    profile.unlink()
+    # A local namesake must not silently replace a missing public profile.
+    with pytest.raises(ValueError, match='YAML file does not exist'):
+        configuration_fingerprint(table)

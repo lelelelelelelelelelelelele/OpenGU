@@ -15,6 +15,7 @@ REFERENCE_DIRECTORIES = {
     'selector_refs': 'selectors',
     'unlearning_refs': 'unlearning',
     'evaluation_refs': 'evaluations',
+    'parameter_profile_ref': 'profiles',
 }
 PARAMETER_PROFILE_METHODS = {
     'GIF': {'scale', 'damp', 'GIF_method'},
@@ -47,19 +48,6 @@ def resolve_reference(field, reference, source_directory):
                 raise ConfigurationError(f'{field} resolves outside its public directory')
     if path.suffix not in ('.yaml', '.yml') or not path.is_file():
         raise ConfigurationError(f'{field}: YAML file does not exist: {path}')
-    return path.resolve()
-
-
-def resolve_parameter_profile_ref(reference, source_directory):
-    if not isinstance(reference, str) or not reference.strip():
-        raise ConfigurationError('parameter_profile_ref requires a YAML file path')
-    path = Path(reference)
-    if not path.is_absolute():
-        if ':' in reference:
-            raise ConfigurationError('parameter_profile_ref: drive-relative paths are not allowed')
-        path = Path(source_directory) / reference.replace('\\', '/')
-    if path.suffix not in ('.yaml', '.yml') or not path.is_file():
-        raise ConfigurationError(f'parameter_profile_ref: YAML file does not exist: {path}')
     return path.resolve()
 
 
@@ -468,7 +456,7 @@ def load_experiment(path):
     if 'parameter_profile_ref' in value:
         if value['stage'] != 'unlearning':
             raise ConfigurationError('parameter_profile_ref belongs to the unlearning stage')
-        profile_path = resolve_parameter_profile_ref(value['parameter_profile_ref'], path.parent)
+        profile_path = resolve_reference('parameter_profile_ref', value['parameter_profile_ref'], path.parent)
         profile_entries = load_parameter_profile(profile_path)
         result['configuration_sources']['parameter_profile'] = str(profile_path)
     for field, kind in (('selector_refs', 'selector'), ('unlearning_refs', 'unlearning'),
@@ -673,7 +661,7 @@ def configuration_fingerprint(path):
         for field in ('dataset_refs', 'selector_refs', 'unlearning_refs', 'evaluation_refs'):
             refs.extend(resolve_reference(field, ref, current.parent) for ref in value.get(field, []))
         if 'parameter_profile_ref' in value:
-            refs.append(resolve_parameter_profile_ref(value['parameter_profile_ref'], current.parent))
+            refs.append(resolve_reference('parameter_profile_ref', value['parameter_profile_ref'], current.parent))
         children = [document(ref) for ref in refs]
         visited.remove(current)
         return {'document': value, 'references': children}
