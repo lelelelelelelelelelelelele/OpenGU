@@ -1,4 +1,4 @@
-# Complete EXP-079 scientific scope; execute the reviewed batch Recipes.
+# Complete EXP-079 ten-seed matrix; executed by one reviewed Recipe.
 kind: experiment
 schema_version: 1
 experiment_id: exp079-surrogate-multiseed

@@ -112,6 +112,6 @@
   "exp079": {
     "owner": "EXP-079",
     "kind": "experiment",
-    "note": "十训练seed完整矩阵与六小时上限执行分片；候选验收及运行状态以EXP-079记录为准。"
+    "note": "十训练seed完整矩阵及单份提交Recipe；候选验收及运行状态以EXP-079记录为准。"
   }
 }

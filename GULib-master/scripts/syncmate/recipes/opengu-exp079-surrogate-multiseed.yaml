@@ -1,14 +1,14 @@
 schema_version: 1
-id: opengu-aagu011-table02-v2
+id: opengu-exp079-surrogate-multiseed
 runner: experiment
-config_path: experiments/configs/aagu011/table02_v2.yaml
-config_sha256: d5ea32a93866482ffbcd4e72978fc08a66ac04eac28c0ceede7ba0e8c93f350a
-configuration_fingerprint: 96fea1fcb60bb9298780cdd03f470c6535974b85628255f8370fbea70bd21cbd
+config_path: experiments/configs/exp079/surrogate_multiseed.yaml
+config_sha256: 929b70d3bb25e095f268d939ba1203ac3abd59a316d36e826203bc04e3e393d3
+configuration_fingerprint: 010af4e0ba185ed353ce65c5c7bce9eb15b3405a94bc67fb32fe5a41c0cc7099
 run_identity:
-  experiment_id: aagu011-table02-v2
-  run_id: aagu011-table02-v2
+  experiment_id: exp079-surrogate-multiseed
+  run_id: e79r1
 timeout_seconds: 21600
-logical_cells: 1449
+logical_cells: 2520
 stage: unlearning
 expected_datasets:
 - num_nodes: 2708
