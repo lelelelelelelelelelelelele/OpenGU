@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-06",
+  "EXP-011": {
+    "commit": "1f5cfec08494ef1a78eda16bd3f69428ac47b0bd",
+    "cells": 1449,
+    "verified_cell_files": 2898,
+    "manifest_sha256": "ae24efa4a348cdcee1e87efd6aa15714c679c7a0a8591787c41cf1c6e95e7720",
+    "random_draws_per_training_seed": 10
+  },
+  "EXP-013": {
+    "commit": "62926d95b843af137076eb9dd0a15e1c54c75663",
+    "cells": 756,
+    "verified_cell_files": 1512,
+    "manifest_sha256": "70588d5793760e44ae268dfe55b3648e0638b71fde3a4db0eee998dc51760a49",
+    "random_draws_per_training_seed": 3
+  },
+  "gap_convention": "G = Retrain - GU; A = Random - selected; E = G_selected - G_random",
+  "matching": "full output reference, selection_id, split and training seed checked",
+  "summary_csv_reproduced": true,
+  "all_report_local_links_exist": 74,
+  "printed_data_rows_checked": 28,
+  "workplan_status_records_checked": 6,
+  "offline_html": true,
+  "formula_count": 12,
+  "source_sha256": "45e775357314d56cb8c5c19313ba665a35c63a0e88961d54b683097237652a42",
+  "figure_sha256": {
+    "01-selector-response.png": "05b02ba1baf2ddd3a1bf62977c7e36b98fd9dfb158dd4090cf3538dedc4911f9",
+    "02-decomposition.png": "e63c7b715e89e6e9985e42ec79c13f971a6f836c2977c3d35c699d40c7d6c03c",
+    "03-utility-and-disagreement.png": "5ae126c107f7f1c9956757359841435f6fc825cfe216c5a162074eed32b2c2f4",
+    "04-transfer.png": "a36260e9700cc28bfb485d161e6e73145e09ac79295dc1e542d71d6222b06bbb",
+    "05-retrain-reference.png": "83462de630c8ff1b05a3fb5e63dcf29f09671346741f1afcd652a6d57ca068f7",
+    "06-surrogate-behavior.png": "a4d6f752f492926db08ff63746cab854b5e508225ccb4763ed69e81f460a8fc6"
+  }
+}

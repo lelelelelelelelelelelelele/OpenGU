@@ -1,0 +1,338 @@
+{
+  "as_of": "2026-10-06",
+  "experiments": [
+    {
+      "id": "EXP-011",
+      "execution": {
+        "state": "completed",
+        "note": "原job计算16020秒，标准输入恢复收集完成，2899文件SHA校验及项目产物检查通过；缓存审计见证据，科学分析另行进行。",
+        "evidence": [
+          {
+            "label": "Verified delivery",
+            "path": ".syncmate/deliveries/exp011-t2-retry-20260929-183235.json"
+          },
+          {
+            "label": "Cache audit",
+            "path": ".syncmate/recovery-exp011-t2-retry-20260929-183235/cache-audit.json"
+          },
+          {
+            "label": "Collected run",
+            "path": "results/runs/gpu4090/exp011-t2/0925-v1/run.json"
+          }
+        ]
+      },
+      "analysis": {
+        "state": "complete",
+        "note": "完整主表分析已完成，用户同意收口；GIF/IDEA机制差异保留疑问，不阻塞本次描述性结论。",
+        "evidence": [
+          {
+            "label": "Table02 v2 full analysis",
+            "path": "self/research/analyses/EXP-011/table02-v2-analysis.md"
+          },
+          {
+            "label": "Full summary CSV",
+            "path": "self/research/analyses/EXP-011/table02-v2-summary.csv"
+          }
+        ],
+        "highlights": [
+          "1449格及1242条GU–Retrain严格配对完整；所有逐格文件哈希通过本地复核。",
+          "GIF/IDEA在207组对应条件的F1相同；不能据此认为输出或算法相同。",
+          "GIF/IDEA：PubMed D-full相对Random降低0.942pp；CiteSeer R-point/D-full提高0.430pp，不支持普遍效用攻击。",
+          "R-point在三个数据集均增加GIF/IDEA相对Retrain的预测分歧；效用与一致性需要分开判断。"
+        ]
+      },
+      "decision": {
+        "state": "accepted",
+        "note": "用户明确同意EXP-011收口，接受固定设置下的完整主表及限定描述性分析；不等同于GIF/IDEA机制等价或独立鲁棒性证明。",
+        "owner": "user",
+        "scope": "1449 cells / 1242 GU-Retrain pairs; Table02 v2 descriptive results",
+        "evidence": [
+          {
+            "label": "Accepted analysis and paper positioning",
+            "path": "self/research/analyses/EXP-011/table02-v2-analysis.md"
+          }
+        ]
+      },
+      "live_source": "self\\research\\experiments\\EXP-011.json",
+      "live_sha256": "ae2737118e88accf32ebae2c5aff7127752b2951b6256eca99c9b27040dd2b8a",
+      "analysis_source": "self\\research\\analyses\\EXP-011.json",
+      "analysis_sha256": "cf48320c3482951c36a84e2564de8b6c569ae00349a2a29cc27ffe9db034a0ad"
+    },
+    {
+      "id": "EXP-013",
+      "execution": {
+        "state": "completed",
+        "note": "Full r1 completed; original recovery verified 1513 files and project accepted 756 cells. Conditional-transfer interpretation and Random/Degree caveat recorded; scientific claim remains scoped to exploratory evidence.",
+        "evidence": [
+          {
+            "label": "Controller",
+            "path": ".syncmate/controller/exp013-full-20260930-r1.json"
+          },
+          {
+            "label": "Handoff",
+            "path": ".syncmate/runs/exp013-full-20260930-r1.json"
+          },
+          {
+            "label": "Terminal SyncMate status",
+            "path": ".syncmate/exp013-full-20260930-r1.status-check.json"
+          },
+          {
+            "label": "Blocked collection receipt",
+            "path": ".syncmate/deliveries/exp013-full-20260930-r1.json"
+          },
+          {
+            "label": "JSON stdin recovery, 1513 verified files and 756 accepted cells",
+            "path": ".syncmate/recovery-exp013-full-20260930-r1/summary.json"
+          }
+        ]
+      },
+      "analysis": {
+        "state": "complete",
+        "note": "条件性迁移结论已记录；新增GIN→GCN三数据集×六GU的gt_full/r_point完整比较图及中英文Discussion草稿，展示GCN direct/GIN/Random/Degree的三seed均值±SD。seed只作重复，保留不支持与基线更强的条件；EXP-079多seed验证待执行。",
+        "evidence": [
+          {
+            "label": "GIN多GU比较图与Discussion HTML",
+            "path": "self/research/analyses/EXP-013/gin_transfer_discussion_REPORT.html"
+          },
+          {
+            "label": "GIN多GU比较图与Discussion Markdown",
+            "path": "self/research/analyses/EXP-013/gin_transfer_discussion_REPORT.md"
+          },
+          {
+            "label": "GIN多GU图表数据",
+            "path": "self/research/analyses/EXP-013/gin_transfer_summary.csv"
+          },
+          {
+            "label": "当前迁移结论HTML",
+            "path": "self/research/analyses/EXP-013/transfer_conclusion_REPORT.html"
+          },
+          {
+            "label": "当前迁移结论Markdown",
+            "path": "self/research/analyses/EXP-013/transfer_conclusion_REPORT.md"
+          },
+          {
+            "label": "跨方法相关与简单基线对照",
+            "path": "self/research/analyses/EXP-013/transfer_method_correlations.csv"
+          },
+          {
+            "label": "Post主报告HTML",
+            "path": "self/research/analyses/EXP-013/post_REPORT.html"
+          },
+          {
+            "label": "Post主报告Markdown",
+            "path": "self/research/analyses/EXP-013/post_REPORT.md"
+          },
+          {
+            "label": "相关与敏感性全表",
+            "path": "self/research/analyses/EXP-013/post_correlations.csv"
+          },
+          {
+            "label": "Post核验",
+            "path": "self/research/analyses/EXP-013/post_audit.json"
+          },
+          {
+            "label": "Surrogate分析报告",
+            "path": "self/research/analyses/EXP-013/REPORT.md"
+          },
+          {
+            "label": "Surrogate图表HTML",
+            "path": "self/research/analyses/EXP-013/REPORT.html"
+          },
+          {
+            "label": "完整统计CSV",
+            "path": "self/research/analyses/EXP-013/summary.csv"
+          },
+          {
+            "label": "身份核验",
+            "path": "self/research/analyses/EXP-013/audit.json"
+          }
+        ],
+        "highlights": [
+          "支持部分配置的条件性跨架构迁移，不支持普遍替代。",
+          "Cora/gt_full：GIN与direct跨GU秩相关1.00，Random与direct也有0.975，必须保留基线解释。",
+          "Cora/GNNDelete/gt_full：GCN 20.48、GIN 20.23、Random 11.50、Degree 19.00 pp。",
+          "多seed验证已登记为EXP-079，尚未执行。"
+        ]
+      },
+      "decision": {
+        "state": "not_requested",
+        "note": "已记录用户同意的条件性结论口径与多seed待办；本次不声明统计等效或普遍迁移，不将Todo登记等同于新验证完成。",
+        "evidence": []
+      },
+      "live_source": "self\\research\\experiments\\EXP-013.json",
+      "live_sha256": "ae7c583173dc03cd820bc6f097be31f467ce6e1b63f0769f1e67e14b061e19e9",
+      "analysis_source": "self\\research\\analyses\\EXP-013.json",
+      "analysis_sha256": "a51872197c7b2d8db416e8af2766f15601f717dbff236add43586c064ca64506"
+    },
+    {
+      "id": "EXP-032",
+      "execution": {
+        "state": "completed",
+        "note": "9月20日恢复运行360格；使用完整条件坐标绑定结果，旧位置映射不作为当前证据。",
+        "evidence": [
+          {
+            "label": "历史定义",
+            "path": ".workblock/items/AAGU-032/WORKITEM.md"
+          },
+          {
+            "label": "当前运行manifest",
+            "path": "results/runs/gpu4090/aagu032-extended-v2-multi-gcn-retrain/aagu032-recovery-full-20260920/run.json"
+          }
+        ]
+      },
+      "analysis": {
+        "state": "review",
+        "note": "2026-09-23 完成 100→3000 训练轮数描述性对照；360 个条件坐标可配对，但仅 Degree/Random 的 72 格 selection_id 相同，科学结论待审阅。",
+        "evidence": [
+          {
+            "label": "历史033报告；恢复后适用性待复核",
+            "path": ".workblock/items/AAGU-033/REPORT.md"
+          },
+          {
+            "label": "100→3000 参数对照分析报告",
+            "path": "self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md"
+          },
+          {
+            "label": "旧参数逐条件明细",
+            "path": ".workblock/items/AAGU-033/analysis/20260908/retrain_cells.csv"
+          },
+          {
+            "label": "新参数运行manifest",
+            "path": "results/runs/gpu4090/aagu032-extended-v2-multi-gcn-retrain/aagu032-recovery-full-20260920/run.json"
+          },
+          {
+            "label": "3000轮参数下论文结果分析草稿",
+            "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
+          }
+        ]
+      },
+      "decision": {
+        "state": "pending",
+        "note": "实验定义、执行交付与科学判断分别记录。",
+        "evidence": []
+      },
+      "live_source": "self\\research\\experiments\\EXP-032.json",
+      "live_sha256": "ba5ec452dc15f2a9dbe59f3b78f88b9081074b1946850e9ae7155725a58e5d50",
+      "analysis_source": "self\\research\\analyses\\EXP-032.json",
+      "analysis_sha256": "a461e45297545dd48747b820bc7a161cfb8799118674061dade8aba756e58936"
+    },
+    {
+      "id": "EXP-053",
+      "execution": {
+        "state": "completed",
+        "note": "9月20日新训练96格已存在完成manifest；历史RR10为36格并已接受其范围。",
+        "evidence": [
+          {
+            "label": "结果与分析报告",
+            "path": ".workblock/items/AAGU-053/REPORT.md"
+          },
+          {
+            "label": "当前运行manifest",
+            "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+          }
+        ]
+      },
+      "analysis": {
+        "state": "complete",
+        "note": "已完成现有证据范围的论文用途审阅：RR扫描定位为IM配置诊断，既有下游结果保留为描述性材料，不作为独立论文贡献。",
+        "evidence": [
+          {
+            "label": "结果与分析报告",
+            "path": ".workblock/items/AAGU-053/REPORT.md"
+          },
+          {
+            "label": "当前运行manifest",
+            "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+          },
+          {
+            "label": "100→3000 参数对照分析报告",
+            "path": "self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md"
+          },
+          {
+            "label": "旧参数逐条件明细",
+            "path": ".workblock/items/AAGU-053/evidence/table-detail.json"
+          },
+          {
+            "label": "新参数运行manifest",
+            "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+          },
+          {
+            "label": "3000轮参数下论文结果分析草稿",
+            "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
+          },
+          {
+            "label": "2026-09-25 用户接受的论文定位与科学收口",
+            "path": "self/research/analyses/EXP-053-closeout-20260925.md"
+          }
+        ],
+        "highlights": [
+          "RR采样规模改变同一IM目标的估计精度，不构成本文独立机制轴；本实验不再追加运行。",
+          "主表暂选RR65536；未证明最优、最小充分或下游攻击充分。现有96格下游仅含RR1024/4096/16384。",
+          "保留36格采样与96格下游两套证据；IM与其他策略的论文对照由主表承担。"
+        ]
+      },
+      "decision": {
+        "state": "accepted",
+        "success_confirmed": false,
+        "note": "用户于2026-09-25明确接受科学收口：EXP-053作为配置诊断结束，不将R扫描作为论文贡献，不再追加本实验；暂采用RR65536作为后续主表IM配置。接受的是收口与论文定位，不是攻击成功或采样充分性。",
+        "evidence": [
+          {
+            "label": "2026-09-25 用户接受的论文定位与科学收口",
+            "path": "self/research/analyses/EXP-053-closeout-20260925.md"
+          }
+        ]
+      },
+      "live_source": "self\\research\\experiments\\EXP-053.json",
+      "live_sha256": "6fb7201e334e5d892450bd210fd46244fe961bf5a46ab9873d708e30ab388513",
+      "analysis_source": "self\\research\\analyses\\EXP-053.json",
+      "analysis_sha256": "ca7b93f1102593854f0887aa271f278d225c6562bb84d4f0630cd92aa147df1a"
+    },
+    {
+      "id": "EXP-062",
+      "execution": {
+        "state": "not_required",
+        "note": "062协调子实验连续执行，本身无额外计算run；实际运行、失败及重跑只记录在对应065–068，不重复计数。",
+        "evidence": []
+      },
+      "analysis": {
+        "state": "complete",
+        "note": "本次关闭四组条件：Cora H16、Cora H64、CiteSeer H64、PubMed H64；每组GIF/IDEA独立固定参数，完成单请求校准及三个Random请求验证。原六条件定义中的CiteSeer H16、PubMed H16暂缓，不计入本次完成范围。",
+        "evidence": [
+          {
+            "label": "Four-condition batch closeout",
+            "path": "self/research/analyses/EXP-062/closeout-20260924.md"
+          }
+        ]
+      },
+      "decision": {
+        "state": "accepted",
+        "success_confirmed": true,
+        "note": "用户在确认四组参数及Validate通过后要求关闭062批次；接受范围为当前四组数值校准与验证，不扩展到暂缓H16或完整遗忘正确性。",
+        "evidence": [
+          {
+            "label": "Four-condition batch closeout",
+            "path": "self/research/analyses/EXP-062/closeout-20260924.md"
+          }
+        ]
+      },
+      "live_source": "self\\research\\experiments\\EXP-062.json",
+      "live_sha256": "5ac7b36a1abe2817e05ddfffc63468a8e26a46b70cc4b9a95664f7f1b206c543",
+      "analysis_source": "self\\research\\analyses\\EXP-062.json",
+      "analysis_sha256": "90197be41627b1f7d7701536d1f8765fe0c102bcd43907c13b2df21ddcd97558"
+    },
+    {
+      "id": "EXP-079",
+      "execution": {
+        "state": "pending",
+        "note": "尚未提交GPU任务；无作业、run ID或执行结果。",
+        "evidence": []
+      },
+      "analysis": null,
+      "decision": null,
+      "live_source": "self\\research\\experiments\\EXP-079.json",
+      "live_sha256": "75b1902cce02128e5acc27df544741e25386225c0b03f94b3873f6ed20aec822",
+      "analysis_source": null,
+      "analysis_sha256": null
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 tags: [report/progress, status/active]
 type: report-index
 created: 2026-06-15
-updated: 2026-07-14
+updated: 2026-10-05
 ---
 
 # Progress Reports
@@ -10,7 +10,7 @@ updated: 2026-07-14
 `report/progress/` is a chronological archive of progress reports, checkpoints,
 and presentation deliverables. It is not the project Obsidian/MOC hub anymore.
 
-- Current operational truth: [WORKPLAN.md](../../self/dashboard/WORKPLAN.md)
+- Current experiment state and scientific decisions: [Work Plan](../../self/research/index.html)
 - Project document map / Obsidian-style planning hub: see OpenGU DocMap.
 - Daily logs: [report/daily-log/](../daily-log/)
 
@@ -18,10 +18,10 @@ and presentation deliverables. It is not the project Obsidian/MOC hub anymore.
 
 | Need | Open |
 |---|---|
-| Current experiment state and next actions | [WORKPLAN.md](../../self/dashboard/WORKPLAN.md) |
+| Current experiment state and next actions | [Work Plan](../../self/research/index.html) |
 | Cell-level produced / usable / rerun ledger | [config_inventory.html](../../self/dashboard/config_inventory.html) |
 | Complete experiment-framework briefing | [REPORT.html](2026-07-14_project-framework-briefing/REPORT.html) |
-| Advisor-facing progress narrative | [current-status-report.html](2026-07-01_advisor-report/current-status-report.html) |
+| Advisor-facing progress narrative | [2026-10-05 REPORT.html](2026-10-05_advisor-meeting/REPORT.html) · [editable Markdown](2026-10-05_advisor-meeting/REPORT.md) |
 | Historical advisor/review diagnostic source | [advisor_report_2026-06-16.html](../advisor_report_2026-06-16.html) |
 | Historical NeurIPS push summary | [2026-05_NeurIPS-Push.md](2026-07-01_advisor-report/2026-05_NeurIPS-Push.md) |
 | Project-wide document navigation | See OpenGU DocMap. |
@@ -38,6 +38,7 @@ and presentation deliverables. It is not the project Obsidian/MOC hub anymore.
 | 2026-06-16 | [2026-06_resume-diagnosis.md](2026-07-01_advisor-report/2026-06_resume-diagnosis.md) | Resume diagnosis after data return and audit, filed under the 2026-07-01 checkpoint bundle | frozen source |
 | 2026-07-01 | [2026-07-01_advisor-report/](2026-07-01_advisor-report/) | Advisor checkpoint bundle with current-status HTML report and 05/06 source snapshots | ready |
 | 2026-07-14 | [2026-07-14_project-framework-briefing/](2026-07-14_project-framework-briefing/) | Full experiment setup + access spectrum + live Cache/TracIn lanes + scoped result snapshot | ready |
+| 2026-10-05 | [2026-10-05_advisor-meeting/REPORT.html](2026-10-05_advisor-meeting/REPORT.html) · [Markdown](2026-10-05_advisor-meeting/REPORT.md) | 18–20-minute advisor manuscript: IF → Retrain → GU, theory candidates, experiment data and Work Plan acceptance | discussion draft |
 
 ## New Report Convention
 
@@ -48,4 +49,4 @@ reports, checkpoint bundles, and presentation packages.
   or main report file inside.
 - If it is a single markdown report, use `YYYY-MM-DD_short-topic.md`.
 - Put planning maps, loose notes, and cross-document indexes in the sibling OpenGU DocMap, not here.
-- Put current task state, experiment status, and validation claims in `self/dashboard/`.
+- Put current experiment state in `self/research/experiments/` and scientific analysis/decisions in `self/research/analyses/`; Work Plan owns their presentation.
