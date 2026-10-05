@@ -108,5 +108,10 @@
     "owner": "EXP-013",
     "kind": "experiment",
     "note": "不同surrogate→固定GCN；现行入口以EXP-013配置引用为准。"
+  },
+  "exp079": {
+    "owner": "EXP-079",
+    "kind": "experiment",
+    "note": "十训练seed完整矩阵及单份提交Recipe；候选验收及运行状态以EXP-079记录为准。"
   }
 }
