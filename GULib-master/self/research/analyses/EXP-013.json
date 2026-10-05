@@ -53,8 +53,20 @@
   ],
   "analysis": {
     "state": "complete",
-    "note": "Post分析完成；阅读主图改为固定方法/算法/surrogate的逐seed配对变化，HTML支持36种组合；原混合算法相关热图降为补充。保留选点、效果相关、幅度三层证据及敏感性检查；3seed仅支持探索性描述，科学接受待评议。",
+    "note": "记录条件性迁移结论：部分配置保留direct损伤且超过Random；Degree也可能很强。跨GU相关可能来自方法固有差异，不能独立证明surrogate有效。seed作为重复，固定dataset/selector后比较跨GU均值响应；EXP-079登记总10seed验证Todo。",
     "evidence": [
+      {
+        "label": "当前迁移结论HTML",
+        "path": "self/research/analyses/EXP-013/transfer_conclusion_REPORT.html"
+      },
+      {
+        "label": "当前迁移结论Markdown",
+        "path": "self/research/analyses/EXP-013/transfer_conclusion_REPORT.md"
+      },
+      {
+        "label": "跨方法相关与简单基线对照",
+        "path": "self/research/analyses/EXP-013/transfer_method_correlations.csv"
+      },
       {
         "label": "Post主报告HTML",
         "path": "self/research/analyses/EXP-013/post_REPORT.html"
@@ -87,12 +99,18 @@
         "label": "身份核验",
         "path": "self/research/analyses/EXP-013/audit.json"
       }
+    ],
+    "highlights": [
+      "支持部分配置的条件性跨架构迁移，不支持普遍替代。",
+      "Cora/gt_full：GIN与direct跨GU秩相关1.00，Random与direct也有0.975，必须保留基线解释。",
+      "Cora/GNNDelete/gt_full：GCN 20.48、GIN 20.23、Random 11.50、Degree 19.00 pp。",
+      "多seed验证已登记为EXP-079，尚未执行。"
     ]
   },
   "decision": {
     "state": "not_requested",
-    "note": "待用户审阅；未声明统计等效、普遍迁移或科学接受。",
+    "note": "已记录用户同意的条件性结论口径与多seed待办；本次不声明统计等效或普遍迁移，不将Todo登记等同于新验证完成。",
     "evidence": []
   },
-  "recorded_at": "2026-10-02"
+  "recorded_at": "2026-10-05"
 }
