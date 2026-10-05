@@ -53,8 +53,20 @@
   ],
   "analysis": {
     "state": "complete",
-    "note": "记录条件性迁移结论：部分配置保留direct损伤且超过Random；Degree也可能很强。跨GU相关可能来自方法固有差异，不能独立证明surrogate有效。seed作为重复，固定dataset/selector后比较跨GU均值响应；EXP-079登记总10seed验证Todo。",
+    "note": "条件性迁移结论已记录；新增GIN→GCN三数据集×六GU的gt_full/r_point完整比较图及中英文Discussion草稿，展示GCN direct/GIN/Random/Degree的三seed均值±SD。seed只作重复，保留不支持与基线更强的条件；EXP-079多seed验证待执行。",
     "evidence": [
+      {
+        "label": "GIN多GU比较图与Discussion HTML",
+        "path": "self/research/analyses/EXP-013/gin_transfer_discussion_REPORT.html"
+      },
+      {
+        "label": "GIN多GU比较图与Discussion Markdown",
+        "path": "self/research/analyses/EXP-013/gin_transfer_discussion_REPORT.md"
+      },
+      {
+        "label": "GIN多GU图表数据",
+        "path": "self/research/analyses/EXP-013/gin_transfer_summary.csv"
+      },
       {
         "label": "当前迁移结论HTML",
         "path": "self/research/analyses/EXP-013/transfer_conclusion_REPORT.html"

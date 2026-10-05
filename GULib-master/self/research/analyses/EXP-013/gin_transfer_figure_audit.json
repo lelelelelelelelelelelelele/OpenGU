@@ -1,0 +1,33 @@
+{
+  "execution_sha": "62926d95b843af137076eb9dd0a15e1c54c75663",
+  "run_id": "r1",
+  "verified_return_files": 1513,
+  "training_seeds": [
+    42,
+    212,
+    2024
+  ],
+  "random_draws_per_training_seed": 3,
+  "error_bars": "sample standard deviation across training seeds, ddof=1",
+  "plotted_seed_values": 432,
+  "summary_rows": 144,
+  "contrast_rows": 108,
+  "selectors": [
+    "r_point",
+    "gt_full"
+  ],
+  "datasets": [
+    "Cora",
+    "CiteSeer",
+    "PubMed"
+  ],
+  "methods": [
+    "GNNDelete",
+    "GIF",
+    "IDEA",
+    "MEGU",
+    "GraphEraser",
+    "GraphRevoker"
+  ],
+  "new_runs_started": false
+}
