@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-exp079-citeseer-b05
+runner: experiment
+config_path: experiments/configs/exp079/citeseer_b05.yaml
+config_sha256: 717a7980b263f53b97627f5daa1ffd688a3a0824958454085ac172ef7924fa44
+configuration_fingerprint: 715cdb7965233ae9025ffbf3e0bb9fa4f4fbd1311d28f0f526f30b850926a70f
+run_identity:
+  experiment_id: exp079-surrogate-multiseed
+  run_id: e79s5
+timeout_seconds: 21600
+logical_cells: 168
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

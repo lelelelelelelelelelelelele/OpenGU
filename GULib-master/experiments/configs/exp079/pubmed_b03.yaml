@@ -1,0 +1,41 @@
+# EXP-079 execution slice; same scientific settings as surrogate_multiseed.yaml.
+kind: experiment
+schema_version: 1
+experiment_id: exp079-surrogate-multiseed
+stage: unlearning
+dataset_refs:
+- pubmed.yaml
+selector_refs:
+- r_point.yaml
+- gt_full.yaml
+- r_point_sgc.yaml
+- gt_full_sgc.yaml
+- r_point_gat.yaml
+- gt_full_gat.yaml
+- r_point_gin.yaml
+- gt_full_gin.yaml
+- degree.yaml
+- random.yaml
+unlearning_refs:
+- gnndelete.yaml
+- gif_h64.yaml
+- idea_h64.yaml
+- megu.yaml
+- grapheraser.yaml
+- graphrevoker.yaml
+- retrain.yaml
+parameter_profile_ref: gif_idea_fixed_pt.yaml
+evaluation_refs:
+- post_unlearning_utility_and_retrain_gap.yaml
+- post_unlearning_flip_hop.yaml
+matrix: cartesian_product
+seeds:
+- 1
+- 2
+random_selector_seeds:
+- 11
+- 22
+- 33
+budget_ratios:
+- 0.1
+return_scores: false

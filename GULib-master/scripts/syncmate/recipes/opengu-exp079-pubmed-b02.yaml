@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-exp079-pubmed-b02
+runner: experiment
+config_path: experiments/configs/exp079/pubmed_b02.yaml
+config_sha256: 4230423e78e5397add3e64a4e859e4b8ea6fa6f2b2298a74d9bf4d595030ca9a
+configuration_fingerprint: 58439dfd1ca5675b41ab3a6dd0b8763eee2db35473419b6fac73909615a88900
+run_identity:
+  experiment_id: exp079-surrogate-multiseed
+  run_id: e79p2
+timeout_seconds: 21600
+logical_cells: 168
+stage: unlearning
+expected_datasets:
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

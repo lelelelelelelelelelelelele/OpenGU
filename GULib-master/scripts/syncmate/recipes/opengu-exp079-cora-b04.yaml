@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-exp079-cora-b04
+runner: experiment
+config_path: experiments/configs/exp079/cora_b04.yaml
+config_sha256: 8ecae40a03de359a4c7b62e49677d99522df49e0a047b78491f936a11ef6caad
+configuration_fingerprint: 9a14b3c5fb6073047166a959d01c212210ff013057cefe5037a6d987ab05c813
+run_identity:
+  experiment_id: exp079-surrogate-multiseed
+  run_id: e79c4
+timeout_seconds: 21600
+logical_cells: 168
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
