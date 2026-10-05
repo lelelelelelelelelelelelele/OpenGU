@@ -21,7 +21,11 @@ include training seed. The user-approved Table02 supplement reuses each H64
 parameter group across training seeds 42/212/2024; stability on the resulting
 models remains to be observed during actual execution.
 
-An experiment opts in with `parameter_profile_ref` relative to its own YAML.
+An experiment opts in with `parameter_profile_ref: gif_idea_fixed_pt.yaml`.
+Bare filenames resolve in the public `experiments/configs/profiles/` directory,
+independently of the experiment table location and current working directory.
+Explicit relative paths resolve from the containing YAML; absolute paths are
+used directly, following the same rules as other public configuration references.
 Its GIF/IDEA method references retain `iteration`, model, training and checkpoint;
 remove the fields supplied by the profile from those references. Supplying the
 same field in both places is an error. Retrain is unaffected.

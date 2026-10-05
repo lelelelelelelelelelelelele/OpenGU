@@ -1,5 +1,22 @@
 # 公共实验配置
 
+## Surrogate selector 文件名引用
+
+SGC、GAT、GIN 的 R-point / GT-full 公共实例位于 `selectors/`，后续实验直接引用文件名：
+
+```yaml
+selector_refs:
+- r_point_sgc.yaml
+- gt_full_sgc.yaml
+- r_point_gat.yaml
+- gt_full_gat.yaml
+- r_point_gin.yaml
+- gt_full_gin.yaml
+parameter_profile_ref: gif_idea_fixed_pt.yaml
+```
+
+公共实例初始参数与 EXP-013 已验证输入一致。EXP-013 的原实例与 Recipe 绑定，保留为已运行实验的输入记录；后续实验使用公共实例。解析器不搜索实验私有目录，也不回退到同目录的同名文件。
+
 ## 配对 Flip / Hop Metrics
 
 在普通 Unlearning 或独立 Metrics 表的 `evaluation_refs` 追加
@@ -92,4 +109,4 @@ IM 算法由 `selector_refs` 显式选择：`selectors/im_rr_greedy.yaml` 配置
 
 ## 公共 GIF/IDEA H64 实例
 
-`unlearning/gif_h64.yaml` 和 `unlearning/idea_h64.yaml` 声明双层 GCN、隐藏维度64、iteration=100。大表用 `parameter_profile_ref: ../profiles/gif_idea_fixed_pt.yaml` 按数据集匹配参数；每个训练seed使用自己的精确checkpoint缓存。完整实例见 [Table02 v2](aagu011/table02_v2.yaml)。
+`unlearning/gif_h64.yaml` 和 `unlearning/idea_h64.yaml` 声明双层 GCN、隐藏维度64、iteration=100。大表用 `parameter_profile_ref: gif_idea_fixed_pt.yaml` 从公共 `profiles/` 目录读取并按数据集匹配参数，不受大表所在目录影响；每个训练seed使用自己的精确checkpoint缓存。完整实例见 [Table02 v2](aagu011/table02_v2.yaml)。

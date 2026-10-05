@@ -1,0 +1,12 @@
+kind: selector
+schema_version: 1
+method: gt_full
+candidate:
+  pool: train_mask
+budget:
+  mode: ratio
+  value: 0.01
+model:
+  architecture: OpenGU.SGCNet
+  layers: 2
+  dropout: 0.0
