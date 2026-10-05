@@ -1,7 +1,7 @@
 # Work Plan Agent Guide
 
 - 本目录是实验过程权威，Block生命周期不决定实验进度。
-- 实验执行、重跑或分析先读取目标 experiments/EXP-NNN.json，再按 RUNBOOK.md；不Claim一个纯实验Block。
+- 实验配置与 Recipe 准备、执行、重跑或分析先读取目标 experiments/EXP-NNN.json，再按 RUNBOOK.md；通过既有接口维护 YAML、公共参数小表或 Recipe，不创建 Block 或 Claim。只有改变程序行为或接口契约时，才引用对应开发 Block。
 - 只读取目标实验明确引用的Block，不扫描全体WorkItems，不改写其状态、graph或Claim。
 - 所有状态声明绑定证据和范围。原始结果、科学解释与用户接受分开维护。
 - 更新当前记录后重建；不维护 history 流水；HTML/SVG禁止手改。参数只在正式YAML拥有，不复制参数树。

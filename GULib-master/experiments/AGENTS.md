@@ -71,7 +71,7 @@ Minimal gate 必须在正式 SSH 环境代表真实 lane，并与后续扩展保
 
 ## 7. 正式运行版本一致性与 SSH 边界
 
-本地用于代码与配置修改、CPU 测试、dry-run 和结果审阅；正式 GPU gate、矩阵、正式数据及运行态位于 SSH 活跃检出。根级 work-block 按仓库 Git Workflow 收口完成后，再确认 `本地 main = origin/main = SSH 活跃检出 main = 同一已记录的完整 Git SHA`。
+本地用于代码与配置修改、CPU 测试、dry-run 和结果审阅；正式 GPU gate、矩阵、正式数据及运行态位于 SSH 活跃检出。实验所需代码、配置与 Recipe 已审阅并提交到主线后，再确认 `本地 main = origin/main = SSH 活跃检出 main = 同一已记录的完整 Git SHA`；存在开发 Block 依赖时，还须确认其所需交付已落地。
 本地与 SSH tracked tree 必须干净，SSH 只使用唯一正式活跃检出。
 该要求只保证一次正式运行的代码与配置一致；它不是 cache key，也不要求清空缓存。
 Cache 命中仍由 Recipe、producer、数据、候选集合和依赖 Artifact 身份决定：语义身份未变时可跨无关提交精确复用，生产语义或输入身份变化时必须形成新 Recipe、MISS 或 fail-closed；专题显式绑定 Git SHA 时服从其契约。
@@ -105,4 +105,4 @@ Historical Output v1 files are not converted, removed or automatically rerun.
 
 正式运行、重跑、指标补算和分析统一从 [Work Plan Runbook](../self/research/RUNBOOK.md) 进入。该指引拥有“实验配置 → 独立 Recipe YAML → 只读预览 → 代码交付与同步 → SyncMate 提交 → 回执与回传”的操作流程，以及运行中修改配置的处理边界。新增或修改配置时同步审阅 `scripts/syncmate/recipes/<id>.yaml`；配置输入改变须显式重新生成 SHA/指纹，不编辑 Python 登记表，不改写旧任务或在运行中更新共享 SSH checkout。
 
-实验过程不再使用Block Claim/分支生命周期；只有软件或正式配置变更由开发Block交付。历史材料中的WorkItem执行记录按其日期作为来源，不重新建立双份实验状态。
+实验过程由 Work Plan 管理。通过既有接口新增、修改、校验或退役科学 YAML、公共参数小表与提交 Recipe，均属于实验准备，不创建开发 Block、Claim 或软件候选；范围与参数变更在实验记录中审阅，配置与 Recipe 仍须一起提交、同步并通过正式 preflight。只有改变程序行为或接口契约（如解析器、算法、执行器、指标实现、缓存或结果格式）时，才由开发 Block 交付。历史材料中的 WorkItem 执行记录按其日期作为来源，不重新建立双份实验状态。
