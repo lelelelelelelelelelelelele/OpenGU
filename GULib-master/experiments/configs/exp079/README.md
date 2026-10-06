@@ -1,11 +1,11 @@
 # EXP-079 · Surrogate 多 seed 验证
 
 一份完整实验表：[surrogate_multiseed.yaml](surrogate_multiseed.yaml)。
-一份提交声明：[opengu-exp079-surrogate-multiseed.yaml](../../../scripts/syncmate/recipes/opengu-exp079-surrogate-multiseed.yaml)。
+当前续跑声明：[opengu-exp079-surrogate-multiseed-r2.yaml](../../../scripts/syncmate/recipes/opengu-exp079-surrogate-multiseed-r2.yaml)。首轮[e79r1声明](../../../scripts/syncmate/recipes/opengu-exp079-surrogate-multiseed.yaml)保留，用于核对历史任务身份。
 
 完整矩阵包含三数据集、十训练seed、GCN direct与SGC/GAT/GIN、r_point/gt_full、Random/Degree、六GU及Retrain，共2520格。旧三seed对应756格，新增七seed对应1764格；精确缓存命中时复用已有计算，评价照常执行。参数只由YAML拥有。
 
-Recipe使用 `experiment_id: exp079-surrogate-multiseed`、`run_id: e79r1`，一次提交整张表。当前SyncMate Core强制 `timeout_seconds <= 21600`，因此本次Recipe保持六小时上限。它是一次作业的停止边界，不保证整表在六小时内完成，也不是将矩阵拆分的理由。
+Recipe使用 `experiment_id: exp079-surrogate-multiseed`、`run_id: e79r2`，一次提交整张表。当前SyncMate Core强制 `timeout_seconds <= 21600`，因此本次Recipe保持六小时上限。它是一次作业的停止边界，不保证整表在六小时内完成，也不是将矩阵拆分的理由。
 
 Work Plan保存的227280秒（63.1小时）是低置信度、全MISS串行工程预算，不是实测耗时，也不是这份Recipe的超时值。实际缓存命中及运行耗时须由作业证据确认。
 
