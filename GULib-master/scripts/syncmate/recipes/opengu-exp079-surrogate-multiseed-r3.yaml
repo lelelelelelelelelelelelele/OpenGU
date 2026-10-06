@@ -1,0 +1,27 @@
+schema_version: 1
+id: opengu-exp079-surrogate-multiseed-r3
+runner: experiment
+config_path: experiments/configs/exp079/surrogate_multiseed.yaml
+config_sha256: 929b70d3bb25e095f268d939ba1203ac3abd59a316d36e826203bc04e3e393d3
+configuration_fingerprint: 010af4e0ba185ed353ce65c5c7bce9eb15b3405a94bc67fb32fe5a41c0cc7099
+run_identity:
+  experiment_id: exp079-surrogate-multiseed
+  run_id: e79r3
+timeout_seconds: 21600
+logical_cells: 2520
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
