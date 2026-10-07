@@ -132,6 +132,17 @@ def test_distinct_declared_budgets_share_science_without_aliasing_audit(tables):
         and not e['identity'].get('evaluation_part')]
     assert {e['identity']['budget_ratio'] for e in evaluated}=={'0.1','0.19'}
     assert len({e['cell_id'] for e in evaluated})==2
+    import json
+    run_path=root/'results/runs/budget-coordinates/budget-coordinates/run.json'
+    exported=json.loads(run_path.read_text(encoding='utf-8'))
+    for cell in exported['cells']:
+        ratio=cell['conditions']['budget_ratio']
+        measured=next(row for row in result['evaluations'][0]['rows'] if row['execution_conditions']==cell['conditions'])
+        assert cell['cache']['post_unlearning_utility']==('hit' if measured['cache']['hit'] else 'miss')
+        assert cell['producer_called']['post_unlearning_utility']==measured['cache']['producer_called']
+        assert cell['timing']['post_unlearning_utility_access_seconds']==measured['cache']['access_seconds']
+        document=json.loads((run_path.parent/cell['path']/'metrics.json').read_text(encoding='utf-8'))
+        assert len([r for r in document['rows'] if r['stage']=='post_unlearning_utility'])==1
 
 
 def test_uncached_run_outputs_still_support_ordinary_metrics(tables):

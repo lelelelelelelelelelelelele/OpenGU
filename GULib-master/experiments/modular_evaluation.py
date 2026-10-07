@@ -198,7 +198,7 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
                 request = evaluation_request(instance['case'], instance['metrics'], dependencies,
                     _formula_functions(instance['case']), instance['producer_version'])
                 measured, cache = cached_measurements(request, store_root, produce, audit=audit)
-            rows.append({**measured, 'cache':cache})
+            rows.append({**measured, 'cache':cache, 'execution_conditions':own_conditions})
             fact['metrics'] = measured['metrics']
             if cache:
                 fact['cache'] = [cache_fact('result', cache, cache['hit'])]

@@ -204,7 +204,8 @@ def export_outputs(summary, *, config, context, run):
                                 {'stage': 'utility', 'values': row['result']}]
             for evaluation in summary['evaluations']:
                 for measured in evaluation['rows']:
-                    if measured['identity']['unlearning_output'] == row['output']:
+                    if (measured['identity']['unlearning_output'] == row['output']
+                            and measured.get('execution_conditions') == cell['conditions']):
                         cache = measured.get('cache')
                         label = evaluation['effective_config']['case']
                         cell['cache'][label] = ('hit' if cache['hit'] else 'miss') if cache else 'bypass'
