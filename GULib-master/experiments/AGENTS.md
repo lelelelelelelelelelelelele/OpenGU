@@ -43,6 +43,8 @@
 
 Selector/Unlearning只以selector_refs声明选点规则；两阶段按同一有效输入与producer自动查找Score/Selection缓存，HIT复用、MISS计算。实际Artifact身份、哈希和HIT/MISS保存在结果中，不要求手填上一轮Selection或summary。执行与核验共用批次及条件展开。Unlearning在方法Output齐备后自动执行evaluation_refs，配对指标要求显式声明同请求Retrain；缓存命中不跳过评价，基础单方法指标与utility默认导出。独立Metrics入口在执行端读取已完成 run.json 的 Output 引用，从现有远端 Cache 重算；缺少、冲突或过时引用失败关闭。常规结果消费者不依赖本地图、模型或预测。
 
+GU 的 `reuse` 编排先以当前输入和 checkpoint 元数据查询 Output，命中不创建 GU 模型或 ensemble、不读取初始权重；MISS 才准备并验证实际权重。元数据读取只声明 `metadata_only`，外部 PT 没有可信 sidecar 时仍读取状态确定身份。模型型 Selector、Artifact 完整性检查及评价保持各自职责。缓存改动同时验证冷路径、warm 命中时的准备调用数与耗时；源码指纹只在一次执行内复用，新运行重新计算。
+
 结果布局由 `scripts/syncmate/opengu_layout.py` 与 `experiments/modular_artifacts.py` 拥有，唯一内容合同见 [结果回传合同](../docs/experiment-result-return-contract.md)。每次运行保存 run.json 和 cells 下的 Metrics、Selection、可选已有评分；不复制 Cache payload 或收集正式输入。配置按 commit + 仓库内 YAML 路径定位。声明、实际结果与收集索引必须一致；收集通过 SyncMate 校验后才进入项目核验，命令成功或 dry-run 不是科研接受。
 
 正式启动前核对run identity和现有产物。入口不支持强制覆盖、隐式截断或自动重试；发现已存在、部分、过时或损坏结果时按明确的修复链处理，保护历史Cache V2和结果。多预算前缀复用只适用于显式prefix-stable排序；仅精确MISS调用producer。

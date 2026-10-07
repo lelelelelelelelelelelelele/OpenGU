@@ -183,9 +183,13 @@ def _execute(path, *, context=None, dry_run=False, run_state):
     execution_batches = sorted(batches,
         key=lambda batch: -(batch['matrix_values']['budget_ratio'] or 0))
     from experiments.prepared_models import PreparedModels
+    from experiments.output_lookup import OutputLookup
     prepared = PreparedModels(prepare_model)
+    outputs = OutputLookup(checkpoint_root, store_root, directory)
     for batch in execution_batches:
-        prepared.select_group((batch['matrix_values']['dataset_index'], batch['matrix_values']['training_seed']))
+        group = (batch['matrix_values']['dataset_index'], batch['matrix_values']['training_seed'])
+        prepared.select_group(group)
+        outputs.select_group(group)
         data, inputs = loaded_data[batch['matrix_values']['dataset_index']]
         data = data.to(device)
         loaded_selections = {}
@@ -224,9 +228,6 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                     if c['conditions']['selector_ref'] == selector_ref and c['conditions']['unlearning_ref'] == gu_ref
                     and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
                 model, checkpoint = None, None
-                if item['method'] != 'Retrain':
-                    model, _, checkpoint = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
-                        checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
                 consumer = run_unlearning
                 if item['method'] == 'MEGU':
                     from experiments.modular_megu import run_megu_unlearning
@@ -251,9 +252,18 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                 error = None
                 result = None
                 try:
-                    result = consumer(item, selection=loaded_selections[selector_ref], model=model, data=data,
-                        dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
-                        dataset_input=datasets[batch['matrix_values']['dataset_index']]['input_reference'], **options)
+                    dataset_input = datasets[batch['matrix_values']['dataset_index']]['input_reference']
+                    if policy == 'reuse':
+                        result, checkpoint = outputs.lookup(item, selection=loaded_selections[selector_ref],
+                            data=data, dataset_input=dataset_input, dataset_root=dataset_root,
+                            inputs=inputs, observer=session)
+                    if result is None:
+                        if item['method'] != 'Retrain':
+                            model, _, checkpoint = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
+                                checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
+                        result = consumer(item, selection=loaded_selections[selector_ref], model=model, data=data,
+                            dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
+                            dataset_input=dataset_input, **options)
                 except BaseException as exc:
                     error = exc
                     raise
