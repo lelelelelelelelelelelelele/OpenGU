@@ -12,6 +12,7 @@ from experiments.effective_config import fields, ConfigurationError
 from experiments.modular_config import load_experiment, resolve_budget, experiment_batches, configuration_fingerprint, selector_entries, unlearning_entries
 from experiments.modular_evaluation import evaluate_modular, require_consumer, is_paired_evaluation
 from experiments.modular_execution import ExecutionContext
+from experiments.modular_progress import execution_batches, batch_position, notify_event
 from experiments.modular_model import prepare_model, runtime_defaults
 from experiments.selection_inputs import make_dataset_selection_inputs
 from experiments.target_direct_v1.method_cache import resolve_methods
@@ -71,7 +72,7 @@ def _plan_summary(config):
     }
 
 
-def _execute(path, *, context=None, dry_run=False, run_state):
+def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     config = load_experiment(path)
     batches = list(experiment_batches(config))
     plan = _plan_summary(config)
@@ -120,6 +121,8 @@ def _execute(path, *, context=None, dry_run=False, run_state):
     datasets = []
     loaded_data = []
     for index, instance in enumerate(config['datasets']):
+        position = {'stage': 'data', 'dataset_index': index}
+        notify_event(notify, 'progress', position=position, current=0, total=1)
         dataset_config = {'dataset': instance, 'dataset_directory': config['dataset_directories'][index]}
         if context.level == 'verification':
             from experiments.modular_execution import verify_temporary_dataset
@@ -132,6 +135,7 @@ def _execute(path, *, context=None, dry_run=False, run_state):
             raise ConfigurationError('formal inputs must stay in data/processed')
         datasets.append({'input_reference': reference, 'dataset': instance, 'data_identity': data_identity(data),
                          'num_nodes': inputs.num_nodes, 'candidate_count': inputs.candidate_count})
+        notify_event(notify, 'progress', position=position, current=1, total=1)
     for batch in batches:
         _, inputs = loaded_data[batch['matrix_values']['dataset_index']]
         batch['selectors'] = [{**item, 'budget': resolve_budget(item['budget'], inputs.candidate_count)}
@@ -146,7 +150,10 @@ def _execute(path, *, context=None, dry_run=False, run_state):
         from experiments.modular_config import dataset_binding
         portable = {d['data_identity']['split_hash']: [] for d in datasets}
         summary['metric_sources'] = {}
-        for value in config['output_inputs']:
+        position = {'stage': 'metric_inputs'}
+        total = len(config['output_inputs'])
+        notify_event(notify, 'progress', position=position, current=0, total=total)
+        for source_index, value in enumerate(config['output_inputs']):
             previous, documents = read_run(directory / value['run'], value['sha256'])
             for cell, document in zip(previous['cells'], documents):
                 reference = cell.get('output')
@@ -166,34 +173,44 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                 summary['metric_sources'][cell['cell_id']] = {'output': reference,
                     'selection_document': document['selection.json'],
                     'source': cell.get('source', {'experiment_id': previous['experiment_id'], 'run_id': previous['run_id']})}
+            notify_event(notify, 'progress', position=position, current=source_index + 1, total=total)
         for index, (data, _) in enumerate(loaded_data):
-            for item in config['evaluations']:
+            position = {'stage': 'evaluation', 'dataset_index': index}
+            total = len(config['evaluations'])
+            notify_event(notify, 'progress', position=position, current=0, total=total)
+            for evaluation_index, item in enumerate(config['evaluations']):
                 result = evaluate_modular(item, [], store_root=store_root, data=data,
                     dataset_root=dataset_root, verified_outputs=portable[datasets[index]['data_identity']['split_hash']])
                 summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
+                notify_event(notify, 'progress', position=position, current=evaluation_index + 1, total=total)
         summary['selector_producer_called'] = False
         from experiments.modular_artifacts import export_outputs
+        notify_event(notify, 'progress', position={'stage': 'export'}, current=0, total=1)
         export_outputs(summary, config=config, context=context, run=run)
+        notify_event(notify, 'progress', position={'stage': 'export'}, current=1, total=1)
         return summary
     device = torch.device(context.request_device)
     if device.type == 'cuda' and not torch.cuda.is_available():
         raise RuntimeError('CUDA requested but unavailable')
     # Execute larger ratios first even when the ordinary table lists small
     # budgets first. Cell identities and declaration-order reporting stay intact.
-    execution_batches = sorted(batches,
-        key=lambda batch: -(batch['matrix_values']['budget_ratio'] or 0))
+    ordered_batches = execution_batches(config, batches=batches)
     from experiments.prepared_models import PreparedModels
     from experiments.output_lookup import OutputLookup
     prepared = PreparedModels(prepare_model)
     outputs = OutputLookup(checkpoint_root, store_root, directory)
-    for batch in execution_batches:
+    for batch_index, batch in enumerate(ordered_batches):
+        position = batch_position('selector', batch_index, batch)
+        entries = selector_entries(batch)
+        total = len(entries)
+        notify_event(notify, 'progress', position=position, current=0, total=total)
         group = (batch['matrix_values']['dataset_index'], batch['matrix_values']['training_seed'])
         prepared.select_group(group)
         outputs.select_group(group)
         data, inputs = loaded_data[batch['matrix_values']['dataset_index']]
         data = data.to(device)
         loaded_selections = {}
-        for item, selector_ref in selector_entries(batch):
+        for selector_index, (item, selector_ref) in enumerate(entries):
             run_state['active'] = [c for c in run['cells'] if c['conditions']['selector_ref'] == selector_ref
                 and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
             model, checkpoints, observation = None, [], None
@@ -221,9 +238,14 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                 arrays, semantics = existing_scores(resolved, inputs.candidate_nodes)
                 summary['selectors'][-1].update(result_scores=arrays, score_semantics=semantics)
             run_state['active'] = []
+            notify_event(notify, 'progress', position=position, current=selector_index + 1, total=total)
         if config['stage'] == 'unlearning':
             from experiments.modular_gu import run_unlearning
-            for item, gu_ref, _, selector_ref in unlearning_entries(batch):
+            position = batch_position('unlearning', batch_index, batch)
+            entries = unlearning_entries(batch)
+            total = len(entries)
+            notify_event(notify, 'progress', position=position, current=0, total=total)
+            for unlearning_index, (item, gu_ref, _, selector_ref) in enumerate(entries):
                 run_state['active'] = [c for c in run['cells']
                     if c['conditions']['selector_ref'] == selector_ref and c['conditions']['unlearning_ref'] == gu_ref
                     and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
@@ -281,28 +303,40 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                     'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
                     'unlearning_ref': gu_ref})
                 run_state['active'] = []
+                notify_event(notify, 'progress', position=position, current=unlearning_index + 1, total=total)
     if config['stage'] == 'unlearning':
         from experiments.modular_config import dataset_binding
         for index, (data, _) in enumerate(loaded_data):
             rows = [row for row in summary['unlearning'] if row['matrix_values']['dataset_index'] == index]
-            for item in config['evaluations']:
+            position = {'stage': 'evaluation', 'dataset_index': index}
+            total = len(config['evaluations'])
+            if total:
+                notify_event(notify, 'progress', position=position, current=0, total=total)
+            for evaluation_index, item in enumerate(config['evaluations']):
                 result = evaluate_modular(item, rows, store_root=store_root, data=data, dataset_root=dataset_root)
                 summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
+                notify_event(notify, 'progress', position=position, current=evaluation_index + 1, total=total)
     summary['selector_producer_called'] = any(item['score']['producer_called'] or item['selection']['cache']['producer_called'] for item in summary['selectors'])
     from experiments.modular_artifacts import export_outputs
+    notify_event(notify, 'progress', position={'stage': 'export'}, current=0, total=1)
     export_outputs(summary, config=config, context=context, run=run)
     for row in summary['selectors']:
         row.pop('result_scores', None)
+    notify_event(notify, 'progress', position={'stage': 'export'}, current=1, total=1)
     return summary
 
 
 
-def execute(path, *, context=None, dry_run=False):
+def execute(path, *, context=None, dry_run=False, notify=None):
+    """Run with an optional scalar callback: progress(position,current,total), completed(position)."""
     run_state = {}
     try:
         from experiments.implementation_identity import fingerprint_session
         with fingerprint_session():
-            return _execute(path, context=context, dry_run=dry_run, run_state=run_state)
+            result = _execute(path, context=context, dry_run=dry_run, run_state=run_state, notify=notify)
+        if not dry_run:
+            notify_event(notify, 'completed', position={})
+        return result
     except BaseException as exc:
         if 'run' in run_state:
             from experiments.modular_artifacts import update_run

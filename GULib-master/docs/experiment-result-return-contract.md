@@ -84,7 +84,7 @@ Output 引用，不包含图或预测数组。其标量值含总体和 1/2/3/>3�
 
 ## 当前实现接口
 
-普通执行入口沿用 `experiments/run.py <experiment.yaml> --run-id <新run>`。结果目录已存在时拒绝覆盖；运行中的 run.json 记录 pending/completed/failed，未开始的 cell 保持 pending，失败记录简短错误。回传文件只从 cell 的 files 声明产生，注册配方以相同矩阵展开枚举精确路径。
+原生执行入口为 `experiments/run.py <experiment.yaml> --run-id <新run> --device <设备>`；SyncMate 在同一入口显式追加 `--syncmate`，设备由适配层读取 Core 配置。两者共用项目执行上下文与结果布局；可选通知不进入科学数值、结果模式或缓存计算身份。结果目录已存在时拒绝覆盖；运行中的 run.json 记录 pending/completed/failed，未开始的 cell 保持 pending，失败记录简短错误。回传文件只从 cell 的 files 声明产生，注册配方以相同矩阵展开枚举精确路径。
 
 组合表默认不交付评分；`return_scores: true` 仅导出已经产生的数值数组。当前普通 target-direct 注册的 Selector 提供 candidate_ids/scores/ranking。AAGU-040 将现有 MC/Batch-CELF（im）与固定 RR 最大覆盖贪心（im_rr_greedy）接入普通入口，按实际 K 保存 Selection。IM 的 selection.json 额外包含 im_selector_seed、training_seed、selection_reference（artifact_id / recipe_hash / content_hash）和 selector_seed_source；两条 seed 与 run 条件交叉核验，HIT 同样回传。Score 状态为 not_applicable。当前 Selection Store 没有保留收益数组，包含 IM 的表拒绝 return_scores: true，不为回传新增计算。
 

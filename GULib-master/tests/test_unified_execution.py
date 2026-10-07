@@ -20,9 +20,14 @@ ROOT = Path(__file__).resolve().parents[1]
 # Instrument the real entry in a fresh process. wraps preserves the production
 # fingerprint; optimizer stepping proves the RNG seed at actual training time.
 INSTRUMENTED_ENTRY = r'''
-import functools,json,os,runpy,sys
+import functools,importlib.abc,json,os,runpy,sys
 from pathlib import Path
 import torch
+class NoAdapter(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname == 'syncmate_core' or fullname.startswith('syncmate_core.') or fullname == 'scripts.syncmate' or fullname.startswith('scripts.syncmate.'):
+            raise AssertionError('native entry imported optional adapter: '+fullname)
+sys.meta_path.insert(0,NoAdapter())
 from experiments.target_direct_v1 import methods
 poison=os.environ.get('AAGU034_POISON')=='1'
 trace={'training_seeds':[],'score_calls':[]}
@@ -54,12 +59,8 @@ def command(root, config, run_id, *, poison=False, instrument=True):
                AAGU034_POISON='1' if poison else '0')
     argv = [sys.executable, '-B', '-X', 'utf8']
     argv += ['-c', INSTRUMENTED_ENTRY] if instrument else ['experiments/run.py']
-    device = root / '.syncmate/device.yaml'
-    device.parent.mkdir(exist_ok=True)
-    write_yaml(device, {'version': 1, 'device_id': 'temporary-cpu', 'role': 'runner',
-        'repo_path': str(root), 'execution_device': 'cpu', 'peers': {}})
     argv += [str(config), '--verification-root', str(root), '--run-id', run_id,
-             '--device-config', str(device)]
+             '--device', 'cpu']
     result = subprocess.run(argv, cwd=ROOT, env=env, capture_output=True, text=True, encoding='utf-8')
     assert result.returncode == 0, result.stdout + result.stderr
     return json.loads(result.stdout)
@@ -108,16 +109,22 @@ def test_command_cold_warm_seed_budget_retrain_and_metrics(matrix, record_proper
         method = Path(row['selector_ref']).name;axes = row['matrix_values']
         score_ids.setdefault(method,set()).add(row['score']['artifact_id'])
         selection_ids.setdefault(method,set()).add(row['selection']['artifact']['artifact_id'])
-        assert row['selection']['artifact_k'] == int(10*axes['budget_ratio'])
-        if axes['budget_ratio'] == .2:
+        assert row['requested_k'] == int(10*axes['budget_ratio'])
+        assert row['selection']['artifact_k'] >= row['requested_k']
+        if axes['budget_ratio'] == .1:
             assert row['score']['hit']
         if axes['training_seed']==722 and method != 'a_grad_norm.yaml':
             assert row['selection']['cache']['hit']
     assert {k:len(v) for k,v in score_ids.items()} == {'degree.yaml':1,'random.yaml':1,'a_grad_norm.yaml':2}
-    assert {k:len(v) for k,v in selection_ids.items()} == {'degree.yaml':2,'random.yaml':2,'a_grad_norm.yaml':4}
+    assert {k:len(v) for k,v in selection_ids.items()} == {'degree.yaml':1,'random.yaml':1,'a_grad_norm.yaml':2}
     summary_path=Path(cold['execution_receipt']['output'])
     result_run, outputs = read_run(summary_path, hashlib.sha256(summary_path.read_bytes()).hexdigest())
-    for row, document in zip(cold['unlearning'], outputs):
+    unlearning_rows = {(row['selector_ref'], row['unlearning_ref'], tuple(sorted(row['matrix_values'].items()))): row
+                       for row in cold['unlearning']}
+    for cell, document in zip(result_run['cells'], outputs):
+        axes = {key: cell['conditions'][key] for key in cold['unlearning'][0]['matrix_values']}
+        row = unlearning_rows[cell['conditions']['selector_ref'], cell['conditions']['unlearning_ref'],
+                             tuple(sorted(axes.items()))]
         assert document['selection.json']['requested_k'] == int(10*row['matrix_values']['budget_ratio'])
         assert document['metrics.json']['rows'][0]['values'] == row['evaluation']['metrics']
     # Metrics recomputes on the runner from its existing Output Cache.
@@ -149,15 +156,19 @@ def test_stage_s_cache_supplies_real_selections_without_resampling(matrix):
     actual=command(root,root/'bound.yaml','bound',instrument=False)
     assert actual['selectors'] and actual['selector_producer_called'] is False
     assert all(r['selection']['cache']['hit'] for r in actual['selectors'])
-    expected=[r['selection']['artifact']['artifact_id'] for r in source['selectors']]
+    expected={(r['selector_ref'], tuple(sorted(r['matrix_values'].items()))):
+              r['selection']['artifact']['artifact_id'] for r in source['selectors']}
     actual_run, rows = read_run(Path(actual['execution_receipt']['output']),
         hashlib.sha256(Path(actual['execution_receipt']['output']).read_bytes()).hexdigest())
-    assert [r['selection.json']['selection_id'] for r in rows] == expected
+    for cell, document in zip(actual_run['cells'], rows):
+        axes = {key: cell['conditions'][key] for key in source['selectors'][0]['matrix_values']}
+        assert document['selection.json']['selection_id'] == expected[
+            cell['conditions']['selector_ref'], tuple(sorted(axes.items()))]
     assert {r['conditions']['seed'] for r in actual_run['cells']} == {122,722}
 
 
 
-def test_public_tracin_uses_real_100_epoch_trajectory(tables, record_property):
+def test_public_tracin_preserves_configured_training_and_requested_trajectory(tables, record_property, monkeypatch):
     from experiments.modular_model import prepare_model
     from experiments.dataset_inputs import read_dataset
     from experiments.target_direct_v1.methods import selected_checkpoint_indices
@@ -166,10 +177,17 @@ def test_public_tracin_uses_real_100_epoch_trajectory(tables, record_property):
     data,inputs=read_dataset(load_instance(root/'dataset.yaml','dataset_split'),root)
     instance=load_instance(ROOT/'experiments/configs/selectors/tracin_cp_point_6.yaml','selector')
     instance['model']['hidden_channels']=4
+    training_steps = []
+    original_step = torch.optim.Adam.step
+    def step(optimizer, *args, **kwargs):
+        training_steps.append(1)
+        return original_step(optimizer, *args, **kwargs)
+    monkeypatch.setattr(torch.optim.Adam, 'step', step)
     model,trajectory,_=prepare_model(instance,data=data,dataset_name=inputs.dataset_name,
         checkpoint_root=root/'cp100',device=torch.device('cpu'),reference_directory=root)
-    assert len(trajectory)==100
-    incomplete = dict(instance['parameters'], checkpoint_steps=[])
+    assert len(training_steps)==instance['training']['epochs']
+    assert [row['global_step'] for row in trajectory] == [1,10,25,50,75,100]
+    incomplete = dict(instance['parameters'], checkpoint_steps=[1,50,100])
     with pytest.raises(ValueError, match='exactly six'):
         selected_checkpoint_indices(trajectory,incomplete)
     observations={}

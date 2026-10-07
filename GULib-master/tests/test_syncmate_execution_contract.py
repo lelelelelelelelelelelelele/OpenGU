@@ -43,7 +43,7 @@ def workspace(tables):
     paths = [p.relative_to(ROOT).as_posix() for directory in ('experiments', 'scripts', 'model', 'utils', 'attack', 'cache_v2', 'task', 'pipeline', 'unlearning', 'dataset') for p in (ROOT / directory).rglob('*') if p.is_file()] + [p.name for p in ROOT.glob('*.py')]
     for relative in filter(None, paths):
         source = ROOT / relative
-        if (source.suffix != '.py' and relative != 'cache_v2/source_compatibility.json' and not relative.startswith('model/properties/')) or relative.startswith('tests/') or not source.is_file():
+        if (source.suffix != '.py' and relative not in ('cache_v2/source_compatibility.json', 'scripts/syncmate/core_dependency.json') and not relative.startswith('model/properties/')) or relative.startswith('tests/') or not source.is_file():
             continue
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -75,7 +75,7 @@ def commit(root):
 
 def cli(root, path, run_id):
     return subprocess.run([sys.executable, '-B', 'experiments/run.py', str(path),
-        '--run-id', run_id, '--device-config', '.syncmate/device.yaml',
+        '--run-id', run_id, '--syncmate', '--device-config', '.syncmate/device.yaml',
         '--verification-root', str(root)], cwd=root, capture_output=True, text=True,
         encoding='utf-8', timeout=120)
 
@@ -106,7 +106,7 @@ class FixtureRegistration(OpenGUProjectExtension):
 
 
 @pytest.mark.parametrize('stage', ['selector', 'unlearning', 'metrics'])
-def test_real_core_and_direct_command_share_config_device_and_outputs(workspace, stage, record_property):
+def test_real_core_and_direct_command_share_config_device_and_outputs(workspace, stage, record_property, capsys, monkeypatch):
     root, path, config = workspace
     if stage != 'selector':
         config.update(stage='unlearning', unlearning_refs=['gu.yaml', 'retrain.yaml'])
@@ -159,7 +159,25 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
     collector.mkdir()
     with context.use(collector, extension=FixtureRegistration(definition)):
         peer = devices.build_peer_config('runner', None, str(root), transport='local')
-        args = ('runner', devices.transport_ssh_value(peer), str(root), definition['collector_result_roots'], 'results/runs/runner')
+        from syncmate_core import progress, progress_sync, run_handoff
+        from syncmate_core.controller import write_receipt
+        from syncmate_core.cli import main as core_main
+        handoff = run_handoff.create_handoff({'peers': {'runner': peer}},
+            'runner', definition['id'], 'contract-job', sha, definition=definition)
+        write_receipt('contract-job', {'job_id': 'contract-job', 'recipe': definition['id'], 'node_id': 'runner'})
+        assert progress_sync.sync_once(handoff, terminal=True)['sync_state'] == 'ok'
+        assert progress.read_json(progress.safe_path(root, 'contract-job', 'current.json'))['kind'] == 'completed'
+        def forbidden(*args):
+            raise AssertionError('local progress query attempted a remote read')
+        monkeypatch.setattr(progress_sync, 'read_remote', forbidden)
+        capsys.readouterr()
+        assert core_main(['job-progress', 'contract-job', '--json'],
+            project_root=collector, extension=FixtureRegistration(definition)) == 0
+        queried = json.loads(capsys.readouterr().out)
+        assert queried['snapshot']['kind'] == 'completed'
+        assert queried['snapshot']['position'] == {'stage': 'export'}
+        assert all(row['state'] == 'completed' for row in queried['tree'])
+        args = ('runner', devices.transport_ssh_value(peer), str(root), list(definition['collector_result_roots']), 'results/runs/runner')
         opts = dict(artifact_names=definition['collector_artifact_names'],
                     expected_paths=definition['expected_artifact_paths'], expected_git_sha=sha, save=True)
         applied = collection.apply_collect(*args, **opts)
@@ -174,7 +192,8 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
         assert collection.verify_collect(*args, **opts)['summary']['status'] != 'verified'
     record_property('real_core', json.dumps({'stage': stage, 'sha': sha,
         'queue_status': completed['status'], 'declared_artifacts': len(definition['expected_artifact_paths']),
-        'device': receipt, 'corrupt_and_missing_rejected': True}))
+        'device': receipt, 'corrupt_and_missing_rejected': True,
+        'core_progress': queried['snapshot'], 'local_query_network_free': True}))
 
 
 @pytest.mark.parametrize('device_value', [None, 'invalid-device', 'cuda:999'])

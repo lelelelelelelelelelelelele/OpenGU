@@ -33,7 +33,7 @@
 
 普通 `kind: experiment` 表通过非空 `dataset_refs` 列表绑定一个或多个独立 Dataset/Split（单数据集也用列表），引用 `configs/datasets/`、`selectors/`、`unlearning/`、`evaluations/` 公共实例。通用解析器拒绝旧字段和未知字段。大表只允许覆盖训练 `seeds`、Random抽样 `random_selector_seeds`、IM抽样 `im_selector_seeds` 与 `budget_ratios`，优先级为大表显式值、小表填写值、方法默认值；Random和IM轴各自仅展开对应Selector，不相互交叉，执行时记录有效值与来源，源文件保持不变。
 
-配置检查与实际执行都使用 `run.py → modular_config → modular_run`。本地dry-run命令为 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run`。普通执行和SyncMate注册均直接调用 `run.py <config.yaml> --run-id <id>`，没有专用stage或第二次YAML生成。运行设备只读取Core解析的 `.syncmate/device.yaml` 中 `execution_device`，执行根来自 `repo_path`；字段缺失或设备不可用即拒绝。Core按peer配置选择SSH目录及解释器，处理版本绑定、队列与回传。隔离验证另需显式 `--verification-root <temporary-root>`；该根须等于设备配置的 `repo_path`，测试资产须在根内。可用 `--device-config <temporary-device.yaml>` 指定临时设备文件；不能以本地验证代替正式SSH/GPU证据。
+配置检查与实际执行都使用 `run.py → modular_config → modular_run`。本地dry-run命令为 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run`。原生执行使用 `run.py <config.yaml> --run-id <id> --device <cpu/cuda/cuda:N>`；不读取 Core 或接入目录。SyncMate 注册在同一命令追加 `--syncmate`，由适配组件读取 Core 解析的 `.syncmate/device.yaml` 中 `execution_device` 与 `repo_path`；不得同时传 `--device`。两路共用同一执行器，没有专用 stage 或第二次 YAML 生成。设备缺失或不可用即拒绝；正式执行仍要求活跃 runner checkout 与可用 CUDA。Core 按 peer 配置选择 SSH 目录及解释器，处理版本绑定、队列与回传。隔离验证另需显式 `--verification-root <temporary-root>`，输入资产须在根内；接入模式中该根须等于设备配置的 `repo_path`，可用 `--device-config <temporary-device.yaml>` 指定临时设备文件。不能以本地验证代替正式 SSH/GPU 证据。
 
 数据/划分由公共小表及其真实manifest拥有，模型训练seed和Random抽样seed不改变split。不同合法划分使用不同实例与持久化资产，不自动物化缺失数据。旧formal-v2配置已退役，其原文仅保留在历史配置档案中；当前科学范围以Work Plan实验记录及普通组合表为准；旧WorkItem仅作历史定义或开发来源。
 
@@ -45,7 +45,7 @@ Selector/Unlearning只以selector_refs声明选点规则；两阶段按同一有
 
 GU 的 `reuse` 编排先以当前输入和 checkpoint 元数据查询 Output，命中不创建 GU 模型或 ensemble、不读取初始权重；MISS 才准备并验证实际权重。元数据读取只声明 `metadata_only`，外部 PT 没有可信 sidecar 时仍读取状态确定身份。模型型 Selector、Artifact 完整性检查及评价保持各自职责。缓存改动同时验证冷路径、warm 命中时的准备调用数与耗时；源码指纹只在一次执行内复用，新运行重新计算。
 
-结果布局由 `scripts/syncmate/opengu_layout.py` 与 `experiments/modular_artifacts.py` 拥有，唯一内容合同见 [结果回传合同](../docs/experiment-result-return-contract.md)。每次运行保存 run.json 和 cells 下的 Metrics、Selection、可选已有评分；不复制 Cache payload 或收集正式输入。配置按 commit + 仓库内 YAML 路径定位。声明、实际结果与收集索引必须一致；收集通过 SyncMate 校验后才进入项目核验，命令成功或 dry-run 不是科研接受。
+结果布局由 `experiments/modular_layout.py` 与 `experiments/modular_artifacts.py` 拥有，唯一内容合同见 [结果回传合同](../docs/experiment-result-return-contract.md)。每次运行保存 run.json 和 cells 下的 Metrics、Selection、可选已有评分；不复制 Cache payload 或收集正式输入。配置按 commit + 仓库内 YAML 路径定位。声明、实际结果与收集索引必须一致；收集通过 SyncMate 校验后才进入项目核验，命令成功或 dry-run 不是科研接受。
 
 正式启动前核对run identity和现有产物。入口不支持强制覆盖、隐式截断或自动重试；发现已存在、部分、过时或损坏结果时按明确的修复链处理，保护历史Cache V2和结果。多预算前缀复用只适用于显式prefix-stable排序；仅精确MISS调用producer。
 

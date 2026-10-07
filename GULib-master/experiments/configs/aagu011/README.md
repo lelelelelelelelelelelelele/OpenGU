@@ -45,7 +45,7 @@ No IM, SGC, alternative IF variant, or extra budget is added to this table.
 outputs are reused only on exact semantic identity, including Selection.
 Cache HIT counts are observed from receipts, not promised from method names.
 
-The execution entry is `experiments/run.py <yaml> --run-id <unique-id>` through
+The execution entry is `experiments/run.py <yaml> --run-id <unique-id> --syncmate` through
 the registered SyncMate route. Use `--dry_run` for no-write expansion. Formal
 execution requires the live shared stage check and experiment preflight.
 

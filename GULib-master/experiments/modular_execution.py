@@ -1,4 +1,4 @@
-"""Execution context supplied by project policy or SyncMate, never experiment YAML."""
+"""Project-owned execution devices and layout, independent of external adapters."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,7 +11,7 @@ import torch
 import torch_geometric
 
 from experiments.effective_config import ConfigurationError
-from scripts.syncmate.opengu_layout import modular_output_path
+from experiments.modular_layout import modular_output_path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -70,7 +70,7 @@ class ExecutionContext:
 
 def project_context(experiment_id, *, run_id, request_device, level,
                     repository_root=REPO_ROOT):
-    """Build the fixed project layout selected by a registered SyncMate job."""
+    """Build the fixed project layout for an explicitly supplied execution context."""
     if _SAFE_ID.fullmatch(str(experiment_id)) is None:
         raise ConfigurationError('experiment_id is not safe for the project result layout')
     root = Path(repository_root).resolve()
@@ -84,35 +84,35 @@ def project_context(experiment_id, *, run_id, request_device, level,
     )
 
 
-def device_context(experiment_id, *, run_id, device_file, verification_root=None):
-    """Consume Core's device configuration; experiment YAML never chooses hardware."""
-    from dataclasses import replace
-    from syncmate_core.context import use
-    from syncmate_core.devices import load_device
-    with use(REPO_ROOT):
-        config, warnings = load_device(Path(device_file))
-    if warnings:
-        raise ConfigurationError('device configuration: ' + '; '.join(warnings))
-    value = config.get('execution_device')
+def validate_execution_device(value):
+    """Reject unavailable devices without substituting another execution device."""
     if not isinstance(value, str) or not value:
-        raise ConfigurationError('device configuration requires execution_device')
+        raise ConfigurationError('execution requires an explicit device')
     try:
         device = torch.device(value)
     except (RuntimeError, TypeError) as exc:
         raise ConfigurationError('invalid execution device: ' + value) from exc
     if device.type not in ('cpu', 'cuda'):
         raise ConfigurationError('unsupported execution device: ' + value)
+    if device.type == 'cpu' and device.index is not None:
+        raise ConfigurationError('CPU device must be cpu')
     if device.type == 'cuda' and (str(device) != value or not torch.cuda.is_available() or
             (device.index is not None and not 0 <= device.index < torch.cuda.device_count())):
         raise ConfigurationError('configured CUDA device unavailable: ' + value)
-    root = Path(config['repo_path']).expanduser()
+    return device
+
+
+def native_context(experiment_id, *, run_id, request_device, verification_root=None,
+                   repository_root=REPO_ROOT):
+    """Own native CLI validation; experiment YAML never chooses execution hardware."""
+    from dataclasses import replace
+    device = validate_execution_device(request_device)
+    root = Path(verification_root if verification_root is not None else repository_root).expanduser()
     if not root.is_absolute() or not root.is_dir():
-        raise ConfigurationError('device repo_path must be an existing absolute directory')
+        raise ConfigurationError('execution root must be an existing absolute directory')
     root = root.resolve()
     level = 'verification' if verification_root is not None else 'formal'
     if verification_root is not None:
-        if Path(verification_root).resolve() != root:
-            raise ConfigurationError('verification root differs from device repo_path')
         if root == REPO_ROOT or root in REPO_ROOT.parents or REPO_ROOT in root.parents:
             # A disposable runner checkout can execute its own temporary inputs.
             # The explicit verification flag and asset containment below are required.
@@ -122,11 +122,12 @@ def device_context(experiment_id, *, run_id, device_file, verification_root=None
             except ValueError as exc:
                 raise ConfigurationError('verification requires a disposable root outside the source checkout') from exc
     elif device.type != 'cuda' or root != REPO_ROOT or root != Path.cwd().resolve():
-        raise ConfigurationError('formal execution requires the configured CUDA device and runner checkout')
-    sha = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=root, capture_output=True, text=True)
+        raise ConfigurationError('formal execution requires an explicit CUDA device and runner checkout')
+    sha = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=root, capture_output=True,
+                         text=True, encoding='utf-8')
     if level == 'formal' and sha.returncode:
-        raise ConfigurationError('device checkout has no source Git identity')
-    context = project_context(experiment_id, run_id=run_id, request_device=value,
+        raise ConfigurationError('execution checkout has no source Git identity')
+    context = project_context(experiment_id, run_id=run_id, request_device=request_device,
                               level=level, repository_root=root)
     return replace(context, source_git_sha=sha.stdout.strip() if sha.returncode == 0 else None)
 

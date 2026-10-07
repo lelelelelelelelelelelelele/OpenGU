@@ -93,7 +93,7 @@ parameters:
 & E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/experiment.template.yaml --dry_run
 ```
 
-真实本地验证需要先准备独立临时图、manifest、配置及目录，然后对该临时组合表运行 `experiments/run.py <临时实验.yaml> --verification-root <临时绝对目录> --run-id <新身份>`。此路径固定 CPU，所有数据必须位于临时根内。正式任务从 SyncMate 的登记入口进入相同命令与内核，由项目执行上下文提供 CUDA、路径、运行身份和正式检查。
+真实本地验证需要先准备独立临时图、manifest、配置及目录，然后对该临时组合表运行 `experiments/run.py <临时实验.yaml> --verification-root <临时绝对目录> --run-id <新身份> --device cpu`。此验证显式使用 CPU，所有数据必须位于临时根内。正式任务从 SyncMate 的登记入口进入相同命令与内核，由项目执行上下文提供 CUDA、路径、运行身份和正式检查。
 
 TracIn 公共表显式选择 steps `[1,10,25,50,75,100]`；`_3` 消费 `[1,50,100]`，`_6` 消费六个。基础训练保存每个 epoch 不代表每个 epoch 都被评分消费；`_6` 没有恰好六个输入时拒绝，不静默扩大范围。
 
