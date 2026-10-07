@@ -92,7 +92,8 @@ class ExecutionAudit:
 
 def cache_fact(kind, reference, hit, *, disabled=False):
     return cache_observation(cache_type=kind, outcome='bypass' if disabled else 'hit' if hit else 'miss',
-        recipe_hash=reference.get('recipe_hash'), artifact=reference,
+        recipe_hash=reference.get('recipe_hash'), artifact={**reference,
+            'artifact_type': {'result':'evaluation', 'artifact':'prediction'}.get(kind, kind)},
         hit_source='cache_v2:' + reference.get('artifact_id', 'run') if hit else None,
         lookup_policy='cache_v2_exact_recipe', authoritative=True,
         write_outcome='not_written' if disabled else 'reused' if hit else 'saved')

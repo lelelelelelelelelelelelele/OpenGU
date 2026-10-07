@@ -187,6 +187,14 @@ def export_outputs(summary, *, config, context, run):
                 ('generation_producer', 'consumption_producer') if row.get(key) is not None}
             cell['producer_called'] = {'score': selected['score']['producer_called'],
                 'selection': selection['cache']['producer_called'], 'method': row.get('producer_called')}
+            if config['stage'] == 'unlearning':
+                cache = row.get('evaluation_cache')
+                cell['cache']['evaluation'] = ('hit' if cache['hit'] else 'miss') if cache else 'bypass'
+                if cache:
+                    cell['producer_called']['evaluation'] = cache['producer_called']
+                    cell['timing']['evaluation_access_seconds'] = cache['access_seconds']
+                    cell['cache_provenance']['evaluation'] = {key:cache[key] for key in
+                        ('artifact_id', 'recipe_hash', 'content_hash')}
         cell['selection_id'] = selection_id
         if config['stage'] != 'selector':
             cell['output'] = row['output']
@@ -197,6 +205,14 @@ def export_outputs(summary, *, config, context, run):
             for evaluation in summary['evaluations']:
                 for measured in evaluation['rows']:
                     if measured['identity']['unlearning_output'] == row['output']:
+                        cache = measured.get('cache')
+                        label = evaluation['effective_config']['case']
+                        cell['cache'][label] = ('hit' if cache['hit'] else 'miss') if cache else 'bypass'
+                        if cache:
+                            cell.setdefault('cache_provenance', {}).setdefault('evaluations', {})[label] = {
+                                key:cache[key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
+                            cell['timing'][label + '_access_seconds'] = cache['access_seconds']
+                            cell['producer_called'][label] = cache['producer_called']
                         item = {'stage': evaluation['effective_config']['case'], 'values': measured['metrics']}
                         if evaluation['effective_config']['case'] == 'post_unlearning_flip_hop':
                             item.update(evaluation_receipt_id=measured['evaluation_receipt_id'],

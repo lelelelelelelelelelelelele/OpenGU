@@ -6,7 +6,7 @@ production and recheck on MISS; no source aliases or alternate artifact keys.
 from pathlib import Path
 from cache_v2 import ArtifactRecipe, ArtifactType, canonical_sha256
 from cache_v2.unlearning_output import OUTPUT_CONTRACT
-from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact
+from experiments.artifact_producer import FormalArtifactRequest
 from experiments.checkpoint_references import training_identity, ensemble_identity, read_checkpoint_reference
 
 
@@ -58,11 +58,9 @@ class OutputLookup:
         return self.references[key]
 
     def lookup(self, instance, *, selection, data, dataset_input, dataset_root,
-               inputs, observer=None):
+               inputs, observer=None, audit=None):
         from experiments.modular_gu import gu_producer
         from experiments.node_deletion import pairing_identity
-        from experiments.unlearning_outputs import output_reference, load_output, utility
-        from experiments.output_metrics import evaluate_method
         checkpoint = preparation = None
         target = {'method':instance['method'], 'parameters':instance['parameters']}
         if instance['method'] != 'Retrain':
@@ -82,17 +80,26 @@ class OutputLookup:
             'graph_fingerprint':inputs.graph_fingerprint, 'producer_version':producer.to_dict()}
         request = FormalArtifactRequest(ArtifactType.PREDICTION,
             ArtifactRecipe({'artifact_contract':OUTPUT_CONTRACT, **identity}), producer)
-        stored = resolve_formal_artifact(self.store_root, request)
-        if stored is None:
+        from cache_v2 import CacheIndex, ArtifactResolver
+        from experiments.evaluation_cache import describe_output, evaluate_single, phase
+        index_path = self.store_root / 'index.sqlite'
+        if not index_path.is_file():
             return None, None
-        reference = output_reference(stored, request.recipe.recipe_hash)
-        verified = load_output(reference, self.store_root, data=data, dataset_root=dataset_root)
+        with phase(audit, 'output_query'):
+            explanation = ArtifactResolver(CacheIndex(index_path)).explain_compatible(ArtifactType.PREDICTION, request.recipe)
+            if not explanation.hit:
+                if explanation.exact_candidate is None and explanation.miss_reasons == ('no_exact_candidate',):
+                    return None, None
+                raise ValueError('Output lookup failed closed: ' + ','.join(explanation.miss_reasons))
+            reference = {key:explanation.exact_candidate[key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
+            actual_identity = describe_output(reference, self.store_root, data=data, dataset_input=dataset_input)
+        values, evaluation_cache = evaluate_single(reference, actual_identity, store_root=self.store_root,
+            data=data, dataset_root=dataset_root, audit=audit)
         if observer is not None and hasattr(observer, 'identity'):
-            observer.identity['output_identity'] = stored.payload.identity
+            observer.identity['output_identity'] = actual_identity
         result = {**reference, 'output':reference, 'hit':True, 'producer_called':False,
-            'generation_producer':stored.generation_producer, 'consumption_producer':producer.to_dict(),
-            'compute_seconds':0.0, 'result':utility(verified), 'target':target,
-            'evaluation':evaluate_method(reference, verified)}
+            'generation_producer':actual_identity['producer_version'], 'consumption_producer':producer.to_dict(),
+            'compute_seconds':0.0, **values, 'target':target, 'evaluation_cache':evaluation_cache}
         if preparation is not None:
             result['ensemble_preparation'] = preparation
         elif instance['method'] != 'MEGU':

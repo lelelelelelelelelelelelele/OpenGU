@@ -82,80 +82,126 @@ def require_consumer(instance, consumer):
                 instance['case'], consumer, ', '.join(instance['required_inputs'])))
 
 
-def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verified_outputs=(), dataset_root=None, audit=None):
-    from experiments.unlearning_outputs import load_output, utility
+def _formula_functions(case):
+    from experiments.measurement_formulas import utility_metrics, retrain_gap, flip_metrics
+    from experiments.output_metrics import method_metrics, update_detection
+    from experiments.unlearning_outputs import utility
+    if case == 'post_method_metrics':
+        return [method_metrics, update_detection]
+    if case == 'post_unlearning_utility':
+        return [utility_metrics, utility]
+    if case == 'post_unlearning_utility_and_retrain_gap':
+        return [retrain_gap, utility, retrain_pairing_matches]
+    from experiments.flip_hop_metrics import exact_retrain, flip_hop, hop_groups
+    return [flip_metrics, exact_retrain, flip_hop, hop_groups, retrain_pairing_matches]
+
+
+def _measure(instance, reference, output, pair=None):
+    from experiments.measurement_formulas import utility_metrics, retrain_gap, flip_metrics, method_values
     from experiments.implementation_identity import implementation_fingerprint
-    require_consumer(instance, 'modular_v1')
+    identity = dict(case=instance['case'], metrics=sorted(instance['metrics']),
+        producer_version=instance['producer_version'],
+        implementation=implementation_fingerprint(*_formula_functions(instance['case'])),
+        unlearning_output=reference)
+    case = instance['case']
+    if case == 'post_method_metrics':
+        values, protocol = method_values(reference, output)
+        identity['method_evaluation'] = protocol
+    elif case == 'post_unlearning_utility':
+        values, _ = utility_metrics(output)
+    elif case == 'post_unlearning_utility_and_retrain_gap':
+        values, _ = retrain_gap(output, pair[1])
+        identity['retrain_output'] = pair[0]
+    else:
+        values, protocol = flip_metrics(output, pair[1])
+        identity.update(retrain_output=pair[0], protocol=protocol)
+    metrics = {key:values[key] for key in instance['metrics']}
+    return dict(evaluation_receipt_id='evalr_' + canonical_sha256(identity)[:32], identity=identity, metrics=metrics)
+
+
+def _pair(instance, identity, candidates):
+    matches = [(ref, value) for ref,value in candidates if retrain_pairing_matches(identity, value.identity if hasattr(value,'identity') else value)]
+    if instance['case'] == 'post_unlearning_utility_and_retrain_gap':
+        matches = list({ref['content_hash']:(ref,value) for ref,value in matches}.values())
+    if len(matches) != 1:
+        raise ConfigurationError('paired evaluation needs exactly one verified Retrain with the same request, Dataset/Split, training and evaluation graph')
+    return matches[0]
+
+
+def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verified_outputs=(), dataset_root=None, audit=None):
     from contextlib import nullcontext
-    def read(reference):
-        with (audit.phase('evaluation_inputs') if audit else nullcontext()):
-            return load_output(reference, store_root, data=data, dataset_root=dataset_root)
-    outputs = list(verified_outputs)
-    for row in unlearning_rows:
-        reference = row.get('unlearning', row.get('output', row))
-        coordinates = row.get('matrix_values', {})
-        conditions = {**coordinates, 'dataset': coordinates.get('dataset_name', 'Output ' + reference.get('artifact_id', reference.get('path', ''))),
-            'model': 'persisted-output', 'method': row.get('target', {}).get('method', 'persisted-output'),
-            'ratio': coordinates.get('budget_ratio') or 'bound-selection', 'evaluation': instance['case'], 'evaluation_part': 'input_validation'}
-        with (audit.entry('evaluation', conditions) if audit else nullcontext({})) as fact, (audit.phase('evaluation_inputs') if audit else nullcontext()):
-            payload = load_output(reference, store_root, data=data, dataset_root=dataset_root)
-            outputs.append((reference, payload, row.get('retrain')))
-            fact['metrics'] = {'inputs_verified': 1}
-    retrains = [(ref, payload) for ref, payload, _ in outputs if payload.identity['target']['method'] == 'Retrain']
+    from experiments.evaluation_cache import describe_output, evaluation_request, cached_measurements, phase
+    from experiments.unlearning_outputs import load_output
+    from experiments.execution_audit import cache_fact
+    require_consumer(instance, 'modular_v1')
+    # Explicit already-verified in-memory inputs remain a computation consumer.
+    # Ordinary YAML uses exact references so its HIT can precede Output loading.
+    supplied = [(ref,value,pair,None) for ref,value,pair in verified_outputs]
+    references = [(row.get('unlearning', row.get('output', row)), row.get('retrain'), row.get('conditions')) for row in unlearning_rows]
+    descriptors = []
+    for reference, paired_reference, conditions in references:
+        input_conditions = conditions or dict(scope='experiment', experiment_id=audit.experiment_id if audit else 'evaluation',
+            dataset='Output '+reference.get('artifact_id',reference.get('path','')), execution_stage='evaluation')
+        input_conditions = {**input_conditions, 'evaluation':instance['case'], 'evaluation_part':'input_validation'}
+        with (audit.entry('evaluation',input_conditions) if audit else nullcontext({})) as fact, phase(audit,'evaluation_identity'):
+            if reference.get('storage') == 'run':
+                with phase(audit, 'evaluation_inputs'):
+                    supplied.append((reference, load_output(reference, store_root, data=data, dataset_root=dataset_root), paired_reference, conditions))
+            else:
+                descriptors.append((reference, describe_output(reference, store_root, data=data, dataset_root=dataset_root), paired_reference, conditions))
+            fact['metrics'] = {'identity_verified':1}
+    retrains = [(ref,identity) for ref,identity,_,_ in descriptors if identity['target']['method'] == 'Retrain']
+    retrains.extend((ref,output) for ref,output,_,_ in supplied if output.identity['target']['method']=='Retrain')
+    loaded = {}
+    def read(ref):
+        key = canonical_sha256(ref)
+        if key not in loaded:
+            with phase(audit, 'evaluation_inputs'):
+                loaded[key] = load_output(ref, store_root, data=data, dataset_root=dataset_root)
+        return loaded[key]
     rows = []
-    for reference, output, paired_reference in outputs:
-        if output.identity['target']['method'] == 'Retrain' and is_paired_evaluation(instance):
+    for reference, value, paired_reference, own_conditions in [*descriptors, *supplied]:
+        in_memory = hasattr(value, 'identity')
+        identity = value.identity if in_memory else value
+        if identity['target']['method']=='Retrain' and is_paired_evaluation(instance):
             continue
-        from contextlib import nullcontext
-        pairing = output.identity['pairing']
         conditions = {}
         if audit:
-            conditions = dict(dataset=output.identity['dataset_input']['instance']['dataset']['name'],
-                dataset_fingerprint=pairing['data_identity']['split_hash'],
-                model=pairing['model']['architecture'], method=output.identity['target']['method'],
-                seed=pairing['training']['seed'], ratio=len(output.arrays['selected_nodes']),
-                output_id=reference.get('artifact_id', reference.get('path')), evaluation=instance['case'])
-        with (audit.entry('evaluation', conditions) if audit else nullcontext({})) as fact, (audit.phase('metric_evaluation') if audit else nullcontext()):
-            values = utility(output) if instance['case'] != 'post_unlearning_flip_hop' else {}
-            available = {**values, 'f1_drop_pct': values.get('f1_drop_ratio')}
-            identity = {'case': instance['case'], 'metrics': sorted(instance['metrics']),
-                'producer_version': instance['producer_version'],
-                'implementation': implementation_fingerprint(evaluate_modular, utility),
-                'unlearning_output': reference}
-            if instance['case'] == 'post_unlearning_flip_hop':
-                from experiments.flip_hop_metrics import exact_retrain, flip_hop
-                candidates = ([(paired_reference, read(paired_reference))]
-                              if paired_reference else retrains)
-                ref, retrain = exact_retrain(output, candidates)
-                available, protocol = flip_hop(output, retrain)
-                identity.update(retrain_output=ref, protocol=protocol)
-            if instance['case'] == 'post_method_metrics':
-                from experiments.output_metrics import evaluate_method
-                measured = evaluate_method(reference, output)
-                available = measured['metrics']
-                identity['method_evaluation'] = measured['identity']
-            if instance['case'] == 'post_unlearning_utility_and_retrain_gap':
-                candidates = ([(paired_reference, read(paired_reference))]
-                              if paired_reference else retrains)
-                matches = {ref['content_hash']: (ref, payload) for ref, payload in candidates
-                           if retrain_pairing_matches(output.identity, payload.identity)}
-                if len(matches) != 1:
-                    raise ConfigurationError('retrain-gap needs exactly one verified Retrain with the same request, training and deletion semantics')
-                ref, retrain = next(iter(matches.values()))
-                for name in ('y', 'test_mask', 'evaluation_edge_index'):
-                    import numpy as np
-                    if not np.array_equal(output.arrays[name], retrain.arrays[name]):
-                        raise ConfigurationError('paired output evaluation inputs differ')
-                perf = utility(retrain)['f1_after']
-                gap = perf - values['f1_after']
-                available.update(perf_before=values['f1_before'], perf_unlearn=values['f1_after'],
-                    perf_retrain=perf, drop_retrain=values['f1_before'] - perf,
-                    gap=gap, gap_pct=gap / perf * 100 if perf > 0 else 0.0)
-                identity['retrain_output'] = ref
-            metrics = {name: available[name] for name in instance['metrics']}
-            rows.append({'evaluation_receipt_id': 'evalr_' + canonical_sha256(identity)[:32],
-                         'identity': identity, 'metrics': metrics})
-            fact['metrics'] = metrics
+            binding = identity['pairing']
+            conditions = dict(dataset=identity['dataset_input']['instance']['dataset']['name'],
+                dataset_fingerprint=binding['data_identity']['split_hash'], model=binding['model']['architecture'],
+                method=identity['target']['method'], seed=binding['training']['seed'],
+                ratio=len(binding['selected_nodes']), output_id=reference.get('artifact_id',reference.get('path')),
+                evaluation=instance['case'])
+        conditions = {**conditions, **(own_conditions or {}), 'evaluation':instance['case']}
+        if audit and own_conditions:
+            conditions['ratio'] = own_conditions.get('budget_ratio') or own_conditions.get('budget', {}).get('value', conditions['ratio'])
+        with (audit.entry('evaluation', conditions) if audit else nullcontext({})) as fact:
+            pair = None
+            if is_paired_evaluation(instance):
+                candidates = retrains
+                if paired_reference:
+                    candidates = [(paired_reference, read(paired_reference) if paired_reference.get('storage') == 'run'
+                        else describe_output(paired_reference, store_root, data=data, dataset_root=dataset_root))]
+                pair = _pair(instance, identity, candidates)
+            def produce():
+                output = value if in_memory else read(reference)
+                baseline = None if pair is None else (pair[0], pair[1] if hasattr(pair[1],'identity') else read(pair[0]))
+                with phase(audit, 'metric_formula'):
+                    return _measure(instance, reference, output, baseline)
+            if in_memory or (pair and pair[0].get('storage') == 'run'):
+                measured, cache = produce(), None
+            else:
+                dependencies = [dict(reference=reference,identity=identity)]
+                if pair:
+                    dependencies.append(dict(reference=pair[0],identity=pair[1].identity if hasattr(pair[1],'identity') else pair[1]))
+                request = evaluation_request(instance['case'], instance['metrics'], dependencies,
+                    _formula_functions(instance['case']), instance['producer_version'])
+                measured, cache = cached_measurements(request, store_root, produce, audit=audit)
+            rows.append({**measured, 'cache':cache})
+            fact['metrics'] = measured['metrics']
+            if cache:
+                fact['cache'] = [cache_fact('result', cache, cache['hit'])]
     if not rows:
         raise ConfigurationError('evaluation has no applicable method outputs')
-    return {'effective_config': instance, 'rows': rows}
+    return {'effective_config':instance, 'rows':rows}

@@ -57,7 +57,12 @@ def test_cold_paired_evaluations_and_cache_only_backfill(tables, monkeypatch, re
         hook.remove()
     assert all(row['hit'] and not row['producer_called'] for row in warm['unlearning'])
     assert not warm['selector_producer_called']
-    assert warm['evaluations'] == cold['evaluations']
+    for before, after in zip(cold['evaluations'], warm['evaluations']):
+        assert before['effective_config'] == after['effective_config']
+        assert [{k:v for k,v in row.items() if k != 'cache'} for row in before['rows']] == [
+            {k:v for k,v in row.items() if k != 'cache'} for row in after['rows']]
+        assert all(not row['cache']['hit'] for row in before['rows'])
+        assert all(row['cache']['hit'] for row in after['rows'])
     assert [row['output'] for row in warm['unlearning']] == [row['output'] for row in baseline['unlearning']]
     assert hashes == {p: hashlib.sha256(p.read_bytes()).hexdigest() for p in hashes}
     exported, docs = read_result(root, 'warm-paired')

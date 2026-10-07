@@ -150,7 +150,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
         'selectors': [], 'unlearning': [], 'evaluations': []}
     if config['stage'] == 'metrics':
         from experiments.modular_artifacts import read_run
-        from experiments.unlearning_outputs import load_output
+        from experiments.evaluation_cache import describe_output
         from experiments.modular_config import dataset_binding
         portable = {d['data_identity']['split_hash']: [] for d in datasets}
         summary['metric_sources'] = {}
@@ -164,17 +164,23 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                 if not reference:
                     continue
                 with audit.entry('evaluation', {**cell['conditions'], 'evaluation_part': 'source_validation'}) as fact, audit.phase('evaluation_inputs'):
-                    payload = load_output(reference, store_root, dataset_root=dataset_root)
-                    matches = [d for d in datasets if d['data_identity'] == payload.identity['pairing']['data_identity']]
+                    if reference.get('storage') == 'run':
+                        from experiments.unlearning_outputs import load_output
+                        payload = load_output(reference, store_root, dataset_root=dataset_root).identity
+                    else:
+                        payload = describe_output(reference, store_root)
+                    matches = [d for d in datasets if d['data_identity'] == payload['pairing']['data_identity']]
                     if len(matches) != 1:
                         raise ConfigurationError('metrics input Dataset/Split mismatch')
-                    if (payload.identity['selection']['artifact_id'] != cell['selection_id']
-                            or payload.arrays['selected_nodes'].tolist() != document['selection.json']['selected_nodes']
-                            or payload.identity['target']['method'] != cell['conditions']['method']
-                            or payload.identity['pairing']['model']['architecture'] != cell['conditions']['model']
-                            or payload.identity['pairing']['training']['seed'] != cell['conditions']['seed']):
+                    if payload['dataset_input'] != matches[0]['input_reference']:
+                        raise ConfigurationError('metrics input bound Dataset/Split mismatch')
+                    if (payload['selection']['artifact_id'] != cell['selection_id']
+                            or payload['pairing']['selected_nodes'] != document['selection.json']['selected_nodes']
+                            or payload['target']['method'] != cell['conditions']['method']
+                            or payload['pairing']['model']['architecture'] != cell['conditions']['model']
+                            or payload['pairing']['training']['seed'] != cell['conditions']['seed']):
                         raise ConfigurationError('metrics source conditions differ from remote output')
-                    portable[matches[0]['data_identity']['split_hash']].append((reference, payload, None))
+                    portable[matches[0]['data_identity']['split_hash']].append((reference, payload, None, cell['conditions']))
                     summary['metric_sources'][cell['cell_id']] = {'output': reference,
                         'selection_document': document['selection.json'],
                         'source': cell.get('source', {'experiment_id': previous['experiment_id'], 'run_id': previous['run_id']})}
@@ -185,8 +191,8 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
             total = len(config['evaluations'])
             notify_event(notify, 'progress', position=position, current=0, total=total)
             for evaluation_index, item in enumerate(config['evaluations']):
-                result = evaluate_modular(item, [], store_root=store_root, data=data,
-                    dataset_root=dataset_root, audit=audit, verified_outputs=portable[datasets[index]['data_identity']['split_hash']])
+                result = evaluate_modular(item, [{'output':v[0], 'conditions':v[3]} for v in portable[datasets[index]['data_identity']['split_hash']]], store_root=store_root, data=data,
+                    dataset_root=dataset_root, audit=audit)
                 summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
                 notify_event(notify, 'progress', position=position, current=evaluation_index + 1, total=total)
         summary['selector_producer_called'] = False
@@ -295,7 +301,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                             with audit.phase('output_access'):
                                 result, checkpoint = outputs.lookup(item, selection=loaded_selections[selector_ref],
                                 data=data, dataset_input=dataset_input, dataset_root=dataset_root,
-                                inputs=inputs, observer=session)
+                                inputs=inputs, observer=session, audit=audit)
                         if result is None:
                             if item['method'] != 'Retrain':
                                 with audit.phase('model_prepare'):
@@ -318,10 +324,16 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                                     cell['files'].update(reference['files'])
                                 update_run(run, context.output)
                     result['observer_seconds'] = session.seconds if session else 0.0
-                    summary['unlearning'].append({**result, 'checkpoint': checkpoint,
+                    if 'evaluation_cache' not in result:
+                        from experiments.evaluation_cache import persist_single
+                        result['evaluation_cache'] = persist_single(result, store_root=store_root,
+                            data=data, dataset_input=dataset_input, audit=audit)
+                    summary['unlearning'].append({**result, 'checkpoint': checkpoint, 'conditions': cell['conditions'],
                         'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
                         'unlearning_ref': gu_ref})
                     fact['cache'] = [cache_fact('artifact', result['output'], result['hit'], disabled=policy == 'disabled')]
+                    if result['evaluation_cache'] is not None:
+                        fact['cache'].append(cache_fact('result', result['evaluation_cache'], result['evaluation_cache']['hit']))
                     fact['metrics'] = {**result['result'], **result['evaluation']['metrics']}
                     fact['metadata_compute_seconds'] = result.get('compute_seconds')
                 summary['unlearning'][-1]['access_timing'] = fact['timing']

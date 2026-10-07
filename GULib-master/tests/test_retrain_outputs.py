@@ -273,10 +273,11 @@ def test_independent_method_metrics_survive_collection_without_forward(tables, m
     finally:
         hook.remove()
     assert differences['rows'][0]['metrics']['gap'] == rt['result']['f1_after'] - gnn['result']['f1_after']
-    assert before == snapshot(collected)
+    after = snapshot(collected)
+    assert all(after[k] == v for k,v in before.items() if k.startswith('artifacts'))
     assert measured['rows'][1]['metrics']['update_detection_auc_status'] == 'missing_original_predictions'
     record_property('aagu028_independent_collection', json.dumps({'per_method': exported,
-        'recomputed': measured, 'differences': differences, 'store_unchanged': True,
+        'recomputed': measured, 'differences': differences, 'existing_artifacts_unchanged': True,
         'training_and_forward_forbidden': True}))
 
 

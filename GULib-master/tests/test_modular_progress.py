@@ -61,8 +61,13 @@ def scientific_values(result):
                       for row in result['selectors']],
         'unlearning': [(row['output'], row['recipe_hash'], row['matrix_values'])
                        for row in result['unlearning']],
-        'evaluations': result['evaluations'],
+        'evaluations': scientific_evaluations(result),
     }
+
+
+def scientific_evaluations(result):
+    return [{**evaluation, 'rows': [{key:value for key,value in row.items() if key != 'cache'}
+        for row in evaluation['rows']]} for evaluation in result['evaluations']]
 
 
 @pytest.mark.parametrize('stage', ['selector', 'unlearning'])
@@ -113,7 +118,7 @@ def test_metrics_only_reports_input_loading_evaluation_and_export(tables):
     events = []
     result, _ = invoke(path, root, 'metrics', recorder(events))
     assert_matches_plan(load_experiment(path), events)
-    assert result['evaluations'] == source['evaluations']
+    assert scientific_evaluations(result) == scientific_evaluations(source)
     assert not result['selector_producer_called'] and not result['selectors'] and not result['unlearning']
 
 
@@ -183,7 +188,7 @@ def test_scientific_errors_propagate_without_completed(tables, monkeypatch, fail
 
 
 def test_metric_input_error_propagates_without_completed(tables, monkeypatch):
-    import experiments.unlearning_outputs as outputs
+    import experiments.evaluation_cache as outputs
     root = tables[0]
     path = prepare(tables)
     _, context = invoke(path, root, 'source')
@@ -194,7 +199,7 @@ def test_metric_input_error_propagates_without_completed(tables, monkeypatch):
     error = RuntimeError('scientific metric-input failure')
     def forbidden(*args, **kwargs):
         raise error
-    monkeypatch.setattr(outputs, 'load_output', forbidden)
+    monkeypatch.setattr(outputs, 'describe_output', forbidden)
     with pytest.raises(RuntimeError) as raised:
         invoke(path, root, 'metrics-failed', recorder(events))
     assert raised.value is error

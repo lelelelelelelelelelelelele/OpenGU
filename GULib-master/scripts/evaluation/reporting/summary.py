@@ -98,6 +98,8 @@ def _cache_summary(events: Sequence[Mapping[str, Any]]) -> str:
         parts = []
         for observation in observations:
             cache_type = observation.get("type", "?")
+            artifact = observation.get('artifact') or {}
+            cache_type = {'prediction':'Output', 'evaluation':'Evaluation'}.get(artifact.get('artifact_type'), cache_type)
             outcome = observation.get("outcome", "unknown")
             source = observation.get("hit_source")
             text = "{0}:{1}".format(cache_type, outcome)
