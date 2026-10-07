@@ -6,9 +6,22 @@ import hashlib
 import inspect
 import json
 from pathlib import Path
+from contextlib import contextmanager
+from contextvars import ContextVar
 
 
 ROOT = Path(__file__).resolve().parents[1]
+_run_fingerprints = ContextVar('run_fingerprints', default=None)
+
+
+@contextmanager
+def fingerprint_session():
+    """Source is fixed during one execution; never reuse fingerprints across runs."""
+    token = _run_fingerprints.set({})
+    try:
+        yield
+    finally:
+        _run_fingerprints.reset(token)
 
 
 def computation_source(function):
@@ -29,6 +42,9 @@ def computation_source(function):
 
 
 def implementation_fingerprint(*functions):
+    memo = _run_fingerprints.get()
+    if memo is not None and functions in memo:
+        return memo[functions]
     pending, seen, sources = list(functions), set(), {}
     while pending:
         function = inspect.unwrap(pending.pop())
@@ -58,7 +74,10 @@ def implementation_fingerprint(*functions):
     digest = hashlib.sha256()
     for name, source in sorted(sources.items()):
         digest.update(name.encode() + b'\0' + source.encode() + b'\0')
-    return digest.hexdigest()
+    value = digest.hexdigest()
+    if memo is not None:
+        memo[functions] = value
+    return value
 
 
 def model_functions(model):

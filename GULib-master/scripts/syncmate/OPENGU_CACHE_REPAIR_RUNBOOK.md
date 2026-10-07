@@ -20,6 +20,17 @@
 python -B -m scripts.cache_source_audit --store <absolute-cache-root> --run <historical-run.json>
 ```
 
+## ScoreBundle 遗留锁恢复
+
+`.locks/score-<Recipe hash>.lock` 是本机进程互斥控制文件，不是 Score、Selection、Output 或 checkpoint。当前锁只记录 PID，不能单凭 mtime、PID 存在或安装成功判断它的归属。
+
+1. **只读诊断。** 消费项目 preflight 的精确路径、PID、状态；保留失败 job 的执行 SHA、异常、锁原文及 stat。POSIX 执行端用无信号进程查询识别不存在的 PID；其他平台或查询权限不足返回 unknown。已缓存的 Score 可以不持写锁读取，但新矩阵仍在启动前检查，以免中途遇到 MISS 才失败。
+2. **核对归属和占用。** 用该 job 的进程记录确认 owner，确认原作业已终止、没有仍存活的子进程或其他写入者，且目标为唯一活跃检出下的普通锁文件。PID 可能被复用；归属不明就保留。恢复期间停止向该共享 Cache 提交生产任务，避免检查与删除之间出现新 owner。
+3. **形成精确处置。** 仅列已确认遗留的锁路径、内容和文件身份；取得该范围的清理授权。执行前再次核对路径边界、非符号链接、文件身份/内容未变及进程占用；任一变化立即停止。只删除清单中的控制文件，禁止通配清空 `.locks`，禁止改动 Artifact、索引、checkpoint 或历史运行。
+4. **验证恢复。** 确认指定锁已不存在，保存处置回执，重新消费正式 preflight。部分 payload 或未登记目录另行诊断，不因删除锁就视为有效。重跑仍须新运行身份及原有授权链。
+
+普通 preflight 与运行入口不执行删除；运行中 MISS 遇到已确认死 PID 立即报告路径与 PID，活动/未知锁保留有界等待。锁文件是 host-local 协议，不支持多个主机或 PID namespace 共享写入同一个 Store。
+
 ## Exact-list retirement
 
 已有清理授权时，复用项目的一次性脚本即可；无需先开发通用 `cachectl` 退役命令，也不重复索要同范围授权。合并或部署本身不代表清理授权。

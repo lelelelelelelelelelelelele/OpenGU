@@ -105,6 +105,9 @@ def _execute(path, *, context=None, dry_run=False, run_state):
     runtime_defaults()
     from attack.cache_identity import resolve_store_root
     store_root = resolve_store_root(context.store_root)
+    if config['stage'] != 'metrics':
+        from experiments.cache_locks import require_score_locks_clear
+        require_score_locks_clear(store_root)
     checkpoint_root = context.checkpoint_root
     runtime_root = context.runtime_root
     output = context.output
@@ -179,7 +182,10 @@ def _execute(path, *, context=None, dry_run=False, run_state):
     # budgets first. Cell identities and declaration-order reporting stay intact.
     execution_batches = sorted(batches,
         key=lambda batch: -(batch['matrix_values']['budget_ratio'] or 0))
+    from experiments.prepared_models import PreparedModels
+    prepared = PreparedModels(prepare_model)
     for batch in execution_batches:
+        prepared.select_group((batch['matrix_values']['dataset_index'], batch['matrix_values']['training_seed']))
         data, inputs = loaded_data[batch['matrix_values']['dataset_index']]
         data = data.to(device)
         loaded_selections = {}
@@ -188,7 +194,7 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                 and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
             model, checkpoints, observation = None, [], None
             if 'model' in item:
-                model, checkpoints, observation = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
+                model, checkpoints, observation = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
                     checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
             if item['method'] in IM_METHODS:
                 from experiments.modular_im import resolve_im
@@ -219,7 +225,7 @@ def _execute(path, *, context=None, dry_run=False, run_state):
                     and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
                 model, checkpoint = None, None
                 if item['method'] != 'Retrain':
-                    model, _, checkpoint = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
+                    model, _, checkpoint = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
                         checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
                 consumer = run_unlearning
                 if item['method'] == 'MEGU':
@@ -284,7 +290,9 @@ def _execute(path, *, context=None, dry_run=False, run_state):
 def execute(path, *, context=None, dry_run=False):
     run_state = {}
     try:
-        return _execute(path, context=context, dry_run=dry_run, run_state=run_state)
+        from experiments.implementation_identity import fingerprint_session
+        with fingerprint_session():
+            return _execute(path, context=context, dry_run=dry_run, run_state=run_state)
     except BaseException as exc:
         if 'run' in run_state:
             from experiments.modular_artifacts import update_run

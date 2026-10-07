@@ -81,6 +81,8 @@ SSH 正式启动分两层：
 1. **共享 stage check**：三方 `main` 与完整 SHA 一致、tracked tree 干净、活跃检出正确、GPU 可用、运行路径归属明确；
 2. **实验专属 preflight**：配置或 Recipe、数据与划分、manifest、设备要求、已有产物和恢复条件符合本实验定义。
 
+恢复条件包括 ScoreBundle 写锁：Selector/GU 的项目 preflight 与实际执行入口在模型准备前只读检查共享 Cache 的 `.locks/score-*.lock`，现存活动、遗留或归属未知的锁均阻断新矩阵。超时强杀不能保证释放文件锁；runner 空闲或安装通过不代表 Cache 可续跑。具体恢复按实验 Runbook 和机器修复 Runbook，不自动删除锁或 Artifact。
+
 正式 GPU gate 或 matrix 必须枚举到至少一张 GPU；GPU 不可用时立即停止，禁止自动降级到 CPU。
 
 两层通过后才使用已注册 launcher；任一条件不满足时先恢复版本或身份边界，不启动正式实验。
