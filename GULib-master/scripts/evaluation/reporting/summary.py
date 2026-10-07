@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import os
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -32,6 +33,10 @@ def _identity_label(identity: Mapping[str, Any]) -> str:
         identity.get("model"),
         identity.get("method"),
         identity.get("strategy"),
+        "random{}".format(identity["random_selector_seed"]) if identity.get("random_selector_seed") is not None else None,
+        "im{}".format(identity["im_selector_seed"]) if identity.get("im_selector_seed") is not None else None,
+        identity.get("evaluation"),
+        identity.get("evaluation_part"),
         "seed{0}".format(identity.get("seed")) if identity.get("seed") is not None else None,
         "r{0}".format(identity.get("ratio")),
     ]
@@ -61,6 +66,7 @@ def _derive_state(events: Sequence[Mapping[str, Any]]) -> str:
             return "legacy-skip" if "legacy" in reason.lower() else "complete (cached)"
 
     for stage, label in (
+        ("evaluation", "evaluated"),
         ("collateral", "collateral"),
         ("attack", "attack-only"),
         ("selection", "selection-only"),
@@ -79,7 +85,7 @@ def _stage_summary(events: Sequence[Mapping[str, Any]]) -> str:
         latest_by_stage[str(event.get("stage"))] = str(event.get("state"))
     return ", ".join(
         "{0}={1}".format(stage, latest_by_stage[stage])
-        for stage in ("selection", "attack", "collateral", "run")
+        for stage in ("selection", "attack", "collateral", "evaluation", "run")
         if stage in latest_by_stage
     ) or "-"
 
@@ -149,11 +155,23 @@ def build_status_rows(
                 "run_id": latest.get("run_id", ""),
                 "attempt": latest.get("attempt", 1),
                 "config_fingerprint": latest.get("config_fingerprint", ""),
+                "timing": _timing_summary(latest_events),
+                "metrics": json.dumps(latest.get('metrics') or {}, ensure_ascii=False, separators=(',', ':')),
             }
         )
     rows.sort(key=lambda row: str(row["updated"]), reverse=True)
     total = len(rows)
     return rows[: max(1, int(max_cells))], total
+
+
+def _timing_summary(events):
+    for event in reversed(events):
+        metadata = event.get('metadata') or {}
+        if 'wall_seconds' in metadata:
+            phases = metadata.get('phase_seconds_exclusive') or {}
+            return 'wall={:.6f}s; {}'.format(metadata['wall_seconds'], ', '.join(
+                '{}={:.6f}s'.format(k, v) for k, v in phases.items()))
+    return 'not observed'
 
 
 def _baseline_markdown(baseline: Mapping[str, Any]) -> List[str]:
@@ -245,18 +263,20 @@ def render_status_markdown(
         [
         "## Current V3 cells",
         "",
-        "| Updated (UTC) | Cell | State | Stages | Cache | Attempt | Run | Config |",
-        "|---|---|---|---|---|---:|---|---|",
+        "| Updated (UTC) | Cell | State | Stages | Cache | Current timing | Result | Attempt | Run | Config |",
+        "|---|---|---|---|---|---|---|---:|---|---|",
         ]
     )
     for row in rows:
         lines.append(
-            "| {updated} | {identity} | {state} | {stages} | {cache} | {attempt} | `{run}` | `{config}` |".format(
+            "| {updated} | {identity} | {state} | {stages} | {cache} | {timing} | {metrics} | {attempt} | `{run}` | `{config}` |".format(
                 updated=_escape_md(row["updated"]),
                 identity=_escape_md(row["identity"]),
                 state=_escape_md(row["state"]),
                 stages=_escape_md(row["stages"]),
                 cache=_escape_md(row["cache"]),
+                timing=_escape_md(row['timing']),
+                metrics=_escape_md(row['metrics']),
                 attempt=row["attempt"],
                 run=_escape_md(row["run_id"]),
                 config=_escape_md(row["config_fingerprint"]),
@@ -297,13 +317,15 @@ def render_status_html(
     for row in rows:
         body_rows.append(
             "<tr><td>{updated}</td><td>{identity}</td><td><span class=\"pill\">{state}</span></td>"
-            "<td>{stages}</td><td>{cache}</td><td>{attempt}</td><td><code>{run}</code></td>"
+            "<td>{stages}</td><td>{cache}</td><td>{timing}</td><td>{metrics}</td><td>{attempt}</td><td><code>{run}</code></td>"
             "<td><code>{config}</code></td></tr>".format(
                 updated=html.escape(str(row["updated"])),
                 identity=html.escape(str(row["identity"])),
                 state=html.escape(str(row["state"])),
                 stages=html.escape(str(row["stages"])),
                 cache=html.escape(str(row["cache"])),
+                timing=html.escape(row['timing']),
+                metrics=html.escape(row['metrics']),
                 attempt=html.escape(str(row["attempt"])),
                 run=html.escape(str(row["run_id"])),
                 config=html.escape(str(row["config_fingerprint"])),
@@ -342,7 +364,7 @@ section { margin:28px 0; } section table { min-width:900px; }
 <p class="meta">Events parsed: __EVENT_COUNT__ · Cells shown: __SHOWN__ of __TOTAL__ (bounded to __LIMIT__) · Parse warnings: __WARNING_COUNT__</p>
 __BASELINE_HTML__
 <section><h2>Current V3 cells</h2>
-<div class="table-wrap"><table><thead><tr><th>Updated (UTC)</th><th>Cell</th><th>State</th><th>Stages</th><th>Cache</th><th>Attempt</th><th>Run</th><th>Config</th></tr></thead>
+<div class="table-wrap"><table><thead><tr><th>Updated (UTC)</th><th>Cell</th><th>State</th><th>Stages</th><th>Cache</th><th>Current timing</th><th>Result</th><th>Attempt</th><th>Run</th><th>Config</th></tr></thead>
 <tbody>__ROWS__</tbody></table></div></section>
 __WARNING_HTML__
 <footer>Audit authority stays in <code>auto_report.events.jsonl</code>; archived v1/v2 Markdown and the curated baseline are read-only evidence.</footer>

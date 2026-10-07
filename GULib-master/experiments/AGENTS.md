@@ -47,6 +47,8 @@ GU 的 `reuse` 编排先以当前输入和 checkpoint 元数据查询 Output，�
 
 结果布局由 `experiments/modular_layout.py` 与 `experiments/modular_artifacts.py` 拥有，唯一内容合同见 [结果回传合同](../docs/experiment-result-return-contract.md)。每次运行保存 run.json 和 cells 下的 Metrics、Selection、可选已有评分；不复制 Cache payload 或收集正式输入。配置按 commit + 仓库内 YAML 路径定位。声明、实际结果与收集索引必须一致；收集通过 SyncMate 校验后才进入项目核验，命令成功或 dry-run 不是科研接受。
 
+普通执行自动将真实 Selector、GU 和评价的 started/completed/failed 追加到 `results/runtime/modular/_journal/auto_report.events.jsonl`，并有界刷新同目录 Markdown/HTML。条目绑定有效条件、实际 Cache 来源、指标及本次 wall time；独占阶段时间互不重复相加，余量不代表零。`compute_seconds` 保留 producer 语义，不表示 HIT 访问耗时。独立 Metrics 的输入校验与公式评价分别标识，不能把输入校验完成数当作完整指标条目数。硬终止不能写末尾事件，已 fsync 的条目保留；在执行端用 `python -m scripts.syncmate.opengu_audit --job-id <exact-id>` 消费已结束失败 Core 任务的精确身份，追加失败终态并重建页面。它不提交、重试任务，不猜测中断阶段耗时，不自动纠正历史任务。
+
 正式启动前核对run identity和现有产物。入口不支持强制覆盖、隐式截断或自动重试；发现已存在、部分、过时或损坏结果时按明确的修复链处理，保护历史Cache V2和结果。多预算前缀复用只适用于显式prefix-stable排序；仅精确MISS调用producer。
 
 新 `run_id`（RID）默认简短，如 `r1`、`r2`；不重复 `experiment_id`。只有特殊语义或避免路径冲突时增加短说明，细则见 [Runbook](../self/research/RUNBOOK.md#run-id-命名)。
