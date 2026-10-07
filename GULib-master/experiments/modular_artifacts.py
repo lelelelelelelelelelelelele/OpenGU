@@ -170,7 +170,7 @@ def export_outputs(summary, *, config, context, run):
                     selection_reference={key: selection['artifact'][key]
                         for key in ('artifact_id', 'recipe_hash', 'content_hash')},
                     selector_seed_source=selected['configuration_sources']['parameters.im_selector_seed'])
-            cell['timing'] = {'observer_seconds': row.get('observer_seconds', 0.0),
+            cell['timing'] = {'current_access': row.get('access_timing'), 'observer_seconds': row.get('observer_seconds', 0.0),
                 'method_timing_semantics': 'includes solver callback overhead; observer_seconds includes start/end callbacks',
                 'selection_seconds': selected.get('selection_seconds'),
                 'score_access_seconds': selected['score'].get('access_seconds'),

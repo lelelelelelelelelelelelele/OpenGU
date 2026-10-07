@@ -27,12 +27,13 @@ DEFAULT_STATUS_HTML_PATH = REPO_ROOT / "results" / "_journal" / "auto_report.htm
 
 EVENT_SCHEMA = "opengu.autoreport.event"
 EVENT_SCHEMA_VERSION = 3
-STAGES = {"selection", "attack", "collateral", "run"}
+STAGES = {"selection", "attack", "collateral", "evaluation", "run"}
 STATES = {"started", "completed", "failed", "skipped", "retrying"}
 TERMINAL_STATES = {"completed", "failed", "skipped"}
 CACHE_TYPES = {"selection", "result", "score", "artifact", "run_artifact"}
 CACHE_OUTCOMES = {"hit", "miss", "bypass", "unknown"}
 WRITE_OUTCOMES = {"saved", "reused", "not_written", "unknown"}
+_validated_streams = {}
 
 ENV_EVENT_PATH = "OPENGU_AUTOREPORT_EVENT_PATH"
 ENV_STATUS_MD_PATH = "OPENGU_AUTOREPORT_STATUS_MD_PATH"
@@ -454,9 +455,11 @@ def append_event(
     path.parent.mkdir(parents=True, exist_ok=True)
     written = False
     with _exclusive_lock(path):
-        existing, stream_warnings = read_event_stream(path)
+        stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
+        cached = _validated_streams.get(path)
+        existing, stream_warnings = (cached[1], []) if cached and cached[0] == stamp else read_event_stream(path)
         integrity_errors = []
-        for index, existing_event in enumerate(existing, 1):
+        for index, existing_event in enumerate([] if cached and cached[0] == stamp else existing, 1):
             try:
                 _validate_event(existing_event)
             except EventValidationError as exc:
@@ -480,6 +483,9 @@ def append_event(
                 file_obj.flush()
                 os.fsync(file_obj.fileno())
             written = True
+            existing = [*existing, event_value]
+        stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
+        _validated_streams[path] = (stamp, existing)
         if refresh:
             refresh_status_views(
                 event_path=path,
