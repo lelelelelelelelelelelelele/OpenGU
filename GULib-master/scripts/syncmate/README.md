@@ -1398,7 +1398,7 @@ Recipe file hashes use Core's `sha256_recipe_config` (normalized LF text), not
 raw Windows file bytes. The extension v2 registration has been corrected to
 this rule; its scientific configuration fingerprint and matrix are unchanged.
 
-The current recipe calls `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v2`.
+The current recipe calls `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v2 --syncmate`.
 The repaired 007 registration uses a new run identity to preserve the previous
 unaccepted batch. `opengu-aagu032-v1` binds the existing 42-cell Cora D-full
 comparison YAML, run ID `aagu032-v1`, 169 artifacts and a 21600-second limit.
@@ -1417,18 +1417,50 @@ Historical target-direct and completed SM-005 one-shot registrations are retired
 Their existing evidence and Cache V2 artifacts remain unchanged. See the
 [ordinary consumer guide](../../docs/modular_experiments.md).
 
+## Optional native execution and progress
+
+Native OpenGU execution requires an explicit device and no Core installation:
+
+```text
+python experiments/run.py <experiment.yaml> --run-id <id> --device cuda
+python experiments/run.py <temporary.yaml> --run-id <id> --device cpu --verification-root <temporary-root>
+```
+
+Integrated recipes call that same entry with `--syncmate`. The adapter maps
+Core's device configuration into the project context and turns the project's
+optional `notify(kind, position=..., current=..., total=...)` into Core updates.
+The ordered plan is generated from the executor's actual batch/stage schedule:
+data preparation, Selector, Unlearning, evaluation and export. Counters measure
+finished calls within a stage, including Cache HITs; training epochs and method
+internals do not receive SyncMate instrumentation. Successful execution emits
+one final completion declaration. Scientific failures propagate without it;
+runtime progress publication failures only produce diagnostics. An explicitly
+selected integration with an invalid dependency or context fails setup.
+
+```text
+python scripts/syncmate/syncmate.py job-progress <job-id> --json
+```
+
+The query reads the local progress cache. Missing or stale progress does not
+prove scientific failure; stage completion does not establish result return,
+checksum verification or scientific acceptance. No progress fields enter Cache
+Recipe identities or scientific result schemas. Existing submitted jobs keep
+their saved handoff and plan.
+
 ## Execution and output handoff
 
-SyncMate Core 0.4.0 uses `syncmate.run-handoff/v1`. Scientific YAML contains no
-runtime output paths. `opengu_layout.py` owns the modular result layout, shared
+The bound SyncMate Core 0.5.1 uses `syncmate.run-handoff/v1`. Scientific YAML contains no
+runtime output paths. `experiments/modular_layout.py` owns the project result layout, shared
 by `ExecutionContext` and the static recipes. The queue records the resolved
 output contract; Core validates it, invokes the ordinary command and checks its declared files.
 
 Device setup keeps SSH, `repo_path` and the interpreter. The runner's own
 `.syncmate/device.yaml` also declares `execution_device: cuda` (or an explicit
 CUDA index); disposable CPU verification declares `execution_device: cpu`.
-The ordinary entry uses Core's existing device reader. Missing or unavailable
-devices fail before reading graph data; there is no default device or GPU-model constant.
+Explicit `--syncmate` uses the adapter and Core's existing device reader. Native
+execution passes `--device` directly to the project and requires neither Core nor
+this directory. Missing or unavailable devices fail before reading graph data;
+there is no default device or GPU-model constant.
 The execution receipt records the actual interpreter, working directory and device.
 Remove `landing` and
 `result_roots`; new landings are generated as `results/runs/<peer_id>`, and

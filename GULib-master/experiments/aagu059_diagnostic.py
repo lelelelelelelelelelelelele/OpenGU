@@ -132,6 +132,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('config', type=Path)
     parser.add_argument('--run-id', required=True)
+    parser.add_argument('--device', help='explicit native CUDA device')
+    parser.add_argument('--syncmate', action='store_true')
+    parser.add_argument('--device-config', type=Path)
     args = parser.parse_args()
     # Legacy config.py parses process argv on first import during data/model loading.
     # This entry owns the YAML CLI; effective model/method args are supplied explicitly.
@@ -139,7 +142,6 @@ def main():
     import torch
     from experiments.modular_config import load_experiment, experiment_batches, resolve_budget, configuration_fingerprint
     from experiments.modular_artifacts import planned_cells
-    from experiments.modular_execution import device_context
     from experiments.modular_model import prepare_model, create_model, training_metadata
     from experiments.dataset_inputs import bind_input, resolve_input
     from experiments.modular_run import verified_selection
@@ -155,7 +157,17 @@ def main():
     version=3 if width==64 else 4
     if config['experiment_id'] != f'aagu059-table01-h{width}' or args.run_id != f'aagu059-table01-h{width}-v{version}':
         raise ValueError('unregistered run identity')
-    context = device_context(config['experiment_id'], run_id=args.run_id, device_file=ROOT/'.syncmate/device.yaml')
+    if args.syncmate:
+        if args.device is not None:
+            raise ValueError('--syncmate owns its device')
+        from scripts.syncmate.opengu_execution import device_context
+        context = device_context(config['experiment_id'], run_id=args.run_id,
+            device_file=args.device_config or ROOT / '.syncmate/device.yaml')
+    else:
+        if args.device_config is not None:
+            raise ValueError('--device-config requires --syncmate')
+        from experiments.modular_execution import native_context
+        context = native_context(config['experiment_id'], run_id=args.run_id, request_device=args.device)
     if subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=ROOT,text=True).strip():
         raise ValueError('tracked source is dirty')
     output = context.output.parent

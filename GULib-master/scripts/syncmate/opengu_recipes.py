@@ -7,7 +7,7 @@ import re
 
 import yaml
 from experiments.modular_artifacts import ARTIFACT_NAMES, output_paths
-from scripts.syncmate.opengu_layout import modular_output_path
+from experiments.modular_layout import modular_output_path
 from syncmate_core.contracts import Recipe, resolve_repo_path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -112,17 +112,18 @@ def assemble(spec, project_root=ROOT):
         summary = modular_output_path(**spec['run_identity'])
         base = summary.rsplit('/', 1)[0]
         entry = 'experiments/run.py' if runner == 'experiment' else 'experiments/aagu059_diagnostic.py'
-        definition.update(argv=('{python}', entry, spec['config_path'], '--run-id', spec['run_identity']['run_id']),
+        definition.update(argv=('{python}', entry, spec['config_path'], '--run-id', spec['run_identity']['run_id'], '--syncmate'),
             requires_job_expected_git_sha=True, collector_result_roots=(base,),
             preflight_profile='modular-project-v1', execution_validator='exact-artifacts-json-v1')
         if runner == 'experiment':
+            from scripts.syncmate.opengu_progress import progress_plan
             config = load_experiment(config_path)
             if config['experiment_id'] != spec['run_identity']['experiment_id'] or config['stage'] != spec['stage']:
                 raise ValueError('recipe identity or stage differs from experiment')
             if len(config['datasets']) != len(spec['expected_datasets']):
                 raise ValueError('recipe dataset count differs from experiment')
             paths = (summary,) + output_paths(summary, config)
-            definition.update(expected_artifact_paths=paths,
+            definition.update(expected_artifact_paths=paths, progress_plan=progress_plan(config),
                 collector_artifact_names=tuple(sorted({Path(p).name for p in paths})),
                 collector_profile='modular-output-v1', collector_acceptance=True,
                 success_predicate='json.passed == true and all reviewed artifacts exist')
@@ -137,7 +138,8 @@ def assemble(spec, project_root=ROOT):
     Recipe(id=definition['id'], argv=definition['argv'], config_path=definition['config_path'],
            config_sha256=definition['config_sha256'], timeout_seconds=definition['timeout_seconds'],
            expected_artifact_paths=definition['expected_artifact_paths'],
-           execution_validator=definition.get('execution_validator', 'json-passed-v1'))
+           execution_validator=definition.get('execution_validator', 'json-passed-v1'),
+           progress_plan=definition.get('progress_plan'))
     return definition
 
 

@@ -4,11 +4,13 @@
 
 ## 同一解析与执行路径
 
-普通命令和 SyncMate 注册都直接调用 `experiments/run.py <config.yaml> --run-id <id>`，共用 `modular_run.execute` 和 `modular_config.load_experiment` / `experiment_batches`。一个组合表用非空 `dataset_refs` 列表绑定多个 Dataset/Split；单数据集也用列表，重复实例和旧字段被拒绝。展开顺序为数据集、训练 seed、比例、方法、Selector，训练 seed 仍在两侧配对。
+原生命令调用 `experiments/run.py <config.yaml> --run-id <id> --device <cpu/cuda/cuda:N>`，SyncMate 注册在同一入口追加 `--syncmate`，共用 `modular_run.execute` 和 `modular_config.load_experiment` / `experiment_batches`。一个组合表用非空 `dataset_refs` 列表绑定多个 Dataset/Split；单数据集也用列表，重复实例和旧字段被拒绝。展开顺序为数据集、训练 seed、比例、方法、Selector，训练 seed 仍在两侧配对。
 
 - `--dry_run` 展开真实有效值、字段来源、训练 seed/预算批次与逻辑条件数；不读数据、建 Store 或调用 producer。
-- 设备只由 Core 读取的 `.syncmate/device.yaml` 决定：`repo_path` 指定执行根，`execution_device` 明确指定 `cpu`、`cuda` 或 CUDA 索引；没有设备默认值。正式执行要求在配置的 runner checkout 中使用可用 CUDA。
-- 隔离验证另需 `--verification-root <temporary-root>`；该根等于设备配置的 `repo_path`，输入资产必须在其内部。`--device-config` 可指定临时设备文件。Core 注册直接指向普通配置路径，绑定文件及引用表指纹、运行身份、超时和阶段产物；没有专用 `--recipe` 分支。
+- 原生入口显式传 `--device cpu`、`cuda` 或 CUDA 索引，不加载 Core 或 `scripts/syncmate`。正式执行仍要求活跃 checkout 与可用 CUDA；设备缺失或不可用立即失败，不设默认设备。
+- 显式 `--syncmate` 时，适配组件用 Core 读取 `.syncmate/device.yaml` 的 `repo_path`、`execution_device`；不能同时传 `--device`。`--device-config` 只用于该模式，缺少 Core 或无效接入上下文即拒绝。
+- 隔离验证另需 `--verification-root <temporary-root>`，输入资产必须在其中；接入模式还要求该根等于 device 的 `repo_path`。配置不改写，硬件不进入科学 YAML。
+- `execute(..., notify=None)` 的通知只传当前位置与完成量。计划来自实际预算降序批次，覆盖数据准备、Selector/GU、evaluation 和 export。执行器不导入 Core，训练 epoch 和求解内部不增加 SyncMate 调用。缓存 HIT 仍推进已完成量，失败保留科学异常且不汇报全局完成；通知错误只作诊断。
 
 ## Selector → 固定 Selection → 独立方法
 
@@ -18,13 +20,13 @@ GNNDelete、GIF、Retrain 各自执行、缓存、保存 Output。Retrain 使用
 
 ## 输出与收集后 Metrics
 
-每个阶段写一个 `summary.json`；Unlearning 另写独立方法的 `summary.outputs/<序号>/attack.json`、`output-references.json`、`predictions.npz`、`_meta.json`。Selector 和 Metrics 不声明不存在的方法文件。summary 记录有效值、来源、配置指纹、运行回执、Score/Selection/Output 身份和相对导出路径及摘要。每个 Output 保存实际训练图、删除集合、预测和模型状态，可脱离远端 Store 验证。
+每次运行写 `results/runs/<experiment-id>/<run-id>/run.json`，cell 目录保存实际 `metrics.json`、`selection.json` 和按需导出的已有 `scores.npz`。项目自己的 `experiments/modular_layout.py` 拥有公共路径；适配器消费同一布局。完整内容和 Observer 合同见 [结果回传合同](experiment-result-return-contract.md)。
 
-SyncMate 的 apply_collect → verify_collect → artifact index 仍是收集权威。项目验收消费者重核精确文件集合、字节摘要、运行 SHA、配置与方法身份、Selection、保存预测和指标。其通过仅表示软件证据核验，人的科研验收仍由 WorkItem 决定。
+原生执行自行保存结果；接入执行由项目声明精确回传集合，Core 负责 apply_collect → verify_collect → SHA-256 → artifact index。进度快照属于运行状态，不进入科学结果或不可变索引。`job-progress` 只读取本地缓存；最后阶段完成不等于结果回传或科研接受。
 
-Metrics 是普通 `stage: metrics` 表，多数据集时 `output_inputs` 使用 `{summary: <已收集文件>, sha256: <摘要>}` 列表；单数据集还可读取精确 Output 引用。读取完整导出后按 Dataset/Split 身份分组，不访问远端 Cache，不调用模型前向或训练。输入中未声明的数据集、错误归属或缺失文件均拒绝。retrain-gap 必须配对同 Selection、Dataset/Split、模型、训练 seed 和删除语义；缺失或多义时拒绝。
+Metrics 是普通 `stage: metrics` 表，通过 `output_inputs: [{run: <完成的 run.json>, sha256: <摘要>}]` 在持有输入与 Output Cache 的执行端重算。缺失、冲突或过时引用拒绝。常规本地结果读取不依赖图、模型或预测；不把远端 Cache payload 作为结果副本回传。
 
-summary v3 的 `datasets` 按声明顺序记录各实例、真实 data identity、节点数与候选数。每条选择与下游结果的 `matrix_values` 保存 `dataset_index`、`dataset_name`、`dataset_fingerprint`；导出 `_meta.json` 保存相同坐标。SyncMate 的 `expected_datasets` 逐数据集声明节点和候选数量，产物序号在整张表内连续，核验时不得跨数据集配对。旧 summary 保留原文，当前消费者不迁移或重写历史结果。
+各 cell 记录真实 Dataset/Split、Selection/Output 引用、条件、HIT/MISS 与计时；无通知、通知启用和 Core 接入不进入计算缓存身份。run ID 只影响结果目录和运行记录。
 
 ## 计算身份与配置指纹
 

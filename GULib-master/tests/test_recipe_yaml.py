@@ -150,7 +150,7 @@ def test_preview_resolves_device_and_outputs_without_submission(workspace):
     assert view['remote_workdir'] == str(root)
     assert view['remote_result_roots'] == ['results/runs/contract/visible-run']
     assert view['local_receiving_root'] == str(root / 'results/runs/cpu-runner')
-    assert view['argv'][1:] == ['experiments/run.py', 'experiment.yaml', '--run-id', 'visible-run']
+    assert view['argv'][1:] == ['experiments/run.py', 'experiment.yaml', '--run-id', 'visible-run', '--syncmate']
     assert view['expected_artifact_count'] == len(assemble(load_declaration(path), root)['expected_artifact_paths'])
     assert view['remote_checks'].startswith('NOT OBSERVED')
     assert not view['local_checks_passed']  # disposable repo has no origin

@@ -11,7 +11,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 
-def main(argv=None):
+def main(argv=None, *, notify=None):
     # The command's JSON and diagnostic streams use the same encoding on Windows and SSH.
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, 'reconfigure'):
@@ -21,23 +21,37 @@ def main(argv=None):
     parser.add_argument('--dry_run', action='store_true')
     parser.add_argument('--verification-root', type=Path)
     parser.add_argument('--run-id')
-    parser.add_argument('--device-config', type=Path, default=ROOT / '.syncmate/device.yaml')
+    parser.add_argument('--device', help='explicit native device: cpu, cuda, or cuda:N')
+    parser.add_argument('--syncmate', action='store_true', help='enable the optional SyncMate adapter')
+    parser.add_argument('--device-config', type=Path, help='SyncMate device file; requires --syncmate')
     args = parser.parse_args(argv)
     try:
         with contextlib.redirect_stdout(sys.stderr):
             from experiments.modular_run import execute
             if args.dry_run:
-                if args.verification_root or args.run_id:
+                if any((args.verification_root, args.run_id, args.device,
+                        args.syncmate, args.device_config, notify is not None)):
                     raise ValueError('dry-run has no execution context')
                 result = execute(args.config, dry_run=True)
             else:
                 if args.run_id is None:
                     raise ValueError('execution requires --run-id')
                 from experiments.modular_config import load_experiment, configuration_fingerprint
-                from experiments.modular_execution import device_context
                 config = load_experiment(args.config)
-                context = device_context(config['experiment_id'], run_id=args.run_id,
-                    device_file=args.device_config, verification_root=args.verification_root)
+                if args.syncmate:
+                    if args.device is not None or notify is not None:
+                        raise ValueError('--syncmate owns its device and notification callback')
+                    from scripts.syncmate.opengu_execution import device_context, make_notify
+                    context = device_context(config['experiment_id'], run_id=args.run_id,
+                        device_file=args.device_config or ROOT / '.syncmate/device.yaml',
+                        verification_root=args.verification_root)
+                    notify = make_notify(config, context, config_path=args.config)
+                else:
+                    if args.device_config is not None:
+                        raise ValueError('--device-config requires --syncmate')
+                    from experiments.modular_execution import native_context
+                    context = native_context(config['experiment_id'], run_id=args.run_id,
+                        request_device=args.device, verification_root=args.verification_root)
                 if args.verification_root:
                     import torch
                     torch.set_num_threads(1)
@@ -64,7 +78,7 @@ def main(argv=None):
                 record_event(state='started', **event)
                 from experiments.modular_artifacts import generated_paths
                 try:
-                    result = execute(args.config, context=context)
+                    result = execute(args.config, context=context, notify=notify)
                     result.update(passed=True, generated_artifacts=generated_paths(result, context))
                 except BaseException as exc:
                     try:
