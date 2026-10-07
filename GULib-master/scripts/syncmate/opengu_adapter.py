@@ -13,7 +13,13 @@ def _modular_preflight(definition, config_path):
         errors.append('expanded conditions differ from registration')
     if plan['experiment_id'] != definition['run_identity']['experiment_id']:
         errors.append('experiment identity differs from registration')
-    return {'ready': not errors, 'errors': errors}
+    recovery = {'ready': True, 'locks': [], 'errors': []}
+    if plan['stage'] != 'metrics':
+        from syncmate_core.context import current
+        from experiments.cache_locks import score_lock_preflight
+        recovery = score_lock_preflight(current().root / 'results' / 'cache_v2')
+        errors.extend(recovery['errors'])
+    return {'ready': not errors, 'errors': errors, 'cache_recovery': recovery}
 
 
 _PREFLIGHT_HANDLERS = {'modular-project-v1': _modular_preflight}

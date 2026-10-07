@@ -351,9 +351,17 @@ class ScoreBundleStore:
                     str(os.getpid()).encode("ascii", errors="strict"),
                 )
             except FileExistsError:
+                from experiments.cache_locks import inspect_score_lock
+                lock = inspect_score_lock(lock_path)
+                if lock['status'] == 'orphan':
+                    raise CacheResolutionError(
+                        'orphan ScoreBundle recipe lock: {path} (PID {owner_pid}); '
+                        'explicit recovery required'.format(**lock)
+                    )
                 if time.monotonic() >= deadline:
                     raise CacheResolutionError(
-                        "timed out waiting for ScoreBundle recipe lock"
+                        'timed out waiting for ScoreBundle recipe lock: '
+                        '{path} (PID {owner_pid}, {status})'.format(**lock)
                     )
                 time.sleep(0.05)
         try:
@@ -450,6 +458,22 @@ class ScoreBundleStore:
             miss_reasons=miss_reasons,
         )
 
+    def _lookup(self, recipe):
+        explanation = ArtifactResolver(self.index).explain_compatible(
+            ArtifactType.SCORE, recipe
+        )
+        if explanation.hit and explanation.exact_candidate is not None:
+            return self._load_candidate(
+                explanation.exact_candidate, recipe, explanation.miss_reasons
+            ), explanation
+        if (explanation.exact_candidate is not None
+                or explanation.miss_reasons != ("no_exact_candidate",)):
+            raise CacheResolutionError(
+                "ScoreBundle lookup failed closed: {0}".format(
+                    ",".join(explanation.miss_reasons))
+            )
+        return None, explanation
+
     def get_or_compute(
         self,
         recipe: ArtifactRecipe,
@@ -460,25 +484,15 @@ class ScoreBundleStore:
         self.initialize()
         if not isinstance(recipe, ArtifactRecipe):
             raise ContractValidationError("recipe must be ArtifactRecipe")
+        # Immutable, verified hits need no writer lock. Recheck after locking a
+        # MISS because another producer may have completed in the meantime.
+        hit, _ = self._lookup(recipe)
+        if hit is not None:
+            return hit
         with self._recipe_lock(recipe):
-            explanation = ArtifactResolver(self.index).explain_compatible(
-                ArtifactType.SCORE, recipe
-            )
-            if explanation.hit and explanation.exact_candidate is not None:
-                return self._load_candidate(
-                    explanation.exact_candidate,
-                    recipe,
-                    explanation.miss_reasons,
-                )
-            if (
-                explanation.exact_candidate is not None
-                or explanation.miss_reasons != ("no_exact_candidate",)
-            ):
-                raise CacheResolutionError(
-                    "ScoreBundle lookup failed closed: {0}".format(
-                        ",".join(explanation.miss_reasons)
-                    )
-                )
+            hit, explanation = self._lookup(recipe)
+            if hit is not None:
+                return hit
             if fail_if_called:
                 raise ProducerCalledError(
                     "ScoreBundle producer was called on an asserted warm hit"
