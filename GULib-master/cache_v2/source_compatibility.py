@@ -76,7 +76,8 @@ def stored_recipe(record, requested=None, artifact_type=None):
     # Exact equality reuses the already validated request. Both the complete
     # tagged Recipe and its digest must match; a digest alone is insufficient.
     if (requested is not None and record["recipe_hash"] == requested.recipe_hash
-            and record["recipe"] == requested.canonical_form):
+            and json.dumps(record["recipe"], ensure_ascii=False, allow_nan=False,
+                           sort_keys=True, separators=(',', ':')) == requested.canonical_json):
         return requested
     from .runtime import _decode_exact_mapping
     wrapper = _decode_exact_mapping(record["recipe"], "indexed Recipe")

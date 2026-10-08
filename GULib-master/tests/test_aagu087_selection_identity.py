@@ -120,3 +120,22 @@ def test_exact_recipe_avoids_reconstruction_but_checks_complete_identity(monkeyp
                   'recipe': ArtifactRecipe(altered).canonical_form}
     with pytest.raises(CacheResolutionError, match='hash mismatch'):
         stored_recipe(bad_record, recipe, ArtifactType.SELECTION)
+
+
+@pytest.mark.parametrize('alias', ['budget', 'recipe_version'])
+def test_exact_recipe_fastpath_distinguishes_boolean_from_integer(alias):
+    from cache_v2 import CacheResolutionError, ContractValidationError
+    recipe = ArtifactRecipe({'budget': 0, 'producer_version': {
+        'semantic_version': 'exact', 'source_fingerprint': 'current'}})
+    changed = recipe.canonical_form
+    wrapper = dict(changed['items'])
+    if alias == 'recipe_version':
+        changed['items'] = [[key, True if key == alias else value]
+                            for key, value in changed['items']]
+    else:
+        fields = wrapper['fields']
+        fields['items'] = [[key, False if key == alias else value]
+                           for key, value in fields['items']]
+    record = {'recipe_hash': recipe.recipe_hash, 'recipe': changed}
+    with pytest.raises((CacheResolutionError, ContractValidationError)):
+        stored_recipe(record, recipe, ArtifactType.EVALUATION)
