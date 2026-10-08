@@ -19,7 +19,6 @@ class ExecutionAudit:
         self.seconds = 0.0
         self.last_refresh = 0.0
         self.timings = {}
-        self.completed_stages = set()
         self.stack = []
 
     @contextmanager
@@ -41,7 +40,8 @@ class ExecutionAudit:
         # second and forced at a terminal boundary; there is no epoch journal.
         if force or perf_counter() - self.last_refresh >= 1.0:
             started = perf_counter()
-            refresh_status_views(event_path=self.path)
+            with self.phase('audit_projection'):
+                refresh_status_views(event_path=self.path)
             self.seconds += perf_counter() - started
             self.last_refresh = perf_counter()
 
@@ -49,10 +49,6 @@ class ExecutionAudit:
         started = perf_counter()
         record_event(state=state, event_path=self.path, refresh=False, **common, **values)
         self.seconds += perf_counter() - started
-        first_completion = state == 'completed' and common['stage'] not in self.completed_stages
-        if first_completion:
-            self.completed_stages.add(common['stage'])
-        self.refresh(force=first_completion)
 
     @contextmanager
     def entry(self, stage, conditions):

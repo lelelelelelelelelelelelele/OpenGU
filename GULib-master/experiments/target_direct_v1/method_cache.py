@@ -28,7 +28,7 @@ def synchronize(data):
 
 def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selectors, include_scores,
                     model_config=None, training=None, fail_if_score_called=False,
-                    fail_if_selection_called=False, dataset_inputs=None, dataset_identity=None):
+                    fail_if_selection_called=False, dataset_inputs=None, dataset_identity=None, audit=None):
     store_root = Path(store_root)
     c = Computations(model, data, checkpoints)
     inputs = dataset_inputs if dataset_inputs is not None else make_dataset_selection_inputs(data, dataset_name=dataset_name)
@@ -48,6 +48,8 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
         store = ScoreBundleStore(store_root, producer_version=producer, index=index)
 
         def compute():
+            if audit:
+                audit.refresh(force=True)
             started = time.perf_counter()
             scores = METHODS[name](c, params).detach().cpu().to(torch.float64)
             candidates = c.candidates.cpu().tolist()

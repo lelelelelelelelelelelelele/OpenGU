@@ -150,6 +150,8 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
             else:
                 descriptors.append((reference, describe_output(reference, store_root), paired_reference, conditions))
             fact['metrics'] = {'identity_verified':1}
+        if audit:
+            audit.refresh()
     retrains = [(ref,identity) for ref,identity,_,_ in descriptors if identity['target']['method'] == 'Retrain']
     # Budget display aliases can repeat one verified Artifact, not add baselines.
     retrains = list({canonical_sha256(ref):(ref,identity) for ref,identity in retrains}.values())
@@ -204,6 +206,8 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
             fact['metrics'] = measured['metrics']
             if cache:
                 fact['cache'] = [cache_fact('result', cache, cache['hit'])]
+        if audit:
+            audit.refresh()
     if not rows:
         raise ConfigurationError('evaluation has no applicable method outputs')
     return {'effective_config':instance, 'rows':rows}

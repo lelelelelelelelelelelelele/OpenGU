@@ -5,13 +5,17 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 import sqlite3
 from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Mapping, Optional, Union
 
 from .canonical import TYPE_TAG, canonical_json
+
+_read_sessions = ContextVar('cache_index_read_sessions', default=None)
 from .contracts import (
     HEADER_VERSION,
     RECIPE_VERSION,
@@ -389,27 +393,35 @@ class CacheIndex:
 
     @contextmanager
     def _read_connection(self) -> Iterator[sqlite3.Connection]:
-        connection = self._read_handle or self._connect_read()
+        shared = (_read_sessions.get() or {}).get(os.path.normcase(str(self.path.absolute())))
+        connection = self._read_handle or shared
+        owned = connection is None
+        if owned:
+            connection = self._connect_read()
         try:
             yield connection
         except sqlite3.Error as exc:
             raise CacheIndexError("CacheIndex read failed: {0}".format(exc)) from exc
         finally:
-            if connection is not self._read_handle:
+            if owned:
                 connection.close()
 
     @contextmanager
     def read_session(self) -> Iterator["CacheIndex"]:
-        """Reuse one read-only connection within a query; never memoize rows."""
-        if self._read_handle is not None:
+        """Share an explicit read-only scope for this path; never memoize rows."""
+        key = os.path.normcase(str(self.path.absolute()))
+        sessions = _read_sessions.get() or {}
+        if key in sessions:
             yield self
             return
         connection = self._connect_read()
         self._read_handle = connection
+        token = _read_sessions.set({**sessions, key:connection})
         try:
             yield self
             self._validate_schema(connection)
         finally:
+            _read_sessions.reset(token)
             self._read_handle = None
             connection.close()
 

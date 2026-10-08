@@ -169,11 +169,15 @@ def test_read_session_reuses_connection_without_hiding_status_updates(tmp_path, 
     monkeypatch.setattr(index, '_connect_read', observed)
     with index.read_session():
         assert index.get_artifact(header.artifact_id)['status'] == 'valid'
+        peer = CacheIndex(index.database_path)
+        monkeypatch.setattr(peer, '_connect_read', lambda: pytest.fail('nested path opened a second reader'))
         with sqlite3.connect(str(index.database_path)) as writer:
             writer.execute('UPDATE artifacts SET status=? WHERE artifact_id=?',
                            ('invalid', header.artifact_id))
         with index.read_session():
             assert index.get_artifact(header.artifact_id)['status'] == 'invalid'
+        with peer.read_session():
+            assert peer.get_artifact(header.artifact_id)['status'] == 'invalid'
     assert len(connections) == 1
     with pytest.raises(sqlite3.ProgrammingError):
         connections[0].execute('SELECT 1')
