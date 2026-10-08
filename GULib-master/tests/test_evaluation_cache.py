@@ -1,4 +1,4 @@
-"""Ordinary cold/hot execution, exact identities, and corrupt dependency refusal."""
+"""Cold/hot values, metadata-only metric HIT, and actual input consumption."""
 import copy
 import functools
 from pathlib import Path
@@ -39,16 +39,22 @@ def test_hot_entry_reuses_complete_values_without_output_decode_or_formula(table
         forbid(monkeypatch,module,name)
     monkeypatch.setattr(UnlearningOutputPayload,'from_bytes',classmethod(lambda cls,*a:pytest.fail('hot NPZ decode')))
     reads=[]
+    from cache_v2 import CacheIndex
+    index=CacheIndex(root/'results/cache_v2/index.sqlite')
+    output_directories={(root/'results/cache_v2'/index.get_artifact(r['artifact_id'])['semantic_path']).parent
+                        for r in cold['unlearning']}
     original=Path.read_bytes
     def observed(path):
-        if path.suffix=='.npz':reads.append(path)
+        if path.parent in output_directories:
+            reads.append(path)
+            pytest.fail('metric HIT opened unused Output payload/header')
         return original(path)
     monkeypatch.setattr(Path,'read_bytes',observed)
     hook=torch.nn.modules.module.register_module_forward_pre_hook(lambda *a:pytest.fail('hot forward'))
     try:
         warm=run(tables,'new-log-identity',**options)
     finally:hook.remove()
-    assert reads  # Hash verification still reads real Output bytes.
+    assert not reads
     for before,after in zip(cold['unlearning'],warm['unlearning']):
         assert before['output']==after['output']
         assert before['result']==after['result'] and before['evaluation']==after['evaluation']
@@ -64,17 +70,14 @@ def test_hot_entry_reuses_complete_values_without_output_decode_or_formula(table
         dependency_npz_reads=len(reads),same_values=True,all_evaluations_hit=True)))
 
 
-@pytest.mark.parametrize('dependency',['method','retrain','selection','graph','manifest','evaluation'])
-def test_corruption_is_refused_even_with_all_metrics_cached(tables,monkeypatch,dependency):
+@pytest.mark.parametrize('dependency',['selection','graph','manifest','evaluation'])
+def test_corruption_of_actually_consumed_input_is_refused(tables,monkeypatch,dependency):
     from cache_v2 import CacheIndex
     import experiments.modular_run as runner
     root,options=setup(tables)
     cold=run(tables,'cold',**options)
     index=CacheIndex(root/'results/cache_v2/index.sqlite')
-    if dependency in ('method','retrain'):
-        aid=cold['unlearning'][0 if dependency=='method' else 1]['artifact_id']
-        path=root/'results/cache_v2'/index.get_artifact(aid)['semantic_path']
-    elif dependency=='selection':
+    if dependency=='selection':
         path=root/'results/cache_v2'/index.get_artifact(cold['selectors'][0]['selection']['artifact']['artifact_id'])['semantic_path']
     elif dependency=='evaluation':
         aid=cold['unlearning'][0]['evaluation_cache']['artifact_id']
@@ -88,6 +91,62 @@ def test_corruption_is_refused_even_with_all_metrics_cached(tables,monkeypatch,d
             run(tables,'refused',**options)
     finally:
         if dependency=='manifest':path.write_bytes(original)
+
+
+@pytest.mark.parametrize('unused',['method','retrain','selection','graph','manifest'])
+def test_cached_metrics_do_not_open_unused_upstream_files(tables,monkeypatch,unused):
+    from cache_v2 import CacheIndex
+    from experiments.modular_evaluation import evaluate_modular
+    import experiments.unlearning_outputs as outputs
+    import experiments.modular_evaluation as modular
+    import utils.target_checkpoint as checkpoint
+    root,options=setup(tables)
+    cold=run(tables,'cold',**options)
+    item=cold['evaluations'][1]['effective_config']
+    index=CacheIndex(root/'results/cache_v2/index.sqlite')
+    if unused in ('method','retrain'):
+        aid=cold['unlearning'][0 if unused=='method' else 1]['artifact_id']
+        path=root/'results/cache_v2'/index.get_artifact(aid)['semantic_path']
+    elif unused=='selection':
+        aid=cold['selectors'][0]['selection']['artifact']['artifact_id']
+        path=root/'results/cache_v2'/index.get_artifact(aid)['semantic_path']
+    else:path=root/('graph.pkl' if unused=='graph' else 'dataset.json')
+    # Only this test's owned fixture is changed. These files are not consumed
+    # by the requested cached metric and their absence must not cause a scan.
+    path.unlink()
+    forbid(monkeypatch,outputs,'load_output')
+    forbid(monkeypatch,modular,'_measure')
+    forbid(monkeypatch,checkpoint,'data_identity')
+    forbid(monkeypatch,checkpoint,'sha256_file')
+    warm=evaluate_modular(item,cold['unlearning'],store_root=root/'results/cache_v2',dataset_root=root)
+    assert [r['metrics'] for r in warm['rows']]==[r['metrics'] for r in cold['evaluations'][1]['rows']]
+    assert all(r['cache']['hit'] and not r['cache']['producer_called'] for r in warm['rows'])
+
+
+def test_metric_miss_loads_required_output_and_reports_missing_file(tables,monkeypatch):
+    from cache_v2 import CacheIndex
+    from experiments.modular_evaluation import evaluate_modular
+    import experiments.modular_evaluation as modular
+    root,options=setup(tables)
+    cold=run(tables,'cold',**options)
+    index=CacheIndex(root/'results/cache_v2/index.sqlite')
+    path=root/'results/cache_v2'/index.get_artifact(cold['unlearning'][0]['artifact_id'])['semantic_path']
+    path.unlink()
+    item={**cold['evaluations'][1]['effective_config'],'producer_version':'new-metric-protocol'}
+    forbid(monkeypatch,modular,'_measure')
+    with pytest.raises(Exception,match='missing'):
+        evaluate_modular(item,cold['unlearning'],store_root=root/'results/cache_v2',dataset_root=root)
+
+
+def test_cached_metric_rejects_foreign_registered_reference(tables):
+    from experiments.modular_evaluation import evaluate_modular
+    root,options=setup(tables)
+    cold=run(tables,'cold',**options)
+    foreign=copy.deepcopy(cold['unlearning'])
+    foreign[0]['output']['content_hash']='0'*64
+    with pytest.raises(Exception,match='identity mismatch'):
+        evaluate_modular(cold['evaluations'][1]['effective_config'],foreign,
+                         store_root=root/'results/cache_v2',dataset_root=root)
 
 
 def test_protocol_libraries_and_actual_output_change_invalidate_only_evaluation(tables,monkeypatch):

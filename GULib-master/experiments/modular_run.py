@@ -327,7 +327,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                     if 'evaluation_cache' not in result:
                         from experiments.evaluation_cache import persist_single
                         result['evaluation_cache'] = persist_single(result, store_root=store_root,
-                            data=data, dataset_input=dataset_input, audit=audit)
+                            dataset_input=dataset_input, audit=audit)
                     summary['unlearning'].append({**result, 'checkpoint': checkpoint, 'conditions': cell['conditions'],
                         'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
                         'unlearning_ref': gu_ref})

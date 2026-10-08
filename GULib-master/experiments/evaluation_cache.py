@@ -15,31 +15,11 @@ def phase(audit, name):
     return audit.phase(name) if audit else nullcontext()
 
 
-def verify_dataset_dependency(identity, dataset_root):
-    import json
-    from experiments.dataset_inputs import input_path
-    from utils.target_checkpoint import sha256_file
-    reference = identity['dataset_input']
-    manifest = input_path(dataset_root, reference['manifest'])
-    graph = input_path(dataset_root, reference['graph'])
-    instance = reference['instance']
-    if sha256_file(manifest) != instance['artifacts']['manifest_sha256']:
-        raise ConfigurationError('dataset manifest digest mismatch')
-    value = json.loads(manifest.read_text(encoding='utf-8'))
-    if ((manifest.parent / value['data_path']).resolve() != graph or
-            value['data_sha256'] != reference['graph_sha256'] or
-            sha256_file(graph) != reference['graph_sha256'] or
-            value['data_identity'] != identity['pairing']['data_identity'] or
-            any(value[k] != instance[k] for k in ('dataset', 'preprocessing', 'split'))):
-        raise ConfigurationError('Evaluation Dataset/Split dependency mismatch')
-
-
-def describe_output(reference, store_root, *, data=None, dataset_input=None, dataset_root=None):
-    """Exact indexed identity; payload integrity is verified by the consumer."""
+def describe_output(reference, store_root, *, dataset_input=None):
+    """Resolve registered identity without opening unused input payloads."""
     from cache_v2.unlearning_output import OUTPUT_CONTRACT
     from experiments.unlearning_outputs import _allowed_output_source
     from experiments.modular_gu import gu_producer
-    from utils.target_checkpoint import data_identity
     if set(reference) != {'artifact_id', 'recipe_hash', 'content_hash'}:
         raise ConfigurationError('an exact Cache V2 Output reference is required')
     index = CacheIndex(Path(store_root) / 'index.sqlite')
@@ -56,14 +36,9 @@ def describe_output(reference, store_root, *, data=None, dataset_input=None, dat
     explanation = ArtifactResolver(index).explain_compatible(ArtifactType.PREDICTION, recipe)
     if not explanation.hit:
         raise ConfigurationError('Output dependency is not valid and verified: ' + ','.join(explanation.miss_reasons))
-    if data is not None and data_identity(data) != fields['pairing']['data_identity']:
-        raise ConfigurationError('Output Dataset/Split mismatch')
     if dataset_input is not None and dataset_input != fields['dataset_input']:
         raise ConfigurationError('Output bound Dataset/Split reference mismatch')
-    identity = {key:value for key,value in fields.items() if key != 'artifact_contract'}
-    if dataset_root is not None:
-        verify_dataset_dependency(identity, dataset_root)
-    return identity
+    return {key:value for key,value in fields.items() if key != 'artifact_contract'}
 
 
 def metric_environment(case):
@@ -121,8 +96,6 @@ def single_values(reference, output):
 def evaluate_single(reference, identity, *, store_root, data, dataset_root, audit=None):
     from experiments.unlearning_outputs import load_output
     started = perf_counter()
-    with phase(audit, 'dataset_dependency_validation'):
-        verify_dataset_dependency(identity, dataset_root)
     request = single_request(reference, identity)
     def produce():
         with phase(audit, 'evaluation_inputs'):
@@ -134,11 +107,11 @@ def evaluate_single(reference, identity, *, store_root, data, dataset_root, audi
     return values, cache
 
 
-def persist_single(row, *, store_root, data, dataset_input, audit=None):
+def persist_single(row, *, store_root, dataset_input, audit=None):
     """Cold GU already measured these values; register them without recomputation."""
     if row['output'].get('storage') == 'run':
         return None  # Explicit gu_cache=disabled produces a run-owned, uncached Output.
-    identity = describe_output(row['output'], store_root, data=data, dataset_input=dataset_input)
+    identity = describe_output(row['output'], store_root, dataset_input=dataset_input)
     _, cache = cached_measurements(single_request(row['output'], identity), store_root,
         lambda: dict(result=row['result'], evaluation=row['evaluation']), audit=audit)
     return cache

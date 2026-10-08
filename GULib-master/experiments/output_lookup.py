@@ -92,7 +92,7 @@ class OutputLookup:
                     return None, None
                 raise ValueError('Output lookup failed closed: ' + ','.join(explanation.miss_reasons))
             reference = {key:explanation.exact_candidate[key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
-            actual_identity = describe_output(reference, self.store_root, data=data, dataset_input=dataset_input)
+            actual_identity = describe_output(reference, self.store_root, dataset_input=dataset_input)
         values, evaluation_cache = evaluate_single(reference, actual_identity, store_root=self.store_root,
             data=data, dataset_root=dataset_root, audit=audit)
         if observer is not None and hasattr(observer, 'identity'):

@@ -49,7 +49,7 @@ GU 的 `reuse` 编排先以当前输入和 checkpoint 元数据查询 Output，�
 
 普通执行自动将真实 Selector、GU 和评价的 started/completed/failed 追加到 `results/runtime/modular/_journal/auto_report.events.jsonl`，并有界刷新同目录 Markdown/HTML。条目绑定有效条件、实际 Cache 来源、指标及本次 wall time；独占阶段时间互不重复相加，余量不代表零。`compute_seconds` 保留 producer 语义，不表示 HIT 访问耗时。独立 Metrics 的输入校验与公式评价分别标识，不能把输入校验完成数当作完整指标条目数。硬终止不能写末尾事件，已 fsync 的条目保留；在执行端用 `python -m scripts.syncmate.opengu_audit --job-id <exact-id>` 消费已结束失败 Core 任务的精确身份，追加失败终态并重建页面。它不提交、重试任务，不猜测中断阶段耗时，不自动纠正历史任务。
 
-基础方法指标、utility 和配置选择的配对评价使用现有 Cache V2 Evaluation。先用精确 Output 身份和评价协议、实际公式及数值依赖版本查询；HIT 验证 Evaluation JSON、Output NPZ 原始字节/头与 Selection、Dataset/Split 依赖，不解码预测/状态、不重建删除图、不重算公式。必要读取和校验耗时仍为正。MISS 才加载实际 Output 并计算、正规写入 Evaluation；首次增加此层不能承诺全 HIT。`gu_cache=disabled` 的 run-owned Output 继续支持独立 Metrics，明确绕过计算缓存。Evaluation 访问状态和引用同时保留在 AutoReport 与 run/cell 的既有 cache、cache_provenance、timing 字段。
+基础方法指标、utility 和配置选择的配对评价使用现有 Cache V2 Evaluation。先用登记的 Output、Selection、Dataset/Split 身份及评价协议、公式和数值库版本查询；HIT 只读取指标 JSON 和索引元数据，不打开预测 NPZ／头、绑定图或 checkpoint，不重算上游文件或数据摘要。引用身份、索引状态和冲突仍须匹配；闲置上游文件的物理状态不触发命中扫描或自动重跑。MISS 才实际加载所需 Output／图并计算、正规写入 Evaluation；实际消费文件时加载错误直接报告。首次增加此层不能承诺全 HIT。`gu_cache=disabled` 的 run-owned Output 继续支持独立 Metrics，明确绕过计算缓存。普通 Selector／GU 的输入准备与实际文件消费者保持自己的职责；Evaluation 访问状态和引用继续保留在 AutoReport 与 run/cell 的既有 cache、cache_provenance、timing 字段。
 
 正式启动前核对run identity和现有产物。入口不支持强制覆盖、隐式截断或自动重试；发现已存在、部分、过时或损坏结果时按明确的修复链处理，保护历史Cache V2和结果。多预算前缀复用只适用于显式prefix-stable排序；仅精确MISS调用producer。
 

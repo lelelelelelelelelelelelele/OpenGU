@@ -355,7 +355,7 @@ class FormalArtifactStore(ArtifactStore):
             )
 
     def _load_verified_dependency_payload(
-        self, parent: Mapping[str, Any], expected_type: ArtifactType, *, decode_output=True
+        self, parent: Mapping[str, Any], expected_type: ArtifactType
     ) -> Any:
         """Verify dependency bytes/header without requiring its producer callback."""
 
@@ -499,32 +499,6 @@ class FormalArtifactStore(ArtifactStore):
             raise ArtifactIntegrityError("dependency payload size does not match header")
         if sha256_bytes(payload_bytes) != parent.get("content_hash"):
             raise ArtifactIntegrityError("dependency payload content hash mismatch")
-        if not decode_output:
-            # The immutable Output was fully validated when registered. Exact
-            # verified bytes/header/Recipe prove it is that same payload; decoding
-            # predictions and model state cannot add evidence to a metric HIT.
-            from .runtime import _decode_exact_mapping
-            from .unlearning_output import OUTPUT_CONTRACT
-            wrapper = _decode_exact_mapping(parent['recipe'], 'Output dependency Recipe')
-            recipe = ArtifactRecipe(wrapper['fields'], recipe_version=wrapper['recipe_version'])
-            fields = recipe.fields
-            if fields.get('artifact_contract') != OUTPUT_CONTRACT or recipe.recipe_hash != parent['recipe_hash']:
-                raise ArtifactIntegrityError('Evaluation dependency is not an exact Output v2')
-            selection_id = fields['selection']['artifact_id']
-            if self.index.parents(parent['artifact_id']) != [selection_id]:
-                raise ArtifactIntegrityError('Output dependency edge mismatch')
-            selection = self.index.get_artifact(selection_id)
-            if any(selection[k] != v for k, v in fields['selection'].items()):
-                raise ArtifactIntegrityError('Output Selection reference mismatch')
-            selected = self._load_verified_dependency_payload(selection, ArtifactType.SELECTION)
-            source_fields = _decode_exact_mapping(selection['recipe'], 'Selection dependency Recipe')['fields']
-            nodes = tuple(fields['pairing']['selected_nodes'])
-            source = selected.selected_nodes_ordered
-            if (selected.graph_fingerprint != fields['graph_fingerprint'] or
-                    not (nodes == source or (source_fields.get('selector_parameters', {}).get('prefix_stable') is True
-                        and 0 < len(nodes) < len(source) and nodes == source[:len(nodes)]))):
-                raise ArtifactIntegrityError('Output Selection dependency identity mismatch')
-            return {key:value for key,value in fields.items() if key != 'artifact_contract'}
         payload = payload_class.from_bytes(payload_bytes)
 
         dependencies = tuple(getattr(payload, "dependencies", ()))
@@ -584,14 +558,28 @@ class FormalArtifactStore(ArtifactStore):
                 raise CacheResolutionError(
                     "dependency {0} has unhealthy ancestors".format(parent_id)
                 )
-            parent_payload = self._load_verified_dependency_payload(
-                parent, expected_type, decode_output=relation != 'output_evaluation_input'
-            )
             if relation == 'output_evaluation_input':
+                # Cached values consume registered identity, not prediction bytes.
+                # Actual computation/loading owns the upstream payload checks.
+                from .runtime import _decode_exact_mapping
+                from .unlearning_output import OUTPUT_CONTRACT
+                wrapper = _decode_exact_mapping(parent['recipe'], 'Output dependency Recipe')
+                recipe = ArtifactRecipe(wrapper['fields'], recipe_version=wrapper['recipe_version'])
+                fields = recipe.fields
+                if fields.get('artifact_contract') != OUTPUT_CONTRACT or recipe.recipe_hash != parent['recipe_hash']:
+                    raise ArtifactIntegrityError('Evaluation dependency is not an exact Output v2')
+                selection = fields['selection']
+                selection_record = self.index.get_artifact(selection['artifact_id'])
+                if (selection_record['artifact_type'] != ArtifactType.SELECTION.value or
+                        self.index.parents(parent_id) != [selection['artifact_id']] or
+                        any(selection_record[k] != v for k,v in selection.items())):
+                    raise ArtifactIntegrityError('Output Selection reference mismatch')
                 dependency = next(o for o in payload.identity['outputs'] if o['reference']['artifact_id'] == parent_id)
-                if parent_payload != dependency['identity'] or any(parent[k] != v for k,v in dependency['reference'].items()):
+                identity = {key:value for key,value in fields.items() if key != 'artifact_contract'}
+                if identity != dependency['identity'] or any(parent[k] != v for k,v in dependency['reference'].items()):
                     raise ArtifactIntegrityError('Evaluation Output dependency identity mismatch')
                 continue
+            parent_payload = self._load_verified_dependency_payload(parent, expected_type)
             if relation == "attack_selection_input":
                 if (parent_payload.ordered_nodes_hash != payload.selected_nodes_hash
                         or parent_payload.graph_fingerprint != payload.graph_fingerprint):

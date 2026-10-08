@@ -148,7 +148,7 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
                 with phase(audit, 'evaluation_inputs'):
                     supplied.append((reference, load_output(reference, store_root, data=data, dataset_root=dataset_root), paired_reference, conditions))
             else:
-                descriptors.append((reference, describe_output(reference, store_root, data=data, dataset_root=dataset_root), paired_reference, conditions))
+                descriptors.append((reference, describe_output(reference, store_root), paired_reference, conditions))
             fact['metrics'] = {'identity_verified':1}
     retrains = [(ref,identity) for ref,identity,_,_ in descriptors if identity['target']['method'] == 'Retrain']
     retrains.extend((ref,output) for ref,output,_,_ in supplied if output.identity['target']['method']=='Retrain')
@@ -182,7 +182,7 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
                 candidates = retrains
                 if paired_reference:
                     candidates = [(paired_reference, read(paired_reference) if paired_reference.get('storage') == 'run'
-                        else describe_output(paired_reference, store_root, data=data, dataset_root=dataset_root))]
+                        else describe_output(paired_reference, store_root))]
                 pair = _pair(instance, identity, candidates)
             def produce():
                 output = value if in_memory else read(reference)
