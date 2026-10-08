@@ -47,6 +47,10 @@ GU 的 `reuse` 编排先以当前输入和 checkpoint 元数据查询 Output，�
 
 同一次执行中，Dataset/Split 身份与 Selection 输入只在载入时准备一次；GU producer 信息按方法与有效模型配置复用，组内 checkpoint 信息以共享准备阶段登记。Output 查询按当前真实数据、Selection 前缀、模型／训练／删除语义、target/checkpoint 和来源版本匹配登记的完整 Recipe，不为查 HIT 重建派生图；实际 MISS 仍由原消费者准备和计算。组内只复用不可变请求引用，切组清空，新增 Prediction 登记会重新选来源与检查歧义，索引状态／依赖／冲突仍实时检查。不同前缀、科学参数或来源不能混用。SQLite 先按当前 Recipe 输入筛候选再严格校验，避免在 Python 中解码／哈希无关行；单次查询复用一条只读连接，schema 在边界核对。配对评价中同一完整 Retrain 引用被多个展示坐标重复使用时只算一个 baseline，各坐标的指标、审计和导出仍独立。
 
+非模型型及 target-direct Selector 先核对登记 Score 引用，再定位 Selection。已有 Selection 命中且未请求 `return_scores` 时，不消费 Score payload 或返回未请求的全量分数／排序；Selection MISS 或实际请求分数导出才加载 Score。调用者明确声明是否消费分数，不增加缓存策略开关。实际加载的 Score 必须仍与先前定位的引用一致，变化直接拒绝。
+
+Selection 生产回调的 `compute_seconds` 记录真实回调 wall，可能包含实际所需的 Score 加载，不称纯前缀计算时间；当前 Score／Selection 访问时间扣除该嵌套重叠，不用生产耗时推断 HIT 速度。
+
 结果布局由 `experiments/modular_layout.py` 与 `experiments/modular_artifacts.py` 拥有，唯一内容合同见 [结果回传合同](../docs/experiment-result-return-contract.md)。每次运行保存 run.json 和 cells 下的 Metrics、Selection、可选已有评分；不复制 Cache payload 或收集正式输入。配置按 commit + 仓库内 YAML 路径定位。声明、实际结果与收集索引必须一致；收集通过 SyncMate 校验后才进入项目核验，命令成功或 dry-run 不是科研接受。
 
 普通执行自动将真实 Selector、GU 和评价的 started/completed/failed 追加到 `results/runtime/modular/_journal/auto_report.events.jsonl`，并有界刷新同目录 Markdown/HTML。条目绑定有效条件、实际 Cache 来源、指标及本次 wall time；独占阶段时间互不重复相加，余量不代表零。`compute_seconds` 保留 producer 语义，不表示 HIT 访问耗时。独立 Metrics 的输入校验与公式评价分别标识，不能把输入校验完成数当作完整指标条目数。硬终止不能写末尾事件，已 fsync 的条目保留；在执行端用 `python -m scripts.syncmate.opengu_audit --job-id <exact-id>` 消费已结束失败 Core 任务的精确身份，追加失败终态并重建页面。它不提交、重试任务，不猜测中断阶段耗时，不自动纠正历史任务。

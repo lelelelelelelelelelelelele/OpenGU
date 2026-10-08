@@ -100,8 +100,8 @@ def test_surrogate_to_gcn_real_scores_and_exact_reuse(tables, architecture):
         refs.append(name)
     gu['model'] = {'architecture': 'OpenGU.GCNNet', 'hidden_channels': 64}
     write_yaml(root / 'gu.yaml', gu)
-    cold = run(tables, 'surrogate_cold', selector_refs=refs, stage='unlearning', unlearning_refs=['gu.yaml'])
-    warm = run(tables, 'surrogate_warm', selector_refs=refs, stage='unlearning', unlearning_refs=['gu.yaml'])
+    cold = run(tables, 'surrogate_cold', selector_refs=refs, stage='unlearning', unlearning_refs=['gu.yaml'], return_scores=True)
+    warm = run(tables, 'surrogate_warm', selector_refs=refs, stage='unlearning', unlearning_refs=['gu.yaml'], return_scores=True)
     assert identities(cold) == identities(warm)
     assert [s['checkpoint']['hit'] for s in cold['selectors']] == [False, True]
     assert all(s['checkpoint']['hit'] and s['score']['hit'] and s['selection']['cache']['hit'] for s in warm['selectors'])
@@ -358,7 +358,7 @@ def test_all_active_methods_match_pre_refactor_formulas(tables, record_property)
         if 'hutchinson' in p:
             p['hutchinson']['probes'] = 2
         selectors.append({'method':name, 'parameters':p, 'budget':resolve_budget({'mode':'k','value':1},len(candidates))})
-    kwargs = dict(store_root=root/'v2', data=data, dataset_name=inputs.dataset_name, model=model,
+    kwargs = dict(store_root=root/'v2', data=data, dataset_name=inputs.dataset_name, model=model, include_scores=True,
         checkpoints=checkpoints, selectors=selectors, model_config=instance['model'], training=instance['training'])
     cold = resolve_methods(**kwargs)
     warm = resolve_methods(**kwargs, fail_if_score_called=True, fail_if_selection_called=True)
@@ -545,7 +545,7 @@ def test_ordinary_cross_budget_coverage(tables, record_property, method, mode, l
     instance['budget'] = resolve_budget(instance['budget'], inputs.candidate_count)
     before = {str(p): (p.stat().st_mtime_ns, sha256_file(p)) for p in (root / 'results' / 'cache_v2').rglob('*') if p.is_file()}
     warm = resolve_methods(store_root=root / 'results' / 'cache_v2', data=data, dataset_name=inputs.dataset_name,
-        model=model, checkpoints=checkpoints, selectors=[instance], model_config=instance.get('model'),
+        model=model, checkpoints=checkpoints, selectors=[instance], include_scores=True, model_config=instance.get('model'),
         training=instance.get('training'), fail_if_score_called=True, fail_if_selection_called=True)[method]
     assert warm['score']['artifact_id'] == cold['score']['artifact_id']
     assert warm['selection']['artifact'] == cold['selection']['artifact']

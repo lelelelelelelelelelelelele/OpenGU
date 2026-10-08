@@ -197,7 +197,7 @@ def test_public_tracin_preserves_configured_training_and_requested_trajectory(ta
         assert [trajectory[i]['global_step'] for i in indices]==steps
         item['model']=instance['model'];item['budget']={'mode':'k','value':1,'k':1}
         result=resolve_methods(store_root=root/'tracin',data=data,dataset_name=inputs.dataset_name,
-            model=model,checkpoints=trajectory,selectors=[item],model_config=item['model'],training=item['training'])[name]
+            model=model,checkpoints=trajectory,selectors=[item],include_scores=True,model_config=item['model'],training=item['training'])[name]
         assert [c['global_step'] for c in result['score']['recipe']['fields']['trajectory']]==steps
         observations[name]={'steps':steps,'score':result['score']['artifact_id']}
     record_property('actual_trajectory',json.dumps(observations))

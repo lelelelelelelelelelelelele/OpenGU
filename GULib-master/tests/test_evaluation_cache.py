@@ -35,6 +35,8 @@ def test_hot_entry_reuses_complete_values_without_output_decode_or_formula(table
     from experiments.c_target_v1.score_store import ScoreBundleStore
     monkeypatch.setattr(ScoreBundleStore, 'initialize',
                         lambda self: pytest.fail('warm Score opened writer initialization'))
+    monkeypatch.setattr(ScoreBundleStore, '_load_candidate',
+                        lambda *a, **k: pytest.fail('selection HIT loaded unused Score payload'))
     for row in cold['unlearning']:
         assert not row['evaluation_cache']['hit']
     for module,name in ((outputs,'load_output'),(evaluation,'single_values'),(modular,'_measure'),
@@ -71,6 +73,22 @@ def test_hot_entry_reuses_complete_values_without_output_decode_or_formula(table
             assert b['cache']['artifact_id']==a['cache']['artifact_id']
     record_property('hot_complete_evaluation',str(dict(full_output_reads=0,npz_decode=0,formula_calls=0,
         dependency_npz_reads=len(reads),same_values=True,all_evaluations_hit=True)))
+
+
+def test_selection_hit_does_not_consume_scores_until_requested(tables):
+    from cache_v2 import CacheIndex
+    from experiments.c_target_v1.score_store import ScoreBundleIntegrityError
+    root, options = setup(tables)
+    cold = run(tables, 'cold-selection', **options)
+    reference = cold['selectors'][0]['score']
+    index = CacheIndex(root/'results/cache_v2/index.sqlite')
+    (root/'results/cache_v2'/index.get_artifact(reference['artifact_id'])['semantic_path']).unlink()
+    warm = run(tables, 'selection-only', **options)
+    assert warm['selectors'][0]['score']['artifact_id'] == reference['artifact_id']
+    assert warm['selectors'][0]['selection']['cache']['hit']
+    assert 'scores' not in warm['selectors'][0] and 'ranking' not in warm['selectors'][0]
+    with pytest.raises(ScoreBundleIntegrityError, match='missing'):
+        run(tables, 'actual-scores', return_scores=True, **options)
 
 
 @pytest.mark.parametrize('dependency',['selection','graph','manifest','evaluation'])

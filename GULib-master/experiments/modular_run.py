@@ -248,7 +248,8 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                     resolved = resolver(item, store_root=store_root, data=data, inputs=inputs)
                 else:
                     resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
-                        model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'),
+                        model=model, checkpoints=checkpoints, selectors=[item], include_scores=config.get('return_scores',False),
+                        model_config=item.get('model'), training=item.get('training'),
                         dataset_inputs=inputs,dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'])[item['method']]
                 reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
                 loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
