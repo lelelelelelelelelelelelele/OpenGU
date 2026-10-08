@@ -14,12 +14,11 @@ from typing import Any, Callable, Union
 
 from cache_v2 import (
     ArtifactRecipe,
-    ArtifactResolver,
     ArtifactType,
     CacheIndex,
     ProducerVersion,
 )
-from cache_v2.errors import CacheResolutionError, ContractValidationError
+from cache_v2.errors import ContractValidationError
 from cache_v2.formal_artifacts import payload_type_for
 from cache_v2.formal_store import FormalArtifactStore, FormalStoreResult
 
@@ -98,30 +97,9 @@ def resolve_formal_artifact(
     if not index_path.is_file():
         return None
     index = CacheIndex(index_path)
-    index.check_schema()
-    explanation = ArtifactResolver(index).explain_compatible(
-        request.artifact_type, request.recipe
-    )
-    if explanation.hit and explanation.exact_candidate is not None:
-        return FormalArtifactStore(
-            root,
-            producer_version=request.producer_version,
-            index=index,
-        ).load_payload_read_only(
-            request.artifact_type,
-            request.recipe,
-            artifact_id=explanation.exact_candidate["artifact_id"],
-        )
-    if (
-        explanation.exact_candidate is None
-        and explanation.miss_reasons == ("no_exact_candidate",)
-    ):
-        return None
-    raise CacheResolutionError(
-        "exact {0} lookup failed closed: {1}".format(
-            request.artifact_type.value, ",".join(explanation.miss_reasons)
-        )
-    )
+    with index.read_session():
+        store = FormalArtifactStore(root, producer_version=request.producer_version, index=index)
+        return store.resolve_payload_read_only(request.artifact_type, request.recipe)
 
 
 def materialize_formal_artifact(

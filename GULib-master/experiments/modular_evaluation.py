@@ -151,6 +151,8 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
                 descriptors.append((reference, describe_output(reference, store_root), paired_reference, conditions))
             fact['metrics'] = {'identity_verified':1}
     retrains = [(ref,identity) for ref,identity,_,_ in descriptors if identity['target']['method'] == 'Retrain']
+    # Budget display aliases can repeat one verified Artifact, not add baselines.
+    retrains = list({canonical_sha256(ref):(ref,identity) for ref,identity in retrains}.values())
     retrains.extend((ref,output) for ref,output,_,_ in supplied if output.identity['target']['method']=='Retrain')
     loaded = {}
     def read(ref):

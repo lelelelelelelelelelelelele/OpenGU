@@ -110,7 +110,7 @@ def start_run(config, context, config_path):
 def update_run(run, output):
     """Only the current invocation's progress document is mutable."""
     temp = output.with_suffix('.tmp')
-    temp.write_text(json.dumps(run, indent=2, ensure_ascii=False, allow_nan=False) + '\n', encoding='utf-8')
+    temp.write_text(json.dumps(run, ensure_ascii=False, allow_nan=False, separators=(',', ':')) + '\n', encoding='utf-8')
     temp.replace(output)
 
 

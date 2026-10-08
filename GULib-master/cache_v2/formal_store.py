@@ -1019,19 +1019,21 @@ class FormalArtifactStore(ArtifactStore):
             )
             return result
 
-    def load_payload_read_only(
+    def resolve_payload_read_only(
         self,
         artifact_type: Union[ArtifactType, str],
         recipe: ArtifactRecipe,
         *,
         artifact_id: Optional[str] = None,
-    ) -> FormalStoreResult:
+    ) -> Optional[FormalStoreResult]:
         self._ensure_initialized()
         type_value = self._formal_type(artifact_type)
         self._validate_recipe_producer(recipe)
         self._assert_typed_no_conflict_marker(type_value, recipe.recipe_hash)
         before = ArtifactResolver(self.index).explain_compatible(type_value, recipe)
         if not before.hit or before.exact_candidate is None:
+            if before.exact_candidate is None and before.miss_reasons == ('no_exact_candidate',):
+                return None
             raise CacheResolutionError(
                 "exact {0} Artifact is not resolvable: {1}".format(
                     type_value.value, ",".join(before.miss_reasons)
@@ -1059,6 +1061,19 @@ class FormalArtifactStore(ArtifactStore):
             raise CacheResolutionError(
                 "exact {0} resolution changed during read".format(type_value.value)
             )
+        return result
+
+    def load_payload_read_only(
+        self,
+        artifact_type: Union[ArtifactType, str],
+        recipe: ArtifactRecipe,
+        *,
+        artifact_id: Optional[str] = None,
+    ) -> FormalStoreResult:
+        result = self.resolve_payload_read_only(artifact_type, recipe, artifact_id=artifact_id)
+        if result is None:
+            raise CacheResolutionError('exact {0} Artifact is not resolvable: no_exact_candidate'.format(
+                ArtifactType(artifact_type).value))
         return result
 
 

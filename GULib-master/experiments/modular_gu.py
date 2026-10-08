@@ -73,6 +73,19 @@ GU_METHODS = {'MEGU': megu_node, 'IDEA': idea_node, 'GNNDelete': gnndelete_node,
 
 
 def gu_producer(method, model_config):
+    from experiments.implementation_identity import _run_producers
+    from cache_v2 import canonical_sha256
+    memo = _run_producers.get()
+    key = (method, canonical_sha256(model_config))
+    if memo is not None and key in memo:
+        return memo[key]
+    producer = _gu_producer(method, model_config)
+    if memo is not None:
+        memo[key] = producer
+    return producer
+
+
+def _gu_producer(method, model_config):
     if method == 'GraphEraser':
         from experiments.modular_shards import shard_producer
         return shard_producer(method, model_config)

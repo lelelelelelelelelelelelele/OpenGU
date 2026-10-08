@@ -32,6 +32,9 @@ def test_hot_entry_reuses_complete_values_without_output_decode_or_formula(table
     from cache_v2.unlearning_output import UnlearningOutputPayload
     root,options=setup(tables)
     cold=run(tables,'cold',**options)
+    from experiments.c_target_v1.score_store import ScoreBundleStore
+    monkeypatch.setattr(ScoreBundleStore, 'initialize',
+                        lambda self: pytest.fail('warm Score opened writer initialization'))
     for row in cold['unlearning']:
         assert not row['evaluation_cache']['hit']
     for module,name in ((outputs,'load_output'),(evaluation,'single_values'),(modular,'_measure'),
@@ -215,3 +218,29 @@ def test_uncached_run_outputs_still_support_ordinary_metrics(tables):
     for before,after in zip(cold['evaluations'],measured['evaluations']):
         assert [r['metrics'] for r in before['rows']]==[r['metrics'] for r in after['rows']]
         assert all(r['cache'] is None for r in after['rows'])
+
+
+def test_same_request_preparation_is_shared_within_run_but_not_between_runs(tables, monkeypatch):
+    import yaml
+    import experiments.node_deletion as deletion
+    import experiments.modular_gu as gu
+    root, options = setup(tables)
+    selector = yaml.safe_load((root/'degree.yaml').read_text(encoding='utf-8'))
+    selector['budget'] = {'mode':'ratio','value':.1}
+    write_yaml(root/'degree.yaml',selector)
+    options = {**options,'budget_ratios':[.1,.19]}
+    cold = run(tables,'prepared-cold',**options)
+    calls = {'pairing':0,'producer':0}
+    def observe(name, original):
+        @functools.wraps(original)
+        def measured(*args,**kwargs):
+            calls[name] += 1
+            return original(*args,**kwargs)
+        return measured
+    monkeypatch.setattr(deletion,'pairing_identity',observe('pairing',deletion.pairing_identity))
+    monkeypatch.setattr(gu,'_gu_producer',observe('producer',gu._gu_producer))
+    for name in ('prepared-hot-1','prepared-hot-2'):
+        warm = run(tables,name,**options)
+        assert [r['output'] for r in warm['unlearning']] == [r['output'] for r in cold['unlearning']]
+        assert all(r['evaluation_cache']['hit'] for r in warm['unlearning'])
+    assert calls == {'pairing':0,'producer':4}

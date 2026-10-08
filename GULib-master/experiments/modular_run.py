@@ -16,7 +16,7 @@ from experiments.modular_progress import execution_batches, batch_position, noti
 from experiments.modular_model import prepare_model, runtime_defaults
 from experiments.selection_inputs import make_dataset_selection_inputs
 from experiments.target_direct_v1.method_cache import resolve_methods
-from utils.target_checkpoint import data_identity
+from utils.target_checkpoint import data_identity, tensor_hash
 from experiments.dataset_inputs import read_dataset
 
 
@@ -29,7 +29,9 @@ def verified_selection(reference, *, store_root, data, inputs, expected_selector
         candidate_nodes=inputs.candidate_nodes, expected_selector=expected_selector, expected_k=expected_k,
         expected_dataset_fingerprint=inputs.dataset_fingerprint,
         expected_graph_fingerprint=inputs.graph_fingerprint,
-        expected_parameters={'split_hash': data_identity(data)['split_hash'], **(expected_parameters or {})})
+        expected_parameters={'split_hash': tensor_hash(torch.stack([
+            getattr(data,name+'_mask').detach().cpu().to(torch.uint8) for name in ('train','val','test')])),
+            **(expected_parameters or {})})
     if loaded.recipe_hash != reference['recipe_hash'] or loaded.content_hash != reference['content_hash']:
         raise ConfigurationError('Selection digest mismatch')
     return loaded
@@ -224,6 +226,10 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
         outputs.select_group(group)
         data, inputs = loaded_data[batch['matrix_values']['dataset_index']]
         data = data.to(device)
+        if config['stage'] == 'unlearning':
+            with audit.phase('shared_output_request_prepare'):
+                outputs.prepare([item for item in batch['unlearnings']
+                    if config.get('execution',{}).get('gu_cache',{}).get(item['method'],'reuse')=='reuse'],data)
         loaded_selections = {}
         for selector_index, (item, selector_ref) in enumerate(entries):
             run_state['active'] = [c for c in run['cells'] if c['conditions']['selector_ref'] == selector_ref
@@ -242,7 +248,8 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                     resolved = resolver(item, store_root=store_root, data=data, inputs=inputs)
                 else:
                     resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
-                        model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
+                        model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'),
+                        dataset_inputs=inputs,dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'])[item['method']]
                 reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
                 loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
                     expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'],
@@ -301,6 +308,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                             with audit.phase('output_access'):
                                 result, checkpoint = outputs.lookup(item, selection=loaded_selections[selector_ref],
                                 data=data, dataset_input=dataset_input, dataset_root=dataset_root,
+                                dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'],
                                 inputs=inputs, observer=session, audit=audit)
                         if result is None:
                             if item['method'] != 'Retrain':

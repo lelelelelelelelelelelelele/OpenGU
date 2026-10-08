@@ -27,10 +27,11 @@ def synchronize(data):
 
 def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selectors,
                     model_config=None, training=None, fail_if_score_called=False,
-                    fail_if_selection_called=False):
+                    fail_if_selection_called=False, dataset_inputs=None, dataset_identity=None):
     store_root = Path(store_root)
     c = Computations(model, data, checkpoints)
-    inputs = make_dataset_selection_inputs(data, dataset_name=dataset_name)
+    inputs = dataset_inputs if dataset_inputs is not None else make_dataset_selection_inputs(data, dataset_name=dataset_name)
+    identity = data_identity(data) if dataset_identity is None else dataset_identity
     index = CacheIndex(store_root / 'index.sqlite')
     # Score identity owns ranking computation; Selection only takes its prefix.
     # Cache lookup/storage helpers must not change this computation identity.
@@ -42,7 +43,7 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
         params = resolve_parameters(name, instance.get('parameters'))
         k = budget['k']
         recipe, producer = build_recipe(name=name, computations=c, parameters=params,
-                                       model_config=model_config, training=training)
+                                       model_config=model_config, training=training, dataset_identity=identity)
         store = ScoreBundleStore(store_root, producer_version=producer, index=index)
 
         def compute():
@@ -65,7 +66,7 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
             budgets=(k,), producer_version=selection_producer,
             algorithm_version='target-direct-method-prefix-v1',
             parameters={'prefix_stable': True, 'budget': budget,
-                        'split_hash': data_identity(data)['split_hash'],
+                        'split_hash': identity['split_hash'],
                         'selection_rule': {'direction': 'descending', 'tie_break': 'node_id_ascending'},
                         'score_budget_semantics': SCORE_BUDGET_SEMANTICS},
             source_score_artifact_id=score.artifact_id,

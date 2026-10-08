@@ -233,6 +233,16 @@ def read_event_stream(event_path: Optional[os.PathLike] = None) -> Tuple[List[Di
     return events, warnings
 
 
+def _projection_events(event_path):
+    """Internal read-only projection snapshot; append already validated it."""
+    path = event_path_from_env(event_path)
+    stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
+    cached = _validated_streams.get(path)
+    if cached and cached[0] == stamp:
+        return cached[1], []
+    return read_event_stream(path)
+
+
 def _dedup_payload(event: Mapping[str, Any]) -> Dict[str, Any]:
     payload: Dict[str, Any] = {
         "schema_version": EVENT_SCHEMA_VERSION,
@@ -483,7 +493,8 @@ def append_event(
                 file_obj.flush()
                 os.fsync(file_obj.fileno())
             written = True
-            existing = [*existing, event_value]
+            # Cache the serialized fact, detached from caller-owned nested data.
+            existing = [*existing, json.loads(line)]
         stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
         _validated_streams[path] = (stamp, existing)
         if refresh:

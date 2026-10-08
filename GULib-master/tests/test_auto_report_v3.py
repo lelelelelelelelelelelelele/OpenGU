@@ -465,7 +465,7 @@ def test_human_cache_summary_names_authority_source_policy_and_recipe():
     assert "sel_12345678_90abcdef" in cache_text
     assert "cache_v2_exact_artifact_id" in cache_text
     assert "recipe=aaaaaaaaaaaa" in cache_text
-    assert "result:hit[legacy/non-authoritative]" in cache_text
+    assert "Evaluation:hit[legacy/non-authoritative]" in cache_text
     assert "legacy_primary_hash" in cache_text
     assert "legacy_key=result-key-1" in cache_text
 
