@@ -169,7 +169,7 @@ def test_read_session_reuses_connection_without_hiding_status_updates(tmp_path, 
     monkeypatch.setattr(index, '_connect_read', observed)
     with index.read_session():
         assert index.get_artifact(header.artifact_id)['status'] == 'valid'
-        peer = CacheIndex(index.database_path)
+        peer = CacheIndex(index.database_path.parent/'..'/index.database_path.parent.name/index.database_path.name)
         monkeypatch.setattr(peer, '_connect_read', lambda: pytest.fail('nested path opened a second reader'))
         with sqlite3.connect(str(index.database_path)) as writer:
             writer.execute('UPDATE artifacts SET status=? WHERE artifact_id=?',
@@ -183,6 +183,29 @@ def test_read_session_reuses_connection_without_hiding_status_updates(tmp_path, 
         connections[0].execute('SELECT 1')
     assert index.get_artifact(header.artifact_id)['status'] == 'invalid'
     assert len(connections) == 2
+
+
+def test_read_scopes_route_by_context_even_for_same_index_instance(tmp_path):
+    from contextvars import Context
+    from cache_v2.index import _read_sessions
+    index = _initialized_index(tmp_path)
+    contexts = [Context(), Context()]
+    scopes = [index.read_session(), index.read_session()]
+    readers = []
+    try:
+        for context, scope in zip(contexts, scopes):
+            context.run(scope.__enter__)
+            readers.append(context.run(lambda: next(iter(_read_sessions.get().values()))))
+        assert readers[0] is not readers[1]
+        def current():
+            with index._read_connection() as reader:
+                return reader
+        assert contexts[0].run(current) is readers[0]
+        assert contexts[1].run(current) is readers[1]
+    finally:
+        for context, scope in reversed(list(zip(contexts, scopes))):
+            context.run(scope.__exit__, None, None, None)
+    assert all(context.run(_read_sessions.get) is None for context in contexts)
 
 
 def test_recipe_field_prefilter_validates_only_candidates_and_checks_top_level(tmp_path, monkeypatch):

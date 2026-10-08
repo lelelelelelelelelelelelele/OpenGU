@@ -237,8 +237,7 @@ class CacheIndex:
                     str(database_path)
                 )
             )
-        self.path = Path(str(supplied))
-        self._read_handle = None
+        self.path = Path(os.path.abspath(str(supplied)))
 
     @property
     def database_path(self) -> Path:
@@ -393,8 +392,7 @@ class CacheIndex:
 
     @contextmanager
     def _read_connection(self) -> Iterator[sqlite3.Connection]:
-        shared = (_read_sessions.get() or {}).get(os.path.normcase(str(self.path.absolute())))
-        connection = self._read_handle or shared
+        connection = (_read_sessions.get() or {}).get(os.path.normcase(str(self.path)))
         owned = connection is None
         if owned:
             connection = self._connect_read()
@@ -409,20 +407,18 @@ class CacheIndex:
     @contextmanager
     def read_session(self) -> Iterator["CacheIndex"]:
         """Share an explicit read-only scope for this path; never memoize rows."""
-        key = os.path.normcase(str(self.path.absolute()))
+        key = os.path.normcase(str(self.path))
         sessions = _read_sessions.get() or {}
         if key in sessions:
             yield self
             return
         connection = self._connect_read()
-        self._read_handle = connection
         token = _read_sessions.set({**sessions, key:connection})
         try:
             yield self
             self._validate_schema(connection)
         finally:
             _read_sessions.reset(token)
-            self._read_handle = None
             connection.close()
 
     @contextmanager
