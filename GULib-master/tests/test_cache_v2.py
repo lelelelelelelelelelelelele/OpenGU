@@ -60,6 +60,18 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 CACHECTL = REPO_ROOT / "scripts" / "cachectl.py"
 
 
+def test_recipe_digest_matches_original_canonical_value_contract():
+    from cache_v2.canonical import canonical_sha256
+    fields = {'unicode': 'e\u0301', 'values': [True, None, -0.0, 0.125, 7],
+              'tuple': ('x', 2), 'path': PureWindowsPath('C:/input/data'),
+              'enum': ArtifactType.SELECTION}
+    recipe = ArtifactRecipe(fields)
+    assert recipe.recipe_hash == canonical_sha256({'fields': fields, 'recipe_version': 1})
+    assert recipe.recipe_hash == hashlib.sha256(recipe.canonical_bytes).hexdigest()
+    fields['values'].append(9)
+    assert len(recipe.fields['values']) == 5
+
+
 def _write_json(path, payload):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(

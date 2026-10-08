@@ -50,16 +50,22 @@ def source_candidates(cache_scope, producer, context, current):
 
 
 def recipe_candidates(artifact_type, recipe):
+    scope = ArtifactType(artifact_type).value
+    if not isinstance(recipe, ArtifactRecipe):
+        raise ContractValidationError('source candidates require an ArtifactRecipe')
+    yield recipe
     fields = recipe.fields
     slot = "producer_version" if "producer_version" in fields else "producer"
     source = fields.get(slot, {})
-    scope = ArtifactType(artifact_type).value
     producer = fields.get("target", {}).get("method") or fields.get("selector")
     if producer is None:
         producer = ",".join(fields.get("score_names", [])) or source.get("semantic_version", "")
     model = fields.get("pairing", {}).get("model", fields.get("selector_model", {}))
     context = {"semantic_version": source.get("semantic_version"), "model": model}
-    for member in source_candidates(scope, producer, context, {"source_fingerprint": source.get("source_fingerprint")}):
+    current = {"source_fingerprint": source.get("source_fingerprint")}
+    for member in source_candidates(scope, producer, context, current):
+        if member == current:
+            continue
         updated = deepcopy(fields)
         if slot in updated:
             updated[slot].update(member)
@@ -67,6 +73,11 @@ def recipe_candidates(artifact_type, recipe):
 
 
 def stored_recipe(record, requested=None, artifact_type=None):
+    # Exact equality reuses the already validated request. Both the complete
+    # tagged Recipe and its digest must match; a digest alone is insufficient.
+    if (requested is not None and record["recipe_hash"] == requested.recipe_hash
+            and record["recipe"] == requested.canonical_form):
+        return requested
     from .runtime import _decode_exact_mapping
     wrapper = _decode_exact_mapping(record["recipe"], "indexed Recipe")
     recipe = ArtifactRecipe(wrapper["fields"], recipe_version=wrapper["recipe_version"])
