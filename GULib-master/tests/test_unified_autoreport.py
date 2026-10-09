@@ -43,7 +43,13 @@ def test_real_success_and_cached_repeat_are_separate_audited_attempts(experiment
         payload = json.loads(result.stdout)
         assert payload['passed']
     assert payload['selectors'][0]['selection']['cache']['hit']
-    events = journal(root)
+    all_events = journal(root)
+    entries = [e for e in all_events if e['stage'] == 'selection']
+    assert [e['state'] for e in entries] == ['started', 'completed'] * 2
+    assert entries[1]['cache'][0]['outcome'] == 'miss'
+    assert entries[3]['cache'][0]['outcome'] == 'hit'
+    assert entries[3]['metadata']['wall_seconds'] > 0
+    events = [e for e in all_events if e['stage'] == 'run']
     assert [(e['stage'], e['state']) for e in events] == [
         ('run', 'started'), ('run', 'completed'), ('run', 'started'), ('run', 'completed')]
     assert len({e['cell_id'] for e in events}) == 1
@@ -101,6 +107,7 @@ def test_corrupt_journal_stops_before_production_and_preserves_evidence(experime
 def test_real_core_submission_uses_the_same_audit_producer(experiment):
     root, path, sha = experiment
     definition = declaration(root, path, 'selector')
+    sha = commit(root)
     with context.use(root, extension=FixtureRegistration(definition)):
         submitted = queue.runner_queue_submit('audit-job', definition['id'], expected_git_sha=sha)
         assert submitted['submitted'], submitted
@@ -108,6 +115,6 @@ def test_real_core_submission_uses_the_same_audit_producer(experiment):
         assert not warnings
         completed = queue.runner_queue_run_once(device)
         assert completed['status'] == 'done', completed
-    events = journal(root)
+    events = [e for e in journal(root) if e['stage'] == 'run']
     assert [e['state'] for e in events] == ['started', 'completed']
     assert all(e['metadata']['execution_run_id'] == 'registered' and e['git_sha'] == sha for e in events)

@@ -5,6 +5,7 @@ import contextlib
 import json
 from pathlib import Path
 import sys
+from time import perf_counter
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -75,18 +76,22 @@ def main(argv=None, *, notify=None):
                               'config_path': str(args.config.resolve())},
                     event_path=event_path, status_md_path=journal / 'auto_report.md',
                     status_html_path=journal / 'auto_report.html')
+                started = perf_counter()
                 record_event(state='started', **event)
                 from experiments.modular_artifacts import generated_paths
                 try:
                     result = execute(args.config, context=context, notify=notify)
                     result.update(passed=True, generated_artifacts=generated_paths(result, context))
                 except BaseException as exc:
+                    event['metadata'].update(wall_seconds=perf_counter()-started,
+                        **getattr(exc, 'execution_timing', {}))
                     try:
                         record_event(state='failed', error={'type': type(exc).__name__,
                                                            'message': str(exc) or type(exc).__name__}, **event)
                     except Exception as report_error:
                         print('AutoReport failed to record failure: {}'.format(report_error), file=sys.stderr)
                     raise
+                event['metadata'].update(wall_seconds=perf_counter()-started, **result.get('execution_timing', {}))
                 record_event(state='completed', artifacts=[artifact_ref(path=context.output,
                     artifact_type='opengu.modular_run', content_hash=sha256_file(context.output))], **event)
         print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))

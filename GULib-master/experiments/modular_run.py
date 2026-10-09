@@ -117,6 +117,9 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     from experiments.modular_artifacts import start_run
     run = start_run(config, context, path)
     run_state['run'] = run
+    from experiments.execution_audit import ExecutionAudit, cache_fact
+    audit = ExecutionAudit(context, plan['configuration_fingerprint'], config['experiment_id'])
+    run_state['audit'] = audit
     dataset_root = context.store_root.parent.parent
     datasets = []
     loaded_data = []
@@ -127,7 +130,8 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
         if context.level == 'verification':
             from experiments.modular_execution import verify_temporary_dataset
             verify_temporary_dataset(dataset_config, context)
-        data, inputs = read_dataset(instance, dataset_config['dataset_directory'])
+        with audit.phase('dataset_prepare'):
+            data, inputs = read_dataset(instance, dataset_config['dataset_directory'])
         loaded_data.append((data, inputs))
         from experiments.dataset_inputs import bind_input
         reference = bind_input(instance, dataset_config['dataset_directory'], dataset_root)
@@ -159,20 +163,22 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                 reference = cell.get('output')
                 if not reference:
                     continue
-                payload = load_output(reference, store_root, dataset_root=dataset_root)
-                matches = [d for d in datasets if d['data_identity'] == payload.identity['pairing']['data_identity']]
-                if len(matches) != 1:
-                    raise ConfigurationError('metrics input Dataset/Split mismatch')
-                if (payload.identity['selection']['artifact_id'] != cell['selection_id']
-                        or payload.arrays['selected_nodes'].tolist() != document['selection.json']['selected_nodes']
-                        or payload.identity['target']['method'] != cell['conditions']['method']
-                        or payload.identity['pairing']['model']['architecture'] != cell['conditions']['model']
-                        or payload.identity['pairing']['training']['seed'] != cell['conditions']['seed']):
-                    raise ConfigurationError('metrics source conditions differ from remote output')
-                portable[matches[0]['data_identity']['split_hash']].append((reference, payload, None))
-                summary['metric_sources'][cell['cell_id']] = {'output': reference,
-                    'selection_document': document['selection.json'],
-                    'source': cell.get('source', {'experiment_id': previous['experiment_id'], 'run_id': previous['run_id']})}
+                with audit.entry('evaluation', {**cell['conditions'], 'evaluation_part': 'source_validation'}) as fact, audit.phase('evaluation_inputs'):
+                    payload = load_output(reference, store_root, dataset_root=dataset_root)
+                    matches = [d for d in datasets if d['data_identity'] == payload.identity['pairing']['data_identity']]
+                    if len(matches) != 1:
+                        raise ConfigurationError('metrics input Dataset/Split mismatch')
+                    if (payload.identity['selection']['artifact_id'] != cell['selection_id']
+                            or payload.arrays['selected_nodes'].tolist() != document['selection.json']['selected_nodes']
+                            or payload.identity['target']['method'] != cell['conditions']['method']
+                            or payload.identity['pairing']['model']['architecture'] != cell['conditions']['model']
+                            or payload.identity['pairing']['training']['seed'] != cell['conditions']['seed']):
+                        raise ConfigurationError('metrics source conditions differ from remote output')
+                    portable[matches[0]['data_identity']['split_hash']].append((reference, payload, None))
+                    summary['metric_sources'][cell['cell_id']] = {'output': reference,
+                        'selection_document': document['selection.json'],
+                        'source': cell.get('source', {'experiment_id': previous['experiment_id'], 'run_id': previous['run_id']})}
+                    fact['metrics'] = {'inputs_verified': 1}
             notify_event(notify, 'progress', position=position, current=source_index + 1, total=total)
         for index, (data, _) in enumerate(loaded_data):
             position = {'stage': 'evaluation', 'dataset_index': index}
@@ -180,14 +186,17 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
             notify_event(notify, 'progress', position=position, current=0, total=total)
             for evaluation_index, item in enumerate(config['evaluations']):
                 result = evaluate_modular(item, [], store_root=store_root, data=data,
-                    dataset_root=dataset_root, verified_outputs=portable[datasets[index]['data_identity']['split_hash']])
+                    dataset_root=dataset_root, audit=audit, verified_outputs=portable[datasets[index]['data_identity']['split_hash']])
                 summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
                 notify_event(notify, 'progress', position=position, current=evaluation_index + 1, total=total)
         summary['selector_producer_called'] = False
         from experiments.modular_artifacts import export_outputs
         notify_event(notify, 'progress', position={'stage': 'export'}, current=0, total=1)
-        export_outputs(summary, config=config, context=context, run=run)
+        with audit.phase('export'):
+            export_outputs(summary, config=config, context=context, run=run)
         notify_event(notify, 'progress', position={'stage': 'export'}, current=1, total=1)
+        audit.refresh(force=True)
+        summary['execution_timing'] = {'phase_seconds_exclusive': audit.timings, 'audit_seconds': audit.seconds}
         return summary
     device = torch.device(context.request_device)
     if device.type == 'cuda' and not torch.cuda.is_available():
@@ -213,30 +222,36 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
         for selector_index, (item, selector_ref) in enumerate(entries):
             run_state['active'] = [c for c in run['cells'] if c['conditions']['selector_ref'] == selector_ref
                 and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
-            model, checkpoints, observation = None, [], None
-            if 'model' in item:
-                model, checkpoints, observation = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
-                    checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
-            if item['method'] in IM_METHODS:
-                from experiments.modular_im import resolve_im
-                from experiments.modular_rr import resolve_rr
-                resolver = resolve_im if item['method'] == 'im' else resolve_rr
-                resolved = resolver(item, store_root=store_root, data=data, inputs=inputs)
-            else:
-                resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
-                    model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
-            reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
-            loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
-                expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'],
-                expected_parameters=item['parameters'] if item['method'] in IM_METHODS else None)
-            loaded_selections[selector_ref] = selection_prefix(loaded, item['budget']['k'])
-            summary['selectors'].append({**resolved, 'checkpoint': observation, 'matrix_values': batch['matrix_values'],
-                'selector_ref': selector_ref, 'requested_k': item['budget']['k'],
-                'configuration_sources': batch['configuration_sources']['selectors'][batch['selector_refs'].index(selector_ref)]})
-            if config.get('return_scores'):
-                from experiments.modular_artifacts import existing_scores
-                arrays, semantics = existing_scores(resolved, inputs.candidate_nodes)
-                summary['selectors'][-1].update(result_scores=arrays, score_semantics=semantics)
+            conditions = {**run_state['active'][0]['conditions'], 'method': 'selector', 'model': item.get('model', {}).get('architecture')}
+            with audit.entry('selection', conditions) as fact, audit.phase('selector_access'):
+                model, checkpoints, observation = None, [], None
+                if 'model' in item:
+                    with audit.phase('model_prepare'):
+                        model, checkpoints, observation = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
+                        checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
+                if item['method'] in IM_METHODS:
+                    from experiments.modular_im import resolve_im
+                    from experiments.modular_rr import resolve_rr
+                    resolver = resolve_im if item['method'] == 'im' else resolve_rr
+                    resolved = resolver(item, store_root=store_root, data=data, inputs=inputs)
+                else:
+                    resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
+                        model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
+                reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
+                loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
+                    expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'],
+                    expected_parameters=item['parameters'] if item['method'] in IM_METHODS else None)
+                loaded_selections[selector_ref] = selection_prefix(loaded, item['budget']['k'])
+                summary['selectors'].append({**resolved, 'checkpoint': observation, 'matrix_values': batch['matrix_values'],
+                    'selector_ref': selector_ref, 'requested_k': item['budget']['k'],
+                    'configuration_sources': batch['configuration_sources']['selectors'][batch['selector_refs'].index(selector_ref)]})
+                if config.get('return_scores'):
+                    from experiments.modular_artifacts import existing_scores
+                    arrays, semantics = existing_scores(resolved, inputs.candidate_nodes)
+                    summary['selectors'][-1].update(result_scores=arrays, score_semantics=semantics)
+                fact['cache'] = [cache_fact('selection', reference, resolved['selection']['cache']['hit'])]
+                fact['metrics'] = {'selected_node_count': item['budget']['k']}
+            summary['selectors'][-1]['access_timing'] = fact['timing']
             run_state['active'] = []
             notify_event(notify, 'progress', position=position, current=selector_index + 1, total=total)
         if config['stage'] == 'unlearning':
@@ -249,59 +264,67 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                 run_state['active'] = [c for c in run['cells']
                     if c['conditions']['selector_ref'] == selector_ref and c['conditions']['unlearning_ref'] == gu_ref
                     and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
-                model, checkpoint = None, None
-                consumer = run_unlearning
-                if item['method'] == 'MEGU':
-                    from experiments.modular_megu import run_megu_unlearning
-                    consumer = run_megu_unlearning
-                elif item['method'] == 'GraphEraser':
-                    from experiments.modular_shards import run_shard_unlearning
-                    consumer = run_shard_unlearning
-                elif item['method'] == 'GraphRevoker':
-                    from experiments.modular_graphrevoker import run_graphrevoker_unlearning
-                    consumer = run_graphrevoker_unlearning
-                from experiments.observers import observer_specs, ObserverSession
-                from experiments.modular_artifacts import update_run
-                cell = run_state['active'][0]
-                folder = context.output.parent / cell['path']
-                specs = observer_specs(config, item['method'])
-                session = ObserverSession(specs, folder, dict(run_id=context.run_id,
-                    experiment_id=config['experiment_id'], cell_id=cell['cell_id'],
-                    conditions=cell['conditions'], commit=context.source_git_sha,
-                    configuration_fingerprint=plan['configuration_fingerprint'])) if specs else None
-                policy = config.get('execution', {}).get('gu_cache', {}).get(item['method'], 'reuse')
-                options = dict(gu_cache=policy, observer=session, output_path=folder/'output.npz') if consumer is run_unlearning else {}
-                error = None
-                result = None
-                try:
-                    dataset_input = datasets[batch['matrix_values']['dataset_index']]['input_reference']
-                    if policy == 'reuse':
-                        result, checkpoint = outputs.lookup(item, selection=loaded_selections[selector_ref],
-                            data=data, dataset_input=dataset_input, dataset_root=dataset_root,
-                            inputs=inputs, observer=session)
-                    if result is None:
-                        if item['method'] != 'Retrain':
-                            model, _, checkpoint = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
-                                checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
-                        result = consumer(item, selection=loaded_selections[selector_ref], model=model, data=data,
-                            dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
-                            dataset_input=dataset_input, **options)
-                except BaseException as exc:
-                    error = exc
-                    raise
-                finally:
-                    if session is not None:
-                        try:
-                            session.finish(error, cache_hit=bool(result and result["hit"]))
-                        finally:
-                            cell['observers'] = session.references
-                            for reference in cell['observers']:
-                                cell['files'].update(reference['files'])
-                            update_run(run, context.output)
-                result['observer_seconds'] = session.seconds if session else 0.0
-                summary['unlearning'].append({**result, 'checkpoint': checkpoint,
-                    'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
-                    'unlearning_ref': gu_ref})
+                with audit.entry('attack', run_state['active'][0]['conditions']) as fact:
+                    model, checkpoint = None, None
+                    consumer = run_unlearning
+                    if item['method'] == 'MEGU':
+                        from experiments.modular_megu import run_megu_unlearning
+                        consumer = run_megu_unlearning
+                    elif item['method'] == 'GraphEraser':
+                        from experiments.modular_shards import run_shard_unlearning
+                        consumer = run_shard_unlearning
+                    elif item['method'] == 'GraphRevoker':
+                        from experiments.modular_graphrevoker import run_graphrevoker_unlearning
+                        consumer = run_graphrevoker_unlearning
+                    from experiments.observers import observer_specs, ObserverSession
+                    from experiments.modular_artifacts import update_run
+                    cell = run_state['active'][0]
+                    folder = context.output.parent / cell['path']
+                    specs = observer_specs(config, item['method'])
+                    session = ObserverSession(specs, folder, dict(run_id=context.run_id,
+                        experiment_id=config['experiment_id'], cell_id=cell['cell_id'],
+                        conditions=cell['conditions'], commit=context.source_git_sha,
+                        configuration_fingerprint=plan['configuration_fingerprint'])) if specs else None
+                    policy = config.get('execution', {}).get('gu_cache', {}).get(item['method'], 'reuse')
+                    options = dict(gu_cache=policy, observer=session, output_path=folder/'output.npz') if consumer is run_unlearning else {}
+                    error = None
+                    result = None
+                    try:
+                        dataset_input = datasets[batch['matrix_values']['dataset_index']]['input_reference']
+                        if policy == 'reuse':
+                            with audit.phase('output_access'):
+                                result, checkpoint = outputs.lookup(item, selection=loaded_selections[selector_ref],
+                                data=data, dataset_input=dataset_input, dataset_root=dataset_root,
+                                inputs=inputs, observer=session)
+                        if result is None:
+                            if item['method'] != 'Retrain':
+                                with audit.phase('model_prepare'):
+                                    model, _, checkpoint = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
+                                    checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
+                            with audit.phase('method_execution'):
+                                result = consumer(item, selection=loaded_selections[selector_ref], model=model, data=data,
+                                dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
+                                dataset_input=dataset_input, **options)
+                    except BaseException as exc:
+                        error = exc
+                        raise
+                    finally:
+                        if session is not None:
+                            try:
+                                session.finish(error, cache_hit=bool(result and result["hit"]))
+                            finally:
+                                cell['observers'] = session.references
+                                for reference in cell['observers']:
+                                    cell['files'].update(reference['files'])
+                                update_run(run, context.output)
+                    result['observer_seconds'] = session.seconds if session else 0.0
+                    summary['unlearning'].append({**result, 'checkpoint': checkpoint,
+                        'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
+                        'unlearning_ref': gu_ref})
+                    fact['cache'] = [cache_fact('artifact', result['output'], result['hit'], disabled=policy == 'disabled')]
+                    fact['metrics'] = {**result['result'], **result['evaluation']['metrics']}
+                    fact['metadata_compute_seconds'] = result.get('compute_seconds')
+                summary['unlearning'][-1]['access_timing'] = fact['timing']
                 run_state['active'] = []
                 notify_event(notify, 'progress', position=position, current=unlearning_index + 1, total=total)
     if config['stage'] == 'unlearning':
@@ -313,16 +336,19 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
             if total:
                 notify_event(notify, 'progress', position=position, current=0, total=total)
             for evaluation_index, item in enumerate(config['evaluations']):
-                result = evaluate_modular(item, rows, store_root=store_root, data=data, dataset_root=dataset_root)
+                result = evaluate_modular(item, rows, store_root=store_root, data=data, dataset_root=dataset_root, audit=audit)
                 summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
                 notify_event(notify, 'progress', position=position, current=evaluation_index + 1, total=total)
     summary['selector_producer_called'] = any(item['score']['producer_called'] or item['selection']['cache']['producer_called'] for item in summary['selectors'])
     from experiments.modular_artifacts import export_outputs
     notify_event(notify, 'progress', position={'stage': 'export'}, current=0, total=1)
-    export_outputs(summary, config=config, context=context, run=run)
+    with audit.phase('export'):
+        export_outputs(summary, config=config, context=context, run=run)
     for row in summary['selectors']:
         row.pop('result_scores', None)
     notify_event(notify, 'progress', position={'stage': 'export'}, current=1, total=1)
+    audit.refresh(force=True)
+    summary['execution_timing'] = {'phase_seconds_exclusive': audit.timings, 'audit_seconds': audit.seconds}
     return summary
 
 
@@ -345,5 +371,10 @@ def execute(path, *, context=None, dry_run=False, notify=None):
             for cell in run_state.get('active', []):
                 cell.update(status='failed', error=str(exc)[:1000])
             update_run(run, context.output)
+        if run_state.get('audit'):
+            audit = run_state['audit']
+            audit.refresh(force=True)
+            exc.execution_timing = {'phase_seconds_exclusive': audit.timings,
+                                    'audit_seconds': audit.seconds}
         raise
 
