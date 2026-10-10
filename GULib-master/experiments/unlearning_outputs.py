@@ -9,7 +9,8 @@ from cache_v2.runtime import _decode_exact_mapping
 from cache_v2.unlearning_output import OUTPUT_CONTRACT, UnlearningOutputPayload
 from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact
 from experiments.effective_config import ConfigurationError, fields
-from experiments.node_deletion import pairing_identity, retained_graph
+from experiments.node_deletion import retained_graph
+from utils.target_checkpoint import data_identity
 
 
 def output_reference(result, recipe_hash):
@@ -31,6 +32,14 @@ def save_run_output(payload, path, dataset_root):
 
 
 def load_output(reference, store_root, *, data=None, dataset_root=None):
+    payload = load_output_payload(reference, store_root, dataset_root=dataset_root)
+    if dataset_root is None:
+        raise ConfigurationError('method output requires explicit Dataset/Split root')
+    return resolve_output(payload, dataset_root, data=data)
+
+
+def load_output_payload(reference, store_root, *, dataset_root=None):
+    """Consume the exact cached NPZ; graph preparation belongs to its caller."""
     if reference.get('storage') == 'run':
         fields(reference, {'storage', 'path', 'recipe_hash', 'content_hash'},
                {'storage', 'path', 'recipe_hash', 'content_hash'}, 'run output reference')
@@ -53,10 +62,7 @@ def load_output(reference, store_root, *, data=None, dataset_root=None):
         selection = index.get_artifact(payload.identity['selection']['artifact_id'])
         if any(selection[k] != v for k, v in payload.identity['selection'].items()):
             raise ConfigurationError('run output Selection dependency mismatch')
-        if data is not None and pairing_identity(payload.identity['pairing'], data,
-                payload.arrays['selected_nodes']) != payload.identity['pairing']:
-            raise ConfigurationError('run output Dataset/Split mismatch')
-        return resolve_output(payload, dataset_root)
+        return payload
     fields(reference, {'artifact_id', 'recipe_hash', 'content_hash'},
            {'artifact_id', 'recipe_hash', 'content_hash'}, 'method output reference')
     root = Path(store_root)
@@ -89,13 +95,7 @@ def load_output(reference, store_root, *, data=None, dataset_root=None):
     selection = index.get_artifact(identity['selection']['artifact_id'])
     if any(selection[key] != value for key, value in identity['selection'].items()):
         raise ConfigurationError('output Selection dependency digest mismatch')
-    if data is not None:
-        expected = pairing_identity(identity['pairing'], data, payload.arrays['selected_nodes'])
-        if expected != identity['pairing']:
-            raise ConfigurationError('method output Dataset/Split or deletion identity mismatch')
-    if dataset_root is None:
-        raise ConfigurationError('method output requires explicit Dataset/Split root')
-    return resolve_output(payload, dataset_root)
+    return payload
 
 
 class ResolvedOutput:
@@ -106,12 +106,19 @@ class ResolvedOutput:
         self.state = payload.state
         self.auxiliary = payload.auxiliary
         pairing = payload.identity['pairing']
-        if pairing_identity(pairing, data, payload.arrays['selected_nodes']) != pairing:
-            raise ConfigurationError('output Dataset/Split or deletion identity mismatch')
         if len(payload.arrays['logits']) != data.num_nodes:
             raise ConfigurationError('output logits differ from Dataset node count')
         retained = retained_graph(data, payload.arrays['selected_nodes'])
         evaluation = data if pairing['deletion']['evaluation_graph'] == 'original' else retained
+        original_identity = data_identity(data)
+        retained_identity = data_identity(retained)
+        expected = dict(data_identity=original_identity,
+            selected_nodes=list(map(int, payload.arrays['selected_nodes'])),
+            model=pairing['model'], training=pairing['training'], deletion=pairing['deletion'],
+            training_graph_identity=retained_identity,
+            evaluation_graph_identity=original_identity if evaluation is data else retained_identity)
+        if expected != pairing:
+            raise ConfigurationError('output Dataset/Split or deletion identity mismatch')
         self.arrays = {key: getattr(data, key).detach().cpu().numpy() for key in
                       ('x', 'y', 'edge_index', 'train_mask', 'val_mask', 'test_mask')}
         self.arrays.update(payload.arrays)
@@ -128,9 +135,13 @@ class ResolvedOutput:
         return self.payload.content_hash
 
 
-def resolve_output(payload, dataset_root):
+def resolve_output(payload, dataset_root, *, data=None):
     from experiments.dataset_inputs import resolve_input
-    return ResolvedOutput(payload, resolve_input(payload.identity['dataset_input'], dataset_root))
+    # The caller's already loaded graph is checked against the complete saved
+    # pairing above. Independent readers still load the exact bound inputs.
+    if data is None:
+        data = resolve_input(payload.identity['dataset_input'], dataset_root)
+    return ResolvedOutput(payload, data)
 
 
 def build_output(identity, model, logits, logits_before=None):

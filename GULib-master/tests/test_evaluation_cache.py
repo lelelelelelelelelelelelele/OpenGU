@@ -91,6 +91,47 @@ def test_selection_hit_does_not_consume_scores_until_requested(tables):
         run(tables, 'actual-scores', return_scores=True, **options)
 
 
+def test_npz_hit_returns_saved_arrays_before_graph_preparation(tables, monkeypatch):
+    import experiments.unlearning_outputs as outputs
+    root, options = setup(tables)
+    cold = run(tables, 'npz-payload', **options)
+    reference = cold['unlearning'][0]['output']
+    monkeypatch.setattr(outputs, 'resolve_output', lambda *a, **k: pytest.fail('NPZ HIT prepared a graph'))
+    payload = outputs.load_output_payload(reference, root/'results/cache_v2')
+    assert payload.arrays['logits'].shape[0] == payload.identity['pairing']['data_identity']['num_nodes']
+    assert payload.content_hash == reference['content_hash']
+
+
+def test_new_metric_request_misses_evaluation_but_consumes_existing_npz(tables, monkeypatch):
+    import copy
+    import experiments.unlearning_outputs as outputs
+    from experiments.modular_evaluation import evaluate_modular
+    import experiments.modular_model as model
+    root, options = setup(tables)
+    cold = run(tables, 'new-metric-source', **options)
+    item = copy.deepcopy(cold['evaluations'][1]['effective_config'])
+    assert len(item['metrics']) > 1
+    item['metrics'] = item['metrics'][:1]
+    reads = []
+    original = outputs.load_output_payload
+    def consume(reference, *a, **k):
+        value = original(reference, *a, **k)
+        reads.append(reference['artifact_id'])
+        return value
+    monkeypatch.setattr(outputs, 'load_output_payload', consume)
+    forbid(monkeypatch, model, 'prepare_model')
+    forbid(monkeypatch, model, 'train_supervised')
+    hook = torch.nn.modules.module.register_module_forward_pre_hook(lambda *a: pytest.fail('NPZ HIT reran inference'))
+    try:
+        result = evaluate_modular(item, cold['unlearning'], store_root=root/'results/cache_v2', dataset_root=root)
+    finally:
+        hook.remove()
+    assert reads
+    assert all(not row['cache']['hit'] for row in result['rows'])
+    assert all(row['metrics'] == {key: value for key, value in previous['metrics'].items() if key in item['metrics']}
+               for row, previous in zip(result['rows'], cold['evaluations'][1]['rows']))
+
+
 @pytest.mark.parametrize('dependency',['selection','graph','manifest','evaluation'])
 def test_corruption_of_actually_consumed_input_is_refused(tables,monkeypatch,dependency):
     from cache_v2 import CacheIndex
