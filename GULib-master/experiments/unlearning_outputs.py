@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
+import json
 import numpy as np
 import torch
 from cache_v2 import ArtifactRecipe, ArtifactType, CacheIndex, ProducerVersion
@@ -10,7 +12,7 @@ from cache_v2.unlearning_output import OUTPUT_CONTRACT, UnlearningOutputPayload
 from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact
 from experiments.effective_config import ConfigurationError, fields
 from experiments.node_deletion import retained_graph
-from utils.target_checkpoint import data_identity, tensor_hash
+from utils.target_checkpoint import tensor_hash
 
 
 def output_reference(result, recipe_hash):
@@ -98,6 +100,25 @@ def load_output_payload(reference, store_root, *, dataset_root=None):
     return payload
 
 
+def _output_data_identity(data):
+    """Verify the existing graph digest without copying its feature bytes.
+
+    Producer fingerprints keep their current hashing implementation. This
+    consumer hashes exactly the same header and C-order bytes in two updates.
+    """
+    def digest(tensor):
+        value = tensor.detach().cpu().contiguous()
+        header = json.dumps({'dtype': str(value.dtype), 'shape': list(value.shape)},
+                            sort_keys=True, separators=(',', ':')).encode('utf-8')
+        hashed = hashlib.sha256(header)
+        hashed.update(memoryview(value.numpy().reshape(-1)).cast('B'))
+        return hashed.hexdigest()
+    masks = torch.stack([getattr(data, name + '_mask').detach().cpu().to(torch.uint8)
+                         for name in ('train', 'val', 'test')])
+    return dict(num_nodes=int(data.num_nodes), edge_index_hash=digest(data.edge_index),
+                features_hash=digest(data.x), labels_hash=digest(data.y), split_hash=digest(masks))
+
+
 class ResolvedOutput:
     """Verified in-memory inputs; only the underlying result is serialized."""
     def __init__(self, payload, data):
@@ -110,7 +131,7 @@ class ResolvedOutput:
             raise ConfigurationError('output logits differ from Dataset node count')
         retained = retained_graph(data, payload.arrays['selected_nodes'])
         evaluation = data if pairing['deletion']['evaluation_graph'] == 'original' else retained
-        original_identity = data_identity(data)
+        original_identity = _output_data_identity(data)
         # Node deletion retains the verified feature and label values. Only
         # edges and the training mask change; do not hash the cloned features
         # again just to verify the same values in the derived graph.

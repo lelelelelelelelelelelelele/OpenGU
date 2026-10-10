@@ -158,6 +158,22 @@ def test_output_consumer_preserves_graph_identity_and_rejects_changed_input(tabl
         assert torch.equal(torch.from_numpy(output.arrays['retain_mask']), retained.train_mask)
 
 
+@pytest.mark.parametrize('dtype', [torch.float32, torch.float64, torch.int64, torch.bool])
+@pytest.mark.parametrize('layout', ['contiguous', 'strided', 'empty_edges'])
+def test_output_consumer_digest_preserves_existing_graph_identity(tables, dtype, layout):
+    import pickle
+    from experiments.unlearning_outputs import _output_data_identity
+    from utils.target_checkpoint import data_identity
+    data = pickle.loads((tables[0]/'graph.pkl').read_bytes())
+    data.x = data.x.to(dtype)
+    if layout == 'strided':
+        data.x = data.x.t().contiguous().t()
+        assert not data.x.is_contiguous()
+    elif layout == 'empty_edges':
+        data.edge_index = data.edge_index[:, :0]
+    assert _output_data_identity(data) == data_identity(data)
+
+
 @pytest.mark.parametrize('dependency',['selection','graph','manifest','evaluation'])
 def test_corruption_of_actually_consumed_input_is_refused(tables,monkeypatch,dependency):
     from cache_v2 import CacheIndex
