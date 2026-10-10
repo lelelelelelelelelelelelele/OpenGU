@@ -10,7 +10,7 @@ from cache_v2.unlearning_output import OUTPUT_CONTRACT, UnlearningOutputPayload
 from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact
 from experiments.effective_config import ConfigurationError, fields
 from experiments.node_deletion import retained_graph
-from utils.target_checkpoint import data_identity
+from utils.target_checkpoint import data_identity, tensor_hash
 
 
 def output_reference(result, recipe_hash):
@@ -111,7 +111,13 @@ class ResolvedOutput:
         retained = retained_graph(data, payload.arrays['selected_nodes'])
         evaluation = data if pairing['deletion']['evaluation_graph'] == 'original' else retained
         original_identity = data_identity(data)
-        retained_identity = data_identity(retained)
+        # Node deletion retains the verified feature and label values. Only
+        # edges and the training mask change; do not hash the cloned features
+        # again just to verify the same values in the derived graph.
+        masks = torch.stack([getattr(retained, name + '_mask').detach().cpu().to(torch.uint8)
+                             for name in ('train', 'val', 'test')])
+        retained_identity = {**original_identity,
+            'edge_index_hash': tensor_hash(retained.edge_index), 'split_hash': tensor_hash(masks)}
         expected = dict(data_identity=original_identity,
             selected_nodes=list(map(int, payload.arrays['selected_nodes'])),
             model=pairing['model'], training=pairing['training'], deletion=pairing['deletion'],

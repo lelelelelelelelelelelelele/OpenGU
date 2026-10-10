@@ -132,6 +132,32 @@ def test_new_metric_request_misses_evaluation_but_consumes_existing_npz(tables, 
                for row, previous in zip(result['rows'], cold['evaluations'][1]['rows']))
 
 
+@pytest.mark.parametrize('changed', [None, 'x', 'y', 'edge_index', 'test_mask'])
+def test_output_consumer_preserves_graph_identity_and_rejects_changed_input(tables, changed):
+    import pickle
+    from experiments.unlearning_outputs import load_output
+    from experiments.node_deletion import retained_graph
+    from experiments.effective_config import ConfigurationError
+    from utils.target_checkpoint import data_identity
+    root, options = setup(tables)
+    cold = run(tables, 'output-pairing-consumer', **options)
+    data = pickle.loads((root/'graph.pkl').read_bytes())
+    reference = cold['unlearning'][0]['output']
+    if changed is not None:
+        value = getattr(data, changed)
+        value.view(-1)[-1] = (not bool(value.view(-1)[-1]) if value.dtype == torch.bool
+                             else value.view(-1)[-1] + 1)
+        with pytest.raises(ConfigurationError, match='identity mismatch'):
+            load_output(reference, root/'results/cache_v2', data=data, dataset_root=root)
+    else:
+        output = load_output(reference, root/'results/cache_v2', data=data, dataset_root=root)
+        retained = retained_graph(data, output.arrays['selected_nodes'])
+        assert output.identity['pairing']['data_identity'] == data_identity(data)
+        assert output.identity['pairing']['training_graph_identity'] == data_identity(retained)
+        assert torch.equal(torch.from_numpy(output.arrays['training_edge_index']), retained.edge_index)
+        assert torch.equal(torch.from_numpy(output.arrays['retain_mask']), retained.train_mask)
+
+
 @pytest.mark.parametrize('dependency',['selection','graph','manifest','evaluation'])
 def test_corruption_of_actually_consumed_input_is_refused(tables,monkeypatch,dependency):
     from cache_v2 import CacheIndex
