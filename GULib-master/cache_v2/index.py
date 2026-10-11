@@ -5,13 +5,17 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 import sqlite3
 from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Mapping, Optional, Union
 
 from .canonical import TYPE_TAG, canonical_json
+
+_read_sessions = ContextVar('cache_index_read_sessions', default=None)
 from .contracts import (
     HEADER_VERSION,
     RECIPE_VERSION,
@@ -233,7 +237,7 @@ class CacheIndex:
                     str(database_path)
                 )
             )
-        self.path = Path(str(supplied))
+        self.path = Path(os.path.abspath(str(supplied)))
 
     @property
     def database_path(self) -> Path:
@@ -388,12 +392,33 @@ class CacheIndex:
 
     @contextmanager
     def _read_connection(self) -> Iterator[sqlite3.Connection]:
-        connection = self._connect_read()
+        connection = (_read_sessions.get() or {}).get(os.path.normcase(str(self.path)))
+        owned = connection is None
+        if owned:
+            connection = self._connect_read()
         try:
             yield connection
         except sqlite3.Error as exc:
             raise CacheIndexError("CacheIndex read failed: {0}".format(exc)) from exc
         finally:
+            if owned:
+                connection.close()
+
+    @contextmanager
+    def read_session(self) -> Iterator["CacheIndex"]:
+        """Share an explicit read-only scope for this path; never memoize rows."""
+        key = os.path.normcase(str(self.path))
+        sessions = _read_sessions.get() or {}
+        if key in sessions:
+            yield self
+            return
+        connection = self._connect_read()
+        token = _read_sessions.set({**sessions, key:connection})
+        try:
+            yield self
+            self._validate_schema(connection)
+        finally:
+            _read_sessions.reset(token)
             connection.close()
 
     @contextmanager
@@ -479,21 +504,46 @@ class CacheIndex:
         return None if row is None else _json_record(row)
 
     def find_artifacts_by_type(
-        self, artifact_type: Union[ArtifactType, str]
+        self, artifact_type: Union[ArtifactType, str], *,
+        recipe_fields: Optional[Mapping[str, Any]] = None,
+        parent_artifact_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Return validated Artifact rows of one type in deterministic order."""
 
         type_value = ArtifactType(artifact_type).value
+        filters = []
+        parameters = [type_value]
+        for name, value in (recipe_fields or {}).items():
+            # Canonical mappings encode an exact [name,value] pair. SQLite's
+            # literal substring filter avoids decoding unrelated Recipe rows.
+            filters.append("instr(recipe_json, ?) > 0")
+            parameters.append('[' + canonical_json(name) + ',' + canonical_json(value) + ']')
+        query = "SELECT * FROM artifacts WHERE artifact_type = ?"
+        if parent_artifact_id is not None:
+            query += " AND artifact_id IN (SELECT child_artifact_id FROM dependencies WHERE parent_artifact_id = ?)"
+            parameters.insert(1, parent_artifact_id)
+        if filters:
+            query += " AND " + " AND ".join(filters)
+        query += " ORDER BY recipe_hash, artifact_id"
         with self._read_connection() as connection:
-            rows = connection.execute(
-                """
-                SELECT * FROM artifacts
-                WHERE artifact_type = ?
-                ORDER BY recipe_hash, artifact_id
-                """,
-                (type_value,),
-            ).fetchall()
-        return [_json_record(row) for row in rows]
+            rows = connection.execute(query, parameters).fetchall()
+        records = [_json_record(row) for row in rows]
+        if recipe_fields:
+            expected = {name:canonical_json(value) for name,value in recipe_fields.items()}
+            matching = []
+            for record in records:
+                fields = _tagged_mapping(_tagged_mapping(record['recipe'], 'Recipe')['fields'], 'Recipe fields')
+                if all(name in fields and json.dumps(fields[name],sort_keys=True,ensure_ascii=False,separators=(',',':')) == value
+                       for name,value in expected.items()):
+                    matching.append(record)
+            records = matching
+        return records
+
+    def artifact_count(self, artifact_type: Union[ArtifactType, str]) -> int:
+        """Registration advances this append-only catalogue; statuses stay live."""
+        with self._read_connection() as connection:
+            return int(connection.execute('SELECT COUNT(*) FROM artifacts WHERE artifact_type=?',
+                (ArtifactType(artifact_type).value,)).fetchone()[0])
 
     def lookup_exact(
         self, artifact_type: Union[ArtifactType, str], recipe_hash: str

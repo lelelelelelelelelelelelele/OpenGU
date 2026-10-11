@@ -14,7 +14,7 @@ from .events import (
     DEFAULT_EVENT_PATH,
     DEFAULT_STATUS_HTML_PATH,
     DEFAULT_STATUS_MD_PATH,
-    read_event_stream,
+    _projection_events,
 )
 
 
@@ -98,6 +98,8 @@ def _cache_summary(events: Sequence[Mapping[str, Any]]) -> str:
         parts = []
         for observation in observations:
             cache_type = observation.get("type", "?")
+            artifact = observation.get('artifact') or {}
+            cache_type = {'prediction':'Output', 'evaluation':'Evaluation'}.get(artifact.get('artifact_type'), cache_type)
             outcome = observation.get("outcome", "unknown")
             source = observation.get("hit_source")
             text = "{0}:{1}".format(cache_type, outcome)
@@ -141,7 +143,10 @@ def build_status_rows(
         by_cell[str(event.get("cell_id"))].append(event)
 
     rows: List[Dict[str, Any]] = []
-    for cell_events in by_cell.values():
+    # Pick the bounded page before formatting histories, cache and metric JSON.
+    # Sorting is stable so equal timestamps retain the original stream order.
+    visible = sorted(by_cell.values(), key=lambda group: str(group[-1].get('timestamp', '')), reverse=True)
+    for cell_events in visible[:max(1, int(max_cells))]:
         latest_events = _latest_run_events(cell_events)
         latest = latest_events[-1]
         rows.append(
@@ -159,9 +164,7 @@ def build_status_rows(
                 "metrics": json.dumps(latest.get('metrics') or {}, ensure_ascii=False, separators=(',', ':')),
             }
         )
-    rows.sort(key=lambda row: str(row["updated"]), reverse=True)
-    total = len(rows)
-    return rows[: max(1, int(max_cells))], total
+    return rows, len(by_cell)
 
 
 def _timing_summary(events):
@@ -402,7 +405,7 @@ def write_status_views(
     max_cells: int = 200,
     baseline_path: Optional[Path] = None,
 ) -> Tuple[str, str]:
-    events, event_warnings = read_event_stream(event_path)
+    events, event_warnings = _projection_events(event_path)
     resolved_baseline_path = baseline_path or event_path.parent / "auto_report_baseline.json"
     baseline, baseline_warnings = read_baseline(resolved_baseline_path)
     warnings = event_warnings + baseline_warnings

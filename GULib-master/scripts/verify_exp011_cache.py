@@ -87,7 +87,7 @@ def main():
                     device=torch.device('cpu'), reference_directory=Path(config['source_directory']))
                 assert observation['hit'], 'selector checkpoint MISS'
             selected = resolve_methods(store_root=store, data=data, dataset_name=inputs.dataset_name,
-                model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'),
+                model=model, checkpoints=checkpoints, selectors=[item], include_scores=False, model_config=item.get('model'),
                 training=item.get('training'), fail_if_score_called=True, fail_if_selection_called=True)[name]
             assert selected['selection']['cache']['hit']
             assert not selected['selection']['cache']['producer_called']

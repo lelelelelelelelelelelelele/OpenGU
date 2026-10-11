@@ -100,3 +100,42 @@ def test_registry_current_source_and_unknown_source_boundaries(method):
     fields['producer_version']['source_fingerprint'] = current
     fields['producer_version']['semantic_version'] = 'different-algorithm'
     assert len(list(recipe_candidates(ArtifactType.SELECTION, ArtifactRecipe(fields)))) == 1
+
+
+def test_exact_recipe_avoids_reconstruction_but_checks_complete_identity(monkeypatch):
+    from cache_v2 import CacheResolutionError
+    import cache_v2.source_compatibility as compatibility
+    recipe = ArtifactRecipe({'selector': 'degree', 'budget': 2,
+        'producer_version': {'semantic_version': 'exact', 'source_fingerprint': 'current'}})
+    record = {'recipe_hash': recipe.recipe_hash, 'recipe': recipe.canonical_form}
+    def forbidden(*args, **kwargs):
+        raise AssertionError('exact request reconstructed a Recipe')
+    with monkeypatch.context() as patch:
+        patch.setattr(compatibility.ArtifactRecipe, '__init__', forbidden)
+        assert next(recipe_candidates(ArtifactType.SELECTION, recipe)) is recipe
+        assert stored_recipe(record, recipe, ArtifactType.SELECTION) is recipe
+    altered = recipe.fields
+    altered['budget'] = 3
+    bad_record = {'recipe_hash': recipe.recipe_hash,
+                  'recipe': ArtifactRecipe(altered).canonical_form}
+    with pytest.raises(CacheResolutionError, match='hash mismatch'):
+        stored_recipe(bad_record, recipe, ArtifactType.SELECTION)
+
+
+@pytest.mark.parametrize('alias', ['budget', 'recipe_version'])
+def test_exact_recipe_fastpath_distinguishes_boolean_from_integer(alias):
+    from cache_v2 import CacheResolutionError, ContractValidationError
+    recipe = ArtifactRecipe({'budget': 0, 'producer_version': {
+        'semantic_version': 'exact', 'source_fingerprint': 'current'}})
+    changed = recipe.canonical_form
+    wrapper = dict(changed['items'])
+    if alias == 'recipe_version':
+        changed['items'] = [[key, True if key == alias else value]
+                            for key, value in changed['items']]
+    else:
+        fields = wrapper['fields']
+        fields['items'] = [[key, False if key == alias else value]
+                           for key, value in fields['items']]
+    record = {'recipe_hash': recipe.recipe_hash, 'recipe': changed}
+    with pytest.raises((CacheResolutionError, ContractValidationError)):
+        stored_recipe(record, recipe, ArtifactType.EVALUATION)

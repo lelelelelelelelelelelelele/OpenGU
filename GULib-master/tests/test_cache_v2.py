@@ -60,6 +60,18 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 CACHECTL = REPO_ROOT / "scripts" / "cachectl.py"
 
 
+def test_recipe_digest_matches_original_canonical_value_contract():
+    from cache_v2.canonical import canonical_sha256
+    fields = {'unicode': 'e\u0301', 'values': [True, None, -0.0, 0.125, 7],
+              'tuple': ('x', 2), 'path': PureWindowsPath('C:/input/data'),
+              'enum': ArtifactType.SELECTION}
+    recipe = ArtifactRecipe(fields)
+    assert recipe.recipe_hash == canonical_sha256({'fields': fields, 'recipe_version': 1})
+    assert recipe.recipe_hash == hashlib.sha256(recipe.canonical_bytes).hexdigest()
+    fields['values'].append(9)
+    assert len(recipe.fields['values']) == 5
+
+
 def _write_json(path, payload):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
@@ -154,6 +166,89 @@ def _initialized_index(tmp_path):
     index = CacheIndex(database_path)
     index.initialize()
     return index
+
+
+def test_read_session_reuses_connection_without_hiding_status_updates(tmp_path, monkeypatch):
+    index = _initialized_index(tmp_path)
+    header = _artifact_header(ArtifactType.SELECTION, {'request': 'read-session'}, b'owned')
+    index.register_artifact(header)
+    connections = []
+    original = index._connect_read
+    def observed():
+        connection = original()
+        connections.append(connection)
+        return connection
+    monkeypatch.setattr(index, '_connect_read', observed)
+    with index.read_session():
+        assert index.get_artifact(header.artifact_id)['status'] == 'valid'
+        peer = CacheIndex(index.database_path.parent/'..'/index.database_path.parent.name/index.database_path.name)
+        monkeypatch.setattr(peer, '_connect_read', lambda: pytest.fail('nested path opened a second reader'))
+        with sqlite3.connect(str(index.database_path)) as writer:
+            writer.execute('UPDATE artifacts SET status=? WHERE artifact_id=?',
+                           ('invalid', header.artifact_id))
+        with index.read_session():
+            assert index.get_artifact(header.artifact_id)['status'] == 'invalid'
+        with peer.read_session():
+            assert peer.get_artifact(header.artifact_id)['status'] == 'invalid'
+    assert len(connections) == 1
+    with pytest.raises(sqlite3.ProgrammingError):
+        connections[0].execute('SELECT 1')
+    assert index.get_artifact(header.artifact_id)['status'] == 'invalid'
+    assert len(connections) == 2
+
+
+def test_read_scopes_route_by_context_even_for_same_index_instance(tmp_path):
+    from contextvars import Context
+    from cache_v2.index import _read_sessions
+    index = _initialized_index(tmp_path)
+    contexts = [Context(), Context()]
+    scopes = [index.read_session(), index.read_session()]
+    readers = []
+    try:
+        for context, scope in zip(contexts, scopes):
+            context.run(scope.__enter__)
+            readers.append(context.run(lambda: next(iter(_read_sessions.get().values()))))
+        assert readers[0] is not readers[1]
+        def current():
+            with index._read_connection() as reader:
+                return reader
+        assert contexts[0].run(current) is readers[0]
+        assert contexts[1].run(current) is readers[1]
+    finally:
+        for context, scope in reversed(list(zip(contexts, scopes))):
+            context.run(scope.__exit__, None, None, None)
+    assert all(context.run(_read_sessions.get) is None for context in contexts)
+
+
+def test_recipe_field_prefilter_validates_only_candidates_and_checks_top_level(tmp_path, monkeypatch):
+    import cache_v2.index as index_module
+    index = _initialized_index(tmp_path)
+    headers = [_artifact_header(ArtifactType.PREDICTION, fields, str(n).encode()) for n,fields in enumerate([
+        {'scope':'wanted','parameters':{'seed':3}},
+        {'scope':'other','parameters':{'scope':'wanted'}},
+        {'scope':'unrelated'},
+        {'scope':None},
+        {'parameters':{'scope':None}},
+        {'scope':False,'parameters':{'scope':0}},
+        {'scope':0},
+    ])]
+    for header in headers:
+        index.register_artifact(header)
+    observed = []
+    original = index_module._validate_artifact_record
+    def checked(record,*args):
+        observed.append(record['artifact_id'])
+        return original(record,*args)
+    monkeypatch.setattr(index_module,'_validate_artifact_record',checked)
+    found = index.find_artifacts_by_type(ArtifactType.PREDICTION,recipe_fields={'scope':'wanted'})
+    assert [r['artifact_id'] for r in found] == [headers[0].artifact_id]
+    assert set(observed) == {headers[0].artifact_id,headers[1].artifact_id}
+    assert index.find_artifacts_by_type(ArtifactType.PREDICTION,
+        recipe_fields={'parameters':{'seed':3}})[0]['artifact_id'] == headers[0].artifact_id
+    assert [r['artifact_id'] for r in index.find_artifacts_by_type(ArtifactType.PREDICTION,
+        recipe_fields={'scope':None})] == [headers[3].artifact_id]
+    assert [r['artifact_id'] for r in index.find_artifacts_by_type(ArtifactType.PREDICTION,
+        recipe_fields={'scope':0})] == [headers[6].artifact_id]
 
 
 def _run_cachectl(arguments, cwd):

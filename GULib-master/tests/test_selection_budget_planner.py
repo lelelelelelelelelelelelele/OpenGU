@@ -72,6 +72,36 @@ def _file_state(root):
     }
 
 
+def test_registered_source_covering_alias_uses_candidate_producer(tmp_path, monkeypatch):
+    import cache_v2.source_compatibility as sources
+    previous = _producer_version()
+    current = ProducerVersion(previous.semantic_version, _sha('current-equivalent-prefix'))
+    monkeypatch.setattr(sources, 'registry', lambda: [{
+        'cache_scope':'selection','producer':'gt_full',
+        'applies_to':{'semantic_version':previous.semantic_version},
+        'fingerprints':[{'source_fingerprint':p.source_fingerprint} for p in (current,previous)],
+    }])
+    def parameters(value):
+        return dict(prefix_stable=True, score_name='gt_full', ranking='score_desc_node_id_asc',
+            budget=dict(mode='ratio',value=value,k=2,denominator='train_candidate_count',
+                        rounding='floor_with_minimum_one'))
+    root = tmp_path/'store'
+    cold = _materialize(root,(2,),lambda k:tuple(range(k)),parameters=parameters(.1))
+    before = _file_state(root)
+    warm = _materialize(root,(2,),lambda k:pytest.fail('covered request invoked producer'),
+        parameters=parameters(.14),producer_version=current,fail_if_producer_called=True)
+    assert warm.cache_hit and warm.result.artifact_id == cold.result.artifact_id
+    from cache_v2 import CacheIndex
+    from cache_v2.runtime import _decode_exact_mapping
+    record = CacheIndex(root.resolve()/'index.sqlite').get_artifact(warm.result.artifact_id)
+    assert _decode_exact_mapping(record['producer_version'],'producer') == previous.to_dict()
+    assert _file_state(root) == before
+    unknown = ProducerVersion(previous.semantic_version,_sha('unregistered-prefix'))
+    with pytest.raises(UpstreamProducerCalledError):
+        _materialize(root,(2,),lambda k:pytest.fail('unknown producer'),
+            parameters=parameters(.14),producer_version=unknown,fail_if_producer_called=True)
+
+
 def test_cold_group_computes_max_once_and_fans_out_prefixes(tmp_path):
     calls = []
 

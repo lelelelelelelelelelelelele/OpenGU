@@ -22,6 +22,7 @@ from .canonical import (
     canonical_sha256,
     canonicalize,
     reject_forbidden_recipe_fields,
+    sha256_bytes,
 )
 from .errors import ContractValidationError, HashValidationError
 from .paths import normalize_semantic_path, normalize_source_path
@@ -179,7 +180,7 @@ class ArtifactRecipe(object):
         self._fields = copied_fields
         self.recipe_version = recipe_version
         self._canonical_json = serialized
-        self._recipe_hash = canonical_sha256(payload)
+        self._recipe_hash = sha256_bytes(serialized.encode("utf-8"))
 
     @classmethod
     def from_mapping(cls, fields, recipe_version=RECIPE_VERSION):

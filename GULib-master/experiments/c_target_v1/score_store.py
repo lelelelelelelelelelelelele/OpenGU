@@ -481,9 +481,14 @@ class ScoreBundleStore:
         *,
         fail_if_called: bool = False,
     ) -> ScoreStoreResult:
-        self.initialize()
         if not isinstance(recipe, ArtifactRecipe):
             raise ContractValidationError("recipe must be ArtifactRecipe")
+        if self.index.database_path.is_file():
+            with self.index.read_session():
+                hit, _ = self._lookup(recipe)
+            if hit is not None:
+                return hit
+        self.initialize()
         # Immutable, verified hits need no writer lock. Recheck after locking a
         # MISS because another producer may have completed in the meantime.
         hit, _ = self._lookup(recipe)

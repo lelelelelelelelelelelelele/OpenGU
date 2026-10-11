@@ -345,6 +345,7 @@ class FormalArtifactStore(ArtifactStore):
             "attack_selection_input": ArtifactType.SELECTION,
             "selection_input": ArtifactType.SELECTION,
             "prediction_input": ArtifactType.PREDICTION,
+            "output_evaluation_input": ArtifactType.PREDICTION,
         }
         try:
             return mapping[relation]
@@ -557,9 +558,28 @@ class FormalArtifactStore(ArtifactStore):
                 raise CacheResolutionError(
                     "dependency {0} has unhealthy ancestors".format(parent_id)
                 )
-            parent_payload = self._load_verified_dependency_payload(
-                parent, expected_type
-            )
+            if relation == 'output_evaluation_input':
+                # Cached values consume registered identity, not prediction bytes.
+                # Actual computation/loading owns the upstream payload checks.
+                from .runtime import _decode_exact_mapping
+                from .unlearning_output import OUTPUT_CONTRACT
+                wrapper = _decode_exact_mapping(parent['recipe'], 'Output dependency Recipe')
+                recipe = ArtifactRecipe(wrapper['fields'], recipe_version=wrapper['recipe_version'])
+                fields = recipe.fields
+                if fields.get('artifact_contract') != OUTPUT_CONTRACT or recipe.recipe_hash != parent['recipe_hash']:
+                    raise ArtifactIntegrityError('Evaluation dependency is not an exact Output v2')
+                selection = fields['selection']
+                selection_record = self.index.get_artifact(selection['artifact_id'])
+                if (selection_record['artifact_type'] != ArtifactType.SELECTION.value or
+                        self.index.parents(parent_id) != [selection['artifact_id']] or
+                        any(selection_record[k] != v for k,v in selection.items())):
+                    raise ArtifactIntegrityError('Output Selection reference mismatch')
+                dependency = next(o for o in payload.identity['outputs'] if o['reference']['artifact_id'] == parent_id)
+                identity = {key:value for key,value in fields.items() if key != 'artifact_contract'}
+                if identity != dependency['identity'] or any(parent[k] != v for k,v in dependency['reference'].items()):
+                    raise ArtifactIntegrityError('Evaluation Output dependency identity mismatch')
+                continue
+            parent_payload = self._load_verified_dependency_payload(parent, expected_type)
             if relation == "attack_selection_input":
                 if (parent_payload.ordered_nodes_hash != payload.selected_nodes_hash
                         or parent_payload.graph_fingerprint != payload.graph_fingerprint):
@@ -999,19 +1019,21 @@ class FormalArtifactStore(ArtifactStore):
             )
             return result
 
-    def load_payload_read_only(
+    def resolve_payload_read_only(
         self,
         artifact_type: Union[ArtifactType, str],
         recipe: ArtifactRecipe,
         *,
         artifact_id: Optional[str] = None,
-    ) -> FormalStoreResult:
+    ) -> Optional[FormalStoreResult]:
         self._ensure_initialized()
         type_value = self._formal_type(artifact_type)
         self._validate_recipe_producer(recipe)
         self._assert_typed_no_conflict_marker(type_value, recipe.recipe_hash)
         before = ArtifactResolver(self.index).explain_compatible(type_value, recipe)
         if not before.hit or before.exact_candidate is None:
+            if before.exact_candidate is None and before.miss_reasons == ('no_exact_candidate',):
+                return None
             raise CacheResolutionError(
                 "exact {0} Artifact is not resolvable: {1}".format(
                     type_value.value, ",".join(before.miss_reasons)
@@ -1039,6 +1061,19 @@ class FormalArtifactStore(ArtifactStore):
             raise CacheResolutionError(
                 "exact {0} resolution changed during read".format(type_value.value)
             )
+        return result
+
+    def load_payload_read_only(
+        self,
+        artifact_type: Union[ArtifactType, str],
+        recipe: ArtifactRecipe,
+        *,
+        artifact_id: Optional[str] = None,
+    ) -> FormalStoreResult:
+        result = self.resolve_payload_read_only(artifact_type, recipe, artifact_id=artifact_id)
+        if result is None:
+            raise CacheResolutionError('exact {0} Artifact is not resolvable: no_exact_candidate'.format(
+                ArtifactType(artifact_type).value))
         return result
 
 

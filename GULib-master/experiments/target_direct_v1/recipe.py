@@ -19,7 +19,7 @@ SCORE_BUDGET_SEMANTICS = 'prefix_stable_budget_independent'
 GRAPH_SOURCE_SCOPE = 'affected_intersection_train_mask'
 
 
-def build_recipe(*, name, computations, parameters, model_config=None, training=None):
+def build_recipe(*, name, computations, parameters, model_config=None, training=None, dataset_identity=None):
     c = computations
     functions = implementation_functions(name) + [stable_ranking]
     if uses_model(name):
@@ -29,7 +29,7 @@ def build_recipe(*, name, computations, parameters, model_config=None, training=
     fields = {
         'artifact_kind': 'score_bundle', 'score_family': SCORE_FAMILY, 'score_names': [name],
         'algorithm_version': ALGORITHM_VERSION, 'producer': producer.to_dict(),
-        'data_identity': data_identity(c.data),
+        'data_identity': data_identity(c.data) if dataset_identity is None else dataset_identity,
         'candidate_set': {'ordered_ids_hash': ids_hash(c.candidates),
                           'node_id_space': 'pyg-global-node-index-v1',
                           'ranking_reusable_across_budgets': True},

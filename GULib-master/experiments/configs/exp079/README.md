@@ -21,4 +21,6 @@ Work Plan保存的227280秒（63.1小时）是低置信度、全MISS串行工程
 
 gate 要求 Score/Selection/Output 的适用请求全部命中，producer 未调用，已有 Output 身份和指标可核对，回传及项目校验通过。纯缓存工程目标为600秒内完成执行；这是待检验的目标，不是预测。超过目标、出现MISS或错误都不自动扩大到全量，应定位原因。现行 launcher 的 reuse 在 MISS 时会计算，所以必须检查实际命中记录；仅启动成功不能证明纯缓存。现有结果提供作业墙钟、方法计算时间与HIT记录，不能冒充源码扫描、磁盘读、完整性校验和指标的独立profile。
 
+[cache_speed_gate_cora.yaml](cache_speed_gate_cora.yaml) 是上述 gate 的 Cora 精确子集：全部12个选点条件、七种方法、训练seed42、预算及两套评价均保留，共84格。[独立 Recipe](../../../scripts/syncmate/recipes/opengu-exp079-cache-speed-gate-cora.yaml) 使用新身份 `exp079-cache-speed-gate-cora / e79g2c`，硬上限300秒。它用于缩小真实 gate 的排查范围，不能以两个 Output 的重复访问代替；通过也不自动扩大到252格。首轮缺少的 Evaluation 正常计算并保存，随后相同请求的指标HIT与首轮成本分别核对。启动前须核对适用 Score/Selection/Output 的真实复用条件，不能在未知覆盖下放任 MISS 进入长训练。
+
 旧r4的约3小时对应2184请求的失败前缀，且未完成最终评价，不能与252格完整gate直接计算严格加速比。本gate首先验证当前纯缓存吞吐和正确性；没有匹配范围的旧计时就明确保留这一限制。完整矩阵的六小时上限不因此改变，gate通过不自动提交全量。

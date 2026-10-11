@@ -452,7 +452,11 @@ def resolve_covering_selection_artifact(
     index = CacheIndex(root / "index.sqlite")
     index.check_schema()
     compatible = []
-    for record in index.find_artifacts_by_type(ArtifactType.SELECTION):
+    fields = request.recipe.fields
+    relevant = {key:fields[key] for key in ('dataset_fingerprint','candidate_set_hash','selector')}
+    if 'source_score_artifact_id' in fields:
+        relevant['source_score_artifact_id'] = fields['source_score_artifact_id']
+    for record in index.find_artifacts_by_type(ArtifactType.SELECTION, recipe_fields=relevant):
         match = _covering_recipe_from_record(request, record)
         if match is not None:
             compatible.append((match[0], str(record.get("artifact_id")), match[1]))
@@ -468,7 +472,7 @@ def resolve_covering_selection_artifact(
         compatible, key=lambda item: (item[0], item[1])
     )
     covering_request = SelectionArtifactRequest.from_recipe(
-        recipe, request.producer_version
+        recipe, ProducerVersion(**recipe.fields['producer_version'])
     )
     covering = resolve_selection_artifact(root, covering_request)
     if not covering.hit or covering.result is None:

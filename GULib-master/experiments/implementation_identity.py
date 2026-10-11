@@ -12,15 +12,18 @@ from contextvars import ContextVar
 
 ROOT = Path(__file__).resolve().parents[1]
 _run_fingerprints = ContextVar('run_fingerprints', default=None)
+_run_producers = ContextVar('run_producers', default=None)
 
 
 @contextmanager
 def fingerprint_session():
     """Source is fixed during one execution; never reuse fingerprints across runs."""
     token = _run_fingerprints.set({})
+    producer_token = _run_producers.set({})
     try:
         yield
     finally:
+        _run_producers.reset(producer_token)
         _run_fingerprints.reset(token)
 
 

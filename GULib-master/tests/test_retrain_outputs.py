@@ -66,10 +66,21 @@ def test_independent_retrain_cold_hot_cross_gu_and_metrics_only(tables, monkeypa
     before = snapshot(tables[0] / 'results/cache_v2')
     metrics = run(tables, 'metrics', stage='metrics', selector_refs=[],
                   output_inputs=pairs, evaluation_refs=['gap.yaml'])
+    filled = snapshot(tables[0] / 'results/cache_v2')
     again = run(tables, 'metrics-again', stage='metrics', selector_refs=[],
                 output_inputs=pairs, evaluation_refs=['gap.yaml'])
-    assert metrics['evaluations'] == again['evaluations']
-    assert before == snapshot(tables[0] / 'results/cache_v2')
+    for first, second in zip(metrics['evaluations'], again['evaluations']):
+        assert first['effective_config'] == second['effective_config']
+        for a, b in zip(first['rows'], second['rows']):
+            assert a['metrics'] == b['metrics'] and a['identity'] == b['identity']
+            assert a['evaluation_receipt_id'] == b['evaluation_receipt_id']
+            assert not a['cache']['hit'] and b['cache']['hit']
+            assert a['cache']['artifact_id'] == b['cache']['artifact_id']
+    assert filled == snapshot(tables[0] / 'results/cache_v2')
+    for path, digest in before.items():
+        if path not in ('index.sqlite', 'trace.jsonl'):
+            assert filled[path] == digest
+    assert all('artifacts/evaluation/' in p.replace('\\', '/') for p in set(filled) - set(before))
     for output, row in zip((gnn, gif), metrics['evaluations'][0]['rows']):
         payload = load_output(output['output'], tables[0] / 'results/cache_v2', dataset_root=tables[0])
         rt = load_output(cold['output'], tables[0] / 'results/cache_v2', dataset_root=tables[0])
@@ -87,7 +98,7 @@ def test_independent_retrain_cold_hot_cross_gu_and_metrics_only(tables, monkeypa
     record_property('aagu028_evidence', json.dumps({
         'retrain': cold['output'], 'warm': warm['output'],
         'GU_outputs': [gnn['output'], gif['output']],
-        'metrics': metrics['evaluations'], 'store_unchanged_by_metrics': True,
+        'metrics': metrics['evaluations'], 'existing_payloads_unchanged': True, 'hot_store_unchanged': True,
         'selector_and_training_forbidden': True}))
 
 
@@ -237,11 +248,15 @@ def test_metrics_cli_reads_independent_modular_outputs(tables, monkeypatch, reco
         '--evaluation', str(root / 'gap.yaml'), '--output-dir', str(root / 'cli-metrics')]
     completed = subprocess.run(command, cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True)
     assert completed.returncode == 0, completed.stdout + completed.stderr
-    assert snapshot(root / 'results/cache_v2') == store_before
+    filled = snapshot(root / 'results/cache_v2')
+    for path, digest in store_before.items():
+        if path not in ('index.sqlite', 'trace.jsonl'):
+            assert filled[path] == digest
+    assert all('artifacts/evaluation/' in p.replace('\\', '/') for p in set(filled) - set(store_before))
     raw = json.loads((root / 'cli-metrics/collateral.json').read_text())
     assert raw['training_producer_called'] is False
     assert raw['results'][0]['perf_unlearn'] == rows[0]['result']['f1_after']
-    record_property('aagu028_cli', json.dumps({'command': command, 'result': raw, 'store_unchanged': True}))
+    record_property('aagu028_cli', json.dumps({'command': command, 'result': raw, 'existing_payloads_unchanged': True}))
 
 
 def test_independent_method_metrics_survive_collection_without_forward(tables, monkeypatch, record_property):
@@ -273,10 +288,11 @@ def test_independent_method_metrics_survive_collection_without_forward(tables, m
     finally:
         hook.remove()
     assert differences['rows'][0]['metrics']['gap'] == rt['result']['f1_after'] - gnn['result']['f1_after']
-    assert before == snapshot(collected)
+    after = snapshot(collected)
+    assert all(after[k] == v for k,v in before.items() if k.startswith('artifacts'))
     assert measured['rows'][1]['metrics']['update_detection_auc_status'] == 'missing_original_predictions'
     record_property('aagu028_independent_collection', json.dumps({'per_method': exported,
-        'recomputed': measured, 'differences': differences, 'store_unchanged': True,
+        'recomputed': measured, 'differences': differences, 'existing_artifacts_unchanged': True,
         'training_and_forward_forbidden': True}))
 
 
