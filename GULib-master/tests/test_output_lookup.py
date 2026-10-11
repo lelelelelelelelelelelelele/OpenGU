@@ -100,7 +100,7 @@ def test_metadata_corruption_is_not_a_clean_miss(tables, monkeypatch):
         run(tables, 'bad_metadata', **options)
 
 
-def test_corrupt_output_is_not_recomputed(tables, monkeypatch):
+def test_corrupt_output_is_not_recomputed_when_actually_consumed(tables, monkeypatch):
     from cache_v2 import CacheIndex
     from cache_v2.store import ArtifactIntegrityError
     import experiments.modular_run as runner
@@ -110,8 +110,12 @@ def test_corrupt_output_is_not_recomputed(tables, monkeypatch):
     record = CacheIndex(root / 'index.sqlite').get_artifact(first['artifact_id'])
     (root / record['semantic_path']).write_bytes(b'corrupt output')
     forbid(monkeypatch, runner, 'prepare_model')
+    warm = run(tables, 'cached_metrics_with_unused_output', **options)['unlearning'][0]
+    assert warm['hit'] and warm['evaluation_cache']['hit'] and not warm['producer_called']
+    write_yaml(tables[0] / 'new-metrics.yaml', {
+        'kind': 'evaluation', 'schema_version': 1, 'case': 'post_method_metrics', 'metrics': ['f1']})
     with pytest.raises(ArtifactIntegrityError, match='hash|payload|digest'):
-        run(tables, 'bad_output', **options)
+        run(tables, 'bad_output', **options, evaluation_refs=['new-metrics.yaml'])
 
 
 @pytest.mark.parametrize('architecture', ['GCN','SGC','GAT','GIN'])
