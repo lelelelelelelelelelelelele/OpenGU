@@ -97,12 +97,12 @@ def single_values(reference, output):
 
 
 def evaluate_single(reference, identity, *, store_root, data, dataset_root, audit=None):
-    from experiments.unlearning_outputs import load_output
+    from experiments.unlearning_outputs import load_metric_output
     started = perf_counter()
     request = single_request(reference, identity)
     def produce():
         with phase(audit, 'evaluation_inputs'):
-            output = load_output(reference, store_root, data=data, dataset_root=dataset_root)
+            output = load_metric_output(reference, store_root, data=data, dataset_root=dataset_root)
         with phase(audit, 'metric_formula'):
             return single_values(reference, output)
     values, cache = cached_measurements(request, store_root, produce, audit=audit)

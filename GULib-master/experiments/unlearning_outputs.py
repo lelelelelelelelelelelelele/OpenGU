@@ -40,6 +40,57 @@ def load_output(reference, store_root, *, data=None, dataset_root=None):
     return resolve_output(payload, dataset_root, data=data)
 
 
+def load_metric_output(reference, store_root, *, data=None, dataset_root=None):
+    """Consume predictions and bound evaluation inputs, without a training graph.
+
+    The immutable Output already records its training graph and model state.
+    Metrics match that registered identity; they do not train or forward it.
+    Only a retained *evaluation* graph needs its incident edges removed here.
+    """
+    from types import SimpleNamespace
+    from experiments.dataset_inputs import resolve_input
+    from experiments.node_deletion import resolve_deletion
+    payload = load_output_payload(reference, store_root, dataset_root=dataset_root)
+    if dataset_root is None:
+        raise ConfigurationError('method output requires explicit Dataset/Split root')
+    if data is None:
+        data = resolve_input(payload.identity['dataset_input'], dataset_root)
+    pairing = payload.identity['pairing']
+    original_identity = _output_data_identity(data)
+    if (len(payload.arrays['logits']) != data.num_nodes
+            or original_identity != pairing['data_identity']):
+        raise ConfigurationError('output Dataset/Split identity mismatch')
+    deletion = resolve_deletion(pairing['deletion'])
+    if deletion != pairing['deletion']:
+        raise ConfigurationError('output deletion identity mismatch')
+    selected = torch.tensor(payload.arrays['selected_nodes'].tolist(),
+                            dtype=torch.long, device=data.train_mask.device)
+    if not data.train_mask[selected].all() or len(selected) == int(data.train_mask.sum()):
+        raise ConfigurationError('node deletion needs selected training nodes and retained supervision')
+    arrays = {key: getattr(data, key).detach().cpu().numpy()
+              for key in ('y', 'test_mask', 'edge_index')}
+    arrays.update(payload.arrays)
+    evaluation_identity = original_identity
+    evaluation_edges = data.edge_index
+    if deletion['evaluation_graph'] == 'retained':
+        removed = torch.zeros(data.num_nodes, dtype=torch.bool, device=data.edge_index.device)
+        removed[selected.to(removed.device)] = True
+        keep = ~(removed[data.edge_index[0]] | removed[data.edge_index[1]])
+        evaluation_edges = data.edge_index[:, keep]
+        train_mask = data.train_mask.detach().clone()
+        train_mask[selected] = False
+        masks = torch.stack([value.detach().cpu().to(torch.uint8)
+                             for value in (train_mask, data.val_mask, data.test_mask)])
+        evaluation_identity = {**original_identity,
+            'edge_index_hash': tensor_hash(evaluation_edges), 'split_hash': tensor_hash(masks)}
+        if evaluation_identity != pairing['training_graph_identity']:
+            raise ConfigurationError('output retained graph identity mismatch')
+    if evaluation_identity != pairing['evaluation_graph_identity']:
+        raise ConfigurationError('output evaluation graph identity mismatch')
+    arrays['evaluation_edge_index'] = evaluation_edges.detach().cpu().numpy()
+    return SimpleNamespace(identity=payload.identity, arrays=arrays)
+
+
 def load_output_payload(reference, store_root, *, dataset_root=None):
     """Consume the exact cached NPZ; graph preparation belongs to its caller."""
     if reference.get('storage') == 'run':

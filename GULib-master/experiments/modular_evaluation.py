@@ -131,7 +131,7 @@ def _pair(instance, identity, candidates):
 def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verified_outputs=(), dataset_root=None, audit=None):
     from contextlib import nullcontext
     from experiments.evaluation_cache import describe_output, evaluation_request, cached_measurements, phase
-    from experiments.unlearning_outputs import load_output
+    from experiments.unlearning_outputs import load_metric_output
     from experiments.execution_audit import cache_fact
     require_consumer(instance, 'modular_v1')
     # Explicit already-verified in-memory inputs remain a computation consumer.
@@ -146,7 +146,7 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
         with (audit.entry('evaluation',input_conditions) if audit else nullcontext({})) as fact, phase(audit,'evaluation_identity'):
             if reference.get('storage') == 'run':
                 with phase(audit, 'evaluation_inputs'):
-                    supplied.append((reference, load_output(reference, store_root, data=data, dataset_root=dataset_root), paired_reference, conditions))
+                    supplied.append((reference, load_metric_output(reference, store_root, data=data, dataset_root=dataset_root), paired_reference, conditions))
             else:
                 descriptors.append((reference, describe_output(reference, store_root), paired_reference, conditions))
             fact['metrics'] = {'identity_verified':1}
@@ -161,7 +161,7 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
         key = canonical_sha256(ref)
         if key not in loaded:
             with phase(audit, 'evaluation_inputs'):
-                loaded[key] = load_output(ref, store_root, data=data, dataset_root=dataset_root)
+                loaded[key] = load_metric_output(ref, store_root, data=data, dataset_root=dataset_root)
         return loaded[key]
     rows = []
     for reference, value, paired_reference, own_conditions in [*descriptors, *supplied]:

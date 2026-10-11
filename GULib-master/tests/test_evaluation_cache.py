@@ -39,7 +39,7 @@ def test_hot_entry_reuses_complete_values_without_output_decode_or_formula(table
                         lambda *a, **k: pytest.fail('selection HIT loaded unused Score payload'))
     for row in cold['unlearning']:
         assert not row['evaluation_cache']['hit']
-    for module,name in ((outputs,'load_output'),(evaluation,'single_values'),(modular,'_measure'),
+    for module,name in ((outputs,'load_output'),(outputs,'load_metric_output'),(evaluation,'single_values'),(modular,'_measure'),
             (model,'prepare_model'),(model,'train_supervised'),(metrics,'method_metrics'),(metrics,'update_detection')):
         forbid(monkeypatch,module,name)
     monkeypatch.setattr(UnlearningOutputPayload,'from_bytes',classmethod(lambda cls,*a:pytest.fail('hot NPZ decode')))
@@ -119,6 +119,7 @@ def test_new_metric_request_misses_evaluation_but_consumes_existing_npz(tables, 
         reads.append(reference['artifact_id'])
         return value
     monkeypatch.setattr(outputs, 'load_output_payload', consume)
+    monkeypatch.setattr(outputs, 'retained_graph', lambda *a, **k: pytest.fail('metrics rebuilt a training graph'))
     forbid(monkeypatch, model, 'prepare_model')
     forbid(monkeypatch, model, 'train_supervised')
     hook = torch.nn.modules.module.register_module_forward_pre_hook(lambda *a: pytest.fail('NPZ HIT reran inference'))
@@ -130,6 +131,47 @@ def test_new_metric_request_misses_evaluation_but_consumes_existing_npz(tables, 
     assert all(not row['cache']['hit'] for row in result['rows'])
     assert all(row['metrics'] == {key: value for key, value in previous['metrics'].items() if key in item['metrics']}
                for row, previous in zip(result['rows'], cold['evaluations'][1]['rows']))
+
+
+@pytest.mark.parametrize('evaluation_graph', ['original', 'retained'])
+def test_metric_reader_matches_complete_reader_without_training_graph(tables, monkeypatch, evaluation_graph):
+    import pickle
+    import experiments.unlearning_outputs as outputs
+    from experiments.evaluation_cache import single_values
+    from experiments.modular_evaluation import _measure
+    root, options = setup(tables)
+    for name, method in (('gu.yaml', 'GNNDelete'), ('retrain.yaml', 'Retrain')):
+        write_yaml(root/name, {**tables[2], 'method':method,
+            'parameters':tables[2]['parameters'] if method != 'Retrain' else {},
+            'deletion':{'evaluation_graph':evaluation_graph}})
+    cold = run(tables, 'metric-reader-'+evaluation_graph, **options)
+    data = pickle.loads((root/'graph.pkl').read_bytes())
+    refs = [row['output'] for row in cold['unlearning']]
+    full = [outputs.load_output(ref, root/'results/cache_v2', data=data, dataset_root=root) for ref in refs]
+    monkeypatch.setattr(outputs, 'retained_graph', lambda *a, **k: pytest.fail('metrics rebuilt a training graph'))
+    slim = [outputs.load_metric_output(ref, root/'results/cache_v2', data=data, dataset_root=root) for ref in refs]
+    for ref, before, after in zip(refs, full, slim):
+        assert before.identity == after.identity
+        assert single_values(ref, before) == single_values(ref, after)
+        assert not hasattr(after, 'state') and 'x' not in after.arrays
+        assert 'training_edge_index' not in after.arrays
+    for evaluation in cold['evaluations']:
+        item = evaluation['effective_config']
+        assert _measure(item, refs[0], full[0], (refs[1], full[1])) == _measure(item, refs[0], slim[0], (refs[1], slim[1]))
+
+
+@pytest.mark.parametrize('changed', ['x', 'y', 'edge_index', 'train_mask', 'test_mask'])
+def test_metric_reader_rejects_changed_bound_input(tables, changed):
+    import pickle
+    from experiments.unlearning_outputs import load_metric_output
+    from experiments.effective_config import ConfigurationError
+    root, options = setup(tables)
+    cold = run(tables, 'metric-reader-mutation', **options)
+    data = pickle.loads((root/'graph.pkl').read_bytes())
+    value = getattr(data, changed)
+    value.view(-1)[-1] = (not bool(value.view(-1)[-1]) if value.dtype == torch.bool else value.view(-1)[-1] + 1)
+    with pytest.raises(ConfigurationError, match='identity mismatch'):
+        load_metric_output(cold['unlearning'][0]['output'], root/'results/cache_v2', data=data, dataset_root=root)
 
 
 @pytest.mark.parametrize('changed', [None, 'x', 'y', 'edge_index', 'test_mask'])
@@ -219,6 +261,7 @@ def test_cached_metrics_do_not_open_unused_upstream_files(tables,monkeypatch,unu
     # by the requested cached metric and their absence must not cause a scan.
     path.unlink()
     forbid(monkeypatch,outputs,'load_output')
+    forbid(monkeypatch,outputs,'load_metric_output')
     forbid(monkeypatch,modular,'_measure')
     forbid(monkeypatch,checkpoint,'data_identity')
     forbid(monkeypatch,checkpoint,'sha256_file')
