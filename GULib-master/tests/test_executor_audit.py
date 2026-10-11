@@ -247,5 +247,5 @@ def test_recipe_caught_failure_projects_durable_terminal_once(tables, monkeypatc
     assert facts[-1]['error']['message'] == 'owned verification interruption'
     for name in ('auto_report.md','auto_report.html'):
         page = (journal/name).read_text(encoding='utf-8')
-        assert 'failed:run' in page and facts[-1]['run_id'] in page
+        assert 'run=failed' in page and facts[-1]['run_id'] in page
     record_property('caught_failure', 'one terminal projection; completed entry and failure retained')
