@@ -106,6 +106,7 @@ class OutputLookup:
                 if count != self.catalogue_count:
                     self.requests.clear()
                     self.catalogue_count = count
+                matched = None
                 if key not in self.requests:
                     candidates = []
                     for record in index.find_artifacts_by_type(ArtifactType.PREDICTION, recipe_fields=lookup_fields,
@@ -126,9 +127,10 @@ class OutputLookup:
                     if len(preferred) != 1:
                         raise ValueError('ambiguous registered Output for the same effective inputs')
                     _, record, recipe = preferred[0]
+                    matched = record
                     self.requests[key] = ({k:record[k] for k in ('artifact_id','recipe_hash','content_hash')},recipe)
                 reference, recipe = self.requests[key]
-                explanation = ArtifactResolver(index).explain_cached(ArtifactType.PREDICTION,recipe)
+                explanation = ArtifactResolver(index).explain_cached(ArtifactType.PREDICTION,recipe,candidate=matched)
                 if not explanation.hit or any(explanation.exact_candidate[k] != v for k,v in reference.items()):
                     raise ValueError('Output lookup failed closed: ' + ','.join(explanation.miss_reasons))
             reference = dict(reference)

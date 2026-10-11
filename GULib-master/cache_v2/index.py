@@ -390,7 +390,7 @@ class CacheIndex:
 
     def check_schema(self) -> int:
         key = os.path.normcase(str(self.path))
-        if key in (_read_sessions.get() or {}) or key in (_write_sessions.get() or {}):
+        if key in (_read_sessions.get() or {}) or (_write_sessions.get() or {}).get(key) is not None:
             return SCHEMA_VERSION
         with self._read_connection() as connection:
             return int(connection.execute("PRAGMA user_version").fetchone()[0])

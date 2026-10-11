@@ -10,6 +10,7 @@ import numpy as np
 import torch
 from cache_v2 import ArtifactRecipe, ArtifactType, CacheIndex, ProducerVersion
 from cache_v2.runtime import _decode_exact_mapping
+from cache_v2.reading import read_metric_output
 from cache_v2.unlearning_output import OUTPUT_CONTRACT, UnlearningOutputPayload
 from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact
 from experiments.effective_config import ConfigurationError, fields
@@ -81,7 +82,7 @@ def load_metric_output(reference, store_root, *, data=None, dataset_root=None):
     from types import SimpleNamespace
     from experiments.dataset_inputs import resolve_input
     from experiments.node_deletion import resolve_deletion
-    payload = load_output_payload(reference, store_root, dataset_root=dataset_root, reader=UnlearningOutputPayload.metric_from_cached_bytes)
+    payload = load_output_payload(reference, store_root, dataset_root=dataset_root, reader=read_metric_output)
     if dataset_root is None:
         raise ConfigurationError('method output requires explicit Dataset/Split root')
     if data is None:
@@ -165,12 +166,8 @@ def load_output_payload(reference, store_root, *, dataset_root=None, reader=None
             raise ConfigurationError('method output digest mismatch')
         identity = recipe.fields
         producer = ProducerVersion(**identity['producer_version'])
-        from experiments.modular_gu import gu_producer
-        current = gu_producer(identity['target']['method'], identity['pairing']['model'])
-        if not _allowed_output_source(recipe, current):
-            raise ConfigurationError('method output producer changed; explicit new execution required')
         request = FormalArtifactRequest(ArtifactType.PREDICTION, recipe, producer)
-        resolved = resolve_formal_artifact(root, request, reader=reader)
+        resolved = resolve_formal_artifact(root, request, reader=reader, candidate=record)
         if resolved is None:
             raise ConfigurationError('method output MISS; Metrics cannot execute producers')
         payload = resolved.payload

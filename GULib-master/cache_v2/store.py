@@ -302,13 +302,6 @@ class SelectionPayload:
                 "Selection payload contract is invalid: {0}".format(exc)
             )
 
-    @classmethod
-    def from_cached_bytes(cls, payload):
-        from .reading import cached_fields
-        value = json.loads(payload)
-        value['selected_nodes_ordered'] = tuple(value['selected_nodes_ordered'])
-        return cached_fields(cls, value)
-
     def to_dict(self) -> Dict[str, Any]:
         return {
             "payload_version": self.payload_version,
@@ -1219,10 +1212,12 @@ class ArtifactStore:
         return self._load_candidate(explanation.exact_candidate, recipe, num_nodes,
                                     candidate_nodes=candidate_nodes)
 
-    def load_read_only(self, recipe, num_nodes, *, candidate_nodes=None, artifact_id=None):
+    def load_read_only(self, recipe, num_nodes, *, candidate_nodes=None, artifact_id=None, candidate=None):
         """Read matched admitted Selection without rehashing or ancestor audit."""
         self._ensure_initialized()
-        explanation = ArtifactResolver(self.index).explain_cached_compatible(ArtifactType.SELECTION, recipe)
+        resolver = ArtifactResolver(self.index)
+        explanation = (resolver.explain_cached(ArtifactType.SELECTION, recipe, candidate=candidate)
+            if candidate is not None else resolver.explain_cached_compatible(ArtifactType.SELECTION, recipe))
         if not explanation.hit:
             raise CacheResolutionError("cached Selection is not resolvable: " + ",".join(explanation.miss_reasons))
         candidate = explanation.exact_candidate
@@ -1231,7 +1226,8 @@ class ArtifactStore:
         self._assert_no_conflict_marker(recipe)
         path = self._safe_output_path(self.root.joinpath(*PurePosixPath(candidate["semantic_path"]).parts), "Selection payload")
         try:
-            payload = SelectionPayload.from_cached_bytes(path.read_bytes())
+            from .reading import read_cached_payload
+            payload = read_cached_payload(SelectionPayload, path.read_bytes())
         except (OSError, ValueError, KeyError, TypeError) as exc:
             raise ArtifactIntegrityError("Selection JSON payload cannot be read or parsed: " + str(exc)) from exc
         return StoreResult(hit=True, outcome="hit", artifact_id=candidate["artifact_id"],

@@ -236,15 +236,6 @@ class ScoreBundlePayload:
                 "ScoreBundle contract is invalid: {0}".format(exc)
             )
 
-    @classmethod
-    def from_cached_bytes(cls, payload):
-        from cache_v2.reading import cached_fields
-        value = json.loads(payload)
-        value["candidate_nodes_ordered"] = tuple(value["candidate_nodes_ordered"])
-        for name in ("scores", "rankings"):
-            value[name] = {key: tuple(items) for key, items in value[name].items()}
-        return cached_fields(cls, value)
-
     def to_dict(self) -> Dict[str, Any]:
         return {
             "payload_version": self.payload_version,
@@ -401,7 +392,8 @@ class ScoreBundleStore:
         if self.root not in path.resolve().parents:
             raise ScoreBundleIntegrityError("ScoreBundle payload escapes its Store")
         try:
-            payload = ScoreBundlePayload.from_cached_bytes(path.read_bytes())
+            from cache_v2.reading import read_cached_payload
+            payload = read_cached_payload(ScoreBundlePayload, path.read_bytes())
         except FileNotFoundError as exc:
             raise ScoreBundleIntegrityError("ScoreBundle payload is missing: " + str(path)) from exc
         except (OSError, ValueError, KeyError, TypeError) as exc:

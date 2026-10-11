@@ -39,6 +39,7 @@ from .errors import (
 from .formal_artifacts import payload_type_for
 from .paths import normalize_semantic_path
 from .resolver import ArtifactResolver
+from .reading import read_cached_payload
 from .store import (
     CONFLICT_MARKER_VERSION,
     SELECTION_PAYLOAD_SCHEMA,
@@ -361,7 +362,7 @@ class FormalArtifactStore(ArtifactStore):
         payload_class = SelectionPayload if expected_type == ArtifactType.SELECTION else payload_type_for(expected_type, stored_recipe(parent))
         path = self._safe_output_path(self.root.joinpath(*PurePosixPath(parent["semantic_path"]).parts), "dependency payload")
         try:
-            return payload_class.from_cached_bytes(path.read_bytes())
+            return read_cached_payload(payload_class, path.read_bytes())
         except (OSError, ValueError, KeyError, TypeError) as exc:
             raise ArtifactIntegrityError("dependency payload cannot be read: " + str(exc)) from exc
 
@@ -868,7 +869,7 @@ class FormalArtifactStore(ArtifactStore):
         payload_class = payload_type_for(artifact_type, recipe)
         path = self._safe_output_path(self.root.joinpath(*PurePosixPath(candidate["semantic_path"]).parts), "cached payload")
         try:
-            payload = (reader or payload_class.from_cached_bytes)(path.read_bytes())
+            payload = (reader(path.read_bytes()) if reader else read_cached_payload(payload_class, path.read_bytes()))
         except FileNotFoundError as exc:
             raise ArtifactIntegrityError("cached payload is missing: " + str(path)) from exc
         except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile) as exc:
@@ -879,12 +880,14 @@ class FormalArtifactStore(ArtifactStore):
             generation_producer=_decode_exact_mapping(candidate["producer_version"], "producer"),
             consumption_producer=self.producer_version.to_dict())
 
-    def resolve_payload_read_only(self, artifact_type, recipe, *, artifact_id=None, reader=None):
+    def resolve_payload_read_only(self, artifact_type, recipe, *, artifact_id=None, reader=None, candidate=None):
         """Consume admitted immutable content; comprehensive verification is not a HIT."""
         self._ensure_initialized()
         type_value = self._formal_type(artifact_type)
         self._validate_recipe_producer(recipe)
-        explanation = ArtifactResolver(self.index).explain_cached_compatible(type_value, recipe)
+        resolver = ArtifactResolver(self.index)
+        explanation = (resolver.explain_cached(type_value, recipe, candidate=candidate)
+            if candidate is not None else resolver.explain_cached_compatible(type_value, recipe))
         if not explanation.hit:
             if explanation.exact_candidate is None and explanation.miss_reasons == ('no_exact_candidate',):
                 return None

@@ -58,6 +58,25 @@ def test_metric_miss_reads_no_model_state_and_does_not_rebuild_npz(tables, monke
     assert not hasattr(output, 'state')
 
 
+def test_exact_reference_read_does_not_rescan_computation_source(tables, monkeypatch):
+    from experiments.unlearning_outputs import load_output_payload, load_metric_output
+    from experiments.evaluation_cache import describe_output
+    from cache_v2 import CacheIndex
+    import experiments.modular_gu as gu
+    root, options = setup(tables)
+    cold = run(tables, 'reference-source', **options)
+    reference = cold['unlearning'][0]['output']
+    def forbidden(*a, **k):
+        pytest.fail('exact admitted reference regenerated a computation fingerprint')
+    monkeypatch.setattr(gu, 'gu_producer', forbidden)
+    # The exact row just read by Artifact ID is passed to the lower Store.
+    monkeypatch.setattr(CacheIndex, 'find_artifact', forbidden)
+    payload = load_output_payload(reference, root/'results/cache_v2')
+    assert describe_output(reference, root/'results/cache_v2') == payload.identity
+    output = load_metric_output(reference, root/'results/cache_v2', dataset_root=root)
+    assert output.identity == payload.identity
+
+
 def test_write_connection_reuse_keeps_independent_commits_and_rollback(tmp_path):
     from cache_v2 import CacheIndex
     from test_cache_v2_formal_artifacts import _score_recipe, _score_payload, SCORE_VERSION
@@ -74,3 +93,11 @@ def test_write_connection_reuse_keeps_independent_commits_and_rollback(tmp_path)
                 writer.connection.execute('DELETE FROM artifacts WHERE artifact_id=?', (stored.artifact_id,))
                 raise RuntimeError('after commit')
         assert independent.get_artifact(stored.artifact_id)['status'] == 'valid'
+
+
+def test_lazy_writer_does_not_claim_an_unopened_index_is_valid(tmp_path):
+    from cache_v2 import CacheIndex
+    from cache_v2.errors import IndexNotFoundError
+    index = CacheIndex(tmp_path/'absent.sqlite')
+    with index.write_session(), pytest.raises(IndexNotFoundError):
+        index.check_schema()

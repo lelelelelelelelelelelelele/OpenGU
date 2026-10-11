@@ -89,7 +89,7 @@ class MaterializedFormalArtifact:
 
 
 def resolve_formal_artifact(
-    root: Path, request: FormalArtifactRequest, *, reader=None
+    root: Path, request: FormalArtifactRequest, *, reader=None, candidate=None
 ) -> FormalStoreResult | None:
     """Return a verified exact hit, a clean miss, or raise fail-closed."""
 
@@ -99,7 +99,7 @@ def resolve_formal_artifact(
     index = CacheIndex(index_path)
     with index.read_session():
         store = FormalArtifactStore(root, producer_version=request.producer_version, index=index)
-        return store.resolve_payload_read_only(request.artifact_type, request.recipe, reader=reader)
+        return store.resolve_payload_read_only(request.artifact_type, request.recipe, reader=reader, candidate=candidate)
 
 
 def materialize_formal_artifact(

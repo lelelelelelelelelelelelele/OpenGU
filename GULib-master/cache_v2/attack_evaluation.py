@@ -78,12 +78,6 @@ class AttackEvaluationPayload:
             raise ArtifactIntegrityError("attack Evaluation payload is not canonical")
         return result
 
-    @classmethod
-    def from_cached_bytes(cls, payload):
-        import json
-        from .reading import cached_fields
-        return cached_fields(cls, json.loads(payload))
-
     def validate_against(self, recipe: ArtifactRecipe):
         fields = recipe.fields
         if fields.get("artifact_contract") != ATTACK_EVALUATION_CONTRACT:

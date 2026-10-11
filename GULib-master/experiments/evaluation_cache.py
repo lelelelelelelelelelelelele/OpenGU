@@ -18,8 +18,6 @@ def phase(audit, name):
 def describe_output(reference, store_root, *, dataset_input=None):
     """Resolve registered identity without opening unused input payloads."""
     from cache_v2.unlearning_output import OUTPUT_CONTRACT
-    from experiments.unlearning_outputs import _allowed_output_source
-    from experiments.modular_gu import gu_producer
     if set(reference) != {'artifact_id', 'recipe_hash', 'content_hash'}:
         raise ConfigurationError('an exact Cache V2 Output reference is required')
     index = CacheIndex(Path(store_root) / 'index.sqlite')
@@ -31,9 +29,6 @@ def describe_output(reference, store_root, *, dataset_input=None):
         if (record['artifact_type'] != ArtifactType.PREDICTION.value or fields.get('artifact_contract') != OUTPUT_CONTRACT
                 or any(record[k] != v for k, v in reference.items()) or recipe.recipe_hash != reference['recipe_hash']):
             raise ConfigurationError('Output reference identity mismatch')
-        current = gu_producer(fields['target']['method'], fields['pairing']['model'])
-        if not _allowed_output_source(recipe, current):
-            raise ConfigurationError('method output producer changed; explicit new execution required')
         explanation = ArtifactResolver(index).explain_cached(ArtifactType.PREDICTION, recipe, candidate=record)
         if not explanation.hit:
             raise ConfigurationError('Output dependency is not valid and verified: ' + ','.join(explanation.miss_reasons))

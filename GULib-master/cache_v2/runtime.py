@@ -146,6 +146,7 @@ def load_selection_artifact(
         num_nodes,
         candidate_nodes=candidate_nodes,
         artifact_id=artifact_id,
+        candidate=candidate,
     )
 
     selector = fields.get("selector")

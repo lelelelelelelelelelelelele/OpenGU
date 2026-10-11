@@ -70,9 +70,3 @@ class OutputEvaluationPayload:
         if (recipe.fields.get('artifact_contract') != OUTPUT_EVALUATION_CONTRACT
                 or recipe.fields.get('evaluation_identity') != self.identity):
             raise ArtifactIntegrityError('Output Evaluation identity differs from Recipe')
-
-    @classmethod
-    def from_cached_bytes(cls, payload):
-        import json
-        from .reading import cached_fields
-        return cached_fields(cls, json.loads(payload))

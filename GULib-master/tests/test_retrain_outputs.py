@@ -207,10 +207,10 @@ def test_actual_dataset_changes_cannot_consume_old_output(tables, field):
 
 
 def changed_retrain(*args, **kwargs):
-    raise AssertionError('changed producer must not run during reference validation')
+    raise AssertionError('fresh request reached changed producer')
 
 
-def test_changed_producer_rejected_and_unused_selection_file_not_read(tables, monkeypatch):
+def test_exact_output_reference_does_not_recheck_producer_or_unused_selection(tables, monkeypatch):
     from cache_v2 import CacheIndex
     import unlearning.unlearning_methods.Retrain.retrain as retrain
     configs(tables)
@@ -218,8 +218,10 @@ def test_changed_producer_rejected_and_unused_selection_file_not_read(tables, mo
     reference = load_output(output, tables[0] / 'results/cache_v2', dataset_root=tables[0]).identity['selection']
     with monkeypatch.context() as patch:
         patch.setattr(retrain, 'run_retrain', changed_retrain)
-        with pytest.raises(ValueError, match='producer changed'):
-            load_output(output, tables[0] / 'results/cache_v2', dataset_root=tables[0])
+        assert load_output(output, tables[0] / 'results/cache_v2', dataset_root=tables[0]).identity['selection'] == reference
+        # A fresh computation request still forms its key from current source.
+        with pytest.raises(AssertionError, match='fresh request reached changed producer'):
+            method(tables, 'changed-source', 'retrain.yaml')
     record = CacheIndex(tables[0] / 'results/cache_v2/index.sqlite').get_artifact(reference['artifact_id'])
     path = tables[0] / 'results/cache_v2' / record['semantic_path']
     path.unlink()  # The Output already contains the admitted Selection input.
