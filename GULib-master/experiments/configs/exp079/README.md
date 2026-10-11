@@ -1,5 +1,22 @@
 # EXP-079 · Surrogate 多 seed 验证
 
+## 两组保留的 84 格性能 gate（2026-10-12 准备）
+
+为缓存访问性能优化保留两组 Cora 请求：沿用正式 Split、12 个选点条件、七种方法、预算和评价定义，仅从完整 EXP-079 表选择不同的既有训练 seed。不增加 Cache 测试环境，不删除或修改正式 Artifact 来制造 MISS。
+
+| 用途 | 配置 | 首轮 RID / Recipe | 热轮 RID / Recipe |
+|---|---|---|---|
+| 优化前基线 | [seed 212](cache_speed_gate_cora_s212.yaml) | e79g5c / [s212-cold](../../../scripts/syncmate/recipes/opengu-exp079-cache-speed-gate-cora-s212-cold.yaml) | e79g5w / [s212-warm](../../../scripts/syncmate/recipes/opengu-exp079-cache-speed-gate-cora-s212-warm.yaml) |
+| 优化后验证 | [seed 2024](cache_speed_gate_cora_s2024.yaml) | e79g6c / [s2024-cold](../../../scripts/syncmate/recipes/opengu-exp079-cache-speed-gate-cora-s2024-cold.yaml) | e79g6w / [s2024-warm](../../../scripts/syncmate/recipes/opengu-exp079-cache-speed-gate-cora-s2024-warm.yaml) |
+
+每组 84 格；每轮 600 秒硬上限，属于有界验证而非完成时间承诺。每组预计有 84 个基础指标请求、72 个 utility/retrain-gap 请求及 72 个 flip-hop 请求，共 228 个 Evaluation 请求；Retrain 自身不做配对评价。两份配置及四份 Recipe 已通过既有解析、dry-run、绑定 Dataset/Split 计数读取和装配验证；准备不代表已提交或已通过正式 preflight。
+
+首轮必须核验所选请求是 Output HIT、Evaluation 尚未生成；首次计算和保存指标后，完成回传及结果核验，再运行同组热轮。登记时只读库存显示两组候选 Output 均没有关联 Evaluation，但候选库存不等于当前配置 84 格的精确覆盖；启动前以当前身份核验，启动后按逐项审计统计，出现非预期 Output MISS 或首轮指标已热则该轮不满足此对照口径，不删除缓存或自动重试。
+
+用户已确认这两组可用于工程性能对比：数据集、矩阵形状、方法和缓存起点相同，训练 seed 差异随结果记录，不作为阻断条件。比较完整作业耗时及查询、输入读取、公式、写入校验、审计/终态报告等已有逐项计时；同时记录每层 HIT/MISS 和真实计算调用，不能仅凭 SQL 次数减少宣称整轮提速。优化后必须保持指标、Output/Selection 引用和缓存身份语义正确。历史 Cora seed42 的 263.62 秒是单元累计，不与新 gate 的整轮 wall 混用。
+
+本轮只准备，保留两组冷轮。执行前先读 Work Plan，安排基线，再完成开发候选及该阶段配置的统一交付、三端同步和正式 preflight。两个阶段分别绑定实际运行 SHA；不要求优化前后代码 SHA 相同。各组首轮和热轮必须使用同一代码版本。基线与优化后验证均归 EXP-079，软件变更归 AAGU-095；未授权扩展全表。
+
 一份完整实验表：[surrogate_multiseed.yaml](surrogate_multiseed.yaml)。
 历史第四轮声明：[opengu-exp079-surrogate-multiseed-r4.yaml](../../../scripts/syncmate/recipes/opengu-exp079-surrogate-multiseed-r4.yaml)。前三轮 [e79r1声明](../../../scripts/syncmate/recipes/opengu-exp079-surrogate-multiseed.yaml)、[e79r2声明](../../../scripts/syncmate/recipes/opengu-exp079-surrogate-multiseed-r2.yaml)与 [e79r3声明](../../../scripts/syncmate/recipes/opengu-exp079-surrogate-multiseed-r3.yaml)保留，用于核对历史任务身份；这些身份不可再次提交。
 

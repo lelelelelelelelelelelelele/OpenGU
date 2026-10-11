@@ -1,0 +1,23 @@
+schema_version: 1
+id: opengu-exp079-cache-speed-gate-cora-s2024-cold
+runner: experiment
+config_path: experiments/configs/exp079/cache_speed_gate_cora_s2024.yaml
+config_sha256: feee42e101ae273e7d6dd4805092c72f33bcbf8423d2b814553961614cf5ebb9
+configuration_fingerprint: 928df500e9578e84f4a6a0eb23ea1409edf80cfdc91fd6555451d19a149663bb
+run_identity:
+  experiment_id: exp079-cache-speed-gate
+  run_id: e79g6c
+timeout_seconds: 600
+logical_cells: 84
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
