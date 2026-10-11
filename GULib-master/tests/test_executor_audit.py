@@ -158,19 +158,20 @@ def test_recipe_projects_once_after_terminal_with_live_durable_events(tables, mo
         pages = {name: (journal/name).read_bytes() if (journal/name).exists() else None
                  for name in ('auto_report.md', 'auto_report.html')}
         observed = []
+        snapshots = []
         count = len(projections)
         def notify(event, **value):
             if event != 'progress':
                 return
             facts, warnings = read_event_stream(event_path)
-            assert not warnings and facts
-            assert len(projections) == count
-            for name, before in pages.items():
-                assert ((journal/name).read_bytes() if (journal/name).exists() else None) == before
+            snapshots.append((not warnings and bool(facts), len(projections),
+                {name: (journal/name).read_bytes() if (journal/name).exists() else None for name in pages}))
             observed.extend(e for e in facts if e['stage'] != 'run' and e['state'] == 'completed')
         write_yaml(path, config)
         assert main([str(path), '--run-id', run_id, '--device', 'cpu',
                      '--verification-root', str(root)], notify=notify) == 0
+        assert snapshots and all(valid and renders == count and current == pages
+                                 for valid, renders, current in snapshots)
         assert observed, 'no durable cell completions visible during execution'
         assert projections[count:] == [run_id]
         facts, warnings = read_event_stream(event_path)
@@ -215,7 +216,7 @@ def test_recipe_caught_failure_projects_durable_terminal_once(tables, monkeypatc
     from experiments.run import main
     from scripts.evaluation.reporting import events as reporting
     root, config, _ = tables
-    config.update(selector_refs=['degree.yaml'])
+    config.update(selector_refs=['degree.yaml', 'b_param_hutch.yaml'])
     path = root/'failure.yaml'
     write_yaml(path, config)
     projections = []
@@ -226,12 +227,19 @@ def test_recipe_caught_failure_projects_durable_terminal_once(tables, monkeypatc
         projections.append(facts[-1])
         return original(**kwargs)
     monkeypatch.setattr(reporting, 'refresh_status_views', observe)
-    def notify(event, **value):
-        if event == 'progress' and value.get('current') == 1:
-            assert not projections
-            raise RuntimeError('owned verification interruption')
+    import experiments.modular_run as runner
+    resolve = runner.resolve_methods
+    resolved = []
+    def fail_selector(**kwargs):
+        assert not projections
+        if not resolved:
+            result = resolve(**kwargs)
+            resolved.append(result)
+            return result
+        raise RuntimeError('owned verification interruption')
+    monkeypatch.setattr(runner, 'resolve_methods', fail_selector)
     assert main([str(path),'--run-id','failed-recipe','--device','cpu',
-                 '--verification-root',str(root)],notify=notify) == 1
+                 '--verification-root',str(root)]) == 1
     assert len(projections)==1
     journal=root/'results/runtime/modular/_journal'
     facts, warnings=read_event_stream(journal/'auto_report.events.jsonl')
