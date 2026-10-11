@@ -244,6 +244,8 @@ def test_recipe_caught_failure_projects_durable_terminal_once(tables, monkeypatc
     journal=root/'results/runtime/modular/_journal'
     facts, warnings=read_event_stream(journal/'auto_report.events.jsonl')
     assert not warnings and any(e['stage']=='selection' and e['state']=='completed' for e in facts)
+    assert facts[-1]['error']['message'] == 'owned verification interruption'
     for name in ('auto_report.md','auto_report.html'):
-        assert 'owned verification interruption' in (journal/name).read_text(encoding='utf-8')
+        page = (journal/name).read_text(encoding='utf-8')
+        assert 'failed:run' in page and facts[-1]['run_id'] in page
     record_property('caught_failure', 'one terminal projection; completed entry and failure retained')
