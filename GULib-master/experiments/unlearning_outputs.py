@@ -36,11 +36,12 @@ def _metric_data_identity(data):
         return _output_data_identity(data)
     # PyTorch increments the version on in-place changes; rebinding a tensor
     # also changes this stamp. The executor owns the graph during this scope.
-    stamp = (int(data.num_nodes), tuple((id(value), value._version) for value in
-        (data.x, data.y, data.edge_index, data.train_mask, data.val_mask, data.test_mask)))
+    tensors = (data.x, data.y, data.edge_index, data.train_mask, data.val_mask, data.test_mask)
+    stamp = (int(data.num_nodes), tuple((id(value), value._version) for value in tensors))
     cached = session.get(id(data))
     if cached is None or cached[1] != stamp:
-        cached = (data, stamp, _output_data_identity(data))
+        # Keep the compared objects alive so replacements cannot recycle their IDs.
+        cached = (data, stamp, _output_data_identity(data), tensors)
         session[id(data)] = cached
     return cached[2]
 

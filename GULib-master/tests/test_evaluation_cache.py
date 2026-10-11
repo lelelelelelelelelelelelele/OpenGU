@@ -225,6 +225,29 @@ def test_metric_identity_is_shared_across_cases_and_released_between_runs(tables
     assert cold['unlearning'][0]['output'] == measured['unlearning'][0]['output']
 
 
+def test_metric_identity_retains_replaced_tensor_until_recheck_and_releases_scope():
+    import weakref
+    from types import SimpleNamespace
+    from experiments.unlearning_outputs import metric_input_session, _metric_data_identity
+    data = SimpleNamespace(num_nodes=3, x=torch.zeros(3,2), y=torch.tensor([0,1,0]),
+        edge_index=torch.tensor([[0,1],[1,2]]), train_mask=torch.tensor([True,False,False]),
+        val_mask=torch.tensor([False,True,False]), test_mask=torch.tensor([False,False,True]))
+    previous = weakref.ref(data.x)
+    with metric_input_session():
+        original = _metric_data_identity(data)
+        data.x = None
+        assert previous() is not None
+        data.x = torch.ones(3,2)
+        assert _metric_data_identity(data)['features_hash'] != original['features_hash']
+        assert previous() is None
+    current = weakref.ref(data.x)
+    with metric_input_session():
+        _metric_data_identity(data)
+        data.x = None
+        assert current() is not None
+    assert current() is None
+
+
 @pytest.mark.parametrize('changed', [None, 'x', 'y', 'edge_index', 'test_mask'])
 def test_output_consumer_preserves_graph_identity_and_rejects_changed_input(tables, changed):
     import pickle
