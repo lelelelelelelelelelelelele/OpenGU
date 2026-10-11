@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from time import perf_counter
 
 from scripts.evaluation.reporting.events import (
-    cache_observation, make_cell_id, new_run_id, record_event, refresh_status_views,
+    cache_observation, make_cell_id, new_run_id, record_event,
 )
 
 
@@ -17,7 +17,6 @@ class ExecutionAudit:
         self.journal = context.runtime_root.parent / '_journal'
         self.path = self.journal / 'auto_report.events.jsonl'
         self.seconds = 0.0
-        self.last_refresh = 0.0
         self.timings = {}
         self.stack = []
 
@@ -34,16 +33,6 @@ class ExecutionAudit:
             self.timings[name] = self.timings.get(name, 0.0) + elapsed - frame[1]
             if self.stack:
                 self.stack[-1][1] += elapsed
-
-    def refresh(self, force=False):
-        # Every event is fsynced. Projection rebuilding is bounded to once per
-        # second and forced at a terminal boundary; there is no epoch journal.
-        if force or perf_counter() - self.last_refresh >= 1.0:
-            started = perf_counter()
-            with self.phase('audit_projection'):
-                refresh_status_views(event_path=self.path)
-            self.seconds += perf_counter() - started
-            self.last_refresh = perf_counter()
 
     def emit(self, common, state, **values):
         started = perf_counter()

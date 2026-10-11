@@ -77,7 +77,8 @@ def main(argv=None, *, notify=None):
                     event_path=event_path, status_md_path=journal / 'auto_report.md',
                     status_html_path=journal / 'auto_report.html')
                 started = perf_counter()
-                record_event(state='started', **event)
+                # Persist facts immediately; build readable views once, after the terminal event.
+                record_event(state='started', refresh=False, **event)
                 from experiments.modular_artifacts import generated_paths
                 try:
                     result = execute(args.config, context=context, notify=notify)

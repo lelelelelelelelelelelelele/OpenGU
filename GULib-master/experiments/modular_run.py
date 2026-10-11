@@ -187,7 +187,6 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                         'selection_document': document['selection.json'],
                         'source': cell.get('source', {'experiment_id': previous['experiment_id'], 'run_id': previous['run_id']})}
                     fact['metrics'] = {'inputs_verified': 1}
-                audit.refresh()
             notify_event(notify, 'progress', position=position, current=source_index + 1, total=total)
         for index, (data, _) in enumerate(loaded_data):
             position = {'stage': 'evaluation', 'dataset_index': index}
@@ -204,7 +203,6 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
         with audit.phase('export'):
             export_outputs(summary, config=config, context=context, run=run)
         notify_event(notify, 'progress', position={'stage': 'export'}, current=1, total=1)
-        audit.refresh(force=True)
         summary['execution_timing'] = {'phase_seconds_exclusive': audit.timings, 'audit_seconds': audit.seconds}
         return summary
     device = torch.device(context.request_device)
@@ -239,7 +237,6 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
             with audit.entry('selection', conditions) as fact, audit.phase('selector_access'):
                 model, checkpoints, observation = None, [], None
                 if 'model' in item:
-                    audit.refresh(force=True)
                     with audit.phase('model_prepare'):
                         model, checkpoints, observation = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
                         checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
@@ -252,8 +249,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                     resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
                         model=model, checkpoints=checkpoints, selectors=[item], include_scores=config.get('return_scores',False),
                         model_config=item.get('model'), training=item.get('training'),
-                        dataset_inputs=inputs,dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'],
-                        audit=audit)[item['method']]
+                        dataset_inputs=inputs,dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'])[item['method']]
                 reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
                 loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
                     expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'],
@@ -269,7 +265,6 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                 fact['cache'] = [cache_fact('selection', reference, resolved['selection']['cache']['hit'])]
                 fact['metrics'] = {'selected_node_count': item['budget']['k']}
             summary['selectors'][-1]['access_timing'] = fact['timing']
-            audit.refresh()
             run_state['active'] = []
             notify_event(notify, 'progress', position=position, current=selector_index + 1, total=total)
         if config['stage'] == 'unlearning':
@@ -316,7 +311,6 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                                 dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'],
                                 inputs=inputs, observer=session, audit=audit)
                         if result is None:
-                            audit.refresh(force=True)
                             if item['method'] != 'Retrain':
                                 with audit.phase('model_prepare'):
                                     model, _, checkpoint = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
@@ -351,7 +345,6 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                     fact['metrics'] = {**result['result'], **result['evaluation']['metrics']}
                     fact['metadata_compute_seconds'] = result.get('compute_seconds')
                 summary['unlearning'][-1]['access_timing'] = fact['timing']
-                audit.refresh()
                 run_state['active'] = []
                 notify_event(notify, 'progress', position=position, current=unlearning_index + 1, total=total)
     if config['stage'] == 'unlearning':
@@ -374,7 +367,6 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     for row in summary['selectors']:
         row.pop('result_scores', None)
     notify_event(notify, 'progress', position={'stage': 'export'}, current=1, total=1)
-    audit.refresh(force=True)
     summary['execution_timing'] = {'phase_seconds_exclusive': audit.timings, 'audit_seconds': audit.seconds}
     return summary
 
@@ -405,7 +397,6 @@ def execute(path, *, context=None, dry_run=False, notify=None):
             update_run(run, context.output)
         if run_state.get('audit'):
             audit = run_state['audit']
-            audit.refresh(force=True)
             exc.execution_timing = {'phase_seconds_exclusive': audit.timings,
                                     'audit_seconds': audit.seconds}
         raise
