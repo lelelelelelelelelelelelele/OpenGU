@@ -63,9 +63,8 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
             if score is None:
                 synchronize(data)
                 started = time.perf_counter()
-                score = store.get_or_compute(recipe, compute, fail_if_called=fail_if_score_called)
-                if record is not None and (score.artifact_id != record['artifact_id'] or score.content_hash != record['content_hash']):
-                    raise CacheResolutionError('Score resolution changed during read')
+                score = (store._load_candidate(record, recipe, ()) if record is not None
+                         else store.get_or_compute(recipe, compute, fail_if_called=fail_if_score_called))
                 synchronize(data)
                 access_seconds += time.perf_counter() - started
             return score
@@ -74,7 +73,7 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
         record = None
         if index.database_path.is_file():
             with index.read_session():
-                explanation = ArtifactResolver(index).explain_compatible(ArtifactType.SCORE, recipe)
+                explanation = ArtifactResolver(index).explain_cached_compatible(ArtifactType.SCORE, recipe)
                 if explanation.hit:
                     record = explanation.exact_candidate
                 elif explanation.exact_candidate is not None or explanation.miss_reasons != ('no_exact_candidate',):

@@ -122,6 +122,10 @@ def load_selection_artifact(
     recipe = ArtifactRecipe(fields, recipe_version=recipe_wrapper["recipe_version"])
     if recipe.recipe_hash != candidate.get("recipe_hash"):
         raise CacheResolutionError("indexed Recipe does not match requested Artifact")
+    # This is the caller's scientific request identity, not a cache-file checksum.
+    from .store import _nodes_hash
+    if _nodes_hash(sorted(candidate_nodes)) != fields.get('candidate_set_hash'):
+        raise CacheResolutionError('requested candidate_set_hash differs from Selection Recipe')
     for name, expected in (("dataset_fingerprint", expected_dataset_fingerprint),
                            ("graph_fingerprint", expected_graph_fingerprint)):
         if expected is not None and fields.get(name) != expected:

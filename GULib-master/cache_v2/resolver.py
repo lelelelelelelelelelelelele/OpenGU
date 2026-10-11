@@ -85,6 +85,44 @@ class ArtifactResolver:
                 return result
         return first
 
+    def explain_cached(self, artifact_type, recipe, *, candidate=None):
+        """Match admitted content and its current own status, without an audit."""
+        type_value = ArtifactType(artifact_type)
+        if candidate is None:
+            candidate = self.index.find_artifact(type_value, recipe.recipe_hash)
+        resolved, conflicts = self.resolutions.classify(self.index.conflicts(
+            artifact_type=type_value, recipe_hash=recipe.recipe_hash))
+        reasons = []
+        status = verification = None
+        if candidate is None:
+            reasons.append('no_exact_candidate')
+            if self.index.legacy_sources(artifact_type=type_value, recipe_hash=recipe.recipe_hash):
+                reasons.append('legacy_exact_candidate_not_authoritative')
+        else:
+            if candidate['artifact_type'] != type_value.value or candidate['recipe_hash'] != recipe.recipe_hash:
+                raise ValueError('cached record does not match the request')
+            status = ArtifactStatus(candidate['status'])
+            verification = VerificationStatus(candidate['verification_status'])
+            if status != ArtifactStatus.VALID:
+                reasons.append('candidate_status_' + status.value)
+            if verification != VerificationStatus.VERIFIED:
+                reasons.append('candidate_verification_' + verification.value)
+        if conflicts:
+            reasons.append('recipe_conflict_present')
+        return ResolveExplanation(type_value, recipe.recipe_hash, candidate, status,
+            verification, tuple(conflicts), tuple(resolved), (), (), not reasons, tuple(reasons))
+
+    def explain_cached_compatible(self, artifact_type, recipe):
+        from .source_compatibility import recipe_candidates
+        first = None
+        for candidate in recipe_candidates(artifact_type, recipe):
+            result = self.explain_cached(artifact_type, candidate)
+            if first is None:
+                first = result
+            if result.hit or result.miss_reasons != ('no_exact_candidate',):
+                return result
+        return first
+
     def explain_exact(
         self,
         artifact_type: Union[ArtifactType, str],

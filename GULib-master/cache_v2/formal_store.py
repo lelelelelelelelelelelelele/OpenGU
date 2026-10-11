@@ -7,6 +7,7 @@ execution remains an experiment-layer responsibility.
 from __future__ import annotations
 
 import uuid
+import zipfile
 from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Mapping, Optional, Tuple, Union
@@ -354,162 +355,15 @@ class FormalArtifactStore(ArtifactStore):
                 "unsupported formal Artifact dependency relation: {0}".format(relation)
             )
 
-    def _load_verified_dependency_payload(
-        self, parent: Mapping[str, Any], expected_type: ArtifactType
-    ) -> Any:
-        """Verify dependency bytes/header without requiring its producer callback."""
-
-        type_value = ArtifactType(expected_type)
-        semantic = parent.get("semantic_path")
-        if not isinstance(semantic, str):
-            raise ArtifactIntegrityError("dependency has no semantic_path")
-        semantic = normalize_semantic_path(semantic)
+    def _load_verified_dependency_payload(self, parent, expected_type):
+        """Consume a direct admitted dependency once during new-result admission."""
+        from .source_compatibility import stored_recipe
+        payload_class = SelectionPayload if expected_type == ArtifactType.SELECTION else payload_type_for(expected_type, stored_recipe(parent))
+        path = self._safe_output_path(self.root.joinpath(*PurePosixPath(parent["semantic_path"]).parts), "dependency payload")
         try:
-            payload_path = self._safe_output_path(
-                self.root.joinpath(*PurePosixPath(semantic).parts),
-                "dependency payload",
-            )
-            header_path = self._safe_output_path(
-                payload_path.with_name("header.json"),
-                "dependency Artifact header",
-            )
-        except PathValidationError as exc:
-            raise ArtifactIntegrityError(
-                "dependency path escapes ArtifactStore root: {0}".format(exc)
-            )
-        if not payload_path.is_file() or not header_path.is_file():
-            raise ArtifactIntegrityError(
-                "dependency payload or header is missing: {0}".format(
-                    parent.get("artifact_id")
-                )
-            )
-
-        header_value = _parse_canonical_plain_json(
-            header_path.read_bytes(), "dependency Artifact header sidecar"
-        )
-        if not isinstance(header_value, dict) or set(header_value) != {
-            "artifact_header",
-            "payload_contract",
-        }:
-            raise ArtifactIntegrityError(
-                "dependency Artifact header sidecar schema is invalid"
-            )
-        artifact_header = header_value["artifact_header"]
-        payload_contract = header_value["payload_contract"]
-        if not isinstance(artifact_header, dict) or not isinstance(
-            payload_contract, dict
-        ):
-            raise ArtifactIntegrityError(
-                "dependency Artifact header sidecar sections are invalid"
-            )
-        expected_artifact_header_keys = {
-            "header_version",
-            "artifact_id",
-            "artifact_type",
-            "recipe",
-            "recipe_hash",
-            "content_hash",
-            "producer_version",
-            "status",
-            "verification_status",
-            "semantic_path",
-            "compute_seconds",
-            "created_at",
-            "metadata",
-        }
-        if set(artifact_header) != expected_artifact_header_keys:
-            raise ArtifactIntegrityError(
-                "dependency Artifact header fields are invalid"
-            )
-
-        if type_value is ArtifactType.SELECTION:
-            payload_class = SelectionPayload
-            expected_schema = SELECTION_PAYLOAD_SCHEMA
-            expected_version = SELECTION_PAYLOAD_VERSION
-            expected_extension = ".json"
-        else:
-            from .runtime import _decode_exact_mapping
-            wrapper = _decode_exact_mapping(parent["recipe"], "dependency Recipe")
-            payload_class = payload_type_for(type_value, ArtifactRecipe(wrapper["fields"]))
-            expected_schema = payload_class.payload_schema
-            expected_version = payload_class.contract_version
-            expected_extension = "." + payload_class.file_extension
-        if payload_path.suffix != expected_extension:
-            raise ArtifactIntegrityError("dependency payload extension is invalid")
-        if (
-            set(payload_contract) != {"schema", "version", "size_bytes"}
-            or payload_contract.get("schema") != expected_schema
-            or payload_contract.get("version") != expected_version
-            or isinstance(payload_contract.get("size_bytes"), bool)
-            or not isinstance(payload_contract.get("size_bytes"), int)
-            or payload_contract["size_bytes"] < 0
-        ):
-            raise ArtifactIntegrityError(
-                "dependency payload size/schema contract is invalid"
-            )
-        expected_metadata = canonicalize(
-            {
-                "payload_schema": expected_schema,
-                "payload_version": expected_version,
-                "payload_size_bytes": payload_contract["size_bytes"],
-            }
-        )
-        if artifact_header.get("metadata") != expected_metadata:
-            raise ArtifactIntegrityError(
-                "dependency payload contract does not match header metadata"
-            )
-
-        expected_header_fields = {
-            "artifact_id": parent.get("artifact_id"),
-            "artifact_type": type_value.value,
-            "recipe": parent.get("recipe"),
-            "recipe_hash": parent.get("recipe_hash"),
-            "content_hash": parent.get("content_hash"),
-            "status": parent.get("status"),
-            "verification_status": parent.get("verification_status"),
-            "semantic_path": semantic,
-            "compute_seconds": parent.get("compute_seconds"),
-            "created_at": parent.get("created_at"),
-            "header_version": parent.get("header_version"),
-            "metadata": parent.get("metadata"),
-        }
-        for name, expected in expected_header_fields.items():
-            if artifact_header.get(name) != expected:
-                raise ArtifactIntegrityError(
-                    "dependency Artifact header {0} does not match index".format(
-                        name
-                    )
-                )
-        producer_value = artifact_header.get("producer_version")
-        if not isinstance(producer_value, dict) or canonicalize(
-            producer_value
-        ) != parent.get("producer_version"):
-            raise ArtifactIntegrityError(
-                "dependency Artifact producer_version does not match index"
-            )
-
-        before = payload_path.stat()
-        payload_bytes = payload_path.read_bytes()
-        after = payload_path.stat()
-        if before.st_size != after.st_size or before.st_mtime_ns != after.st_mtime_ns:
-            raise ArtifactIntegrityError("dependency payload changed while being read")
-        if len(payload_bytes) != after.st_size:
-            raise ArtifactIntegrityError("dependency payload size changed while being read")
-        if len(payload_bytes) != payload_contract["size_bytes"]:
-            raise ArtifactIntegrityError("dependency payload size does not match header")
-        if sha256_bytes(payload_bytes) != parent.get("content_hash"):
-            raise ArtifactIntegrityError("dependency payload content hash mismatch")
-        payload = payload_class.from_bytes(payload_bytes)
-
-        dependencies = tuple(getattr(payload, "dependencies", ()))
-        expected_parents = sorted(parent_id for _, parent_id in dependencies)
-        if self.index.parents(parent["artifact_id"]) != expected_parents:
-            raise ArtifactIntegrityError(
-                "indexed dependencies do not match dependency payload"
-            )
-        if dependencies:
-            self._validate_dependencies(payload)
-        return payload
+            return payload_class.from_cached_bytes(path.read_bytes())
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise ArtifactIntegrityError("dependency payload cannot be read: " + str(exc)) from exc
 
     def _validate_dependencies(self, payload: Any) -> Tuple[Tuple[str, str], ...]:
         pairs = tuple(payload.dependencies)
@@ -520,7 +374,6 @@ class FormalArtifactStore(ArtifactStore):
             raise ContractValidationError(
                 "formal Artifact dependencies repeat a parent Artifact"
             )
-        resolver = ArtifactResolver(self.index)
         ledger = ConflictResolutionLedger(self.index)
         for relation, parent_id in pairs:
             expected_type = self._expected_parent_type(relation)
@@ -553,11 +406,6 @@ class FormalArtifactStore(ArtifactStore):
             self._assert_typed_no_conflict_marker(
                 expected_type, parent["recipe_hash"]
             )
-            issues = resolver._dependency_issues(parent_id)
-            if issues:
-                raise CacheResolutionError(
-                    "dependency {0} has unhealthy ancestors".format(parent_id)
-                )
             if relation == 'output_evaluation_input':
                 # Cached values consume registered identity, not prediction bytes.
                 # Actual computation/loading owns the upstream payload checks.
@@ -568,12 +416,6 @@ class FormalArtifactStore(ArtifactStore):
                 fields = recipe.fields
                 if fields.get('artifact_contract') != OUTPUT_CONTRACT or recipe.recipe_hash != parent['recipe_hash']:
                     raise ArtifactIntegrityError('Evaluation dependency is not an exact Output v2')
-                selection = fields['selection']
-                selection_record = self.index.get_artifact(selection['artifact_id'])
-                if (selection_record['artifact_type'] != ArtifactType.SELECTION.value or
-                        self.index.parents(parent_id) != [selection['artifact_id']] or
-                        any(selection_record[k] != v for k,v in selection.items())):
-                    raise ArtifactIntegrityError('Output Selection reference mismatch')
                 dependency = next(o for o in payload.identity['outputs'] if o['reference']['artifact_id'] == parent_id)
                 identity = {key:value for key,value in fields.items() if key != 'artifact_contract'}
                 if identity != dependency['identity'] or any(parent[k] != v for k,v in dependency['reference'].items()):
@@ -1019,49 +861,51 @@ class FormalArtifactStore(ArtifactStore):
             )
             return result
 
-    def resolve_payload_read_only(
-        self,
-        artifact_type: Union[ArtifactType, str],
-        recipe: ArtifactRecipe,
-        *,
-        artifact_id: Optional[str] = None,
-    ) -> Optional[FormalStoreResult]:
+    def _read_cached_candidate(self, candidate, recipe, artifact_type, reader=None):
+        from .source_compatibility import stored_recipe
+        from .runtime import _decode_exact_mapping
+        recipe = stored_recipe(candidate, recipe, artifact_type)
+        payload_class = payload_type_for(artifact_type, recipe)
+        path = self._safe_output_path(self.root.joinpath(*PurePosixPath(candidate["semantic_path"]).parts), "cached payload")
+        try:
+            payload = (reader or payload_class.from_cached_bytes)(path.read_bytes())
+        except FileNotFoundError as exc:
+            raise ArtifactIntegrityError("cached payload is missing: " + str(path)) from exc
+        except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile) as exc:
+            raise ArtifactIntegrityError("cached JSON/NPZ payload cannot be read or parsed: " + str(exc)) from exc
+        return FormalStoreResult(hit=True, outcome="hit", artifact_id=candidate["artifact_id"],
+            content_hash=candidate["content_hash"], semantic_path=candidate["semantic_path"],
+            payload=payload, recipe_hash=recipe.recipe_hash,
+            generation_producer=_decode_exact_mapping(candidate["producer_version"], "producer"),
+            consumption_producer=self.producer_version.to_dict())
+
+    def resolve_payload_read_only(self, artifact_type, recipe, *, artifact_id=None, reader=None):
+        """Consume admitted immutable content; comprehensive verification is not a HIT."""
         self._ensure_initialized()
         type_value = self._formal_type(artifact_type)
         self._validate_recipe_producer(recipe)
-        self._assert_typed_no_conflict_marker(type_value, recipe.recipe_hash)
-        before = ArtifactResolver(self.index).explain_compatible(type_value, recipe)
-        if not before.hit or before.exact_candidate is None:
-            if before.exact_candidate is None and before.miss_reasons == ('no_exact_candidate',):
+        explanation = ArtifactResolver(self.index).explain_cached_compatible(type_value, recipe)
+        if not explanation.hit:
+            if explanation.exact_candidate is None and explanation.miss_reasons == ('no_exact_candidate',):
                 return None
-            raise CacheResolutionError(
-                "exact {0} Artifact is not resolvable: {1}".format(
-                    type_value.value, ",".join(before.miss_reasons)
-                )
-            )
-        if artifact_id is not None and before.exact_candidate.get("artifact_id") != artifact_id:
-            raise CacheResolutionError(
-                "exact {0} Artifact ID does not match requested Artifact".format(
-                    type_value.value
-                )
-            )
-        result = self._load_typed_candidate(
-            before.exact_candidate,
-            recipe,
-            type_value,
-            miss_reasons=before.miss_reasons,
-        )
-        self._assert_typed_no_conflict_marker(type_value, recipe.recipe_hash)
-        after = ArtifactResolver(self.index).explain_compatible(type_value, recipe)
-        if (
-            not after.hit
-            or after.exact_candidate is None
-            or after.exact_candidate.get("artifact_id") != result.artifact_id
-        ):
-            raise CacheResolutionError(
-                "exact {0} resolution changed during read".format(type_value.value)
-            )
-        return result
+            raise CacheResolutionError("cached Artifact is not resolvable: " + ",".join(explanation.miss_reasons))
+        candidate = explanation.exact_candidate
+        if artifact_id is not None and candidate["artifact_id"] != artifact_id:
+            raise CacheResolutionError("cached Artifact ID does not match requested Artifact")
+        self._assert_typed_no_conflict_marker(type_value, candidate["recipe_hash"])
+        return self._read_cached_candidate(candidate, recipe, type_value, reader)
+
+    def verify_payload(self, artifact_type, recipe, *, artifact_id=None):
+        """Explicit integrity audit, separate from ordinary trusted consumption."""
+        self._ensure_initialized()
+        type_value = self._formal_type(artifact_type)
+        explanation = ArtifactResolver(self.index).explain_compatible(type_value, recipe)
+        if not explanation.hit:
+            raise CacheResolutionError('Artifact audit failed: ' + ','.join(explanation.miss_reasons))
+        candidate = explanation.exact_candidate
+        if artifact_id is not None and candidate['artifact_id'] != artifact_id:
+            raise CacheResolutionError('Artifact audit ID mismatch')
+        return self._load_typed_candidate(candidate, recipe, type_value)
 
     def load_payload_read_only(
         self,

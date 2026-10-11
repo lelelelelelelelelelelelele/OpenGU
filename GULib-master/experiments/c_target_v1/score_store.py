@@ -236,6 +236,15 @@ class ScoreBundlePayload:
                 "ScoreBundle contract is invalid: {0}".format(exc)
             )
 
+    @classmethod
+    def from_cached_bytes(cls, payload):
+        from cache_v2.reading import cached_fields
+        value = json.loads(payload)
+        value["candidate_nodes_ordered"] = tuple(value["candidate_nodes_ordered"])
+        for name in ("scores", "rankings"):
+            value[name] = {key: tuple(items) for key, items in value[name].items()}
+        return cached_fields(cls, value)
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "payload_version": self.payload_version,
@@ -385,81 +394,25 @@ class ScoreBundleStore:
         payload_path = self.root.joinpath(*PurePosixPath(semantic).parts)
         return semantic, payload_path, payload_path.with_name("header.json")
 
-    def _load_candidate(
-        self,
-        candidate: Mapping[str, Any],
-        recipe: ArtifactRecipe,
-        miss_reasons: Tuple[str, ...],
-    ) -> ScoreStoreResult:
+    def _load_candidate(self, candidate, recipe, miss_reasons):
         from cache_v2.source_compatibility import stored_recipe
         recipe = stored_recipe(candidate, recipe, ArtifactType.SCORE)
-        semantic = candidate.get("semantic_path")
-        if not isinstance(semantic, str):
-            raise ScoreBundleIntegrityError(
-                "indexed ScoreArtifact has no semantic path"
-            )
-        payload_path = self.root.joinpath(*PurePosixPath(semantic).parts)
-        header_path = payload_path.with_name("header.json")
-        if not payload_path.is_file() or not header_path.is_file():
-            raise ScoreBundleIntegrityError(
-                "indexed ScoreBundle payload or header is missing"
-            )
-        payload_bytes = payload_path.read_bytes()
-        observed_hash = sha256_bytes(payload_bytes)
-        if observed_hash != candidate.get("content_hash"):
-            raise ScoreBundleIntegrityError(
-                "ScoreBundle payload content hash mismatch"
-            )
-        header_value = _parse_bytes(
-            header_path.read_bytes(), "ScoreBundle header"
-        )
-        if (
-            not isinstance(header_value, dict)
-            or set(header_value)
-            != {"artifact_header", "payload_contract"}
-        ):
-            raise ScoreBundleIntegrityError(
-                "ScoreBundle header schema mismatch"
-            )
-        artifact_header = header_value["artifact_header"]
-        contract = header_value["payload_contract"]
-        expected_contract = {
-            "schema": PAYLOAD_SCHEMA,
-            "version": PAYLOAD_VERSION,
-            "size_bytes": len(payload_bytes),
-        }
-        if contract != expected_contract:
-            raise ScoreBundleIntegrityError(
-                "ScoreBundle payload contract mismatch"
-            )
-        for name, expected in (
-            ("artifact_id", candidate.get("artifact_id")),
-            ("artifact_type", ArtifactType.SCORE.value),
-            ("recipe_hash", recipe.recipe_hash),
-            ("content_hash", observed_hash),
-            ("semantic_path", semantic),
-            ("status", ArtifactStatus.VALID.value),
-            ("verification_status", VerificationStatus.VERIFIED.value),
-        ):
-            if artifact_header.get(name) != expected:
-                raise ScoreBundleIntegrityError(
-                    "ScoreBundle header {0} mismatch".format(name)
-                )
-        payload = ScoreBundlePayload.from_bytes(payload_bytes)
-        payload.validate_against(recipe)
-        return ScoreStoreResult(
-            hit=True,
-            outcome="hit",
-            artifact_id=str(candidate["artifact_id"]),
-            content_hash=observed_hash,
-            semantic_path=semantic,
-            payload=payload,
-            producer_called=False,
-            miss_reasons=miss_reasons,
-        )
+        path = self.root.joinpath(*PurePosixPath(candidate["semantic_path"]).parts)
+        if self.root not in path.resolve().parents:
+            raise ScoreBundleIntegrityError("ScoreBundle payload escapes its Store")
+        try:
+            payload = ScoreBundlePayload.from_cached_bytes(path.read_bytes())
+        except FileNotFoundError as exc:
+            raise ScoreBundleIntegrityError("ScoreBundle payload is missing: " + str(path)) from exc
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise ScoreBundleIntegrityError("ScoreBundle payload cannot be read: " + str(exc)) from exc
+        return ScoreStoreResult(hit=True, outcome="hit", artifact_id=candidate["artifact_id"],
+            content_hash=candidate["content_hash"],
+            semantic_path=candidate["semantic_path"], payload=payload,
+            producer_called=False, miss_reasons=miss_reasons)
 
     def _lookup(self, recipe):
-        explanation = ArtifactResolver(self.index).explain_compatible(
+        explanation = ArtifactResolver(self.index).explain_cached_compatible(
             ArtifactType.SCORE, recipe
         )
         if explanation.hit and explanation.exact_candidate is not None:

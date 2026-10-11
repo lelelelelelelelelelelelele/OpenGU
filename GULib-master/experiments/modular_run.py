@@ -382,7 +382,7 @@ def execute(path, *, context=None, dry_run=False, notify=None):
         from contextlib import nullcontext
         index = CacheIndex(context.store_root/'index.sqlite') if context and not dry_run else None
         scope = index.read_session() if index and index.database_path.is_file() else nullcontext()
-        with fingerprint_session(), metric_input_session(), scope:
+        with fingerprint_session(), metric_input_session(), scope, (index.write_session() if index else nullcontext()):
             result = _execute(path, context=context, dry_run=dry_run, run_state=run_state, notify=notify)
         if not dry_run:
             notify_event(notify, 'completed', position={})

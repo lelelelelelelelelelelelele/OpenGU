@@ -34,7 +34,7 @@ def describe_output(reference, store_root, *, dataset_input=None):
         current = gu_producer(fields['target']['method'], fields['pairing']['model'])
         if not _allowed_output_source(recipe, current):
             raise ConfigurationError('method output producer changed; explicit new execution required')
-        explanation = ArtifactResolver(index).explain_compatible(ArtifactType.PREDICTION, recipe)
+        explanation = ArtifactResolver(index).explain_cached(ArtifactType.PREDICTION, recipe, candidate=record)
         if not explanation.hit:
             raise ConfigurationError('Output dependency is not valid and verified: ' + ','.join(explanation.miss_reasons))
         if dataset_input is not None and dataset_input != fields['dataset_input']:

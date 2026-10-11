@@ -302,6 +302,13 @@ class SelectionPayload:
                 "Selection payload contract is invalid: {0}".format(exc)
             )
 
+    @classmethod
+    def from_cached_bytes(cls, payload):
+        from .reading import cached_fields
+        value = json.loads(payload)
+        value['selected_nodes_ordered'] = tuple(value['selected_nodes_ordered'])
+        return cached_fields(cls, value)
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "payload_version": self.payload_version,
@@ -1200,90 +1207,36 @@ class ArtifactStore:
             miss_reasons=miss_reasons,
         )
 
-    def load(
-        self,
-        recipe: ArtifactRecipe,
-        num_nodes: int,
-        *,
-        candidate_nodes: Sequence[int],
-    ) -> StoreResult:
+    def load(self, recipe, num_nodes, *, candidate_nodes=None):
+        return self.load_read_only(recipe, num_nodes, candidate_nodes=candidate_nodes)
+
+    def verify_selection(self, recipe, num_nodes, *, candidate_nodes=None):
+        """Explicit Selection integrity audit; normal HIT uses load_read_only."""
         self._ensure_initialized()
-        if not isinstance(recipe, ArtifactRecipe):
-            raise ContractValidationError("recipe must be ArtifactRecipe")
-        candidates = _validate_candidate_input(recipe, num_nodes, candidate_nodes)
-        with self._recipe_lock(recipe):
-            self._assert_no_conflict_marker(recipe)
-            explanation = ArtifactResolver(self.index).explain_compatible(
-                ArtifactType.SELECTION, recipe
-            )
-            if not explanation.hit or explanation.exact_candidate is None:
-                raise CacheResolutionError(
-                    "exact Selection Artifact is not resolvable: {0}".format(
-                        ",".join(explanation.miss_reasons)
-                    )
-                )
-            return self._load_candidate(
-                explanation.exact_candidate,
-                recipe,
-                num_nodes,
-                candidate_nodes=candidates,
-                miss_reasons=explanation.miss_reasons,
-            )
+        explanation = ArtifactResolver(self.index).explain_compatible(ArtifactType.SELECTION, recipe)
+        if not explanation.hit:
+            raise CacheResolutionError('Selection audit failed: ' + ','.join(explanation.miss_reasons))
+        return self._load_candidate(explanation.exact_candidate, recipe, num_nodes,
+                                    candidate_nodes=candidate_nodes)
 
-    def load_read_only(
-        self,
-        recipe: ArtifactRecipe,
-        num_nodes: int,
-        *,
-        candidate_nodes: Optional[Sequence[int]] = None,
-        artifact_id: Optional[str] = None,
-    ) -> StoreResult:
-        """Verify an immutable exact hit without creating a coordination lock.
-
-        Runtime consumers already know the formal Artifact ID.  They do not
-        compute, register, quarantine, or mutate payloads, so an on-disk writer
-        lock would add an unnecessary cache write.  A second exact resolution
-        after the payload read closes the conflict/status race fail-closed.
-        """
-
+    def load_read_only(self, recipe, num_nodes, *, candidate_nodes=None, artifact_id=None):
+        """Read matched admitted Selection without rehashing or ancestor audit."""
         self._ensure_initialized()
-        if not isinstance(recipe, ArtifactRecipe):
-            raise ContractValidationError("recipe must be ArtifactRecipe")
-        candidates = _validate_candidate_input(recipe, num_nodes, candidate_nodes)
+        explanation = ArtifactResolver(self.index).explain_cached_compatible(ArtifactType.SELECTION, recipe)
+        if not explanation.hit:
+            raise CacheResolutionError("cached Selection is not resolvable: " + ",".join(explanation.miss_reasons))
+        candidate = explanation.exact_candidate
+        if artifact_id is not None and candidate["artifact_id"] != artifact_id:
+            raise CacheResolutionError("cached Selection ID does not match requested Artifact")
         self._assert_no_conflict_marker(recipe)
-        before = ArtifactResolver(self.index).explain_compatible(
-            ArtifactType.SELECTION, recipe
-        )
-        if not before.hit or before.exact_candidate is None:
-            raise CacheResolutionError(
-                "exact Selection Artifact is not resolvable: {0}".format(
-                    ",".join(before.miss_reasons)
-                )
-            )
-        if artifact_id is not None and before.exact_candidate.get("artifact_id") != artifact_id:
-            raise CacheResolutionError(
-                "exact Selection Artifact ID does not match requested Artifact"
-            )
-        result = self._load_candidate(
-            before.exact_candidate,
-            recipe,
-            num_nodes,
-            candidate_nodes=candidates,
-            miss_reasons=before.miss_reasons,
-        )
-        self._assert_no_conflict_marker(recipe)
-        after = ArtifactResolver(self.index).explain_compatible(
-            ArtifactType.SELECTION, recipe
-        )
-        if (
-            not after.hit
-            or after.exact_candidate is None
-            or after.exact_candidate.get("artifact_id") != result.artifact_id
-        ):
-            raise CacheResolutionError(
-                "exact Selection resolution changed during read"
-            )
-        return result
+        path = self._safe_output_path(self.root.joinpath(*PurePosixPath(candidate["semantic_path"]).parts), "Selection payload")
+        try:
+            payload = SelectionPayload.from_cached_bytes(path.read_bytes())
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise ArtifactIntegrityError("Selection JSON payload cannot be read or parsed: " + str(exc)) from exc
+        return StoreResult(hit=True, outcome="hit", artifact_id=candidate["artifact_id"],
+            content_hash=candidate["content_hash"], semantic_path=candidate["semantic_path"],
+            payload=payload, producer_called=False, miss_reasons=())
 
     def store_selection(
         self,

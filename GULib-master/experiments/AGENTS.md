@@ -45,7 +45,7 @@ Selector/Unlearning只以selector_refs声明选点规则；两阶段按同一有
 
 GU 的 `reuse` 编排先以当前输入和 checkpoint 元数据查询 Output，命中不创建 GU 模型或 ensemble、不读取初始权重；MISS 才准备并验证实际权重。元数据读取只声明 `metadata_only`，外部 PT 没有可信 sidecar 时仍读取状态确定身份。模型型 Selector、Artifact 完整性检查及评价保持各自职责。缓存改动同时验证冷路径、warm 命中时的准备调用数与耗时；源码指纹只在一次执行内复用，新运行重新计算。
 
-同一次执行中，Dataset/Split 身份与 Selection 输入只在载入时准备一次；GU producer 信息按方法与有效模型配置复用，组内 checkpoint 信息以共享准备阶段登记。Output 查询按当前真实数据、Selection 前缀、模型／训练／删除语义、target/checkpoint 和来源版本匹配登记的完整 Recipe，不为查 HIT 重建派生图；实际 MISS 仍由原消费者准备和计算。组内只复用不可变请求引用，切组清空，新增 Prediction 登记会重新选来源与检查歧义，索引状态／依赖／冲突仍实时检查。不同前缀、科学参数或来源不能混用。SQLite 先按当前 Recipe 输入筛候选再严格校验，避免在 Python 中解码／哈希无关行；同一次执行的显式只读scope共享连接（autocommit），schema在执行scope的开始和结束核对，每次SELECT仍读取实时行、依赖和冲突；独立查询仍有自己的scope。配对评价中同一完整 Retrain 引用被多个展示坐标重复使用时只算一个 baseline，各坐标的指标、审计和导出仍独立。
+同一次执行中，Dataset/Split 身份与 Selection 输入只在载入时准备一次；GU producer 信息按方法与有效模型配置复用，组内 checkpoint 信息以共享准备阶段登记。Output 查询按当前真实数据、Selection 前缀、模型／训练／删除语义、target/checkpoint 和来源版本匹配登记的完整 Recipe，不为查 HIT 重建派生图；实际 MISS 仍由原消费者准备和计算。组内只复用不可变请求引用，切组清空，新增 Prediction 登记会重新选来源与检查歧义，索引状态／依赖／冲突仍实时检查。不同前缀、科学参数或来源不能混用。SQLite 按当前 Recipe 输入筛候选并匹配科学身份，避免解码无关行。正常缓存采用写后不修改、存储可信的边界：HIT 读取已登记有效内容，不重算文件哈希、不重新打包 NPZ/JSON、不递归审计祖先，也不做读取前后的重复完整检查；实际读取或解析错误直接报告。独立科学请求、已登记无效或冲突仍正确处理。同次执行的显式只读 scope 共享 autocommit 连接，schema 在打开作用域内核对一次；写连接可在同一明确作用域内复用，但每份 Artifact 仍独立提交，成功持久化后才报告 saved。首次入库与显式 verify_selection/verify_payload 审计保持各自职责。配对评价中同一完整 Retrain 引用被多个展示坐标重复使用时只算一个 baseline，各坐标的指标、审计和导出仍独立。
 
 非模型型及 target-direct Selector 先核对登记 Score 引用，再定位 Selection。已有 Selection 命中且未请求 `return_scores` 时，不消费 Score payload 或返回未请求的全量分数／排序；Selection MISS 或实际请求分数导出才加载 Score。调用者明确声明是否消费分数，不增加缓存策略开关。实际加载的 Score 必须仍与先前定位的引用一致，变化直接拒绝。
 

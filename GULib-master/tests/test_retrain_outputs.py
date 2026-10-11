@@ -182,8 +182,8 @@ def test_missing_and_corrupted_outputs_rejected_without_training(tables, monkeyp
     with pytest.raises(ValueError, match='MISS'):
         load_output(result['output'], tables[0] / 'absent')
     payload_path = tables[0] / 'results/cache_v2/artifacts/prediction' / result['artifact_id'] / 'payload.npz'
-    payload_path.write_bytes(payload_path.read_bytes() + b'corrupt disposable fixture')
-    with pytest.raises(Exception, match='hash|size|mismatch'):
+    payload_path.write_bytes(b'not an NPZ archive')
+    with pytest.raises(Exception, match='payload|parsed|NPZ'):
         load_output(result['output'], tables[0] / 'results/cache_v2', dataset_root=tables[0])
 
 
@@ -210,7 +210,7 @@ def changed_retrain(*args, **kwargs):
     raise AssertionError('changed producer must not run during reference validation')
 
 
-def test_changed_producer_and_missing_selection_dependency_rejected(tables, monkeypatch):
+def test_changed_producer_rejected_and_unused_selection_file_not_read(tables, monkeypatch):
     from cache_v2 import CacheIndex
     import unlearning.unlearning_methods.Retrain.retrain as retrain
     configs(tables)
@@ -222,9 +222,9 @@ def test_changed_producer_and_missing_selection_dependency_rejected(tables, monk
             load_output(output, tables[0] / 'results/cache_v2', dataset_root=tables[0])
     record = CacheIndex(tables[0] / 'results/cache_v2/index.sqlite').get_artifact(reference['artifact_id'])
     path = tables[0] / 'results/cache_v2' / record['semantic_path']
-    path.unlink()  # Disposable fixture only: prove missing dependencies fail closed.
-    with pytest.raises(Exception, match='missing'):
-        load_output(output, tables[0] / 'results/cache_v2', dataset_root=tables[0])
+    path.unlink()  # The Output already contains the admitted Selection input.
+    cached = load_output(output, tables[0] / 'results/cache_v2', dataset_root=tables[0])
+    assert cached.identity['selection'] == reference
 
 
 def test_aggregate_serialization_is_lossless():

@@ -112,6 +112,32 @@ class UnlearningOutputPayload:
             raise ArtifactIntegrityError('noncanonical unlearning output')
         return result
 
+    @classmethod
+    def from_cached_bytes(cls, payload):
+        import io, json, zipfile
+        from .reading import cached_fields
+        with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+            metadata = json.loads(archive.read('metadata.json'))
+            groups = {group: {key: _read_npy(archive.read(group + '__' + key + '.npy'), key)
+                for key in metadata['tensors'][group]} for group in ('arrays', 'state', 'auxiliary')}
+        for values in groups.values():
+            for value in values.values():
+                value.setflags(write=False)
+        return cached_fields(cls, dict(identity=metadata['identity'],
+            payload_version=metadata['payload_version'], **groups))
+
+    @staticmethod
+    def metric_from_cached_bytes(payload):
+        import io, json, zipfile
+        from types import SimpleNamespace
+        with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+            metadata = json.loads(archive.read('metadata.json'))
+            arrays = {key: _read_npy(archive.read('arrays__' + key + '.npy'), key)
+                for key in metadata['tensors']['arrays']}
+        for value in arrays.values():
+            value.setflags(write=False)
+        return SimpleNamespace(identity=metadata['identity'], arrays=arrays)
+
     def validate_against(self, recipe):
         if recipe.fields != {'artifact_contract': OUTPUT_CONTRACT, **self.identity}:
             raise ArtifactIntegrityError('unlearning output identity differs from Recipe')

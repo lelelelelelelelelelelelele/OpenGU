@@ -16,6 +16,7 @@ from typing import Any, Dict, Iterator, List, Mapping, Optional, Union
 from .canonical import TYPE_TAG, canonical_json
 
 _read_sessions = ContextVar('cache_index_read_sessions', default=None)
+_write_sessions = ContextVar('cache_index_write_sessions', default=None)
 from .contracts import (
     HEADER_VERSION,
     RECIPE_VERSION,
@@ -285,7 +286,8 @@ class CacheIndex:
                 self._uri("rw"), uri=True, timeout=30.0, isolation_level=None
             )
             self._configure(connection, read_only=False)
-            self._validate_schema(connection)
+            if os.path.normcase(str(self.path)) not in (_read_sessions.get() or {}):
+                self._validate_schema(connection)
             return connection
         except (IndexNotFoundError, SchemaVersionError):
             if connection is not None:
@@ -387,6 +389,9 @@ class CacheIndex:
                 connection.close()
 
     def check_schema(self) -> int:
+        key = os.path.normcase(str(self.path))
+        if key in (_read_sessions.get() or {}) or key in (_write_sessions.get() or {}):
+            return SCHEMA_VERSION
         with self._read_connection() as connection:
             return int(connection.execute("PRAGMA user_version").fetchone()[0])
 
@@ -416,16 +421,39 @@ class CacheIndex:
         token = _read_sessions.set({**sessions, key:connection})
         try:
             yield self
-            self._validate_schema(connection)
         finally:
             _read_sessions.reset(token)
             connection.close()
 
     @contextmanager
+    def write_session(self):
+        """One lazy validated connection; independent durable per-Artifact commits."""
+        key = os.path.normcase(str(self.path))
+        sessions = _write_sessions.get() or {}
+        if key in sessions:
+            yield self
+            return
+        active = {**sessions, key: None}
+        token = _write_sessions.set(active)
+        try:
+            yield self
+        finally:
+            _write_sessions.reset(token)
+            if active[key] is not None:
+                active[key].close()
+
+    @contextmanager
     def batch(self) -> Iterator["CacheIndexBatch"]:
         """Run several writes atomically under ``BEGIN IMMEDIATE``."""
 
-        connection = self._connect_write_existing()
+        sessions = _write_sessions.get() or {}
+        key = os.path.normcase(str(self.path))
+        owned = key not in sessions
+        connection = sessions.get(key)
+        if connection is None:
+            connection = self._connect_write_existing()
+            if not owned:
+                sessions[key] = connection
         try:
             connection.execute("BEGIN IMMEDIATE")
             yield CacheIndexBatch(self, connection)
@@ -437,7 +465,8 @@ class CacheIndex:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            if owned:
+                connection.close()
 
     def transaction(self) -> Iterator["CacheIndexBatch"]:
         """Alias for :meth:`batch`, kept explicit for callers and tests."""

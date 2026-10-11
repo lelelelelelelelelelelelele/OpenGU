@@ -245,7 +245,7 @@ def resolve_selection_artifact(
         return SelectionResolution(False, None, ("store_not_initialized",))
     index = CacheIndex(index_path)
     index.check_schema()
-    explanation = ArtifactResolver(index).explain_compatible(
+    explanation = ArtifactResolver(index).explain_cached_compatible(
         ArtifactType.SELECTION, request.recipe
     )
     if explanation.hit and explanation.exact_candidate is not None:

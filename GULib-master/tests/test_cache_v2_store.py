@@ -359,7 +359,7 @@ def test_corruption_fails_closed(tmp_path, corruption):
         expected = "size does not match"
 
     with pytest.raises(ArtifactIntegrityError, match=expected):
-        store.load_read_only(recipe, 10, candidate_nodes=CANDIDATE_NODES)
+        store.verify_selection(recipe, 10, candidate_nodes=CANDIDATE_NODES)
 
 
 def test_header_tamper_fails_closed_against_index(tmp_path):
@@ -376,7 +376,7 @@ def test_header_tamper_fails_closed_against_index(tmp_path):
         json.dumps(sidecar, sort_keys=True, separators=(",", ":")), encoding="utf-8"
     )
     with pytest.raises(ArtifactIntegrityError, match="producer_version.*index"):
-        store.load_read_only(recipe, 10, candidate_nodes=CANDIDATE_NODES)
+        store.verify_selection(recipe, 10, candidate_nodes=CANDIDATE_NODES)
 
 
 def test_registration_failure_preserves_preexisting_formal_file(tmp_path, monkeypatch):

@@ -257,6 +257,11 @@ class ScorePayload:
     contract_version = SCORE_PAYLOAD_VERSION
     file_extension = "npz"
 
+    @classmethod
+    def from_cached_bytes(cls, payload):
+        from .reading import cached_npz
+        return cached_npz(cls, payload)
+
     def __post_init__(self) -> None:
         if self.payload_version != SCORE_PAYLOAD_VERSION:
             raise ContractValidationError("unsupported Score payload version")
@@ -426,6 +431,11 @@ class PredictionPayload:
     payload_schema = PREDICTION_PAYLOAD_SCHEMA
     contract_version = PREDICTION_PAYLOAD_VERSION
     file_extension = "npz"
+
+    @classmethod
+    def from_cached_bytes(cls, payload):
+        from .reading import cached_npz
+        return cached_npz(cls, payload)
 
     def __post_init__(self) -> None:
         if self.payload_version != PREDICTION_PAYLOAD_VERSION:
@@ -615,6 +625,11 @@ class EvaluationPayload:
     payload_schema = EVALUATION_PAYLOAD_SCHEMA
     contract_version = EVALUATION_PAYLOAD_VERSION
     file_extension = "json"
+
+    @classmethod
+    def from_cached_bytes(cls, payload):
+        from .reading import cached_fields
+        return cached_fields(cls, json.loads(payload))
 
     def __post_init__(self) -> None:
         if self.payload_version != EVALUATION_PAYLOAD_VERSION:

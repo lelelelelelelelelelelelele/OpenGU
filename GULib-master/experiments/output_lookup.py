@@ -128,7 +128,7 @@ class OutputLookup:
                     _, record, recipe = preferred[0]
                     self.requests[key] = ({k:record[k] for k in ('artifact_id','recipe_hash','content_hash')},recipe)
                 reference, recipe = self.requests[key]
-                explanation = ArtifactResolver(index).explain_exact(ArtifactType.PREDICTION,recipe)
+                explanation = ArtifactResolver(index).explain_cached(ArtifactType.PREDICTION,recipe)
                 if not explanation.hit or any(explanation.exact_candidate[k] != v for k,v in reference.items()):
                     raise ValueError('Output lookup failed closed: ' + ','.join(explanation.miss_reasons))
             reference = dict(reference)
