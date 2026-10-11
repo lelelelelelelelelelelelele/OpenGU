@@ -174,6 +174,57 @@ def test_metric_reader_rejects_changed_bound_input(tables, changed):
         load_metric_output(cold['unlearning'][0]['output'], root/'results/cache_v2', data=data, dataset_root=root)
 
 
+@pytest.mark.parametrize('changed', ['x', 'y', 'edge_index', 'train_mask', 'val_mask', 'test_mask', 'replace_x'])
+def test_shared_metric_identity_rechecks_changed_graph(tables, monkeypatch, changed):
+    import pickle
+    import experiments.unlearning_outputs as outputs
+    from experiments.effective_config import ConfigurationError
+    root, options = setup(tables)
+    cold = run(tables, 'shared-metric-mutation', **options)
+    data = pickle.loads((root/'graph.pkl').read_bytes())
+    reference = cold['unlearning'][0]['output']
+    original = outputs._output_data_identity
+    calls = []
+    def observed(value):
+        calls.append(value)
+        return original(value)
+    monkeypatch.setattr(outputs, '_output_data_identity', observed)
+    with outputs.metric_input_session():
+        first = outputs.load_metric_output(reference, root/'results/cache_v2', data=data, dataset_root=root)
+        second = outputs.load_metric_output(reference, root/'results/cache_v2', data=data, dataset_root=root)
+        assert first.identity == second.identity and len(calls) == 1
+        if changed == 'replace_x':
+            data.x = data.x + 1
+        else:
+            value = getattr(data, changed)
+            value.view(-1)[-1] = (not bool(value.view(-1)[-1]) if value.dtype == torch.bool else value.view(-1)[-1] + 1)
+        with pytest.raises(ConfigurationError, match='identity mismatch'):
+            outputs.load_metric_output(reference, root/'results/cache_v2', data=data, dataset_root=root)
+    assert len(calls) == 2
+
+
+def test_metric_identity_is_shared_across_cases_and_released_between_runs(tables, monkeypatch):
+    import experiments.unlearning_outputs as outputs
+    root, options = setup(tables)
+    cold = run(tables, 'shared-identity-cold', **options)
+    calls = []
+    original = outputs._output_data_identity
+    def observed(data):
+        calls.append(data)
+        return original(data)
+    monkeypatch.setattr(outputs, '_output_data_identity', observed)
+    for label in ('one', 'two'):
+        case = {'kind':'evaluation','schema_version':1,'case':'post_unlearning_utility_and_retrain_gap',
+                'metrics':['gap_pct'] if label == 'one' else ['gap']}
+        write_yaml(root/'new-gap.yaml', case)
+        measured = run(tables, 'shared-identity-'+label, **{**options,'evaluation_refs':['new-gap.yaml']})
+        assert all(row['hit'] and row['evaluation_cache']['hit'] for row in measured['unlearning'])
+        assert not measured['evaluations'][0]['rows'][0]['cache']['hit']
+        assert outputs._metric_input_identities.get() is None
+    assert len(calls) == 2 and calls[0] is not calls[1]
+    assert cold['unlearning'][0]['output'] == measured['unlearning'][0]['output']
+
+
 @pytest.mark.parametrize('changed', [None, 'x', 'y', 'edge_index', 'test_mask'])
 def test_output_consumer_preserves_graph_identity_and_rejects_changed_input(tables, changed):
     import pickle

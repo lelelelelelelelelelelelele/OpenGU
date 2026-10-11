@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+from contextlib import contextmanager
+from contextvars import ContextVar
 import hashlib
 import json
 import numpy as np
@@ -13,6 +15,34 @@ from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_
 from experiments.effective_config import ConfigurationError, fields
 from experiments.node_deletion import retained_graph
 from utils.target_checkpoint import tensor_hash
+
+
+_metric_input_identities = ContextVar('metric_input_identities', default=None)
+
+
+@contextmanager
+def metric_input_session():
+    """Share graph identities only inside one ordinary executor invocation."""
+    token = _metric_input_identities.set({})
+    try:
+        yield
+    finally:
+        _metric_input_identities.reset(token)
+
+
+def _metric_data_identity(data):
+    session = _metric_input_identities.get()
+    if session is None:
+        return _output_data_identity(data)
+    # PyTorch increments the version on in-place changes; rebinding a tensor
+    # also changes this stamp. The executor owns the graph during this scope.
+    stamp = (int(data.num_nodes), tuple((id(value), value._version) for value in
+        (data.x, data.y, data.edge_index, data.train_mask, data.val_mask, data.test_mask)))
+    cached = session.get(id(data))
+    if cached is None or cached[1] != stamp:
+        cached = (data, stamp, _output_data_identity(data))
+        session[id(data)] = cached
+    return cached[2]
 
 
 def output_reference(result, recipe_hash):
@@ -56,7 +86,7 @@ def load_metric_output(reference, store_root, *, data=None, dataset_root=None):
     if data is None:
         data = resolve_input(payload.identity['dataset_input'], dataset_root)
     pairing = payload.identity['pairing']
-    original_identity = _output_data_identity(data)
+    original_identity = _metric_data_identity(data)
     if (len(payload.arrays['logits']) != data.num_nodes
             or original_identity != pairing['data_identity']):
         raise ConfigurationError('output Dataset/Split identity mismatch')
