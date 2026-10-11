@@ -68,8 +68,6 @@ def cached_measurements(request, store_root, produce, *, audit=None):
         stored = resolve_formal_artifact(Path(store_root), request)
     hit = stored is not None
     if not hit:
-        if audit:
-            audit.refresh(force=True)
         producer_started = perf_counter()
         values = produce()
         producer_seconds = perf_counter() - producer_started

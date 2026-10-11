@@ -21,7 +21,7 @@
     "syncmate_core/cli_reports.py": "40e6e00758a84e8566a3e1a6c0170dbf0a3ccf0ca4d13527fe24b3ba7cdf6693",
     "syncmate_core/cli_setup.py": "f1adad902dcf641583f27dac92b4c12accd90aee158f2d3a3e88909c70224a80",
     "syncmate_core/cli_transfer.py": "4712001983964cf4349aca46737ce649b5204b95b2f45d782300bfdf52838cce",
-    "syncmate_core/collection.py": "8e7dcc215c1f9cf5661726fa7621a7f0ff4142bf9156572ecbcdb12c6761a64a",
+    "syncmate_core/collection.py": "5b5d8ea2bb7bf1ebb5a454df5c635d581b146b809f340d1550b697bc475df281",
     "syncmate_core/console.py": "c69ef741d63a05ea3fcbca0cf148bfae60f9786e7d92b2c842722095687b659d",
     "syncmate_core/constants.py": "5e36e37dc0a4d4d525143bafcb93132be7a7c43da5ed0cb5c186e0439a461120",
     "syncmate_core/context.py": "cf79e909b12358d37b7e45339b11e715f85558eea1e9f6cb91c8e2df94ee8ee0",
@@ -50,7 +50,7 @@
     "syncmate_core/overview.py": "8a72221b138b1f649b93fa045224e84b3931bd180d03d62a76f71b97f0eda987",
     "syncmate_core/paths.py": "7c982e4e70161013fc6bd7f5164e82a396d5f2e4f151ff0e5697b0568228b836",
     "syncmate_core/preflight.py": "7796703d93cc8dec2d8590083fb7d006a3440b7463180d453add6c20488fc916",
-    "syncmate_core/process.py": "fe66af347875c794c619bfee51e3174e2fcddd349055c830720aff2f3fef5c01",
+    "syncmate_core/process.py": "641b725aa4a935ea81375e99709f0a6fd314cf5a430204e7eb2b04a426d0253a",
     "syncmate_core/progress.py": "1b4c82107a0dd0c5f745faa2f5353eb45ca7f7d905d2b70712155053b44c8448",
     "syncmate_core/progress_sync.py": "069ae4655c6c69ee1a41ebca32394a89a482b07a120fb909cb3f1ae33c6c7b82",
     "syncmate_core/project.py": "a221e37780cf98cbd693a2bc245a1bc283200c1fcfa7a128325402390568a0be",
@@ -75,8 +75,8 @@
     "syncmate_core/workflow.py": "cc270d7778e7510bc50ae87f47d61d7e9e2edc2431a8948b3ad6260167afedc9"
   },
   "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
-  "source_commit": "4c60ff045258d8bd66064162f00ca051a297ff83",
+  "source_commit": "57fc133c445fc7d63b6984894699d09510ffc2cf",
   "version": "0.5.1",
   "wheel": "syncmate-0.5.1-py3-none-any.whl",
-  "wheel_sha256": "5fd9efdfa8c9eadd142e5bd0060cf0dd1044893c223e82e76dbd0f9959b0f8c7"
+  "wheel_sha256": "3581eb75321a22e6dc3bbf555f3840c0dbe66799dcbcf8ec8d19072773bb63fe"
 }
