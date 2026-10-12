@@ -1,0 +1,255 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXP-079 seed2024 252点冷热Gate</title><style>body{font:16px/1.75 system-ui,sans-serif;margin:0;background:#eef3f8;color:#192d40}main{max-width:1100px;margin:28px auto;padding:32px;background:white;border-radius:12px}h1{font-size:29px}h2{margin-top:32px;font-size:22px}table{border-collapse:collapse;width:100%;font-size:14px;display:block;overflow-x:auto}td,th{border-bottom:1px solid #d5dee8;padding:8px 13px;text-align:left}th{background:#e8f0f8}code{overflow-wrap:anywhere}a{color:#086aa1}@media(max-width:700px){main{padding:18px;margin:10px}h1{font-size:24px}}</style></head><body><main><h1>EXP-079：seed2024 的252点冷热 Gate 对比</h1>
+<p>两轮完成、回传及项目核验通过。冷轮 <strong>790秒</strong>，热轮 <strong>91秒</strong>；分别对比历史941秒和278秒。未重跑前测。</p>
+<table>
+<thead>
+<tr>
+<th>轮次</th>
+<th style="text-align:right">历史 seed42</th>
+<th style="text-align:right">本轮 seed2024</th>
+<th style="text-align:right">减少</th>
+<th style="text-align:right">耗时降低</th>
+<th style="text-align:right">历史/本轮</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>冷轮</td>
+<td style="text-align:right">941s</td>
+<td style="text-align:right">790s</td>
+<td style="text-align:right">151s</td>
+<td style="text-align:right">16.0%</td>
+<td style="text-align:right">1.19×</td>
+</tr>
+<tr>
+<td>热轮</td>
+<td style="text-align:right">278s</td>
+<td style="text-align:right">91s</td>
+<td style="text-align:right">187s</td>
+<td style="text-align:right">67.3%</td>
+<td style="text-align:right">3.05×</td>
+</tr>
+</tbody>
+</table>
+<h2>范围与计时</h2>
+<p>本轮执行版本：<code>35f7df936e2858cf13ff2a80dda395a18dfc396c</code>；历史执行版本：<code>39da4a58a2bdaa4ba61daec03860274236bf8d45</code>。Cora、CiteSeer、PubMed各12种选点条件×七种方法，各84点，共252点；训练seed2024、删除比例0.1。配置及方法参数保持原矩阵口径。</p>
+<p>完整作业耗时由原Core receipt的started_at至finished_at计算，包含进程初始化、计算、导出和终态投影，排队与回传不计入。每轮1800秒为超时边界；全MISS串行估时22728秒是历史工程预算，不是缓存命中速度预测。</p>
+<p>冷轮排队11秒，热轮排队8秒。回传独立耗时未单独确认，保留未记录。</p>
+<h2>缓存与正确性</h2>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th style="text-align:right">冷轮 e79g7c</th>
+<th style="text-align:right">热轮 e79g7w</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>score</td>
+<td style="text-align:right">hit=252</td>
+<td style="text-align:right">hit=252</td>
+</tr>
+<tr>
+<td>selection</td>
+<td style="text-align:right">hit=252</td>
+<td style="text-align:right">hit=252</td>
+</tr>
+<tr>
+<td>method</td>
+<td style="text-align:right">hit=252</td>
+<td style="text-align:right">hit=252</td>
+</tr>
+<tr>
+<td>selector_checkpoint</td>
+<td style="text-align:right">hit=168, not_applicable=84</td>
+<td style="text-align:right">hit=168, not_applicable=84</td>
+</tr>
+<tr>
+<td>method_checkpoint</td>
+<td style="text-align:right">hit=216, not_applicable=36</td>
+<td style="text-align:right">hit=216, not_applicable=36</td>
+</tr>
+<tr>
+<td>evaluation</td>
+<td style="text-align:right">miss=252</td>
+<td style="text-align:right">hit=252</td>
+</tr>
+<tr>
+<td>post_unlearning_utility_and_retrain_gap</td>
+<td style="text-align:right">miss=216</td>
+<td style="text-align:right">hit=216</td>
+</tr>
+<tr>
+<td>post_unlearning_flip_hop</td>
+<td style="text-align:right">miss=216</td>
+<td style="text-align:right">hit=216</td>
+</tr>
+</tbody>
+</table>
+<p>冷轮684个Evaluation请求全部MISS并计算保存；热轮684个请求全部HIT。两轮Score/Selection/Output适用请求全部HIT，三层producer均未调用。表中Score/Selection按cell展示重复记录；独立选点请求为36组，不能把252展示次数称为252个独立Selection。</p>
+<p>252/252条件、Output及缓存来源引用一致；252份metrics.json和252份selection.json逐字节一致。每轮505份结果产物经正常回传、SHA-256核验及可信索引，项目结果检查接受252格。这里的“接受”是机器结果检查，未代替人的科研结论接受。</p>
+<h2>可比性与结论边界</h2>
+<p>该结果用于评估095交付后的实际工程表现。历史冷轮已有19个Evaluation HIT、665个MISS；本轮为684个MISS，并且训练seed不同。没有追加前测或重复运行来隔离机器负载与冷启动波动，所以不能把耗时比当成严格同seed受控实验或每次运行的保证。</p>
+<p>本次只完成指定252点的两轮性能验证，不代表2520点完整多seed矩阵完成，也不自动提交全表。</p>
+<h2>方法访问分项</h2>
+<p>下表只汇总各方法条目的排他阶段计时，覆盖Output查询及基础Evaluation；不包括全部配对Evaluation、Selector、共享准备、导出或终态投影，不能当作整轮分解。</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th style="text-align:right">历史冷轮</th>
+<th style="text-align:right">本轮冷轮</th>
+<th style="text-align:right">历史热轮</th>
+<th style="text-align:right">本轮热轮</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>output_query</td>
+<td style="text-align:right">150.554s</td>
+<td style="text-align:right">179.797s</td>
+<td style="text-align:right">18.728s</td>
+<td style="text-align:right">10.303s</td>
+</tr>
+<tr>
+<td>evaluation_query_validation</td>
+<td style="text-align:right">7.587s</td>
+<td style="text-align:right">8.449s</td>
+<td style="text-align:right">42.481s</td>
+<td style="text-align:right">3.410s</td>
+</tr>
+<tr>
+<td>evaluation_inputs</td>
+<td style="text-align:right">69.537s</td>
+<td style="text-align:right">32.947s</td>
+<td style="text-align:right">0.000s</td>
+<td style="text-align:right">0.000s</td>
+</tr>
+<tr>
+<td>metric_formula</td>
+<td style="text-align:right">2.702s</td>
+<td style="text-align:right">2.739s</td>
+<td style="text-align:right">0.000s</td>
+<td style="text-align:right">0.000s</td>
+</tr>
+<tr>
+<td>evaluation_write_validation</td>
+<td style="text-align:right">76.563s</td>
+<td style="text-align:right">61.578s</td>
+<td style="text-align:right">0.000s</td>
+<td style="text-align:right">0.000s</td>
+</tr>
+<tr>
+<td>output_access</td>
+<td style="text-align:right">1.585s</td>
+<td style="text-align:right">1.352s</td>
+<td style="text-align:right">1.624s</td>
+<td style="text-align:right">0.435s</td>
+</tr>
+</tbody>
+</table>
+<h2>数据集访问计时</h2>
+<p>方法访问wall包含其基础Evaluation；配对评价另外列出。这里只是单元累计访问时间，不是数据集或整轮作业起止时间。</p>
+<table>
+<thead>
+<tr>
+<th>轮次</th>
+<th>数据集</th>
+<th style="text-align:right">点数</th>
+<th style="text-align:right">方法访问wall总和</th>
+<th style="text-align:right">配对评价访问总和</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>e79g7c</td>
+<td>Cora</td>
+<td style="text-align:right">84</td>
+<td style="text-align:right">88.678s</td>
+<td style="text-align:right">106.985s</td>
+</tr>
+<tr>
+<td>e79g7c</td>
+<td>CiteSeer</td>
+<td style="text-align:right">84</td>
+<td style="text-align:right">79.441s</td>
+<td style="text-align:right">139.413s</td>
+</tr>
+<tr>
+<td>e79g7c</td>
+<td>PubMed</td>
+<td style="text-align:right">84</td>
+<td style="text-align:right">119.784s</td>
+<td style="text-align:right">115.148s</td>
+</tr>
+<tr>
+<td>e79g7w</td>
+<td>Cora</td>
+<td style="text-align:right">84</td>
+<td style="text-align:right">5.061s</td>
+<td style="text-align:right">1.464s</td>
+</tr>
+<tr>
+<td>e79g7w</td>
+<td>CiteSeer</td>
+<td style="text-align:right">84</td>
+<td style="text-align:right">4.606s</td>
+<td style="text-align:right">1.447s</td>
+</tr>
+<tr>
+<td>e79g7w</td>
+<td>PubMed</td>
+<td style="text-align:right">84</td>
+<td style="text-align:right">5.497s</td>
+<td style="text-align:right">1.958s</td>
+</tr>
+</tbody>
+</table>
+<h2>AutoReport 终态核对</h2>
+<p>两轮原始事件均已出现唯一run completed，全部started与completed配对，无failed或悬空条目。按独立事件计数，每轮Selection36 HIT、Output252 HIT；Evaluation冷轮684 MISS、热轮684 HIT。输入核对条目与实际指标计算分开计数。</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th style="text-align:right">冷轮已完成条目耗时累计</th>
+<th style="text-align:right">热轮已完成条目耗时累计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>output_query</td>
+<td style="text-align:right">179.797s</td>
+<td style="text-align:right">10.303s</td>
+</tr>
+<tr>
+<td>evaluation_inputs</td>
+<td style="text-align:right">63.813s</td>
+<td style="text-align:right">0.000s</td>
+</tr>
+<tr>
+<td>evaluation_query_validation</td>
+<td style="text-align:right">40.722s</td>
+<td style="text-align:right">8.274s</td>
+</tr>
+<tr>
+<td>evaluation_write_validation</td>
+<td style="text-align:right">358.872s</td>
+<td style="text-align:right">0.000s</td>
+</tr>
+<tr>
+<td>metric_formula</td>
+<td style="text-align:right">3.738s</td>
+<td style="text-align:right">0.000s</td>
+</tr>
+</tbody>
+</table>
+<p>此表涵盖基础与配对指标的已完成条目，包含范围比上方方法条目表更广；仍不含条目之外的全部共享准备、审计写入、导出和进程开销。两表不得相加。</p>
+<p>AutoReport执行器wall：冷轮775.170s，热轮83.210s；其中审计追加记录累计分别74.743s、29.363s。执行器wall不包含全部进程导入及结束投影，不替代首页的Runner完整作业时间。</p>
+<h2>证据</h2>
+<ul>
+<li><a href="comparison.json">机器可读对比</a>；<a href="../gate252-20261012/REPORT.md">历史252点报告</a>。</li>
+<li><a href="../../../../../experiments/configs/exp079/cache_speed_gate_s2024.yaml">本轮配置</a>；<a href="../../../../../.syncmate/exp079-gate84-20261013/seed2024-252-check.json">提交前逐点只读检查</a>。</li>
+<li>e79g7c：<a href="e79g7c.summary.json">摘要</a>、<a href="e79g7c.items.csv">逐点CSV</a>、<a href="e79g7c.audit-summary.json">AutoReport摘要</a>、<a href="../../../../../.syncmate/exp079-gate252-20261013/e79g7c.audit-snapshot.json">原始事件快照</a>、<a href="../../../../../results/runs/gpu4090/exp079-cache-speed-gate/e79g7c/run.json">run.json</a>、<a href="../../../../../.syncmate/deliveries/exp079-20261013-e79g7c.json">正式回传核验</a>。</li>
+<li>e79g7w：<a href="e79g7w.summary.json">摘要</a>、<a href="e79g7w.items.csv">逐点CSV</a>、<a href="e79g7w.audit-summary.json">AutoReport摘要</a>、<a href="../../../../../.syncmate/exp079-gate252-20261013/e79g7w.audit-snapshot.json">原始事件快照</a>、<a href="../../../../../results/runs/gpu4090/exp079-cache-speed-gate/e79g7w/run.json">run.json</a>、<a href="../../../../../.syncmate/deliveries/exp079-20261013-e79g7w.json">正式回传核验</a>。</li>
+</ul>
+</main></body></html>

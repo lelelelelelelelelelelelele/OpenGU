@@ -1,0 +1,219 @@
+{
+  "observed_at": "2026-10-12T21:25:52.519815+00:00",
+  "events": 2450,
+  "stages": {
+    "run": {
+      "started": 1,
+      "completed": 1
+    },
+    "selection": {
+      "started": 36,
+      "completed": 36
+    },
+    "attack": {
+      "started": 252,
+      "completed": 252
+    },
+    "evaluation": {
+      "started": 936,
+      "completed": 936
+    }
+  },
+  "groups": {
+    "Cora / selection": {
+      "completed": 12,
+      "wall_seconds": 1.465577322524041
+    },
+    "Cora / attack": {
+      "completed": 84,
+      "wall_seconds": 5.061754773370922
+    },
+    "CiteSeer / selection": {
+      "completed": 12,
+      "wall_seconds": 1.2413179017603397
+    },
+    "CiteSeer / attack": {
+      "completed": 84,
+      "wall_seconds": 4.606660462915897
+    },
+    "PubMed / selection": {
+      "completed": 12,
+      "wall_seconds": 1.1727266195230186
+    },
+    "PubMed / attack": {
+      "completed": 84,
+      "wall_seconds": 5.497903957031667
+    },
+    "Cora / evaluation": {
+      "completed": 312,
+      "wall_seconds": 3.50219671940431
+    },
+    "CiteSeer / evaluation": {
+      "completed": 312,
+      "wall_seconds": 3.9429705454967916
+    },
+    "PubMed / evaluation": {
+      "completed": 312,
+      "wall_seconds": 5.626323402859271
+    }
+  },
+  "cache": {
+    "selection": {
+      "hit": 36
+    },
+    "artifact": {
+      "hit": 252
+    },
+    "result": {
+      "hit": 684
+    }
+  },
+  "completed_entry_phases": {
+    "dataset_prepare": 0.0,
+    "model_prepare": 1.9678150173276663,
+    "selector_access": 1.9105818830430508,
+    "shared_output_request_prepare": 0.0,
+    "evaluation_query_validation": 8.274028191808611,
+    "evaluation_request_prepare": 4.437801969703287,
+    "output_access": 0.43484347173944116,
+    "output_query": 10.303062707651407,
+    "evaluation_identity": 4.656822950579226,
+    "evaluation_pairing": 0.04700312251225114
+  },
+  "run_metadata": {
+    "audit_seconds": 29.362835680600256,
+    "config_path": "/autodl-fs/data/OpenGU/GULib-master/experiments/configs/exp079/cache_speed_gate_s2024.yaml",
+    "execution_run_id": "e79g7w",
+    "level": "formal",
+    "phase_seconds_exclusive": {
+      "dataset_prepare": 0.8050998887047172,
+      "evaluation_identity": 4.656822950579226,
+      "evaluation_pairing": 0.04700312251225114,
+      "evaluation_query_validation": 8.274028191808611,
+      "evaluation_request_prepare": 4.437801969703287,
+      "export": 11.799132552929223,
+      "model_prepare": 1.9678150173276663,
+      "output_access": 0.43484347173944116,
+      "output_query": 10.303062707651407,
+      "selector_access": 1.9105818830430508,
+      "shared_output_request_prepare": 3.2645806572400033
+    },
+    "wall_seconds": 83.20957477623597
+  },
+  "active": [],
+  "last": [
+    {
+      "stage": "evaluation",
+      "state": "started",
+      "timestamp": "2026-10-12T21:24:32Z",
+      "identity": {
+        "budget": "{'mode': 'ratio', 'value': 0.1}",
+        "budget_ratio": "0.1",
+        "dataset": "PubMed",
+        "dataset_fingerprint": "af33ba4c4ab691fdb1af14f8b352676bff01bc9c4d5ff5f40ae32e8b90ef182b",
+        "dataset_index": 2,
+        "dataset_name": "PubMed",
+        "evaluation": "post_unlearning_flip_hop",
+        "execution_stage": "evaluation",
+        "experiment_id": "exp079-cache-speed-gate",
+        "k": null,
+        "method": "GraphRevoker",
+        "model": "OpenGU.GCNNet",
+        "output_id": "pred_3d836bdc_52a082ab",
+        "random_selector_seed": 33,
+        "ratio": "0.1",
+        "seed": 2024,
+        "selector": "random",
+        "selector_ref": "random.yaml",
+        "strategy": "random",
+        "training_seed": 2024,
+        "unlearning_ref": "graphrevoker.yaml"
+      },
+      "metadata": {
+        "execution_run_id": "e79g7w",
+        "level": "formal"
+      },
+      "error": null
+    },
+    {
+      "stage": "evaluation",
+      "state": "completed",
+      "timestamp": "2026-10-12T21:24:32Z",
+      "identity": {
+        "budget": "{'mode': 'ratio', 'value': 0.1}",
+        "budget_ratio": "0.1",
+        "dataset": "PubMed",
+        "dataset_fingerprint": "af33ba4c4ab691fdb1af14f8b352676bff01bc9c4d5ff5f40ae32e8b90ef182b",
+        "dataset_index": 2,
+        "dataset_name": "PubMed",
+        "evaluation": "post_unlearning_flip_hop",
+        "execution_stage": "evaluation",
+        "experiment_id": "exp079-cache-speed-gate",
+        "k": null,
+        "method": "GraphRevoker",
+        "model": "OpenGU.GCNNet",
+        "output_id": "pred_3d836bdc_52a082ab",
+        "random_selector_seed": 33,
+        "ratio": "0.1",
+        "seed": 2024,
+        "selector": "random",
+        "selector_ref": "random.yaml",
+        "strategy": "random",
+        "training_seed": 2024,
+        "unlearning_ref": "graphrevoker.yaml"
+      },
+      "metadata": {
+        "execution_run_id": "e79g7w",
+        "level": "formal",
+        "phase_seconds_exclusive": {
+          "dataset_prepare": 0.0,
+          "evaluation_identity": 0.0,
+          "evaluation_pairing": 0.00012019602581858635,
+          "evaluation_query_validation": 0.012837870046496391,
+          "evaluation_request_prepare": 0.014474979136139154,
+          "model_prepare": 0.0,
+          "output_access": 0.0,
+          "output_query": 0.0,
+          "selector_access": 0.0,
+          "shared_output_request_prepare": 0.0
+        },
+        "producer_compute_seconds": null,
+        "timing_semantics": "current access; exclusive phases; unmeasured remainder is not zero",
+        "wall_seconds": 0.027533615939319134
+      },
+      "error": null
+    },
+    {
+      "stage": "run",
+      "state": "completed",
+      "timestamp": "2026-10-12T21:24:43Z",
+      "identity": {
+        "dataset": "Cora,CiteSeer,PubMed",
+        "execution_stage": "unlearning",
+        "experiment_id": "exp079-cache-speed-gate",
+        "scope": "experiment"
+      },
+      "metadata": {
+        "audit_seconds": 29.362835680600256,
+        "config_path": "/autodl-fs/data/OpenGU/GULib-master/experiments/configs/exp079/cache_speed_gate_s2024.yaml",
+        "execution_run_id": "e79g7w",
+        "level": "formal",
+        "phase_seconds_exclusive": {
+          "dataset_prepare": 0.8050998887047172,
+          "evaluation_identity": 4.656822950579226,
+          "evaluation_pairing": 0.04700312251225114,
+          "evaluation_query_validation": 8.274028191808611,
+          "evaluation_request_prepare": 4.437801969703287,
+          "export": 11.799132552929223,
+          "model_prepare": 1.9678150173276663,
+          "output_access": 0.43484347173944116,
+          "output_query": 10.303062707651407,
+          "selector_access": 1.9105818830430508,
+          "shared_output_request_prepare": 3.2645806572400033
+        },
+        "wall_seconds": 83.20957477623597
+      },
+      "error": null
+    }
+  ]
+}

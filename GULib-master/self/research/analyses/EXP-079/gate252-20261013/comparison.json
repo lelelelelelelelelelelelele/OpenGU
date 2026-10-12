@@ -1,0 +1,34 @@
+{
+  "checks": {
+    "same_output_and_cache_provenance": 252,
+    "identical_metrics.json": 252,
+    "identical_selection.json": 252
+  },
+  "execution_sha": "35f7df936e2858cf13ff2a80dda395a18dfc396c",
+  "historical_execution_sha": "39da4a58a2bdaa4ba61daec03860274236bf8d45",
+  "seed": 2024,
+  "historical_seed": 42,
+  "cold": {
+    "previous_seconds": 941,
+    "current_seconds": 790.0,
+    "saved_seconds": 151.0,
+    "reduction_percent": 16.046758767268866,
+    "speed_ratio": 1.191139240506329
+  },
+  "warm": {
+    "previous_seconds": 278,
+    "current_seconds": 91.0,
+    "saved_seconds": 187.0,
+    "reduction_percent": 67.26618705035972,
+    "speed_ratio": 3.0549450549450547
+  },
+  "historical_cold_evaluation": {
+    "hit": 19,
+    "miss": 665
+  },
+  "current_cold_evaluation": {
+    "hit": 0,
+    "miss": 684
+  },
+  "scope": "Engineering comparison of two252-cell pairs, not a same-seed controlled experiment or full2520-cell scientific result"
+}

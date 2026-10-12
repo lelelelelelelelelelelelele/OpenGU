@@ -1,0 +1,231 @@
+{
+  "observed_at": "2026-10-12T21:21:18.199222+00:00",
+  "events": 2450,
+  "stages": {
+    "run": {
+      "started": 1,
+      "completed": 1
+    },
+    "selection": {
+      "started": 36,
+      "completed": 36
+    },
+    "attack": {
+      "started": 252,
+      "completed": 252
+    },
+    "evaluation": {
+      "started": 936,
+      "completed": 936
+    }
+  },
+  "groups": {
+    "Cora / selection": {
+      "completed": 12,
+      "wall_seconds": 3.254100707359612
+    },
+    "Cora / attack": {
+      "completed": 84,
+      "wall_seconds": 88.67953155608848
+    },
+    "CiteSeer / selection": {
+      "completed": 12,
+      "wall_seconds": 1.9047180926427245
+    },
+    "CiteSeer / attack": {
+      "completed": 84,
+      "wall_seconds": 79.44214873481542
+    },
+    "PubMed / selection": {
+      "completed": 12,
+      "wall_seconds": 2.3584367469884455
+    },
+    "PubMed / attack": {
+      "completed": 84,
+      "wall_seconds": 119.78632846381515
+    },
+    "Cora / evaluation": {
+      "completed": 312,
+      "wall_seconds": 110.0907963719219
+    },
+    "CiteSeer / evaluation": {
+      "completed": 312,
+      "wall_seconds": 145.5511158159934
+    },
+    "PubMed / evaluation": {
+      "completed": 312,
+      "wall_seconds": 120.0810057981871
+    }
+  },
+  "cache": {
+    "selection": {
+      "hit": 36
+    },
+    "artifact": {
+      "hit": 252
+    },
+    "result": {
+      "miss": 684
+    }
+  },
+  "completed_entry_phases": {
+    "dataset_prepare": 0.0,
+    "model_prepare": 2.0648590945638716,
+    "selector_access": 5.450910629238933,
+    "shared_output_request_prepare": 0.0,
+    "evaluation_inputs": 63.81257246248424,
+    "evaluation_query_validation": 40.72223219368607,
+    "evaluation_request_prepare": 4.560567797161639,
+    "evaluation_write_validation": 358.8723845575005,
+    "metric_formula": 3.7383926725015044,
+    "output_access": 1.3519878219813108,
+    "output_query": 179.79683985281736,
+    "evaluation_identity": 10.460227079223841,
+    "evaluation_pairing": 0.07057544123381376
+  },
+  "run_metadata": {
+    "audit_seconds": 74.74280074005947,
+    "config_path": "/autodl-fs/data/OpenGU/GULib-master/experiments/configs/exp079/cache_speed_gate_s2024.yaml",
+    "execution_run_id": "e79g7c",
+    "level": "formal",
+    "phase_seconds_exclusive": {
+      "dataset_prepare": 1.0016918331384659,
+      "evaluation_identity": 10.460227079223841,
+      "evaluation_inputs": 63.81257246248424,
+      "evaluation_pairing": 0.07057544123381376,
+      "evaluation_query_validation": 40.72223219368607,
+      "evaluation_request_prepare": 4.560567797161639,
+      "evaluation_write_validation": 358.8723845575005,
+      "export": 14.262262084055692,
+      "metric_formula": 3.7383926725015044,
+      "model_prepare": 2.0648590945638716,
+      "output_access": 1.3519878219813108,
+      "output_query": 179.79683985281736,
+      "selector_access": 5.450910629238933,
+      "shared_output_request_prepare": 4.3124785223044455
+    },
+    "wall_seconds": 775.1704984642565
+  },
+  "active": [],
+  "last": [
+    {
+      "stage": "evaluation",
+      "state": "started",
+      "timestamp": "2026-10-12T21:20:18Z",
+      "identity": {
+        "budget": "{'mode': 'ratio', 'value': 0.1}",
+        "budget_ratio": "0.1",
+        "dataset": "PubMed",
+        "dataset_fingerprint": "af33ba4c4ab691fdb1af14f8b352676bff01bc9c4d5ff5f40ae32e8b90ef182b",
+        "dataset_index": 2,
+        "dataset_name": "PubMed",
+        "evaluation": "post_unlearning_flip_hop",
+        "execution_stage": "evaluation",
+        "experiment_id": "exp079-cache-speed-gate",
+        "k": null,
+        "method": "GraphRevoker",
+        "model": "OpenGU.GCNNet",
+        "output_id": "pred_3d836bdc_52a082ab",
+        "random_selector_seed": 33,
+        "ratio": "0.1",
+        "seed": 2024,
+        "selector": "random",
+        "selector_ref": "random.yaml",
+        "strategy": "random",
+        "training_seed": 2024,
+        "unlearning_ref": "graphrevoker.yaml"
+      },
+      "metadata": {
+        "execution_run_id": "e79g7c",
+        "level": "formal"
+      },
+      "error": null
+    },
+    {
+      "stage": "evaluation",
+      "state": "completed",
+      "timestamp": "2026-10-12T21:20:19Z",
+      "identity": {
+        "budget": "{'mode': 'ratio', 'value': 0.1}",
+        "budget_ratio": "0.1",
+        "dataset": "PubMed",
+        "dataset_fingerprint": "af33ba4c4ab691fdb1af14f8b352676bff01bc9c4d5ff5f40ae32e8b90ef182b",
+        "dataset_index": 2,
+        "dataset_name": "PubMed",
+        "evaluation": "post_unlearning_flip_hop",
+        "execution_stage": "evaluation",
+        "experiment_id": "exp079-cache-speed-gate",
+        "k": null,
+        "method": "GraphRevoker",
+        "model": "OpenGU.GCNNet",
+        "output_id": "pred_3d836bdc_52a082ab",
+        "random_selector_seed": 33,
+        "ratio": "0.1",
+        "seed": 2024,
+        "selector": "random",
+        "selector_ref": "random.yaml",
+        "strategy": "random",
+        "training_seed": 2024,
+        "unlearning_ref": "graphrevoker.yaml"
+      },
+      "metadata": {
+        "execution_run_id": "e79g7c",
+        "level": "formal",
+        "phase_seconds_exclusive": {
+          "dataset_prepare": 0.0,
+          "evaluation_identity": 0.0,
+          "evaluation_inputs": 0.031073569785803556,
+          "evaluation_pairing": 0.00018066167831420898,
+          "evaluation_query_validation": 0.04426147881895304,
+          "evaluation_request_prepare": 0.01372804818674922,
+          "evaluation_write_validation": 0.617973948828876,
+          "metric_formula": 0.009712044149637222,
+          "model_prepare": 0.0,
+          "output_access": 0.0,
+          "output_query": 0.0,
+          "selector_access": 0.0,
+          "shared_output_request_prepare": 0.0
+        },
+        "producer_compute_seconds": null,
+        "timing_semantics": "current access; exclusive phases; unmeasured remainder is not zero",
+        "wall_seconds": 0.7172939162701368
+      },
+      "error": null
+    },
+    {
+      "stage": "run",
+      "state": "completed",
+      "timestamp": "2026-10-12T21:20:33Z",
+      "identity": {
+        "dataset": "Cora,CiteSeer,PubMed",
+        "execution_stage": "unlearning",
+        "experiment_id": "exp079-cache-speed-gate",
+        "scope": "experiment"
+      },
+      "metadata": {
+        "audit_seconds": 74.74280074005947,
+        "config_path": "/autodl-fs/data/OpenGU/GULib-master/experiments/configs/exp079/cache_speed_gate_s2024.yaml",
+        "execution_run_id": "e79g7c",
+        "level": "formal",
+        "phase_seconds_exclusive": {
+          "dataset_prepare": 1.0016918331384659,
+          "evaluation_identity": 10.460227079223841,
+          "evaluation_inputs": 63.81257246248424,
+          "evaluation_pairing": 0.07057544123381376,
+          "evaluation_query_validation": 40.72223219368607,
+          "evaluation_request_prepare": 4.560567797161639,
+          "evaluation_write_validation": 358.8723845575005,
+          "export": 14.262262084055692,
+          "metric_formula": 3.7383926725015044,
+          "model_prepare": 2.0648590945638716,
+          "output_access": 1.3519878219813108,
+          "output_query": 179.79683985281736,
+          "selector_access": 5.450910629238933,
+          "shared_output_request_prepare": 4.3124785223044455
+        },
+        "wall_seconds": 775.1704984642565
+      },
+      "error": null
+    }
+  ]
+}
