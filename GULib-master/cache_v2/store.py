@@ -842,13 +842,15 @@ class ArtifactStore:
         payload: SelectionPayload,
         semantic_path: str,
         compute_seconds: float,
+        *,
+        content_hash: str,
+        payload_size: int,
         status: ArtifactStatus = ArtifactStatus.VALID,
     ) -> ArtifactHeader:
-        payload_bytes = payload.canonical_bytes
         return ArtifactHeader(
             artifact_type=ArtifactType.SELECTION,
             recipe=recipe,
-            content_hash=sha256_bytes(payload_bytes),
+            content_hash=content_hash,
             producer_version=self.producer_version,
             status=status,
             verification_status=VerificationStatus.VERIFIED,
@@ -857,7 +859,7 @@ class ArtifactStore:
             metadata={
                 "payload_schema": SELECTION_PAYLOAD_SCHEMA,
                 "payload_version": SELECTION_PAYLOAD_VERSION,
-                "payload_size_bytes": len(payload_bytes),
+                "payload_size_bytes": payload_size,
             },
         )
 
@@ -870,16 +872,18 @@ class ArtifactStore:
         num_nodes: int,
         candidate_nodes: Optional[Sequence[int]],
     ) -> StoreResult:
+        payload_bytes = payload.canonical_bytes
+        content_hash = sha256_bytes(payload_bytes)
         artifact_id = build_artifact_id(
-            ArtifactType.SELECTION, recipe.recipe_hash, payload.content_hash
+            ArtifactType.SELECTION, recipe.recipe_hash, content_hash
         )
         semantic, payload_path, header_path = self._formal_paths(
             recipe, artifact_id
         )
         header = self._header_for_payload(
-            recipe, payload, semantic, compute_seconds
+            recipe, payload, semantic, compute_seconds,
+            content_hash=content_hash, payload_size=len(payload_bytes),
         )
-        payload_bytes = payload.canonical_bytes
         created_payload: Optional[_CreatedFile] = None
         created_header: Optional[_CreatedFile] = None
         identical_artifact_id: Optional[str] = None
@@ -909,7 +913,8 @@ class ArtifactStore:
                         )
                         quarantine_path, observed_header = (
                             self._quarantine_observation(
-                                recipe, payload, compute_seconds
+                                recipe, payload, compute_seconds,
+                                payload_bytes=payload_bytes, content_hash=content_hash,
                             )
                         )
                         conflict = ArtifactConflictRecord(
@@ -935,13 +940,7 @@ class ArtifactStore:
                         header_path,
                         self._sidecar_bytes(header, len(payload_bytes)),
                     )
-                    registration = writer.register_artifact(header)
-                    if registration.outcome != RegisterOutcome.CREATED:
-                        raise ArtifactStoreError(
-                            "unexpected registration outcome under write lock: {0}".format(
-                                registration.outcome.value
-                            )
-                        )
+                    writer.insert_artifact(header)
         except Exception:
             self._cleanup_created_file(created_header)
             self._cleanup_created_file(created_payload)
@@ -999,8 +998,10 @@ class ArtifactStore:
         recipe: ArtifactRecipe,
         payload: SelectionPayload,
         compute_seconds: float,
+        *,
+        payload_bytes: bytes,
+        content_hash: str,
     ) -> Tuple[str, ArtifactHeader]:
-        content_hash = payload.content_hash
         semantic = normalize_semantic_path(
             "quarantine/selection/{0}/{1}-{2}/payload.json".format(
                 recipe.recipe_hash[:16], content_hash[:16], uuid.uuid4().hex
@@ -1015,17 +1016,19 @@ class ArtifactStore:
             payload,
             semantic,
             compute_seconds,
+            content_hash=content_hash,
+            payload_size=len(payload_bytes),
             status=ArtifactStatus.CONFLICT,
         )
         created_payload: Optional[_CreatedFile] = None
         created_header: Optional[_CreatedFile] = None
         try:
             created_payload = self._atomic_write_once(
-                payload_path, payload.canonical_bytes
+                payload_path, payload_bytes
             )
             created_header = self._atomic_write_once(
                 payload_path.with_name("header.json"),
-                self._sidecar_bytes(header, len(payload.canonical_bytes)),
+                self._sidecar_bytes(header, len(payload_bytes)),
             )
         except Exception:
             self._cleanup_created_file(created_header)
@@ -1200,90 +1203,39 @@ class ArtifactStore:
             miss_reasons=miss_reasons,
         )
 
-    def load(
-        self,
-        recipe: ArtifactRecipe,
-        num_nodes: int,
-        *,
-        candidate_nodes: Sequence[int],
-    ) -> StoreResult:
+    def load(self, recipe, num_nodes, *, candidate_nodes=None):
+        return self.load_read_only(recipe, num_nodes, candidate_nodes=candidate_nodes)
+
+    def verify_selection(self, recipe, num_nodes, *, candidate_nodes=None):
+        """Explicit Selection integrity audit; normal HIT uses load_read_only."""
         self._ensure_initialized()
-        if not isinstance(recipe, ArtifactRecipe):
-            raise ContractValidationError("recipe must be ArtifactRecipe")
-        candidates = _validate_candidate_input(recipe, num_nodes, candidate_nodes)
-        with self._recipe_lock(recipe):
-            self._assert_no_conflict_marker(recipe)
-            explanation = ArtifactResolver(self.index).explain_compatible(
-                ArtifactType.SELECTION, recipe
-            )
-            if not explanation.hit or explanation.exact_candidate is None:
-                raise CacheResolutionError(
-                    "exact Selection Artifact is not resolvable: {0}".format(
-                        ",".join(explanation.miss_reasons)
-                    )
-                )
-            return self._load_candidate(
-                explanation.exact_candidate,
-                recipe,
-                num_nodes,
-                candidate_nodes=candidates,
-                miss_reasons=explanation.miss_reasons,
-            )
+        explanation = ArtifactResolver(self.index).explain_compatible(ArtifactType.SELECTION, recipe)
+        if not explanation.hit:
+            raise CacheResolutionError('Selection audit failed: ' + ','.join(explanation.miss_reasons))
+        return self._load_candidate(explanation.exact_candidate, recipe, num_nodes,
+                                    candidate_nodes=candidate_nodes)
 
-    def load_read_only(
-        self,
-        recipe: ArtifactRecipe,
-        num_nodes: int,
-        *,
-        candidate_nodes: Optional[Sequence[int]] = None,
-        artifact_id: Optional[str] = None,
-    ) -> StoreResult:
-        """Verify an immutable exact hit without creating a coordination lock.
-
-        Runtime consumers already know the formal Artifact ID.  They do not
-        compute, register, quarantine, or mutate payloads, so an on-disk writer
-        lock would add an unnecessary cache write.  A second exact resolution
-        after the payload read closes the conflict/status race fail-closed.
-        """
-
+    def load_read_only(self, recipe, num_nodes, *, candidate_nodes=None, artifact_id=None, candidate=None):
+        """Read matched admitted Selection without rehashing or ancestor audit."""
         self._ensure_initialized()
-        if not isinstance(recipe, ArtifactRecipe):
-            raise ContractValidationError("recipe must be ArtifactRecipe")
-        candidates = _validate_candidate_input(recipe, num_nodes, candidate_nodes)
+        resolver = ArtifactResolver(self.index)
+        explanation = (resolver.explain_cached(ArtifactType.SELECTION, recipe, candidate=candidate)
+            if candidate is not None else resolver.explain_cached_compatible(ArtifactType.SELECTION, recipe))
+        if not explanation.hit:
+            raise CacheResolutionError("cached Selection is not resolvable: " + ",".join(explanation.miss_reasons))
+        candidate = explanation.exact_candidate
+        if artifact_id is not None and candidate["artifact_id"] != artifact_id:
+            raise CacheResolutionError("cached Selection ID does not match requested Artifact")
         self._assert_no_conflict_marker(recipe)
-        before = ArtifactResolver(self.index).explain_compatible(
-            ArtifactType.SELECTION, recipe
-        )
-        if not before.hit or before.exact_candidate is None:
-            raise CacheResolutionError(
-                "exact Selection Artifact is not resolvable: {0}".format(
-                    ",".join(before.miss_reasons)
-                )
-            )
-        if artifact_id is not None and before.exact_candidate.get("artifact_id") != artifact_id:
-            raise CacheResolutionError(
-                "exact Selection Artifact ID does not match requested Artifact"
-            )
-        result = self._load_candidate(
-            before.exact_candidate,
-            recipe,
-            num_nodes,
-            candidate_nodes=candidates,
-            miss_reasons=before.miss_reasons,
-        )
-        self._assert_no_conflict_marker(recipe)
-        after = ArtifactResolver(self.index).explain_compatible(
-            ArtifactType.SELECTION, recipe
-        )
-        if (
-            not after.hit
-            or after.exact_candidate is None
-            or after.exact_candidate.get("artifact_id") != result.artifact_id
-        ):
-            raise CacheResolutionError(
-                "exact Selection resolution changed during read"
-            )
-        return result
+        path = self._safe_output_path(self.root.joinpath(*PurePosixPath(candidate["semantic_path"]).parts), "Selection payload")
+        try:
+            from .reading import read_cached_payload
+            payload = read_cached_payload(SelectionPayload, path.read_bytes())
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise ArtifactIntegrityError("Selection JSON payload cannot be read or parsed: " + str(exc)) from exc
+        return StoreResult(hit=True, outcome="hit", artifact_id=candidate["artifact_id"],
+            content_hash=candidate["content_hash"], semantic_path=candidate["semantic_path"],
+            payload=payload, producer_called=False, miss_reasons=())
 
     def store_selection(
         self,

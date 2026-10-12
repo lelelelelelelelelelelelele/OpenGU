@@ -102,7 +102,7 @@ def test_registry_current_source_and_unknown_source_boundaries(method):
     assert len(list(recipe_candidates(ArtifactType.SELECTION, ArtifactRecipe(fields)))) == 1
 
 
-def test_exact_recipe_avoids_reconstruction_but_checks_complete_identity(monkeypatch):
+def test_exact_recipe_avoids_reconstruction_but_rejects_other_admitted_requests(monkeypatch):
     from cache_v2 import CacheResolutionError
     import cache_v2.source_compatibility as compatibility
     recipe = ArtifactRecipe({'selector': 'degree', 'budget': 2,
@@ -116,9 +116,10 @@ def test_exact_recipe_avoids_reconstruction_but_checks_complete_identity(monkeyp
         assert stored_recipe(record, recipe, ArtifactType.SELECTION) is recipe
     altered = recipe.fields
     altered['budget'] = 3
-    bad_record = {'recipe_hash': recipe.recipe_hash,
-                  'recipe': ArtifactRecipe(altered).canonical_form}
-    with pytest.raises(CacheResolutionError, match='hash mismatch'):
+    other = ArtifactRecipe(altered)
+    bad_record = {'recipe_hash': other.recipe_hash,
+                  'recipe': other.canonical_form, 'recipe_json': other.canonical_json}
+    with pytest.raises(CacheResolutionError, match='not an allowed source candidate'):
         stored_recipe(bad_record, recipe, ArtifactType.SELECTION)
 
 
@@ -127,15 +128,13 @@ def test_exact_recipe_fastpath_distinguishes_boolean_from_integer(alias):
     from cache_v2 import CacheResolutionError, ContractValidationError
     recipe = ArtifactRecipe({'budget': 0, 'producer_version': {
         'semantic_version': 'exact', 'source_fingerprint': 'current'}})
-    changed = recipe.canonical_form
-    wrapper = dict(changed['items'])
     if alias == 'recipe_version':
-        changed['items'] = [[key, True if key == alias else value]
-                            for key, value in changed['items']]
-    else:
-        fields = wrapper['fields']
-        fields['items'] = [[key, False if key == alias else value]
-                           for key, value in fields['items']]
-    record = {'recipe_hash': recipe.recipe_hash, 'recipe': changed}
-    with pytest.raises((CacheResolutionError, ContractValidationError)):
+        with pytest.raises(ContractValidationError):
+            ArtifactRecipe(recipe.fields, recipe_version=True)
+        return
+    changed = ArtifactRecipe({**recipe.fields, 'budget':False})
+    assert changed.recipe_hash != recipe.recipe_hash
+    record = {'recipe_hash': changed.recipe_hash, 'recipe': changed.canonical_form,
+              'recipe_json': changed.canonical_json}
+    with pytest.raises(CacheResolutionError):
         stored_recipe(record, recipe, ArtifactType.EVALUATION)

@@ -5,7 +5,6 @@ from time import perf_counter
 
 from cache_v2 import ArtifactRecipe, ArtifactType, CacheIndex, ArtifactResolver, ProducerVersion
 from cache_v2.output_evaluation import OutputEvaluationPayload, OUTPUT_EVALUATION_CONTRACT
-from cache_v2.runtime import _decode_exact_mapping
 from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact, store_formal_artifact
 from experiments.effective_config import ConfigurationError
 from experiments.implementation_identity import implementation_fingerprint
@@ -18,23 +17,18 @@ def phase(audit, name):
 def describe_output(reference, store_root, *, dataset_input=None):
     """Resolve registered identity without opening unused input payloads."""
     from cache_v2.unlearning_output import OUTPUT_CONTRACT
-    from experiments.unlearning_outputs import _allowed_output_source
-    from experiments.modular_gu import gu_producer
     if set(reference) != {'artifact_id', 'recipe_hash', 'content_hash'}:
         raise ConfigurationError('an exact Cache V2 Output reference is required')
     index = CacheIndex(Path(store_root) / 'index.sqlite')
     with index.read_session():
         record = index.get_artifact(reference['artifact_id'])
-        wrapper = _decode_exact_mapping(record['recipe'], 'Output Recipe')
-        recipe = ArtifactRecipe(wrapper['fields'], recipe_version=wrapper['recipe_version'])
+        from cache_v2.source_compatibility import stored_recipe
+        recipe = stored_recipe(record)
         fields = recipe.fields
         if (record['artifact_type'] != ArtifactType.PREDICTION.value or fields.get('artifact_contract') != OUTPUT_CONTRACT
                 or any(record[k] != v for k, v in reference.items()) or recipe.recipe_hash != reference['recipe_hash']):
             raise ConfigurationError('Output reference identity mismatch')
-        current = gu_producer(fields['target']['method'], fields['pairing']['model'])
-        if not _allowed_output_source(recipe, current):
-            raise ConfigurationError('method output producer changed; explicit new execution required')
-        explanation = ArtifactResolver(index).explain_compatible(ArtifactType.PREDICTION, recipe)
+        explanation = ArtifactResolver(index).explain_cached(ArtifactType.PREDICTION, recipe, candidate=record)
         if not explanation.hit:
             raise ConfigurationError('Output dependency is not valid and verified: ' + ','.join(explanation.miss_reasons))
         if dataset_input is not None and dataset_input != fields['dataset_input']:
@@ -97,7 +91,8 @@ def single_values(reference, output):
 def evaluate_single(reference, identity, *, store_root, data, dataset_root, audit=None):
     from experiments.unlearning_outputs import load_metric_output
     started = perf_counter()
-    request = single_request(reference, identity)
+    with phase(audit, 'evaluation_request_prepare'):
+        request = single_request(reference, identity)
     def produce():
         with phase(audit, 'evaluation_inputs'):
             output = load_metric_output(reference, store_root, data=data, dataset_root=dataset_root)

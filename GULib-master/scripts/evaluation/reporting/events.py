@@ -14,7 +14,7 @@ import subprocess
 import time
 import uuid
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
@@ -34,6 +34,19 @@ CACHE_TYPES = {"selection", "result", "score", "artifact", "run_artifact"}
 CACHE_OUTCOMES = {"hit", "miss", "bypass", "unknown"}
 WRITE_OUTCOMES = {"saved", "reused", "not_written", "unknown"}
 _validated_streams = {}
+
+
+@dataclass
+class _ValidatedStream:
+    stamp: Any
+    events: List[Dict[str, Any]] = field(default_factory=list)
+    dedup_keys: set = field(default_factory=set)
+    attempts: dict = field(default_factory=dict)
+
+    def add(self, event):
+        self.events.append(event)
+        self.dedup_keys.add(event["dedup_key"])
+        self.attempts.setdefault((event["cell_id"], event["run_id"]), []).append(event)
 
 ENV_EVENT_PATH = "OPENGU_AUTOREPORT_EVENT_PATH"
 ENV_STATUS_MD_PATH = "OPENGU_AUTOREPORT_STATUS_MD_PATH"
@@ -238,8 +251,8 @@ def _projection_events(event_path):
     path = event_path_from_env(event_path)
     stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
     cached = _validated_streams.get(path)
-    if cached and cached[0] == stamp:
-        return cached[1], []
+    if cached and cached.stamp == stamp:
+        return cached.events, []
     return read_event_stream(path)
 
 
@@ -467,20 +480,25 @@ def append_event(
     with _exclusive_lock(path):
         stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
         cached = _validated_streams.get(path)
-        existing, stream_warnings = (cached[1], []) if cached and cached[0] == stamp else read_event_stream(path)
-        integrity_errors = []
-        for index, existing_event in enumerate([] if cached and cached[0] == stamp else existing, 1):
-            try:
-                _validate_event(existing_event)
-            except EventValidationError as exc:
-                integrity_errors.append("event {0}: {1}".format(index, exc))
-        if stream_warnings or integrity_errors:
-            details = "; ".join((stream_warnings + integrity_errors)[:5])
-            raise EventStreamCorruptionError(
-                "refusing to append to an untrusted AutoReport stream: {0}".format(details)
-            )
-        if not any(item.get("dedup_key") == event_value["dedup_key"] for item in existing):
-            _check_transition_conflict(existing, event_value)
+        if cached is None or cached.stamp != stamp:
+            existing, stream_warnings = read_event_stream(path)
+            integrity_errors = []
+            for index, existing_event in enumerate(existing, 1):
+                try:
+                    _validate_event(existing_event)
+                except EventValidationError as exc:
+                    integrity_errors.append("event {0}: {1}".format(index, exc))
+            if stream_warnings or integrity_errors:
+                details = "; ".join((stream_warnings + integrity_errors)[:5])
+                raise EventStreamCorruptionError(
+                    "refusing to append to an untrusted AutoReport stream: {0}".format(details)
+                )
+            cached = _ValidatedStream(stamp)
+            for existing_event in existing:
+                cached.add(existing_event)
+        if event_value["dedup_key"] not in cached.dedup_keys:
+            attempt = (event_value["cell_id"], event_value["run_id"])
+            _check_transition_conflict(cached.attempts.get(attempt, ()), event_value)
             prefix = ""
             if path.exists() and path.stat().st_size:
                 with path.open("rb") as existing_file:
@@ -494,9 +512,10 @@ def append_event(
                 os.fsync(file_obj.fileno())
             written = True
             # Cache the serialized fact, detached from caller-owned nested data.
-            existing = [*existing, json.loads(line)]
+            cached.add(json.loads(line))
         stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
-        _validated_streams[path] = (stamp, existing)
+        cached.stamp = stamp
+        _validated_streams[path] = cached
         if refresh:
             refresh_status_views(
                 event_path=path,

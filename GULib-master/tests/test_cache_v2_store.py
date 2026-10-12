@@ -308,7 +308,7 @@ def test_conflict_marker_survives_quarantine_failure(tmp_path, monkeypatch):
         recipe, [7, 2], num_nodes=10, candidate_nodes=CANDIDATE_NODES
     )
 
-    def fail_quarantine(recipe_arg, payload_arg, compute_seconds_arg):
+    def fail_quarantine(recipe_arg, payload_arg, compute_seconds_arg, **serialized):
         raise RuntimeError("injected quarantine failure")
 
     monkeypatch.setattr(store, "_quarantine_observation", fail_quarantine)
@@ -359,7 +359,7 @@ def test_corruption_fails_closed(tmp_path, corruption):
         expected = "size does not match"
 
     with pytest.raises(ArtifactIntegrityError, match=expected):
-        store.load_read_only(recipe, 10, candidate_nodes=CANDIDATE_NODES)
+        store.verify_selection(recipe, 10, candidate_nodes=CANDIDATE_NODES)
 
 
 def test_header_tamper_fails_closed_against_index(tmp_path):
@@ -376,7 +376,7 @@ def test_header_tamper_fails_closed_against_index(tmp_path):
         json.dumps(sidecar, sort_keys=True, separators=(",", ":")), encoding="utf-8"
     )
     with pytest.raises(ArtifactIntegrityError, match="producer_version.*index"):
-        store.load_read_only(recipe, 10, candidate_nodes=CANDIDATE_NODES)
+        store.verify_selection(recipe, 10, candidate_nodes=CANDIDATE_NODES)
 
 
 def test_registration_failure_preserves_preexisting_formal_file(tmp_path, monkeypatch):
@@ -395,7 +395,7 @@ def test_registration_failure_preserves_preexisting_formal_file(tmp_path, monkey
     def fail_registration(self, artifact_header):
         raise RuntimeError("injected registration failure")
 
-    monkeypatch.setattr(CacheIndexBatch, "register_artifact", fail_registration)
+    monkeypatch.setattr(CacheIndexBatch, "insert_artifact", fail_registration)
     with pytest.raises(RuntimeError, match="registration failure"):
         store.store_selection(
             recipe, [7, 2], num_nodes=10, candidate_nodes=CANDIDATE_NODES

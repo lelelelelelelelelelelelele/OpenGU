@@ -16,6 +16,7 @@ from typing import Any, Dict, Iterator, List, Mapping, Optional, Union
 from .canonical import TYPE_TAG, canonical_json
 
 _read_sessions = ContextVar('cache_index_read_sessions', default=None)
+_write_sessions = ContextVar('cache_index_write_sessions', default=None)
 from .contracts import (
     HEADER_VERSION,
     RECIPE_VERSION,
@@ -134,7 +135,7 @@ def _validate_artifact_record(
     producer_value: Any,
     metadata_value: Any,
 ) -> None:
-    """Revalidate DB rows before they can participate in an exact hit."""
+    """Revalidate stored metadata during an explicit integrity audit."""
 
     try:
         artifact_type = ArtifactType(record["artifact_type"])
@@ -200,24 +201,18 @@ def _validate_artifact_record(
 
 
 def _json_record(row: sqlite3.Row) -> Dict[str, Any]:
+    """Decode admitted metadata; identity and canonicality belong to admission/audit."""
     record = dict(row)
-    parsed_values: Dict[str, Any] = {}
     for column, decoded_name in (
         ("recipe_json", "recipe"),
         ("producer_version_json", "producer_version"),
         ("metadata_json", "metadata"),
     ):
         if column in record:
-            parsed = _parse_canonical_json(record[column], column)
-            parsed_values[column] = parsed
-            record[decoded_name] = parsed
-    if "recipe_json" in record:
-        _validate_artifact_record(
-            record,
-            parsed_values["recipe_json"],
-            parsed_values["producer_version_json"],
-            parsed_values["metadata_json"],
-        )
+            try:
+                record[decoded_name] = json.loads(record[column])
+            except (TypeError, ValueError) as exc:
+                raise CacheIndexError("index contains invalid {0}: {1}".format(column, exc)) from exc
     return record
 
 
@@ -242,6 +237,13 @@ class CacheIndex:
     @property
     def database_path(self) -> Path:
         return self.path
+
+    @staticmethod
+    def audit_record(record: Dict[str, Any]) -> None:
+        """Check an already loaded row without another database query."""
+        values = [_parse_canonical_json(record[column], column) for column in
+                  ("recipe_json", "producer_version_json", "metadata_json")]
+        _validate_artifact_record(record, *values)
 
     def _uri(self, mode: str) -> str:
         absolute = self.path.absolute()
@@ -285,7 +287,8 @@ class CacheIndex:
                 self._uri("rw"), uri=True, timeout=30.0, isolation_level=None
             )
             self._configure(connection, read_only=False)
-            self._validate_schema(connection)
+            if os.path.normcase(str(self.path)) not in (_read_sessions.get() or {}):
+                self._validate_schema(connection)
             return connection
         except (IndexNotFoundError, SchemaVersionError):
             if connection is not None:
@@ -387,6 +390,9 @@ class CacheIndex:
                 connection.close()
 
     def check_schema(self) -> int:
+        key = os.path.normcase(str(self.path))
+        if key in (_read_sessions.get() or {}) or (_write_sessions.get() or {}).get(key) is not None:
+            return SCHEMA_VERSION
         with self._read_connection() as connection:
             return int(connection.execute("PRAGMA user_version").fetchone()[0])
 
@@ -416,16 +422,39 @@ class CacheIndex:
         token = _read_sessions.set({**sessions, key:connection})
         try:
             yield self
-            self._validate_schema(connection)
         finally:
             _read_sessions.reset(token)
             connection.close()
 
     @contextmanager
+    def write_session(self):
+        """One lazy validated connection; independent durable per-Artifact commits."""
+        key = os.path.normcase(str(self.path))
+        sessions = _write_sessions.get() or {}
+        if key in sessions:
+            yield self
+            return
+        active = {**sessions, key: None}
+        token = _write_sessions.set(active)
+        try:
+            yield self
+        finally:
+            _write_sessions.reset(token)
+            if active[key] is not None:
+                active[key].close()
+
+    @contextmanager
     def batch(self) -> Iterator["CacheIndexBatch"]:
         """Run several writes atomically under ``BEGIN IMMEDIATE``."""
 
-        connection = self._connect_write_existing()
+        sessions = _write_sessions.get() or {}
+        key = os.path.normcase(str(self.path))
+        owned = key not in sessions
+        connection = sessions.get(key)
+        if connection is None:
+            connection = self._connect_write_existing()
+            if not owned:
+                sessions[key] = connection
         try:
             connection.execute("BEGIN IMMEDIATE")
             yield CacheIndexBatch(self, connection)
@@ -437,7 +466,8 @@ class CacheIndex:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            if owned:
+                connection.close()
 
     def transaction(self) -> Iterator["CacheIndexBatch"]:
         """Alias for :meth:`batch`, kept explicit for callers and tests."""
@@ -736,6 +766,23 @@ class CacheIndexBatch:
                 conflict_id=conflict.conflict_id,
             )
 
+        self.insert_artifact(header)
+        return RegistrationResult(
+            outcome=RegisterOutcome.CREATED, artifact_id=header.artifact_id
+        )
+
+    def insert_artifact(self, header: ArtifactHeader, *, dependencies=()) -> None:
+        """Insert a new Artifact and its incoming edges in this transaction.
+
+        A strict INSERT proves the child is new. With immediate foreign keys,
+        it cannot already have outgoing edges, so incoming edges cannot form a
+        cycle. Existing-node edits still use add_dependency's cycle check.
+        """
+        if not isinstance(header, ArtifactHeader):
+            raise CacheIndexError("insert_artifact requires ArtifactHeader")
+        edges = tuple(DependencyRecord(parent_artifact_id=parent_id,
+            child_artifact_id=header.artifact_id, relation=relation)
+            for relation, parent_id in dependencies)
         recipe_json = _bounded_json(
             header.recipe.canonical_json, "recipe_json", MAX_RECIPE_JSON_BYTES
         )
@@ -772,9 +819,12 @@ class CacheIndexBatch:
                 metadata_json,
             ),
         )
-        return RegistrationResult(
-            outcome=RegisterOutcome.CREATED, artifact_id=header.artifact_id
-        )
+        for edge in edges:
+            self.connection.execute(
+                "INSERT INTO dependencies(parent_artifact_id, child_artifact_id, relation, created_at) "
+                "VALUES (?, ?, ?, ?)",
+                (edge.parent_artifact_id, edge.child_artifact_id, edge.relation, utc_now_iso()),
+            )
 
     def register_legacy_source(self, record: LegacySourceRecord) -> str:
         if not isinstance(record, LegacySourceRecord):

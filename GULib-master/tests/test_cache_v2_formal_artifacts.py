@@ -408,7 +408,7 @@ def test_formal_store_rejects_missing_or_unhealthy_dependencies(tmp_path):
         )
         connection.commit()
     with pytest.raises(CacheResolutionError, match="dependency"):
-        prediction_store.load_payload_read_only(
+        prediction_store.verify_payload(
             ArtifactType.PREDICTION, recipe, artifact_id=prediction.artifact_id
         )
 
@@ -427,7 +427,7 @@ def test_formal_store_rejects_missing_or_unhealthy_dependencies(tmp_path):
         )
 
 
-def test_evaluation_hit_recursively_rejects_corrupt_selection_dependency(tmp_path):
+def test_evaluation_hit_does_not_audit_unused_selection_file(tmp_path):
     root = (tmp_path / "cache-v2").absolute()
     selection = _selection(root)
     prediction = FormalArtifactStore(
@@ -443,12 +443,13 @@ def test_evaluation_hit_recursively_rejects_corrupt_selection_dependency(tmp_pat
 
     selection_path = root.joinpath(*Path(selection.semantic_path).parts)
     selection_path.write_bytes(selection_path.read_bytes() + b"\n")
-    with pytest.raises(ArtifactIntegrityError, match="dependency payload"):
-        evaluation_store.load_payload_read_only(
-            ArtifactType.EVALUATION,
-            recipe,
-            artifact_id=evaluation.artifact_id,
-        )
+    cached = evaluation_store.load_payload_read_only(
+        ArtifactType.EVALUATION, recipe, artifact_id=evaluation.artifact_id)
+    assert cached.artifact_id == evaluation.artifact_id
+    assert cached.payload.metrics == evaluation.payload.metrics
+    with pytest.raises(ArtifactIntegrityError):
+        ArtifactStore(root, producer_version=SELECTION_VERSION).verify_selection(
+            _selection_recipe(), 6, candidate_nodes=(0, 1, 2, 3, 4, 5))
 
 
 @pytest.mark.parametrize(
@@ -479,7 +480,7 @@ def test_all_formal_types_reject_corrupt_payload_bytes(tmp_path, artifact_type):
     payload_path = root.joinpath(*Path(result.semantic_path).parts)
     payload_path.write_bytes(payload_path.read_bytes() + b"\n")
     with pytest.raises(ArtifactIntegrityError, match="payload"):
-        store.load_payload_read_only(
+        store.verify_payload(
             artifact_type, recipe, artifact_id=result.artifact_id
         )
 
@@ -512,7 +513,7 @@ def test_all_formal_types_reject_corrupt_header_bytes(tmp_path, artifact_type):
     payload_path = root.joinpath(*Path(result.semantic_path).parts)
     payload_path.with_name("header.json").write_bytes(b"{}")
     with pytest.raises(ArtifactIntegrityError, match="header sidecar"):
-        store.load_payload_read_only(
+        store.verify_payload(
             artifact_type, recipe, artifact_id=result.artifact_id
         )
 
@@ -617,7 +618,7 @@ def test_experiment_layer_does_not_recompute_a_corrupt_exact_candidate(tmp_path)
         calls["count"] += 1
         return _score_payload()
 
-    with pytest.raises(ArtifactIntegrityError, match="content hash"):
+    with pytest.raises(ArtifactIntegrityError, match="cannot be read or parsed"):
         materialize_formal_artifact(root, request, forbidden_recompute)
     assert calls["count"] == 0
 

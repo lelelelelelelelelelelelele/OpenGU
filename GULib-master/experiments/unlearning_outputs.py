@@ -10,6 +10,7 @@ import numpy as np
 import torch
 from cache_v2 import ArtifactRecipe, ArtifactType, CacheIndex, ProducerVersion
 from cache_v2.runtime import _decode_exact_mapping
+from cache_v2.reading import read_metric_output
 from cache_v2.unlearning_output import OUTPUT_CONTRACT, UnlearningOutputPayload
 from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact
 from experiments.effective_config import ConfigurationError, fields
@@ -81,7 +82,7 @@ def load_metric_output(reference, store_root, *, data=None, dataset_root=None):
     from types import SimpleNamespace
     from experiments.dataset_inputs import resolve_input
     from experiments.node_deletion import resolve_deletion
-    payload = load_output_payload(reference, store_root, dataset_root=dataset_root)
+    payload = load_output_payload(reference, store_root, dataset_root=dataset_root, reader=read_metric_output)
     if dataset_root is None:
         raise ConfigurationError('method output requires explicit Dataset/Split root')
     if data is None:
@@ -122,7 +123,7 @@ def load_metric_output(reference, store_root, *, data=None, dataset_root=None):
     return SimpleNamespace(identity=payload.identity, arrays=arrays)
 
 
-def load_output_payload(reference, store_root, *, dataset_root=None):
+def load_output_payload(reference, store_root, *, dataset_root=None, reader=None):
     """Consume the exact cached NPZ; graph preparation belongs to its caller."""
     if reference.get('storage') == 'run':
         fields(reference, {'storage', 'path', 'recipe_hash', 'content_hash'},
@@ -153,34 +154,26 @@ def load_output_payload(reference, store_root, *, dataset_root=None):
     if not (root / 'index.sqlite').is_file():
         raise ConfigurationError('method output MISS: Store is absent')
     index = CacheIndex(root / 'index.sqlite')
-    index.check_schema()
-    record = index.get_artifact(reference['artifact_id'])
-    if record['artifact_type'] != ArtifactType.PREDICTION.value:
-        raise ConfigurationError('reference is not a method output')
-    wrapper = _decode_exact_mapping(record['recipe'], 'output Recipe')
-    recipe = ArtifactRecipe(wrapper['fields'], recipe_version=wrapper['recipe_version'])
-    if recipe.fields.get('artifact_contract') != OUTPUT_CONTRACT:
-        raise ConfigurationError('reference does not contain an independent method output')
-    if any(record[key] != reference[key] for key in reference) or recipe.recipe_hash != reference['recipe_hash']:
-        raise ConfigurationError('method output digest mismatch')
-    identity = recipe.fields
-    producer = ProducerVersion(**identity['producer_version'])
-    from experiments.modular_gu import gu_producer
-    current = gu_producer(identity['target']['method'], identity['pairing']['model'])
-    if not _allowed_output_source(recipe, current):
-        raise ConfigurationError('method output producer changed; explicit new execution required')
-    request = FormalArtifactRequest(ArtifactType.PREDICTION, recipe, producer)
-    resolved = resolve_formal_artifact(root, request)
-    if resolved is None:
-        raise ConfigurationError('method output MISS; Metrics cannot execute producers')
-    payload = resolved.payload
-    if resolved.content_hash != reference['content_hash']:
-        raise ConfigurationError('method output content digest mismatch')
-    selection = index.get_artifact(identity['selection']['artifact_id'])
-    if any(selection[key] != value for key, value in identity['selection'].items()):
-        raise ConfigurationError('output Selection dependency digest mismatch')
-    return payload
-
+    with index.read_session():
+        record = index.get_artifact(reference['artifact_id'])
+        if record['artifact_type'] != ArtifactType.PREDICTION.value:
+            raise ConfigurationError('reference is not a method output')
+        from cache_v2.source_compatibility import stored_recipe
+        recipe = stored_recipe(record)
+        if recipe.fields.get('artifact_contract') != OUTPUT_CONTRACT:
+            raise ConfigurationError('reference does not contain an independent method output')
+        if any(record[key] != reference[key] for key in reference) or recipe.recipe_hash != reference['recipe_hash']:
+            raise ConfigurationError('method output digest mismatch')
+        identity = recipe.fields
+        producer = ProducerVersion(**identity['producer_version'])
+        request = FormalArtifactRequest(ArtifactType.PREDICTION, recipe, producer)
+        resolved = resolve_formal_artifact(root, request, reader=reader, candidate=record)
+        if resolved is None:
+            raise ConfigurationError('method output MISS; Metrics cannot execute producers')
+        payload = resolved.payload
+        if resolved.content_hash != reference['content_hash']:
+            raise ConfigurationError('method output content digest mismatch')
+        return payload
 
 def _output_data_identity(data):
     """Verify the existing graph digest without copying its feature bytes.

@@ -73,17 +73,17 @@ def recipe_candidates(artifact_type, recipe):
 
 
 def stored_recipe(record, requested=None, artifact_type=None):
-    # Exact equality reuses the already validated request. Both the complete
-    # tagged Recipe and its digest must match; a digest alone is insufficient.
-    if (requested is not None and record["recipe_hash"] == requested.recipe_hash
-            and json.dumps(record["recipe"], ensure_ascii=False, allow_nan=False,
-                           sort_keys=True, separators=(',', ':')) == requested.canonical_json):
+    # The index row has already been admitted. Match its registered identity;
+    # do not serialize and rehash stored metadata as though it were a new input.
+    if requested is not None and record["recipe_hash"] == requested.recipe_hash:
         return requested
     from .runtime import _decode_exact_mapping
     wrapper = _decode_exact_mapping(record["recipe"], "indexed Recipe")
-    recipe = ArtifactRecipe(wrapper["fields"], recipe_version=wrapper["recipe_version"])
-    if recipe.recipe_hash != record["recipe_hash"]:
-        raise CacheResolutionError("indexed Recipe hash mismatch")
+    recipe = object.__new__(ArtifactRecipe)
+    recipe._fields = wrapper['fields']
+    recipe.recipe_version = wrapper['recipe_version']
+    recipe._canonical_json = record['recipe_json']
+    recipe._recipe_hash = record['recipe_hash']
     if requested is not None and not any(recipe == candidate for candidate in recipe_candidates(artifact_type, requested)):
         raise CacheResolutionError("indexed Recipe is not an allowed source candidate")
     return recipe
