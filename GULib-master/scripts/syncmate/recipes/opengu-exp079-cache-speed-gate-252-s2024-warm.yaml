@@ -1,0 +1,27 @@
+schema_version: 1
+id: opengu-exp079-cache-speed-gate-252-s2024-warm
+runner: experiment
+config_path: experiments/configs/exp079/cache_speed_gate_s2024.yaml
+config_sha256: e89f636d1cf94447c8bab95b36d899a959dc7059c8049fefc01c13d4b13d2f6d
+configuration_fingerprint: 5c1b001bcac6c4979fa75df6bdda1fa02ee17cc07bd1294744c6a16173c9731a
+run_identity:
+  experiment_id: exp079-cache-speed-gate
+  run_id: e79g7w
+timeout_seconds: 1800
+logical_cells: 252
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
