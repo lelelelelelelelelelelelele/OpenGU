@@ -58,6 +58,22 @@ class Sample:
 
     def one_line(self): return self.value
 
+try:
+    raise ValueError()
+except ValueError:
+    class InHandler:
+        pass
+finally:
+    def in_finally(): return 1
+
+if False:
+    pass
+else:
+    def in_else(): return 2
+
+for number in [0]:
+    def in_loop(): return 3
+
 def last():
     return 7''', encoding='utf-8')
     spec = importlib.util.spec_from_file_location('extraction_fixture', path)
@@ -65,7 +81,8 @@ def last():
     import sys
     monkeypatch.setitem(sys.modules, spec.name, module)
     spec.loader.exec_module(module)
-    values = [module.Sample, module.Sample.multiline, module.Sample.nested, module.Sample.one_line, module.last]
+    values = [module.Sample, module.Sample.multiline, module.Sample.nested, module.Sample.one_line,
+              module.InHandler, module.in_finally, module.in_else, module.in_loop, module.last]
     reference = inspect.unwrap(identity.computation_source)
     expected = [reference(value) for value in values]
     original = identity.ast.parse

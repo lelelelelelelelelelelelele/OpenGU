@@ -155,10 +155,16 @@ def _index_source_blocks(extract):
         if path not in files:
             source = Path(path).read_text(encoding='utf-8')
             blocks = {}
-            for node in ast.walk(ast.parse(source)):
+            pending = list(ast.parse(source).body)
+            while pending:
+                node = pending.pop()
                 if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
                     start = min([node.lineno] + [item.lineno for item in node.decorator_list])
                     blocks[start] = blocks[node.lineno] = node
+                # Definitions occur in statement suites, never inside the
+                # expression trees that dominate numerical implementations.
+                for suite in ('body', 'orelse', 'finalbody', 'handlers', 'cases'):
+                    pending.extend(getattr(node, suite, ()))
             files[path] = (source.splitlines(keepends=True), blocks)
         lines, blocks = files[path]
         _, first = inspect.findsource(function)
