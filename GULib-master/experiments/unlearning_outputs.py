@@ -158,8 +158,8 @@ def load_output_payload(reference, store_root, *, dataset_root=None, reader=None
         record = index.get_artifact(reference['artifact_id'])
         if record['artifact_type'] != ArtifactType.PREDICTION.value:
             raise ConfigurationError('reference is not a method output')
-        wrapper = _decode_exact_mapping(record['recipe'], 'output Recipe')
-        recipe = ArtifactRecipe(wrapper['fields'], recipe_version=wrapper['recipe_version'])
+        from cache_v2.source_compatibility import stored_recipe
+        recipe = stored_recipe(record)
         if recipe.fields.get('artifact_contract') != OUTPUT_CONTRACT:
             raise ConfigurationError('reference does not contain an independent method output')
         if any(record[key] != reference[key] for key in reference) or recipe.recipe_hash != reference['recipe_hash']:

@@ -27,7 +27,11 @@ def test_admitted_index_reads_only_decode_json(tmp_path, monkeypatch):
     record = index.get_artifact(reference['artifact_id'])
     assert all(record[key] == value for key, value in reference.items())
     assert index.find_artifact(ArtifactType.PREDICTION, reference['recipe_hash']) == record
+    # Upper reference consumers must not rebuild admitted Recipes either.
+    monkeypatch.setattr(ArtifactRecipe, '__init__', forbidden)
     assert load_output_payload(reference, tmp_path).identity == outputs[0]['identity']
+    from experiments.evaluation_cache import describe_output
+    assert describe_output(reference, tmp_path) == outputs[0]['identity']
 
 
 def test_invalid_index_json_is_still_a_read_error():

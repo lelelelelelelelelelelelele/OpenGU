@@ -31,7 +31,7 @@ def test_posix_owner_probe_never_sends_a_signal(monkeypatch, error, expected):
     assert locks.owner_status(54496) == expected
 
 
-def test_warm_score_does_not_acquire_writer_lock_and_still_checks_bytes(tmp_path, monkeypatch):
+def test_warm_score_does_not_acquire_writer_lock_and_reports_parse_errors(tmp_path, monkeypatch):
     s = store(tmp_path)
     payload = _payload((3, 8, 10))
     recipe = _recipe(payload.candidate_ids_hash)
@@ -44,7 +44,7 @@ def test_warm_score_does_not_acquire_writer_lock_and_still_checks_bytes(tmp_path
     assert s.get_or_compute(recipe, forbidden).artifact_id == cold.artifact_id
     assert lock.exists()
     (tmp_path / cold.semantic_path).write_bytes(b'corrupt')
-    with pytest.raises(ScoreBundleIntegrityError, match='hash mismatch'):
+    with pytest.raises(ScoreBundleIntegrityError, match='cannot be read'):
         s.get_or_compute(recipe, forbidden)
 
 

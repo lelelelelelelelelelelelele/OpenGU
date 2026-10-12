@@ -181,11 +181,12 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
         with (audit.entry('evaluation', conditions) if audit else nullcontext({})) as fact:
             pair = None
             if is_paired_evaluation(instance):
-                candidates = retrains
-                if paired_reference:
-                    candidates = [(paired_reference, read(paired_reference) if paired_reference.get('storage') == 'run'
-                        else describe_output(paired_reference, store_root))]
-                pair = _pair(instance, identity, candidates)
+                with phase(audit, 'evaluation_pairing'):
+                    candidates = retrains
+                    if paired_reference:
+                        candidates = [(paired_reference, read(paired_reference) if paired_reference.get('storage') == 'run'
+                            else describe_output(paired_reference, store_root))]
+                    pair = _pair(instance, identity, candidates)
             def produce():
                 output = value if in_memory else read(reference)
                 baseline = None if pair is None else (pair[0], pair[1] if hasattr(pair[1],'identity') else read(pair[0]))
@@ -194,11 +195,12 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
             if in_memory or (pair and pair[0].get('storage') == 'run'):
                 measured, cache = produce(), None
             else:
-                dependencies = [dict(reference=reference,identity=identity)]
-                if pair:
-                    dependencies.append(dict(reference=pair[0],identity=pair[1].identity if hasattr(pair[1],'identity') else pair[1]))
-                request = evaluation_request(instance['case'], instance['metrics'], dependencies,
-                    _formula_functions(instance['case']), instance['producer_version'])
+                with phase(audit, 'evaluation_request_prepare'):
+                    dependencies = [dict(reference=reference,identity=identity)]
+                    if pair:
+                        dependencies.append(dict(reference=pair[0],identity=pair[1].identity if hasattr(pair[1],'identity') else pair[1]))
+                    request = evaluation_request(instance['case'], instance['metrics'], dependencies,
+                        _formula_functions(instance['case']), instance['producer_version'])
                 measured, cache = cached_measurements(request, store_root, produce, audit=audit)
             rows.append({**measured, 'cache':cache, 'execution_conditions':own_conditions})
             fact['metrics'] = measured['metrics']

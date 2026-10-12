@@ -4,6 +4,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import inspect
+from functools import wraps
 import json
 from pathlib import Path
 from contextlib import contextmanager
@@ -13,6 +14,8 @@ from contextvars import ContextVar
 ROOT = Path(__file__).resolve().parents[1]
 _run_fingerprints = ContextVar('run_fingerprints', default=None)
 _run_producers = ContextVar('run_producers', default=None)
+_source_files = ContextVar('computation_source_files', default=None)
+_source_texts = ContextVar('computation_source_texts', default=None)
 
 
 @contextmanager
@@ -20,10 +23,14 @@ def fingerprint_session():
     """Source is fixed during one execution; never reuse fingerprints across runs."""
     token = _run_fingerprints.set({})
     producer_token = _run_producers.set({})
+    source_token = _source_files.set({})
+    text_token = _source_texts.set({})
     try:
         yield
     finally:
         _run_producers.reset(producer_token)
+        _source_files.reset(source_token)
+        _source_texts.reset(text_token)
         _run_fingerprints.reset(token)
 
 
@@ -130,3 +137,65 @@ def model_factory_fingerprint(model_config):
     # ast.dump omits optional None fields on newer Python, but prints them on 3.8.
     source = json.dumps(structural(tree), sort_keys=True, separators=(',', ':'))
     return hashlib.sha256((source + implementation_fingerprint(runtime_defaults)).encode()).hexdigest()
+
+
+def _index_source_blocks(extract):
+    """Transparent extraction accelerator; preserve source identity via unwrap.
+
+    The original extractor remains appropriate for isolated functions. Classes
+    justify parsing their file once and sharing bounds with overlapping methods.
+    No source text or digest survives the explicit fingerprint session.
+    """
+    def read(function):
+        files = _source_files.get()
+        function = inspect.unwrap(function)
+        path = inspect.getsourcefile(function)
+        if files is None or (path not in files and not inspect.isclass(function)):
+            return extract(function)
+        if path not in files:
+            source = Path(path).read_text(encoding='utf-8')
+            blocks = {}
+            for node in ast.walk(ast.parse(source)):
+                if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                    start = min([node.lineno] + [item.lineno for item in node.decorator_list])
+                    blocks[start] = blocks[node.lineno] = node
+            files[path] = (source.splitlines(keepends=True), blocks)
+        lines, blocks = files[path]
+        _, first = inspect.findsource(function)
+        if getattr(function, '__name__', None) == '<lambda>':
+            return ''.join(inspect.getblock(lines[first:]))
+        node = blocks[first + 1]
+        start = min([node.lineno] + [item.lineno for item in node.decorator_list])
+        end = node.end_lineno
+        if not isinstance(node, ast.ClassDef) and node.body[0].lineno > node.lineno:
+            # inspect includes indented trailing comments, even when separated
+            # by an unindented comment, but excludes trailing blank lines.
+            column = node.body[0].col_offset
+            for number in range(end, len(lines)):
+                line = lines[number]
+                if not line.strip():
+                    continue
+                if line.lstrip().startswith('#'):
+                    if len(line)-len(line.lstrip()) >= column:
+                        end = number + 1
+                else:
+                    break
+        result = ''.join(lines[start - 1:end])
+        if not isinstance(node, ast.ClassDef) and not result.endswith('\n'):
+            result += '\n'  # inspect/linecache normalizes a missing final newline.
+        return result
+    @wraps(extract)
+    def indexed(function):
+        texts = _source_texts.get()
+        if texts is not None and function in texts:
+            return texts[function]
+        result = read(function)
+        if texts is not None:
+            texts[function] = result
+        return result
+    return indexed
+
+
+# functools.wraps keeps the existing computation-source identity. Both paths
+# must return byte-for-byte identical text; no hash compatibility table is used.
+computation_source = _index_source_blocks(computation_source)

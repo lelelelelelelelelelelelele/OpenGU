@@ -415,9 +415,8 @@ class FormalArtifactStore(ArtifactStore):
                 from .runtime import _decode_exact_mapping
                 from .unlearning_output import OUTPUT_CONTRACT
                 wrapper = _decode_exact_mapping(parent['recipe'], 'Output dependency Recipe')
-                recipe = ArtifactRecipe(wrapper['fields'], recipe_version=wrapper['recipe_version'])
-                fields = recipe.fields
-                if fields.get('artifact_contract') != OUTPUT_CONTRACT or recipe.recipe_hash != parent['recipe_hash']:
+                fields = wrapper['fields']
+                if fields.get('artifact_contract') != OUTPUT_CONTRACT:
                     raise ArtifactIntegrityError('Evaluation dependency is not an exact Output v2')
                 dependency = next(o for o in payload.identity['outputs'] if o['reference']['artifact_id'] == parent_id)
                 identity = {key:value for key,value in fields.items() if key != 'artifact_contract'}

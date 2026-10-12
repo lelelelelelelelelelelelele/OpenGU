@@ -5,7 +5,6 @@ from time import perf_counter
 
 from cache_v2 import ArtifactRecipe, ArtifactType, CacheIndex, ArtifactResolver, ProducerVersion
 from cache_v2.output_evaluation import OutputEvaluationPayload, OUTPUT_EVALUATION_CONTRACT
-from cache_v2.runtime import _decode_exact_mapping
 from experiments.artifact_producer import FormalArtifactRequest, resolve_formal_artifact, store_formal_artifact
 from experiments.effective_config import ConfigurationError
 from experiments.implementation_identity import implementation_fingerprint
@@ -23,8 +22,8 @@ def describe_output(reference, store_root, *, dataset_input=None):
     index = CacheIndex(Path(store_root) / 'index.sqlite')
     with index.read_session():
         record = index.get_artifact(reference['artifact_id'])
-        wrapper = _decode_exact_mapping(record['recipe'], 'Output Recipe')
-        recipe = ArtifactRecipe(wrapper['fields'], recipe_version=wrapper['recipe_version'])
+        from cache_v2.source_compatibility import stored_recipe
+        recipe = stored_recipe(record)
         fields = recipe.fields
         if (record['artifact_type'] != ArtifactType.PREDICTION.value or fields.get('artifact_contract') != OUTPUT_CONTRACT
                 or any(record[k] != v for k, v in reference.items()) or recipe.recipe_hash != reference['recipe_hash']):
@@ -92,7 +91,8 @@ def single_values(reference, output):
 def evaluate_single(reference, identity, *, store_root, data, dataset_root, audit=None):
     from experiments.unlearning_outputs import load_metric_output
     started = perf_counter()
-    request = single_request(reference, identity)
+    with phase(audit, 'evaluation_request_prepare'):
+        request = single_request(reference, identity)
     def produce():
         with phase(audit, 'evaluation_inputs'):
             output = load_metric_output(reference, store_root, data=data, dataset_root=dataset_root)
