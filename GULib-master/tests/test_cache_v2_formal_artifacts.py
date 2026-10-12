@@ -623,6 +623,99 @@ def test_experiment_layer_does_not_recompute_a_corrupt_exact_candidate(tmp_path)
     assert calls["count"] == 0
 
 
+def test_first_save_persists_both_trace_facts_with_one_sync(tmp_path, monkeypatch):
+    import cache_v2.store as storage
+    store = FormalArtifactStore(tmp_path / 'store', producer_version=SCORE_VERSION)
+    store.initialize()
+    writes, syncs = [], []
+    original_write, original_sync = storage.os.write, storage.os.fsync
+    def write(fd, data):
+        if b'"event"' in bytes(data):
+            writes.append(bytes(data))
+        return original_write(fd, data)
+    def sync(fd):
+        syncs.append(fd)
+        return original_sync(fd)
+    monkeypatch.setattr(storage.os, 'write', write)
+    monkeypatch.setattr(storage.os, 'fsync', sync)
+    result = store.store_payload(_score_recipe(), _score_payload())
+    assert result.outcome == 'created'
+    assert len(writes) == 1 and len(syncs) == 4  # lock, payload, header, both facts
+    events = [json.loads(line) for line in store.trace_path.read_text(encoding='utf-8').splitlines()]
+    assert [event['event'] for event in events] == ['artifact_registered', 'upstream_formal_artifact_stored']
+    assert all(event['artifact_id'] == result.artifact_id for event in events)
+
+
+@pytest.mark.parametrize('failure', ['short_write', 'write_error', 'sync_error'])
+def test_trace_append_completes_partial_writes_or_reports_io_error(tmp_path, monkeypatch, failure):
+    import cache_v2.store as storage
+    store = FormalArtifactStore(tmp_path / 'store', producer_version=SCORE_VERSION)
+    store.initialize()
+    original_write = storage.os.write
+    def write(fd, data):
+        if failure == 'write_error':
+            raise OSError('trace write failed')
+        return original_write(fd, data[:7])
+    monkeypatch.setattr(storage.os, 'write', write)
+    if failure == 'sync_error':
+        monkeypatch.setattr(storage.os, 'fsync', lambda fd: (_ for _ in ()).throw(OSError('trace sync failed')))
+    entries = [dict(event='artifact_registered', artifact_id='score_00000000_00000000'),
+               dict(event='upstream_formal_artifact_stored', artifact_id='score_00000000_00000000')]
+    if failure != 'short_write':
+        with pytest.raises(OSError, match='trace .* failed'):
+            store._trace_events(entries)
+    else:
+        store._trace_events(entries)
+        events = [json.loads(line) for line in store.trace_path.read_text(encoding='utf-8').splitlines()]
+        assert [event['event'] for event in events] == [entry['event'] for entry in entries]
+
+
+def test_racing_first_saves_recheck_and_publish_one_durable_artifact(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+    root = tmp_path / 'store'
+    FormalArtifactStore(root, producer_version=SCORE_VERSION).initialize()
+    barrier = Barrier(2)
+    def save():
+        store = FormalArtifactStore(root, producer_version=SCORE_VERSION)
+        barrier.wait(timeout=10)
+        return store.store_payload(_score_recipe(), _score_payload())
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: save(), range(2)))
+    assert len({result.artifact_id for result in results}) == 1
+    assert sorted(result.outcome for result in results) == ['created', 'identical']
+    store = FormalArtifactStore(root, producer_version=SCORE_VERSION)
+    assert store.verify_payload('score', _score_recipe()).artifact_id == results[0].artifact_id
+    assert list((root / '.locks').iterdir()) == []
+    events = [json.loads(line) for line in store.trace_path.read_text(encoding='utf-8').splitlines()]
+    assert [event['event'] for event in events].count('artifact_registered') == 1
+    assert [event['event'] for event in events].count('upstream_formal_artifact_stored') == 2
+
+
+def test_failed_trace_sync_does_not_report_success_after_commit(tmp_path, monkeypatch):
+    import cache_v2.store as storage
+    store = FormalArtifactStore(tmp_path / 'store', producer_version=SCORE_VERSION)
+    store.initialize()
+    trace_fds = set()
+    original_write, original_sync = storage.os.write, storage.os.fsync
+    def write(fd, data):
+        if b'"event"' in bytes(data):
+            trace_fds.add(fd)
+        return original_write(fd, data)
+    def sync(fd):
+        if fd in trace_fds:
+            raise OSError('trace sync failed after commit')
+        return original_sync(fd)
+    with monkeypatch.context() as patch:
+        patch.setattr(storage.os, 'write', write)
+        patch.setattr(storage.os, 'fsync', sync)
+        with pytest.raises(OSError, match='trace sync failed after commit'):
+            store.store_payload(_score_recipe(), _score_payload())
+    assert list((store.root / '.locks').iterdir()) == []
+    assert store.verify_payload('score', _score_recipe()).outcome == 'hit'
+    assert store.store_payload(_score_recipe(), _score_payload()).outcome == 'identical'
+
+
 def test_cache_v2_formal_modules_have_no_upstream_producer_or_dataset_imports():
     root = Path(__file__).resolve().parents[1]
     for relative in (
