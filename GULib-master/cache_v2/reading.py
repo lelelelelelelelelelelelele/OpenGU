@@ -78,9 +78,9 @@ def read_cached_payload(cls, payload):
     return cached_fields(cls, values)
 
 
-def read_metric_output(payload):
-    """Read predictions needed by metrics; leave model and auxiliary tensors zipped."""
-    with zipfile.ZipFile(BytesIO(payload)) as archive:
+def read_metric_output(path):
+    """Seek to evaluation members; do not read model/auxiliary tensor bodies."""
+    with path.open('rb') as stream, zipfile.ZipFile(stream) as archive:
         metadata = json.loads(archive.read('metadata.json'))
         groups = _output_groups(archive, metadata, ('arrays',))
     return SimpleNamespace(identity=metadata['identity'], arrays=groups['arrays'])

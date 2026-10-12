@@ -220,7 +220,7 @@ def test_read_scopes_route_by_context_even_for_same_index_instance(tmp_path):
     assert all(context.run(_read_sessions.get) is None for context in contexts)
 
 
-def test_recipe_field_prefilter_validates_only_candidates_and_checks_top_level(tmp_path, monkeypatch):
+def test_recipe_field_prefilter_decodes_only_candidates_and_checks_top_level(tmp_path, monkeypatch):
     import cache_v2.index as index_module
     index = _initialized_index(tmp_path)
     headers = [_artifact_header(ArtifactType.PREDICTION, fields, str(n).encode()) for n,fields in enumerate([
@@ -235,11 +235,11 @@ def test_recipe_field_prefilter_validates_only_candidates_and_checks_top_level(t
     for header in headers:
         index.register_artifact(header)
     observed = []
-    original = index_module._validate_artifact_record
+    original = index_module._json_record
     def checked(record,*args):
         observed.append(record['artifact_id'])
         return original(record,*args)
-    monkeypatch.setattr(index_module,'_validate_artifact_record',checked)
+    monkeypatch.setattr(index_module,'_json_record',checked)
     found = index.find_artifacts_by_type(ArtifactType.PREDICTION,recipe_fields={'scope':'wanted'})
     assert [r['artifact_id'] for r in found] == [headers[0].artifact_id]
     assert set(observed) == {headers[0].artifact_id,headers[1].artifact_id}
@@ -476,7 +476,7 @@ class TestCacheIndex:
                 observed_content_hash=header.content_hash,
             )
 
-    def test_tampered_artifact_row_fails_closed_before_exact_hit(self, tmp_path):
+    def test_explicit_audit_detects_tampered_artifact_row(self, tmp_path):
         index = _initialized_index(tmp_path)
         header = _artifact_header(
             ArtifactType.SELECTION,
@@ -494,8 +494,8 @@ class TestCacheIndex:
             )
             connection.commit()
 
-        with pytest.raises(CacheIndexError, match="does not match recipe_hash"):
-            index.find_artifact(header.artifact_type, header.recipe_hash)
+        # Ordinary reads trust admission; tamper detection belongs to audit.
+        assert index.find_artifact(header.artifact_type, header.recipe_hash)['recipe_json'] == tampered_recipe.canonical_json
         with pytest.raises(CacheIndexError, match="does not match recipe_hash"):
             ArtifactResolver(index).explain_exact(header.artifact_type, header.recipe)
 

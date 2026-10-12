@@ -135,7 +135,7 @@ def _validate_artifact_record(
     producer_value: Any,
     metadata_value: Any,
 ) -> None:
-    """Revalidate DB rows before they can participate in an exact hit."""
+    """Revalidate stored metadata during an explicit integrity audit."""
 
     try:
         artifact_type = ArtifactType(record["artifact_type"])
@@ -201,24 +201,18 @@ def _validate_artifact_record(
 
 
 def _json_record(row: sqlite3.Row) -> Dict[str, Any]:
+    """Decode admitted metadata; identity and canonicality belong to admission/audit."""
     record = dict(row)
-    parsed_values: Dict[str, Any] = {}
     for column, decoded_name in (
         ("recipe_json", "recipe"),
         ("producer_version_json", "producer_version"),
         ("metadata_json", "metadata"),
     ):
         if column in record:
-            parsed = _parse_canonical_json(record[column], column)
-            parsed_values[column] = parsed
-            record[decoded_name] = parsed
-    if "recipe_json" in record:
-        _validate_artifact_record(
-            record,
-            parsed_values["recipe_json"],
-            parsed_values["producer_version_json"],
-            parsed_values["metadata_json"],
-        )
+            try:
+                record[decoded_name] = json.loads(record[column])
+            except (TypeError, ValueError) as exc:
+                raise CacheIndexError("index contains invalid {0}: {1}".format(column, exc)) from exc
     return record
 
 
@@ -243,6 +237,13 @@ class CacheIndex:
     @property
     def database_path(self) -> Path:
         return self.path
+
+    @staticmethod
+    def audit_record(record: Dict[str, Any]) -> None:
+        """Check an already loaded row without another database query."""
+        values = [_parse_canonical_json(record[column], column) for column in
+                  ("recipe_json", "producer_version_json", "metadata_json")]
+        _validate_artifact_record(record, *values)
 
     def _uri(self, mode: str) -> str:
         absolute = self.path.absolute()

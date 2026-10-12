@@ -193,6 +193,7 @@ class ArtifactResolver:
             hit = False
 
         if candidate is not None:
+            self.index.audit_record(candidate)
             dependency_issues = self._dependency_issues(candidate["artifact_id"])
             for issue in dependency_issues:
                 for reason in issue["reasons"]:
@@ -235,6 +236,7 @@ class ArtifactResolver:
                     continue
                 visited.add(parent_id)
                 parent = self.index.get_artifact(parent_id)
+                self.index.audit_record(parent)
                 reasons: List[str] = []
                 parent_status = ArtifactStatus(parent["status"])
                 parent_verification = VerificationStatus(

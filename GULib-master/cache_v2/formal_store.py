@@ -864,7 +864,7 @@ class FormalArtifactStore(ArtifactStore):
         payload_class = payload_type_for(artifact_type, recipe)
         path = self._safe_output_path(self.root.joinpath(*PurePosixPath(candidate["semantic_path"]).parts), "cached payload")
         try:
-            payload = (reader(path.read_bytes()) if reader else read_cached_payload(payload_class, path.read_bytes()))
+            payload = (reader(path) if reader else read_cached_payload(payload_class, path.read_bytes()))
         except FileNotFoundError as exc:
             raise ArtifactIntegrityError("cached payload is missing: " + str(path)) from exc
         except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile) as exc:
