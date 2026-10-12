@@ -842,13 +842,15 @@ class ArtifactStore:
         payload: SelectionPayload,
         semantic_path: str,
         compute_seconds: float,
+        *,
+        content_hash: str,
+        payload_size: int,
         status: ArtifactStatus = ArtifactStatus.VALID,
     ) -> ArtifactHeader:
-        payload_bytes = payload.canonical_bytes
         return ArtifactHeader(
             artifact_type=ArtifactType.SELECTION,
             recipe=recipe,
-            content_hash=sha256_bytes(payload_bytes),
+            content_hash=content_hash,
             producer_version=self.producer_version,
             status=status,
             verification_status=VerificationStatus.VERIFIED,
@@ -857,7 +859,7 @@ class ArtifactStore:
             metadata={
                 "payload_schema": SELECTION_PAYLOAD_SCHEMA,
                 "payload_version": SELECTION_PAYLOAD_VERSION,
-                "payload_size_bytes": len(payload_bytes),
+                "payload_size_bytes": payload_size,
             },
         )
 
@@ -870,16 +872,18 @@ class ArtifactStore:
         num_nodes: int,
         candidate_nodes: Optional[Sequence[int]],
     ) -> StoreResult:
+        payload_bytes = payload.canonical_bytes
+        content_hash = sha256_bytes(payload_bytes)
         artifact_id = build_artifact_id(
-            ArtifactType.SELECTION, recipe.recipe_hash, payload.content_hash
+            ArtifactType.SELECTION, recipe.recipe_hash, content_hash
         )
         semantic, payload_path, header_path = self._formal_paths(
             recipe, artifact_id
         )
         header = self._header_for_payload(
-            recipe, payload, semantic, compute_seconds
+            recipe, payload, semantic, compute_seconds,
+            content_hash=content_hash, payload_size=len(payload_bytes),
         )
-        payload_bytes = payload.canonical_bytes
         created_payload: Optional[_CreatedFile] = None
         created_header: Optional[_CreatedFile] = None
         identical_artifact_id: Optional[str] = None
@@ -909,7 +913,8 @@ class ArtifactStore:
                         )
                         quarantine_path, observed_header = (
                             self._quarantine_observation(
-                                recipe, payload, compute_seconds
+                                recipe, payload, compute_seconds,
+                                payload_bytes=payload_bytes, content_hash=content_hash,
                             )
                         )
                         conflict = ArtifactConflictRecord(
@@ -935,13 +940,7 @@ class ArtifactStore:
                         header_path,
                         self._sidecar_bytes(header, len(payload_bytes)),
                     )
-                    registration = writer.register_artifact(header)
-                    if registration.outcome != RegisterOutcome.CREATED:
-                        raise ArtifactStoreError(
-                            "unexpected registration outcome under write lock: {0}".format(
-                                registration.outcome.value
-                            )
-                        )
+                    writer.insert_artifact(header)
         except Exception:
             self._cleanup_created_file(created_header)
             self._cleanup_created_file(created_payload)
@@ -999,8 +998,10 @@ class ArtifactStore:
         recipe: ArtifactRecipe,
         payload: SelectionPayload,
         compute_seconds: float,
+        *,
+        payload_bytes: bytes,
+        content_hash: str,
     ) -> Tuple[str, ArtifactHeader]:
-        content_hash = payload.content_hash
         semantic = normalize_semantic_path(
             "quarantine/selection/{0}/{1}-{2}/payload.json".format(
                 recipe.recipe_hash[:16], content_hash[:16], uuid.uuid4().hex
@@ -1015,17 +1016,19 @@ class ArtifactStore:
             payload,
             semantic,
             compute_seconds,
+            content_hash=content_hash,
+            payload_size=len(payload_bytes),
             status=ArtifactStatus.CONFLICT,
         )
         created_payload: Optional[_CreatedFile] = None
         created_header: Optional[_CreatedFile] = None
         try:
             created_payload = self._atomic_write_once(
-                payload_path, payload.canonical_bytes
+                payload_path, payload_bytes
             )
             created_header = self._atomic_write_once(
                 payload_path.with_name("header.json"),
-                self._sidecar_bytes(header, len(payload.canonical_bytes)),
+                self._sidecar_bytes(header, len(payload_bytes)),
             )
         except Exception:
             self._cleanup_created_file(created_header)

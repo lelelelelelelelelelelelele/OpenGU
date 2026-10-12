@@ -765,6 +765,23 @@ class CacheIndexBatch:
                 conflict_id=conflict.conflict_id,
             )
 
+        self.insert_artifact(header)
+        return RegistrationResult(
+            outcome=RegisterOutcome.CREATED, artifact_id=header.artifact_id
+        )
+
+    def insert_artifact(self, header: ArtifactHeader, *, dependencies=()) -> None:
+        """Insert a new Artifact and its incoming edges in this transaction.
+
+        A strict INSERT proves the child is new. With immediate foreign keys,
+        it cannot already have outgoing edges, so incoming edges cannot form a
+        cycle. Existing-node edits still use add_dependency's cycle check.
+        """
+        if not isinstance(header, ArtifactHeader):
+            raise CacheIndexError("insert_artifact requires ArtifactHeader")
+        edges = tuple(DependencyRecord(parent_artifact_id=parent_id,
+            child_artifact_id=header.artifact_id, relation=relation)
+            for relation, parent_id in dependencies)
         recipe_json = _bounded_json(
             header.recipe.canonical_json, "recipe_json", MAX_RECIPE_JSON_BYTES
         )
@@ -801,9 +818,12 @@ class CacheIndexBatch:
                 metadata_json,
             ),
         )
-        return RegistrationResult(
-            outcome=RegisterOutcome.CREATED, artifact_id=header.artifact_id
-        )
+        for edge in edges:
+            self.connection.execute(
+                "INSERT INTO dependencies(parent_artifact_id, child_artifact_id, relation, created_at) "
+                "VALUES (?, ?, ?, ?)",
+                (edge.parent_artifact_id, edge.child_artifact_id, edge.relation, utc_now_iso()),
+            )
 
     def register_legacy_source(self, record: LegacySourceRecord) -> str:
         if not isinstance(record, LegacySourceRecord):

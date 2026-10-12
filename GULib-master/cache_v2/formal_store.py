@@ -322,13 +322,15 @@ class FormalArtifactStore(ArtifactStore):
         payload: Any,
         semantic_path: str,
         compute_seconds: float,
+        *,
+        content_hash: str,
+        payload_size: int,
         status: ArtifactStatus = ArtifactStatus.VALID,
     ) -> ArtifactHeader:
-        payload_bytes = payload.canonical_bytes
         return ArtifactHeader(
             artifact_type=payload.artifact_type,
             recipe=recipe,
-            content_hash=sha256_bytes(payload_bytes),
+            content_hash=content_hash,
             producer_version=self.producer_version,
             status=status,
             verification_status=VerificationStatus.VERIFIED,
@@ -337,7 +339,7 @@ class FormalArtifactStore(ArtifactStore):
             metadata={
                 "payload_schema": payload.payload_schema,
                 "payload_version": payload.payload_version,
-                "payload_size_bytes": len(payload_bytes),
+                "payload_size_bytes": payload_size,
             },
         )
 
@@ -458,10 +460,10 @@ class FormalArtifactStore(ArtifactStore):
         return pairs
 
     def _quarantine_typed_observation(
-        self, recipe: ArtifactRecipe, payload: Any, compute_seconds: float
+        self, recipe: ArtifactRecipe, payload: Any, compute_seconds: float,
+        *, payload_bytes: bytes, content_hash: str,
     ) -> Tuple[str, ArtifactHeader]:
         artifact_type = self._formal_type(payload.artifact_type)
-        content_hash = payload.content_hash
         semantic = normalize_semantic_path(
             "quarantine/{0}/{1}/{2}-{3}/payload.{4}".format(
                 artifact_type.value,
@@ -480,13 +482,15 @@ class FormalArtifactStore(ArtifactStore):
             payload,
             semantic,
             compute_seconds,
+            content_hash=content_hash,
+            payload_size=len(payload_bytes),
             status=ArtifactStatus.CONFLICT,
         )
         created_payload: Optional[_CreatedFile] = None
         created_header: Optional[_CreatedFile] = None
         try:
             created_payload = self._atomic_write_once(
-                payload_path, payload.canonical_bytes
+                payload_path, payload_bytes
             )
             created_header = self._atomic_write_once(
                 payload_path.with_name("header.json"),
@@ -494,7 +498,7 @@ class FormalArtifactStore(ArtifactStore):
                     header,
                     payload.payload_schema,
                     payload.payload_version,
-                    len(payload.canonical_bytes),
+                    len(payload_bytes),
                 ),
             )
         except Exception:
@@ -679,16 +683,18 @@ class FormalArtifactStore(ArtifactStore):
     ) -> FormalStoreResult:
         artifact_type = self._formal_type(payload.artifact_type)
         dependencies = self._validate_dependencies(payload)
+        payload_bytes = payload.canonical_bytes
+        content_hash = sha256_bytes(payload_bytes)
         artifact_id = build_artifact_id(
-            artifact_type, recipe.recipe_hash, payload.content_hash
+            artifact_type, recipe.recipe_hash, content_hash
         )
         semantic, payload_path, header_path = self._typed_formal_paths(
             artifact_type, artifact_id, payload.file_extension
         )
         header = self._typed_header_for_payload(
-            recipe, payload, semantic, compute_seconds
+            recipe, payload, semantic, compute_seconds,
+            content_hash=content_hash, payload_size=len(payload_bytes),
         )
-        payload_bytes = payload.canonical_bytes
         created_payload: Optional[_CreatedFile] = None
         created_header: Optional[_CreatedFile] = None
         identical_artifact_id: Optional[str] = None
@@ -717,7 +723,8 @@ class FormalArtifactStore(ArtifactStore):
                         )
                         quarantine_path, observed_header = (
                             self._quarantine_typed_observation(
-                                recipe, payload, compute_seconds
+                                recipe, payload, compute_seconds,
+                                payload_bytes=payload_bytes, content_hash=content_hash,
                             )
                         )
                         conflict = ArtifactConflictRecord(
@@ -748,19 +755,7 @@ class FormalArtifactStore(ArtifactStore):
                             len(payload_bytes),
                         ),
                     )
-                    registration = writer.register_artifact(header)
-                    if registration.outcome != RegisterOutcome.CREATED:
-                        raise ArtifactStoreError(
-                            "unexpected registration outcome under write lock: {0}".format(
-                                registration.outcome.value
-                            )
-                        )
-                    for relation, parent_id in dependencies:
-                        writer.add_dependency(
-                            parent_id,
-                            header.artifact_id,
-                            relation=relation,
-                        )
+                    writer.insert_artifact(header, dependencies=dependencies)
         except Exception:
             self._cleanup_created_file(created_header)
             self._cleanup_created_file(created_payload)
