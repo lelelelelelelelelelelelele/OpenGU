@@ -249,10 +249,47 @@ def figures(a,summary):
     fig.suptitle('GIN transfer contrasts | 10 seeds | pointwise 95% paired t intervals\nPositive = larger utility loss; zero-crossing does not establish equivalence.',fontsize=13)
     fig.savefig(OUT/'gin_contrasts.png',dpi=160);plt.close(fig)
 
+def rank_figure(summary, correlations):
+    """Show the actual five-GU rankings behind the Cora/r_point correlations."""
+    methods=['GNNDelete','GraphRevoker','GraphEraser','MEGU','GIF']
+    colors=dict(zip(methods,['#315f92','#c44c43','#47936f','#aa7d24','#8765a8']))
+    fig,axes=plt.subplots(1,3,figsize=(18,6.5))
+    fig.subplots_adjust(left=.045,right=.99,top=.76,bottom=.17,wspace=.11)
+    rows=[]
+    for ax,cohort,title in zip(axes,['old3','new7','all10'],['Original 3 seeds','New 7 seeds','All 10 seeds']):
+        frame=summary[(summary.dataset=='Cora')&(summary.selector=='r_point')&(summary.cohort==cohort)&summary.source.isin(['GCN','GIN'])&summary.method.isin(methods)]
+        means=frame.pivot(index='method',columns='source',values='U_mean').reindex(methods)
+        ranks=means.round(10).rank(ascending=False,method='average')
+        correlation=correlations[(correlations.dataset=='Cora')&(correlations.selector=='r_point')&(correlations.source=='GIN')&(correlations.cohort==cohort)].iloc[0]
+        calculated=rho(means.GCN,means.GIN)
+        assert abs(calculated-correlation.rho)<1e-10
+        for method in methods:
+            left,right=ranks.loc[method,['GCN','GIN']]
+            ax.plot([0,1],[left,right],color=colors[method],lw=2.8 if method=='GraphRevoker' else 1.7,alpha=.9,zorder=2)
+            ax.scatter([0,1],[left,right],color=colors[method],s=45,zorder=3)
+            ax.text(-.10,left,f'{method}  {means.loc[method,"GCN"]:.2f}',ha='right',va='center',fontsize=10,color=colors[method])
+            ax.text(1.10,right,f'{means.loc[method,"GIN"]:.2f}  {method}',ha='left',va='center',fontsize=10,color=colors[method])
+            rows.append(dict(cohort=cohort,method=method,GCN_drop=means.loc[method,'GCN'],GIN_drop=means.loc[method,'GIN'],GCN_rank=left,GIN_rank=right,rho=calculated))
+        ax.set_xlim(-1.28,2.28);ax.set_ylim(5.45,.45)
+        ax.set_xticks([0,1],['GCN direct','GIN surrogate'],fontsize=11)
+        ax.set_yticks(range(1,6));ax.tick_params(axis='both',length=0)
+        for spine in ax.spines.values():spine.set_visible(False)
+        ax.set_axisbelow(True);ax.grid(axis='y',color='#e5e9ee',lw=.7)
+        ax.set_title(f'{title}  |  Spearman rho = {calculated:.2f}\nSeed bootstrap interval: [{correlation.bootstrap_lo:.2f}, {correlation.bootstrap_hi:.2f}]',fontsize=13,pad=20)
+    axes[0].set_ylabel('Rank  (1 = largest mean F1 drop)',fontsize=11,labelpad=5)
+    fig.suptitle('Cora / r_point: which GU rankings changed?',fontsize=21,y=.965,fontweight='bold',color='#213a52')
+    fig.text(.5,.88,'Each line is one GU. Endpoint labels show mean F1 drop in percentage points; crossing lines reveal order reversals.',ha='center',fontsize=12,color='#4d5e6d')
+    fig.text(.5,.055,'Rank the seed-averaged drops, not individual seeds. GIF/IDEA have identical drops; retain GIF only.\nAll 10 includes the original 3 and new 7; these are not three independent experiments. Point rankings do not establish significant order differences.',ha='center',fontsize=10,color='#52616e')
+    for extension in ['png','svg','pdf']:
+        fig.savefig(OUT/f'cora_r_point_rank_comparison.{extension}',dpi=180,facecolor='white')
+    plt.close(fig)
+    pd.DataFrame(rows).to_csv(OUT/'cora_r_point_rank_values.csv',index=False)
+
 def main():
     df,selections,audit=load();a,s=paired(df)
     corr=correlations(a,audit['gif_idea_max_U_difference']<1e-10)
     overlap(df,selections);figures(a,s)
+    rank_figure(s,corr)
     from report import build_report
     build_report()
     print(json.dumps(audit,ensure_ascii=False,indent=2))

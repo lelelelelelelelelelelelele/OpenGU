@@ -91,6 +91,20 @@ GIN 表如下，完整 SGC/GAT/GIN 的 54 行见 correlations.csv。old3/new7/al
 | PubMed | gt_full | 0.900 | 0.667 | 0.500 | 0.600 | 0.600 | 0.500 | 1.000 |
 | PubMed | r_point | 0.300 | 1.000 | 0.900 | 0.900 | 0.600 | 0.500 | 1.000 |
 
+### Cora / r_point：相关为何从 1.00 变为 0.30 / 0.40
+
+![Cora r_point 三组seed跨GU排名对照](cora_r_point_rank_comparison.png)
+
+每一栏都先计算该组 seed 的平均 F1 drop，再比较五种 GU 在 GCN direct 与 GIN surrogate 下的排名；第 1 名表示平均 drop 最大。同色线连接同一 GU，端点数字为实际 drop（百分点），**线交叉表示方法之间的相对顺序翻转**。
+
+关键变化是 **GraphRevoker**：原三 seed 下 GCN/GIN 都排第 2（5.72 / 1.85 pp）；新增七 seed 下，GCN 仍第 2（3.48 pp），GIN 降到第 5（−1.56 pp）。与此同时 MEGU 在 GIN 侧升到第 2，GraphEraser 保持第 3。因此新七 seed 的排名平方差和为 14，Spearman = 1−6×14/(5×24) = **0.30**。合计十 seed 时 GraphRevoker 仍为 2→5，但 GraphEraser / MEGU / GIF 的位次组合不同，平方差和为 12，对应 **0.40**。
+
+GNNDelete 在三组中始终是两侧第 1：相关下降并不表示所有方法都不再迁移，主要是其余方法的排序改变。并且排名只看顺序：原三 seed 的 rho=1.00 时，GraphRevoker 的两侧均值已经是 5.72 vs 1.85 pp，完全同序并不等于幅度一致。
+
+图上同时给 seed 整块 bootstrap 百分位区间；各组区间较宽且重叠，仅作不确定性诊断，不能凭三个点估计的变化宣称“相关显著下降”。合计十 seed 包含前两组，不是第三个独立验证组。
+
+[查看图中精确数值](cora_r_point_rank_values.csv) · [SVG 矢量图](cora_r_point_rank_comparison.svg) · [PDF](cora_r_point_rank_comparison.pdf)。展示时建议把此图放在相关系数总表后，主讲“哪几个 GU 改变顺序”；效用下降幅度与基线优势仍由第 4 节的原始 drop 图承担。
+
 稳定的例子是 Cora / gt_full：旧三 seed 与新增七 seed 的 GIN 排序相关均为 1.00。反例是 Cora / r_point：原本 1.00 的关系没有稳定复现。CiteSeer / r_point 的 GAT 从旧三 seed 0.80 变为新增七 seed −0.30，也说明代理架构不能一概替换。PubMed / r_point 的 GIN 从旧三 seed 0.30 升至新增七 seed 1.00，展示旧小样本结果的不稳定。十 seed 的 PubMed / r_point 为 0.90，Random 同为 0.90。
 
 共同减去 Random 的相关另存 CSV，仅用于诊断，因为两侧共享参照项；不能将其解释成攻击特有的因果关系。也不能将“跨 GU 相关”写成“某个固定 GU 内跨攻击条件相关”。

@@ -12,8 +12,12 @@
     "independent_core_paired_mean": 9.464944649446494,
     "core_random_wins": 10,
     "markdown_html_exact_render_match": true,
-    "local_links_checked": 14,
+    "local_links_checked": 18,
     "figure_images": {
+      "cora_r_point_rank_comparison.png": [
+        3240,
+        1170
+      ],
       "gin_contrasts.png": [
         2400,
         1120
@@ -29,20 +33,38 @@
     },
     "work_plan_pages_checked": 32,
     "work_plan_source_references": 1121,
-    "work_plan_hash_checks": 10737
+    "work_plan_hash_checks": 10737,
+    "rank_comparison": {
+      "old3": {
+        "rho": 0.9999999999999999,
+        "rank_squared_difference_sum": 0
+      },
+      "new7": {
+        "rho": 0.3,
+        "rank_squared_difference_sum": 14
+      },
+      "all10": {
+        "rho": 0.39999999999999997,
+        "rank_squared_difference_sum": 12
+      }
+    }
   },
   "files_sha256": {
-    "analyze.py": "0611a84e70d709eca5751d8a20db34f85c558e4a15277e7ddb1c39b8dd4fcfc3",
+    "analyze.py": "013028191b527d38d17c539c3ce247781ad80a99ea109ecc7b9a53ea88202e3d",
     "audit.json": "fd3b0adf4734f7eb2ea3c29ca5c6d0c46b5aa86313c3173a171d87b3bfa2e5e5",
     "cells.csv": "099265b44e8862e1478bbd1507791a5c1202009ccd0e80411a43f503f404fc84",
+    "cora_r_point_rank_comparison.pdf": "8447474484635032cf56d36a1bfd4a359543211df88afc793e51b4317136fcf7",
+    "cora_r_point_rank_comparison.png": "1a2f9b6e7ba960096765b2c5f1e606d5c310af809eaa03ee352b329c2e4276ff",
+    "cora_r_point_rank_comparison.svg": "b97967088e62d0aa3acabad2eb80c908f1289df5e959a7c533011d4958883033",
+    "cora_r_point_rank_values.csv": "68210506a1543c735e00585bf513e3fa9bd50ff9c8d49ffe12ccee114a923c5e",
     "correlations.csv": "f93a9fc2c7b445ebf43e3b1dcbe8a7e34fea8d916b960c2f0eb7b37287f784c2",
     "gin_contrasts.png": "9c1e43d0c4e8cc97e1d538d5585a00b3a6463d811229a5d19ad6c22b3cdd5416",
     "gt_full_drop.png": "be74f006de4d443eb6f7ae4abeed214f8ce9fb37401326b91a8a8205ae9ff4a1",
     "paired_seed_values.csv": "70cbfcdee534ce9d12cfccd8c267494371637c6821f6bed08c51b657dfe17f82",
     "r_point_drop.png": "7814d34ac01aa562cc5d384f23f7fcdc25e14026a1a2dea6f5011448e2e84484",
-    "REPORT.html": "7c6c7efebb14a1af0d106728e8db03e350433d2cded3c766c074e2a68e22eab7",
-    "REPORT.md": "e321c4623fc0f9c0e9850a1e47a560661516f9b5dc7dc749875ea67cfbe553b8",
-    "report.py": "e2c74d76403a60c38e70fef6a65764f34f0d508183ac50d73fa38b1acf50966e",
+    "REPORT.html": "9f459496d333824c410e5bfb8a24ae5130748e118dca81c7263d026b6221a2d5",
+    "REPORT.md": "be12245e4babd0d686ae4eefd8f293206fad9f6788566620d7da4d552a7dc8a3",
+    "report.py": "0419f4a62ad305bd3ee9bcd167efdd98f0a8725382a498a78eea7bf768db51ef",
     "selection_overlap.csv": "1e0e1e3b89cdeb26c86ea271c03325a6dc8b6121f0196d3cfb8ab1b98751ce91",
     "summary.csv": "3c2f18ef1af03ea597ab63df250351856f153f561b4820ae7460d9e621252935",
     "within_source_overlap.csv": "a7ed91fd2313492b2097094fee25b29dcabeaf2d485f52cb6103c310332b2b99"
