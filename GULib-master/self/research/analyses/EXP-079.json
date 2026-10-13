@@ -1,8 +1,8 @@
 {
   "id": "EXP-079",
   "title": "Surrogate 条件性迁移的多 seed 验证（总10个）",
-  "question": "252点缓存Gate：历史seed42与095交付后seed2024的整轮性能、冷热指标缓存和正确性",
-  "scope": "历史e79g4c/e79g4w与本轮e79g7c/e79g7w各252点工程Gate；非完整2520点科研结论",
+  "question": "AAGU-096交付后seed212的252点冷热缓存效果，与历史seed2024工程比较",
+  "scope": "e79g8c/e79g8w各252点工程效果，历史790/91秒参考；非完整2520点科研结论",
   "configs": [
     {
       "label": "252格Gate",
@@ -12,6 +12,11 @@
     {
       "label": "seed2024 252点Gate",
       "path": "experiments/configs/exp079/cache_speed_gate_s2024.yaml",
+      "role": "historical"
+    },
+    {
+      "label": "seed212的252点效果测试",
+      "path": "experiments/configs/exp079/cache_speed_gate_s212.yaml",
       "role": "current"
     }
   ],
@@ -434,11 +439,221 @@
       "state": "completed",
       "started_at": "2026-10-13T05:23:15",
       "finished_at": "2026-10-13T05:24:46"
+    },
+    {
+      "run_id": "e79g8c",
+      "job_id": "exp079-20261013-e79g8c",
+      "recipe": "opengu-exp079-cache-speed-gate-252-s212-cold",
+      "config_path": "experiments/configs/exp079/cache_speed_gate_s212.yaml",
+      "git_sha": "84b48537b3fe32ac68a271307aad518ead014741",
+      "scope": "252 cells: Cora/CiteSeer/PubMed x12 selectors x7 methods, seed212,ratio0.1",
+      "submitted_at": "2026-10-13T17:13:37",
+      "execution_digest": null,
+      "reason": "User authorized seed212 252-cell cold/warm post-AAGU096; no baseline rerun; compare historical790s91s.",
+      "evidence": [
+        {
+          "label": "Handoff",
+          "path": ".syncmate/runs/exp079-20261013-e79g8c.json"
+        },
+        {
+          "label": "Controller",
+          "path": ".syncmate/controller/exp079-20261013-e79g8c.json"
+        },
+        {
+          "label": "Frozen runtime",
+          "path": ".syncmate/exp079-gate252-s212-20261013/e79g8c.frozen-runtime.json"
+        },
+        {
+          "label": "Verified 252-cell summary",
+          "path": ".syncmate/exp079-gate252-s212-20261013/e79g8c.summary.json"
+        },
+        {
+          "label": "seed212冷热效果报告md",
+          "path": "self/research/analyses/EXP-079/gate252-s212-20261013/REPORT.md"
+        },
+        {
+          "label": "seed212冷热效果报告html",
+          "path": "self/research/analyses/EXP-079/gate252-s212-20261013/REPORT.html"
+        }
+      ],
+      "runtime": {
+        "estimate_status": "recorded_before_start",
+        "estimated_seconds": 22728,
+        "estimate_scope": "252 cells all-MISS serial budget;1800-second gate cap",
+        "estimate_basis": "3 dataset-seed groups x historical 7576s all-MISS serial budget; not a cache-hit speed prediction.",
+        "actual_seconds": 846.0,
+        "actual_scope": "Complete 252-cell runner job; queue and collection excluded",
+        "queue_seconds": 13.0,
+        "return_seconds": null,
+        "evidence": [
+          {
+            "label": "Handoff",
+            "path": ".syncmate/runs/exp079-20261013-e79g8c.json"
+          },
+          {
+            "label": "Controller",
+            "path": ".syncmate/controller/exp079-20261013-e79g8c.json"
+          },
+          {
+            "label": "Frozen runtime",
+            "path": ".syncmate/exp079-gate252-s212-20261013/e79g8c.frozen-runtime.json"
+          }
+        ],
+        "job_started": true,
+        "actual_status": "recorded",
+        "actual_basis": "Core receipt started_at to finished_at, including final projection",
+        "cache": {
+          "status": "observed",
+          "summary": "Per-cell cache observations; shared selections repeat across method cells",
+          "counts": {
+            "score": {
+              "hit": 252
+            },
+            "selection": {
+              "hit": 252
+            },
+            "method": {
+              "hit": 252
+            },
+            "selector_checkpoint": {
+              "hit": 168,
+              "not_applicable": 84
+            },
+            "method_checkpoint": {
+              "hit": 216,
+              "not_applicable": 36
+            },
+            "evaluation": {
+              "miss": 252
+            },
+            "post_unlearning_utility_and_retrain_gap": {
+              "miss": 216
+            },
+            "post_unlearning_flip_hop": {
+              "miss": 216
+            }
+          },
+          "evidence": [
+            {
+              "label": "Verified run",
+              "path": "results/runs/gpu4090/exp079-cache-speed-gate/e79g8c/run.json"
+            }
+          ]
+        }
+      },
+      "state": "completed",
+      "started_at": "2026-10-13T17:14:00",
+      "finished_at": "2026-10-13T17:28:06"
+    },
+    {
+      "run_id": "e79g8w",
+      "job_id": "exp079-20261013-e79g8w",
+      "recipe": "opengu-exp079-cache-speed-gate-252-s212-warm",
+      "config_path": "experiments/configs/exp079/cache_speed_gate_s212.yaml",
+      "git_sha": "84b48537b3fe32ac68a271307aad518ead014741",
+      "scope": "252 cells: Cora/CiteSeer/PubMed x12 selectors x7 methods, seed212,ratio0.1",
+      "submitted_at": "2026-10-13T17:32:24",
+      "execution_digest": "3520680a9a7e9de99b5cc118710e46b07887a3b60c41a3c69a8884005449fb59",
+      "reason": "User authorized seed212 252-cell cold/warm post-AAGU096; no baseline rerun; compare historical790s91s.",
+      "evidence": [
+        {
+          "label": "Handoff",
+          "path": ".syncmate/runs/exp079-20261013-e79g8w.json"
+        },
+        {
+          "label": "Controller",
+          "path": ".syncmate/controller/exp079-20261013-e79g8w.json"
+        },
+        {
+          "label": "Frozen runtime",
+          "path": ".syncmate/exp079-gate252-s212-20261013/e79g8w.frozen-runtime.json"
+        },
+        {
+          "label": "Verified 252-cell summary",
+          "path": ".syncmate/exp079-gate252-s212-20261013/e79g8w.summary.json"
+        },
+        {
+          "label": "seed212冷热效果报告md",
+          "path": "self/research/analyses/EXP-079/gate252-s212-20261013/REPORT.md"
+        },
+        {
+          "label": "seed212冷热效果报告html",
+          "path": "self/research/analyses/EXP-079/gate252-s212-20261013/REPORT.html"
+        }
+      ],
+      "runtime": {
+        "estimate_status": "recorded_before_start",
+        "estimated_seconds": 22728,
+        "estimate_scope": "252 cells all-MISS serial budget;1800-second gate cap",
+        "estimate_basis": "3 dataset-seed groups x historical 7576s all-MISS serial budget; not a cache-hit speed prediction.",
+        "actual_seconds": 109.0,
+        "actual_scope": "Complete 252-cell runner job; queue and collection excluded",
+        "queue_seconds": 107.0,
+        "return_seconds": null,
+        "evidence": [
+          {
+            "label": "Handoff",
+            "path": ".syncmate/runs/exp079-20261013-e79g8w.json"
+          },
+          {
+            "label": "Controller",
+            "path": ".syncmate/controller/exp079-20261013-e79g8w.json"
+          },
+          {
+            "label": "Frozen runtime",
+            "path": ".syncmate/exp079-gate252-s212-20261013/e79g8w.frozen-runtime.json"
+          }
+        ],
+        "job_started": true,
+        "actual_status": "recorded",
+        "actual_basis": "Core receipt started_at to finished_at, including final projection",
+        "cache": {
+          "status": "observed",
+          "summary": "Per-cell cache observations; shared selections repeat across method cells",
+          "counts": {
+            "score": {
+              "hit": 252
+            },
+            "selection": {
+              "hit": 252
+            },
+            "method": {
+              "hit": 252
+            },
+            "selector_checkpoint": {
+              "hit": 168,
+              "not_applicable": 84
+            },
+            "method_checkpoint": {
+              "hit": 216,
+              "not_applicable": 36
+            },
+            "evaluation": {
+              "hit": 252
+            },
+            "post_unlearning_utility_and_retrain_gap": {
+              "hit": 216
+            },
+            "post_unlearning_flip_hop": {
+              "hit": 216
+            }
+          },
+          "evidence": [
+            {
+              "label": "Verified run",
+              "path": "results/runs/gpu4090/exp079-cache-speed-gate/e79g8w/run.json"
+            }
+          ]
+        }
+      },
+      "state": "completed",
+      "started_at": "2026-10-13T17:34:23",
+      "finished_at": "2026-10-13T17:36:12"
     }
   ],
   "analysis": {
     "state": "complete",
-    "note": "seed2024冷轮790s、热轮91s；历史941s/278s。冷轮684MISS，热轮684HIT，两轮252Output HIT，指标及Selection逐字节一致。",
+    "note": "seed212指定252点冷热两轮核验通过，846秒/109秒；完整2520点矩阵仍partial。",
     "evidence": [
       {
         "label": "252格Gate Markdown",
@@ -463,12 +678,20 @@
       {
         "label": "seed2024 252点Gate html",
         "path": "self/research/analyses/EXP-079/gate252-20261013/REPORT.html"
+      },
+      {
+        "label": "seed212冷热效果报告md",
+        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/REPORT.md"
+      },
+      {
+        "label": "seed212冷热效果报告html",
+        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/REPORT.html"
       }
     ],
     "highlights": [
-      "seed2024冷轮790s、热轮91s；历史941s/278s。冷轮684MISS，热轮684HIT，两轮252Output HIT，指标及Selection逐字节一致。",
-      "历史与本轮seed和冷轮指标起点不同；仅作工程历史比较，无前测重跑。",
-      "完整2520格仍partial，未自动提交全表。"
+      "seed212指定252点冷热两轮核验通过，846秒/109秒；完整2520点矩阵仍partial。",
+      "冷轮684次指标未命中、热轮684次命中，504份指标与选点文件逐字节一致。",
+      "跨seed历史比较，未增加前测，未扩大完整矩阵。"
     ]
   },
   "decision": {
