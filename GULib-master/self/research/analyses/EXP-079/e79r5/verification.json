@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "checks": {
+    "e79r5_files_rehashed": 5041,
+    "old_cells_identity_and_metric_match": 756,
+    "same_selection_across_methods": true,
+    "random_seeds_per_training_seed": [
+      11,
+      22,
+      33
+    ],
+    "independent_core_paired_mean": 9.464944649446494,
+    "core_random_wins": 10,
+    "markdown_html_exact_render_match": true,
+    "local_links_checked": 14,
+    "figure_images": {
+      "gin_contrasts.png": [
+        2400,
+        1120
+      ],
+      "gt_full_drop.png": [
+        3410,
+        1550
+      ],
+      "r_point_drop.png": [
+        3410,
+        1550
+      ]
+    },
+    "work_plan_pages_checked": 32,
+    "work_plan_source_references": 1121,
+    "work_plan_hash_checks": 10737
+  },
+  "files_sha256": {
+    "analyze.py": "0611a84e70d709eca5751d8a20db34f85c558e4a15277e7ddb1c39b8dd4fcfc3",
+    "audit.json": "fd3b0adf4734f7eb2ea3c29ca5c6d0c46b5aa86313c3173a171d87b3bfa2e5e5",
+    "cells.csv": "099265b44e8862e1478bbd1507791a5c1202009ccd0e80411a43f503f404fc84",
+    "correlations.csv": "f93a9fc2c7b445ebf43e3b1dcbe8a7e34fea8d916b960c2f0eb7b37287f784c2",
+    "gin_contrasts.png": "9c1e43d0c4e8cc97e1d538d5585a00b3a6463d811229a5d19ad6c22b3cdd5416",
+    "gt_full_drop.png": "be74f006de4d443eb6f7ae4abeed214f8ce9fb37401326b91a8a8205ae9ff4a1",
+    "paired_seed_values.csv": "70cbfcdee534ce9d12cfccd8c267494371637c6821f6bed08c51b657dfe17f82",
+    "r_point_drop.png": "7814d34ac01aa562cc5d384f23f7fcdc25e14026a1a2dea6f5011448e2e84484",
+    "REPORT.html": "7c6c7efebb14a1af0d106728e8db03e350433d2cded3c766c074e2a68e22eab7",
+    "REPORT.md": "e321c4623fc0f9c0e9850a1e47a560661516f9b5dc7dc749875ea67cfbe553b8",
+    "report.py": "e2c74d76403a60c38e70fef6a65764f34f0d508183ac50d73fa38b1acf50966e",
+    "selection_overlap.csv": "1e0e1e3b89cdeb26c86ea271c03325a6dc8b6121f0196d3cfb8ab1b98751ce91",
+    "summary.csv": "3c2f18ef1af03ea597ab63df250351856f153f561b4820ae7460d9e621252935",
+    "within_source_overlap.csv": "a7ed91fd2313492b2097094fee25b29dcabeaf2d485f52cb6103c310332b2b99"
+  }
+}

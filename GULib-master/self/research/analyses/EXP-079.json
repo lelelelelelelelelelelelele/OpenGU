@@ -1,8 +1,8 @@
 {
   "id": "EXP-079",
   "title": "Surrogate 条件性迁移的多 seed 验证（总10个）",
-  "question": "AAGU-096交付后seed212的252点冷热缓存效果，与历史seed2024工程比较",
-  "scope": "e79g8c/e79g8w各252点工程效果，历史790/91秒参考；非完整2520点科研结论",
+  "question": "增加独立训练重复后，跨架构选点一致性、跨GU平均F1 drop响应关系及相对Random/Degree的效果能否稳定复现？",
+  "scope": "e79r5完整2520格：3数据集、10训练seed、12选点条件、6 GU与Retrain；原3seed与新增7seed分别分析后合计10seed。历史252格工程Gate保留为独立证据，不并入科学样本。",
   "configs": [
     {
       "label": "252格Gate",
@@ -17,6 +17,16 @@
     {
       "label": "seed212的252点效果测试",
       "path": "experiments/configs/exp079/cache_speed_gate_s212.yaml",
+      "role": "current"
+    },
+    {
+      "label": "完整10seed正式YAML（2520格；单份Recipe）",
+      "path": "experiments/configs/exp079/surrogate_multiseed.yaml",
+      "role": "current"
+    },
+    {
+      "label": "完整2520格六小时缓存续跑e79r5",
+      "path": "scripts/syncmate/recipes/opengu-exp079-surrogate-multiseed-r5.yaml",
       "role": "current"
     }
   ],
@@ -649,12 +659,157 @@
       "state": "completed",
       "started_at": "2026-10-13T17:34:23",
       "finished_at": "2026-10-13T17:36:12"
+    },
+    {
+      "run_id": "e79r5",
+      "job_id": "exp079-20261013-e79r5",
+      "recipe": "opengu-exp079-surrogate-multiseed-r5",
+      "config_path": "experiments/configs/exp079/surrogate_multiseed.yaml",
+      "git_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",
+      "scope": "完整10个训练seed矩阵共2520个逻辑单元：原42/212/2024对应756格，新增0–6对应1764格；原有计算在缓存身份匹配且产物存在时复用，评价仍执行。",
+      "submitted_at": "2026-10-13T20:36:11",
+      "retry_of": "exp079-20261007-e79r4",
+      "reason": "User requested AutoReport cleanup and starting the six-hour EXP-079 continuation",
+      "evidence": [
+        {
+          "label": "Handoff",
+          "path": ".syncmate/runs/exp079-20261013-e79r5.json"
+        },
+        {
+          "label": "Controller",
+          "path": ".syncmate/controller/exp079-20261013-e79r5.json"
+        },
+        {
+          "label": "Frozen runtime",
+          "path": ".syncmate/exp079-r5-20261013/frozen-runtime.json"
+        },
+        {
+          "label": "AutoReport归档回执",
+          "path": ".syncmate/exp079-r5-20261013/cleanup-receipt.json"
+        },
+        {
+          "label": "登记安装回执",
+          "path": ".syncmate/exp079-r5-20261013/install-receipt.json"
+        },
+        {
+          "label": "e79r5回传、SHA-256核验与2520格项目验收",
+          "path": ".syncmate/deliveries/exp079-20261013-e79r5.json"
+        }
+      ],
+      "runtime": {
+        "estimate_status": "recorded_before_start",
+        "estimated_seconds": 227280,
+        "estimate_scope": "Full2520 all-MISS serial budget;6h cap; cached forecast in plan.json",
+        "estimate_basis": "Inherited full ten-seed all-MISS serial budget: 30 dataset-seed groups x 7576 seconds. Not a cache-hit completion forecast.",
+        "actual_seconds": 20999.0,
+        "actual_scope": "Runner start to finish; queue and collection excluded",
+        "queue_seconds": null,
+        "return_seconds": null,
+        "evidence": [
+          {
+            "label": "Handoff",
+            "path": ".syncmate/runs/exp079-20261013-e79r5.json"
+          },
+          {
+            "label": "Controller",
+            "path": ".syncmate/controller/exp079-20261013-e79r5.json"
+          },
+          {
+            "label": "Frozen runtime",
+            "path": ".syncmate/exp079-r5-20261013/frozen-runtime.json"
+          },
+          {
+            "label": "AutoReport归档回执",
+            "path": ".syncmate/exp079-r5-20261013/cleanup-receipt.json"
+          },
+          {
+            "label": "登记安装回执",
+            "path": ".syncmate/exp079-r5-20261013/install-receipt.json"
+          },
+          {
+            "label": "e79r5回传、SHA-256核验与2520格项目验收",
+            "path": ".syncmate/deliveries/exp079-20261013-e79r5.json"
+          }
+        ],
+        "job_started": true,
+        "actual_status": "recorded",
+        "actual_basis": "Identity-bound Controller terminal timestamps; delivery accepted, 5041 files verified, 2520 cells project accepted",
+        "cache": {
+          "status": "observed",
+          "summary": "e79r5逐格缓存访问观察；共享Selection跨GU重复，不等于独立Artifact数量。",
+          "counts": {
+            "score": {
+              "hit": 2317,
+              "miss": 203
+            },
+            "selection": {
+              "hit": 2317,
+              "miss": 203
+            },
+            "method": {
+              "hit": 2184,
+              "miss": 336
+            },
+            "selector_checkpoint": {
+              "hit": 1582,
+              "not_applicable": 840,
+              "miss": 98
+            },
+            "method_checkpoint": {
+              "hit": 2160,
+              "not_applicable": 360
+            },
+            "evaluation": {
+              "hit": 756,
+              "miss": 1764
+            },
+            "post_unlearning_utility_and_retrain_gap": {
+              "hit": 648,
+              "miss": 1512
+            },
+            "post_unlearning_flip_hop": {
+              "hit": 648,
+              "miss": 1512
+            }
+          },
+          "evidence": [
+            {
+              "label": "e79r5可信完整run",
+              "path": "results/runs/gpu4090/exp079-surrogate-multiseed/e79r5/run.json"
+            }
+          ]
+        }
+      },
+      "state": "completed",
+      "execution_digest": "b09753289794f9b8ce8a1f7cb46068b326d21f9972b4e2ef026c8c3aced50ab1",
+      "started_at": "2026-10-13T20:37:32",
+      "finished_at": "2026-10-14T02:27:31"
     }
   ],
   "analysis": {
     "state": "complete",
-    "note": "seed212指定252点冷热两轮核验通过，846秒/109秒；完整2520点矩阵仍partial。",
+    "note": "e79r5全部2520格科学分析完成：5041文件本地哈希/可信索引复核、756旧格身份及指标匹配；新增7seed复现Cora/GNNDelete/gt_full的GIN正例，存在算法与数据集反例，仅支持条件性迁移。",
     "evidence": [
+      {
+        "label": "完整十seed科学分析 md",
+        "path": "self/research/analyses/EXP-079/e79r5/REPORT.md"
+      },
+      {
+        "label": "完整十seed科学分析 html",
+        "path": "self/research/analyses/EXP-079/e79r5/REPORT.html"
+      },
+      {
+        "label": "2520格复核摘要",
+        "path": "self/research/analyses/EXP-079/e79r5/audit.json"
+      },
+      {
+        "label": "全组别配对统计",
+        "path": "self/research/analyses/EXP-079/e79r5/summary.csv"
+      },
+      {
+        "label": "跨GU相关",
+        "path": "self/research/analyses/EXP-079/e79r5/correlations.csv"
+      },
       {
         "label": "252格Gate Markdown",
         "path": "self/research/analyses/EXP-079/gate252-20261012/REPORT.md"
@@ -705,19 +860,65 @@
       }
     ],
     "highlights": [
-      "seed212指定252点冷热两轮核验通过，846秒/109秒；完整2520点矩阵仍partial。",
-      "冷轮684次指标未命中、热轮684次命中，504份指标与选点文件逐字节一致。",
-      "跨seed历史比较，未增加前测，未扩大完整矩阵。",
-      "保存耗时只读排查：没有数量、重试或体积增加；未改动的审计和导出也变慢，环境与缓存/日志起点是候选解释，尚未确认。",
-      "SSH真实内容对照，实际连接复用时保存中位数110.87→107.62ms，收益约2.9%。正式规模索引副本写入中复现慢态，约72.4%耗时在同步与提交；正式缓存未改，历史513秒仍非精确归因。"
+      "e79r5完整2520格、10训练seed；5041/5041文件哈希及可信索引一致，原756格与EXP-013身份和关键指标一致。",
+      "Cora/GNNDelete/gt_full：GIN drop 22.38pp，GCN 20.42pp、Random 12.92pp、Degree 18.89pp；GIN−Random 9.46pp，点态95%配对区间[6.91,12.02]。新增7seed全部胜Random。",
+      "同条件GIN−Degree为3.49pp [0.43,6.54]，GIN−direct为1.96pp [-0.95,4.86]；无预设等效阈值，未经全矩阵多重比较调整，不作等效或普遍优势声明。",
+      "Cora/GNNDelete/r_point：GIN比Random少3.39pp；GIN跨GU相关由old3的1.00降为new7的0.30/all10的0.40。",
+      "PubMed/GNNDelete/gt_full：SGC drop 8.03pp，GCN 1.79pp，GIN 1.59pp；新增7seed也保持对Random优势。最强损伤与匹配direct是不同目标。",
+      "GIF/IDEA全部360对drop相同，相关主表按五GU计算；Random三抽样先在训练seed内平均，不扩充独立训练重复。",
+      "历史e79g4/e79g7/e79g8性能Gate与失败运行保留，不并入科学样本；运行完成、分析完成与用户科学接受分别维护。"
+    ],
+    "tables": [
+      {
+        "caption": "Cora / GNNDelete / gt_full 十seed平均F1 drop（百分点）",
+        "columns": [
+          "选点",
+          "均值"
+        ],
+        "rows": [
+          [
+            "GCN",
+            "20.424"
+          ],
+          [
+            "SGC",
+            "15.332"
+          ],
+          [
+            "GAT",
+            "17.177"
+          ],
+          [
+            "GIN",
+            "22.380"
+          ],
+          [
+            "Random",
+            "12.915"
+          ],
+          [
+            "Degree",
+            "18.893"
+          ]
+        ]
+      }
     ]
   },
   "decision": {
     "state": "not_requested",
-    "note": "工程gate证据；未请求科研接受，未授权扩大到全2520格。",
-    "evidence": []
+    "note": "用户请求分析，尚未确认科学接受。建议接受的解释范围为固定split、10%删除预算下的条件性迁移；不支持普遍替代或统计等效。",
+    "evidence": [
+      {
+        "label": "完整十seed科学分析 md",
+        "path": "self/research/analyses/EXP-079/e79r5/REPORT.md"
+      },
+      {
+        "label": "完整十seed科学分析 html",
+        "path": "self/research/analyses/EXP-079/e79r5/REPORT.html"
+      }
+    ]
   },
-  "recorded_at": "2026-10-13",
+  "recorded_at": "2026-10-14",
   "sources": [
     {
       "label": "首轮可信结果",
@@ -734,6 +935,14 @@
     {
       "label": "热轮回传与核验",
       "path": ".syncmate/deliveries/exp079-20261012-e79g4w.json"
+    },
+    {
+      "label": "e79r5可信完整run",
+      "path": "results/runs/gpu4090/exp079-surrogate-multiseed/e79r5/run.json"
+    },
+    {
+      "label": "e79r5可信回传与项目验收",
+      "path": ".syncmate/deliveries/exp079-20261013-e79r5.json"
     }
   ]
 }
