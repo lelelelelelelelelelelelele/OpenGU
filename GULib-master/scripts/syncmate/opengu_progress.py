@@ -2,20 +2,46 @@
 from __future__ import annotations
 
 import os
+import json
 from pathlib import Path
 import sys
 
 from experiments.effective_config import ConfigurationError
 
 
-def progress_plan(config):
-    """Generate the transport plan from the same steps used by the executor."""
+def _transport_steps(config):
+    """Compact request counters keep large matrices within Core's existing bounds."""
     from experiments.modular_progress import progress_steps
+    steps, mapping = [], {}
+    methods = {ref: item['method'] for ref, item in zip(config.get('unlearning_refs', []), config.get('unlearnings', []))}
+    for step in progress_steps(config):
+        position = step['position']
+        grouped = config['stage'] == 'unlearning' and 'selector_ref' in position
+        target = ({key: value for key, value in position.items() if key != 'unlearning_ref'}
+                  if grouped else dict(position))
+        if grouped:
+            target['stage'] = 'request'
+        if not steps or steps[-1]['position'] != target:
+            label = (config['datasets'][position['dataset_index']]['dataset']['name']
+                     + ' / request ' + str(len(steps)) if grouped else step['label'])
+            steps.append({'position': target, 'label': label, 'total': 0})
+        entry = steps[-1]
+        offset = entry['total']
+        entry['total'] += step['total']
+        if grouped and position['stage'] == 'unlearning':
+            # Each range ends after this method's configured evaluations, never at Output alone.
+            entry['label'] += ' / {}:{}-{}'.format(methods[position['unlearning_ref']],
+                offset + 1, offset + 1 + len(config['evaluations']))
+        mapping[json.dumps(position, sort_keys=True)] = (entry, offset)
+    return steps, mapping
+
+
+def progress_plan(config):
+    """Core owns a request cursor; the executor/audit retain method-level positions."""
     from syncmate_core.progress import validate_plan
-    return validate_plan([
-        {'id': f'step-{index}', 'label': step['label'], 'match': step['position']}
-        for index, step in enumerate(progress_steps(config))
-    ])
+    steps, _ = _transport_steps(config)
+    return validate_plan([{'id': f'step-{index}', 'label': step['label'], 'match': step['position']}
+                          for index, step in enumerate(steps)])
 
 
 def make_notify(config, context, *, config_path=None, enabled=True):
@@ -67,6 +93,7 @@ def make_notify(config, context, *, config_path=None, enabled=True):
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise ConfigurationError('SyncMate progress setup: ' + str(exc)) from exc
 
+    _, positions = _transport_steps(config)
     last_position = plan[-1]['match']
     last_error = None
 
@@ -74,7 +101,8 @@ def make_notify(config, context, *, config_path=None, enabled=True):
         nonlocal last_error
         try:
             if kind == 'progress':
-                written = publisher.update(current=current, total=total, **position)
+                step, offset = positions[json.dumps(position, sort_keys=True)]
+                written = publisher.update(current=offset + current, total=step['total'], **step['position'])
             elif kind == 'completed' and not position and current is None and total is None:
                 written = publisher.completed(**last_position)
             else:

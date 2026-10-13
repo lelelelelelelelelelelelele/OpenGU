@@ -17,6 +17,19 @@ def batch_position(stage, index, batch):
             'dataset_index': batch['matrix_values']['dataset_index']}
 
 
+def request_entries(batch, selector_ref):
+    """One declared request, with existing Retrain dependencies first."""
+    return sorted((entry for entry in unlearning_entries(batch) if entry[3] == selector_ref),
+                  key=lambda entry: entry[0]['method'] != 'Retrain')
+
+
+def request_position(stage, index, batch, selector_ref, gu_ref=None):
+    position = {**batch_position(stage, index, batch), 'selector_ref': selector_ref}
+    if gu_ref is not None:
+        position['unlearning_ref'] = gu_ref
+    return position
+
+
 def progress_steps(config):
     """Declare actual invocation boundaries, never epochs or per-cell tree nodes."""
     steps = []
@@ -38,12 +51,23 @@ def progress_steps(config):
             for field in ('random_selector_seed', 'im_selector_seed'):
                 if field in values:
                     label += ' / ' + field + ' ' + str(values[field])
-            steps.append({'position': batch_position('selector', index, batch),
-                          'label': label + ' / Selector', 'total': len(selector_entries(batch))})
-            if config['stage'] == 'unlearning':
-                steps.append({'position': batch_position('unlearning', index, batch),
-                              'label': label + ' / Unlearning', 'total': len(unlearning_entries(batch))})
-    if config['stage'] in ('unlearning', 'metrics') and config['evaluations']:
+            for selector, selector_ref in selector_entries(batch):
+                request_label = label + ' / ' + selector_ref
+                steps.append({'position': request_position('selector', index, batch, selector_ref),
+                              'label': request_label + ' / Selection', 'total': 1})
+                if config['stage'] == 'unlearning':
+                    for item, gu_ref, _, _ in request_entries(batch, selector_ref):
+                        method_label = request_label + ' / ' + gu_ref
+                        steps.append({'position': request_position('unlearning', index, batch, selector_ref, gu_ref),
+                                      'label': method_label + ' / Output + own metrics', 'total': 1})
+                        if config['evaluations']:
+                            steps.append({'position': request_position('evaluation', index, batch, selector_ref, gu_ref),
+                                          'label': method_label + ' / Evaluation (Retrain pairs: N/A)' if item['method'] == 'Retrain'
+                                                   else method_label + ' / Evaluation',
+                                          'total': len(config['evaluations'])})
+                    steps.append({'position': request_position('request_complete', index, batch, selector_ref),
+                                  'label': request_label + ' / Complete result', 'total': 1})
+    if config['stage'] == 'metrics' and config['evaluations']:
         for index, dataset in enumerate(config['datasets']):
             steps.append({'position': {'stage': 'evaluation', 'dataset_index': index},
                           'label': 'Evaluation: ' + dataset['dataset']['name'],

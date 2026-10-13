@@ -100,7 +100,8 @@ def test_real_exp079_plan_stays_within_core_capacity():
     config = load_experiment(ROOT / definition['config_path'])
     plan = progress_plan(config)
     assert plan == definition['progress_plan']
-    assert len(plan) == len(progress_steps(config)) == 247
+    assert len(plan) == 364
+    assert len(progress_steps(config)) == 5764
     assert sum(s['total'] for s in progress_steps(config)
                if s['position']['stage'] == 'unlearning') == 2520
     assert progress.validate_plan(plan) == plan
@@ -153,3 +154,36 @@ print(json.dumps({'status': result['status'], 'snapshot': snapshot, 'opengu_impo
     assert result.returncode == 0, result.stdout + result.stderr
     observed = json.loads(result.stdout)
     assert observed['status'] == 'done' and observed['opengu_imported'] is False
+
+
+def test_compact_request_counter_never_completes_at_output(publishing, monkeypatch):
+    from scripts.syncmate.opengu_progress import _transport_steps
+    root, path, _, context, job = publishing
+    config = load_experiment(path)
+    import yaml
+    raw = yaml.safe_load(path.read_text(encoding='utf-8'))
+    raw.update(stage='unlearning', selector_refs=['degree.yaml'], unlearning_refs=['gu.yaml'],
+               evaluation_refs=['utility.yaml'])
+    write_yaml(path, raw)
+    config = load_experiment(path)
+    job['expected_config_sha256'] = sha256_recipe_config(path)
+    env = progress.prepare_environment(root, job, progress_plan(config))
+    monkeypatch.setenv(progress.ENV, env[progress.ENV])
+    notify = make_notify(config, context, config_path=path)
+    snapshot_path = progress.safe_path(root, job['id'], 'current.json')
+    compact, mapping = _transport_steps(config)
+    previous = -1
+    for step in progress_steps(config):
+        for amount in range(step['total'] + 1):
+            assert notify('progress', position=step['position'], current=amount, total=step['total'])
+            snapshot = progress.read_json(snapshot_path)
+            target, offset = mapping[json.dumps(step['position'], sort_keys=True)]
+            assert snapshot['position'] == target['position']
+            assert snapshot['current'] == offset + amount
+            assert snapshot['total'] == target['total']
+            if snapshot['position']['stage'] == 'request':
+                assert snapshot['current'] >= previous
+                previous = snapshot['current']
+                if step['position']['stage'] != 'request_complete':
+                    assert snapshot['current'] < snapshot['total']
+    assert notify('completed', position={})

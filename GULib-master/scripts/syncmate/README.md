@@ -1441,6 +1441,14 @@ selected integration with an invalid dependency or context fails setup.
 python scripts/syncmate/syncmate.py job-progress <job-id> --json
 ```
 
+Unlearning progress follows each deletion request: Selection, configured Retrain
+and its applicable metrics, then each GU Output and its evaluations. The detailed
+executor/audit positions identify the request and method. Core uses one compact
+request counter, with method counter ranges in its label; a range ends after that
+method's evaluations. The final request tick is emitted only after all applicable
+evaluations succeed. Retrain's GU-versus-Retrain comparisons are explicitly
+`not_applicable`. This preserves Core's plan-size limits for full matrices.
+
 The query reads the local progress cache. Missing or stale progress does not
 prove scientific failure; stage completion does not establish result return,
 checksum verification or scientific acceptance. No progress fields enter Cache
