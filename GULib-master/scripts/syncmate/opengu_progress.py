@@ -10,34 +10,41 @@ from experiments.effective_config import ConfigurationError
 
 
 def _transport_steps(config):
-    """Compact request counters keep large matrices within Core's existing bounds."""
-    from experiments.modular_progress import progress_steps
+    """Count one Output plus all its applicable evaluations as one batch unit."""
+    from experiments.modular_progress import batch_label, execution_batches, progress_steps
     steps, mapping = [], {}
-    methods = {ref: item['method'] for ref, item in zip(config.get('unlearning_refs', []), config.get('unlearnings', []))}
+    batches = execution_batches(config) if config['stage'] == 'unlearning' else []
     for step in progress_steps(config):
         position = step['position']
         grouped = config['stage'] == 'unlearning' and 'selector_ref' in position
-        target = ({key: value for key, value in position.items() if key != 'unlearning_ref'}
+        target = ({key: value for key, value in position.items() if key not in ('unlearning_ref', 'selector_ref')}
                   if grouped else dict(position))
         if grouped:
-            target['stage'] = 'request'
+            target['stage'] = 'output_evaluation'
         if not steps or steps[-1]['position'] != target:
-            label = (config['datasets'][position['dataset_index']]['dataset']['name']
-                     + ' / request ' + str(len(steps)) if grouped else step['label'])
+            label = (batch_label(position['batch_index'], batches[position['batch_index']])
+                     + ' / Output + Evaluation' if grouped else step['label'])
             steps.append({'position': target, 'label': label, 'total': 0})
         entry = steps[-1]
-        offset = entry['total']
-        entry['total'] += step['total']
-        if grouped and position['stage'] == 'unlearning':
-            # Each range ends after this method's configured evaluations, never at Output alone.
-            entry['label'] += ' / {}:{}-{}'.format(methods[position['unlearning_ref']],
-                offset + 1, offset + 1 + len(config['evaluations']))
-        mapping[json.dumps(position, sort_keys=True)] = (entry, offset)
+        if not grouped:
+            entry['total'] = step['total']
+            counts = tuple(range(step['total'] + 1))
+        elif position['stage'] == 'unlearning':
+            before = entry['total']
+            entry['total'] += 1
+            counts = (before, before if config['evaluations'] else before + 1)
+        elif position['stage'] == 'evaluation':
+            # Partial or failed evaluation must never count a finished Output group.
+            counts = (entry['total'] - 1,) * step['total'] + (entry['total'],)
+        else:
+            # Selection and request boundaries are prerequisites, not extra groups.
+            counts = (entry['total'],) * (step['total'] + 1)
+        mapping[json.dumps(position, sort_keys=True)] = (entry, counts)
     return steps, mapping
 
 
 def progress_plan(config):
-    """Core owns a request cursor; the executor/audit retain method-level positions."""
+    """Core counts complete Output/Evaluation groups; audit retains method detail."""
     from syncmate_core.progress import validate_plan
     steps, _ = _transport_steps(config)
     return validate_plan([{'id': f'step-{index}', 'label': step['label'], 'match': step['position']}
@@ -101,8 +108,10 @@ def make_notify(config, context, *, config_path=None, enabled=True):
         nonlocal last_error
         try:
             if kind == 'progress':
-                step, offset = positions[json.dumps(position, sort_keys=True)]
-                written = publisher.update(current=offset + current, total=step['total'], **step['position'])
+                step, counts = positions[json.dumps(position, sort_keys=True)]
+                if type(current) is not int or not 0 <= current < len(counts) or total != len(counts) - 1:
+                    raise ValueError('invalid experiment progress counter')
+                written = publisher.update(current=counts[current], total=step['total'], **step['position'])
             elif kind == 'completed' and not position and current is None and total is None:
                 written = publisher.completed(**last_position)
             else:

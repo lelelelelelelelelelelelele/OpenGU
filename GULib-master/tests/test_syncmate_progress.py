@@ -100,7 +100,12 @@ def test_real_exp079_plan_stays_within_core_capacity():
     config = load_experiment(ROOT / definition['config_path'])
     plan = progress_plan(config)
     assert plan == definition['progress_plan']
-    assert len(plan) == 364
+    assert len(plan) == 124
+    from scripts.syncmate.opengu_progress import _transport_steps
+    batches = [s for s in _transport_steps(config)[0] if s["position"]["stage"] == "output_evaluation"]
+    assert len(batches) == 120
+    assert all(s["total"] == 21 for s in batches)
+    assert sum(s["total"] for s in batches) == 2520
     assert len(progress_steps(config)) == 5764
     assert sum(s['total'] for s in progress_steps(config)
                if s['position']['stage'] == 'unlearning') == 2520
@@ -156,11 +161,48 @@ print(json.dumps({'status': result['status'], 'snapshot': snapshot, 'opengu_impo
     assert observed['status'] == 'done' and observed['opengu_imported'] is False
 
 
-def test_compact_request_counter_never_completes_at_output(publishing, monkeypatch):
-    from scripts.syncmate.opengu_progress import _transport_steps
+@pytest.mark.parametrize('with_evaluations', [True, False])
+def test_batch_counter_counts_finished_output_evaluation_groups(publishing, monkeypatch, with_evaluations):
+    from experiments.modular_config import unlearning_entries
+    from experiments.modular_progress import execution_batches
     root, path, _, context, job = publishing
-    config = load_experiment(path)
     import yaml
+    raw = yaml.safe_load(path.read_text(encoding='utf-8'))
+    raw.update(stage='unlearning', selector_refs=['degree.yaml', 'r_point.yaml'],
+               unlearning_refs=['gu.yaml'], seeds=[7, 19],
+               evaluation_refs=['utility.yaml'] if with_evaluations else [])
+    write_yaml(path, raw)
+    config = load_experiment(path)
+    job['expected_config_sha256'] = sha256_recipe_config(path)
+    env = progress.prepare_environment(root, job, progress_plan(config))
+    monkeypatch.setenv(progress.ENV, env[progress.ENV])
+    notify = make_notify(config, context, config_path=path)
+    snapshot_path = progress.safe_path(root, job['id'], 'current.json')
+    totals = [len(unlearning_entries(batch)) for batch in execution_batches(config)]
+    finished = [0] * len(totals)
+    for step in progress_steps(config):
+        for amount in range(step['total'] + 1):
+            assert notify('progress', position=step['position'], current=amount, total=step['total'])
+            snapshot = progress.read_json(snapshot_path)
+            if 'batch_index' not in step['position']:
+                continue
+            index = step['position']['batch_index']
+            terminal = 'evaluation' if with_evaluations else 'unlearning'
+            if step['position']['stage'] == terminal and amount == step['total']:
+                finished[index] += 1
+            assert snapshot['current'] == finished[index]
+            assert snapshot['total'] == totals[index]
+            assert snapshot['position'] == {'stage': 'output_evaluation',
+                'batch_index': index, 'dataset_index': step['position']['dataset_index']}
+    assert finished == totals
+    assert notify('completed', position={})
+
+
+@pytest.mark.parametrize('fail_evaluation', [False, True])
+def test_real_execution_counts_only_after_evaluation(publishing, monkeypatch, fail_evaluation):
+    import yaml
+    import experiments.modular_run as runner
+    root, path, _, context, job = publishing
     raw = yaml.safe_load(path.read_text(encoding='utf-8'))
     raw.update(stage='unlearning', selector_refs=['degree.yaml'], unlearning_refs=['gu.yaml'],
                evaluation_refs=['utility.yaml'])
@@ -170,20 +212,24 @@ def test_compact_request_counter_never_completes_at_output(publishing, monkeypat
     env = progress.prepare_environment(root, job, progress_plan(config))
     monkeypatch.setenv(progress.ENV, env[progress.ENV])
     notify = make_notify(config, context, config_path=path)
-    snapshot_path = progress.safe_path(root, job['id'], 'current.json')
-    compact, mapping = _transport_steps(config)
-    previous = -1
-    for step in progress_steps(config):
-        for amount in range(step['total'] + 1):
-            assert notify('progress', position=step['position'], current=amount, total=step['total'])
-            snapshot = progress.read_json(snapshot_path)
-            target, offset = mapping[json.dumps(step['position'], sort_keys=True)]
-            assert snapshot['position'] == target['position']
-            assert snapshot['current'] == offset + amount
-            assert snapshot['total'] == target['total']
-            if snapshot['position']['stage'] == 'request':
-                assert snapshot['current'] >= previous
-                previous = snapshot['current']
-                if step['position']['stage'] != 'request_complete':
-                    assert snapshot['current'] < snapshot['total']
-    assert notify('completed', position={})
+    snapshots = []
+    def observe(kind, **kwargs):
+        assert notify(kind, **kwargs)
+        snapshot = progress.read_json(progress.safe_path(root, job['id'], 'current.json'))
+        snapshots.append((kind, kwargs, snapshot))
+    if fail_evaluation:
+        def fail(*args, **kwargs):
+            raise RuntimeError('evaluation failed')
+        monkeypatch.setattr(runner, 'evaluate_modular', fail)
+        with pytest.raises(RuntimeError, match='evaluation failed'):
+            runner.execute(path, context=context, notify=observe)
+        assert snapshots[-1][2]['current'] == 0
+        assert snapshots[-1][2]['total'] == 1
+        assert progress.tree_report(progress_plan(config), snapshots[-1][2])[1]['state'] == 'in_progress'
+    else:
+        runner.execute(path, context=context, notify=observe)
+        assert any(k == 'progress' and v['position']['stage'] == 'evaluation'
+                   and v['current'] == 1 and s['current'] == 1 for k, v, s in snapshots)
+    output_done = [s for k, v, s in snapshots if k == 'progress'
+                   and v['position']['stage'] == 'unlearning' and v['current'] == 1]
+    assert output_done and all(s['current'] == 0 for s in output_done)

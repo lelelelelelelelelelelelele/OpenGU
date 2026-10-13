@@ -17,6 +17,19 @@ def batch_position(stage, index, batch):
             'dataset_index': batch['matrix_values']['dataset_index']}
 
 
+def batch_label(index, batch):
+    values = batch['matrix_values']
+    label = '{} / batch {}'.format(values['dataset_name'], index + 1)
+    if values['training_seed'] is not None:
+        label += ' / seed ' + str(values['training_seed'])
+    if values['budget_ratio'] is not None:
+        label += ' / ratio ' + str(values['budget_ratio'])
+    for field in ('random_selector_seed', 'im_selector_seed'):
+        if field in values:
+            label += ' / ' + field + ' ' + str(values[field])
+    return label
+
+
 def request_entries(batch, selector_ref):
     """One declared request, with existing Retrain dependencies first."""
     return sorted((entry for entry in unlearning_entries(batch) if entry[3] == selector_ref),
@@ -36,21 +49,13 @@ def progress_steps(config):
     for index, dataset in enumerate(config['datasets']):
         name = dataset['dataset']['name']
         steps.append({'position': {'stage': 'data', 'dataset_index': index},
-                      'label': 'Data: ' + name, 'total': 1})
+                      'label': '准备数据：' + name, 'total': 1})
     if config['stage'] == 'metrics':
         steps.append({'position': {'stage': 'metric_inputs'},
                       'label': 'Read metric inputs', 'total': len(config['output_inputs'])})
     else:
         for index, batch in enumerate(execution_batches(config)):
-            values = batch['matrix_values']
-            label = '{} / batch {}'.format(values['dataset_name'], index + 1)
-            if values['training_seed'] is not None:
-                label += ' / seed ' + str(values['training_seed'])
-            if values['budget_ratio'] is not None:
-                label += ' / ratio ' + str(values['budget_ratio'])
-            for field in ('random_selector_seed', 'im_selector_seed'):
-                if field in values:
-                    label += ' / ' + field + ' ' + str(values[field])
+            label = batch_label(index, batch)
             for selector, selector_ref in selector_entries(batch):
                 request_label = label + ' / ' + selector_ref
                 steps.append({'position': request_position('selector', index, batch, selector_ref),
