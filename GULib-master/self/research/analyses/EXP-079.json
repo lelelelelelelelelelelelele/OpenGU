@@ -694,6 +694,14 @@
       {
         "label": "保存耗时只读排查html",
         "path": "self/research/analyses/EXP-079/gate252-s212-20261013/SAVE_VARIATION_REPORT.html"
+      },
+      {
+        "label": "SSH同内容保存对照md",
+        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/SSH_SAVE_REPORT.md"
+      },
+      {
+        "label": "SSH同内容保存对照html",
+        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/SSH_SAVE_REPORT.html"
       }
     ],
     "highlights": [
@@ -701,7 +709,7 @@
       "冷轮684次指标未命中、热轮684次命中，504份指标与选点文件逐字节一致。",
       "跨seed历史比较，未增加前测，未扩大完整矩阵。",
       "保存耗时只读排查：没有数量、重试或体积增加；未改动的审计和导出也变慢，环境与缓存/日志起点是候选解释，尚未确认。",
-      "保存改动单独复查：128对同内容CPU首次保存，中位数13.26→12.32ms，两批均改善；保留保存与查询，远端原因仍未确认。"
+      "SSH真实内容对照，实际连接复用时保存中位数110.87→107.62ms，收益约2.9%。正式规模索引副本写入中复现慢态，约72.4%耗时在同步与提交；正式缓存未改，历史513秒仍非精确归因。"
     ]
   },
   "decision": {

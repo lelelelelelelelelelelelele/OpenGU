@@ -1,0 +1,407 @@
+{
+  "series": {
+    "independent": {
+      "observed_at": "2026-10-13T10:23:52.603664+00:00",
+      "remote_sha": "84b48537b3fe32ac68a271307aad518ead014741",
+      "summary": {
+        "before": {
+          "n": 108,
+          "median_ms": 133.74454411678016,
+          "mean_ms": 182.11029905877592,
+          "p95_ms": 602.3143168073148,
+          "part_mean_ms": {
+            "payload_construct": 1.5878517404888515,
+            "lock_acquire": 10.88067834455244,
+            "dependency_validation": 21.181581968752045,
+            "payload_publish": 22.354462395284187,
+            "header_publish": 14.568197786704534,
+            "database_commit": 26.80453956472101,
+            "audit_append_sync": 13.274562924548432,
+            "lock_release": 2.2976637938646256,
+            "remaining": 69.16076053985981
+          },
+          "fsync": {
+            "payload": {
+              "mean_calls": 1,
+              "mean_ms": 4.51019041981824
+            },
+            "header": {
+              "mean_calls": 1,
+              "mean_ms": 4.6159067725831715
+            },
+            "trace": {
+              "mean_calls": 2,
+              "mean_ms": 7.377862055027099
+            },
+            "lock": {
+              "mean_calls": 1,
+              "mean_ms": 4.41962663360216
+            }
+          }
+        },
+        "after": {
+          "n": 108,
+          "median_ms": 131.9890390150249,
+          "mean_ms": 173.89068382154048,
+          "p95_ms": 588.5598978027701,
+          "part_mean_ms": {
+            "payload_construct": 1.5841260448926024,
+            "lock_acquire": 9.760187451589715,
+            "dependency_validation": 21.23007997525511,
+            "payload_publish": 22.48629915131325,
+            "header_publish": 14.2779514728183,
+            "database_commit": 25.946909699726987,
+            "audit_append_sync": 7.7835810413860065,
+            "lock_release": 2.659581386035791,
+            "remaining": 68.16196759852271
+          },
+          "fsync": {
+            "payload": {
+              "mean_calls": 1,
+              "mean_ms": 4.4899650513091025
+            },
+            "header": {
+              "mean_calls": 1,
+              "mean_ms": 4.988699379653014
+            },
+            "trace": {
+              "mean_calls": 1,
+              "mean_ms": 3.5484799364995627
+            },
+            "lock": {
+              "mean_calls": 1,
+              "mean_ms": 3.7053049610996687
+            }
+          }
+        }
+      },
+      "temporary_root": "/autodl-fs/data/OpenGU/GULib-master/.syncmate/save-ab-ob_dl6cx",
+      "temporary_cleanup": "complete",
+      "formal_cache_before": {
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/index.sqlite": {
+          "size": 91619328,
+          "mtime_ns": 1791883657819653451
+        },
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/trace.jsonl": {
+          "size": 6071751,
+          "mtime_ns": 1791883657850661933
+        }
+      },
+      "formal_cache_after": {
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/index.sqlite": {
+          "size": 91619328,
+          "mtime_ns": 1791883657819653451
+        },
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/trace.jsonl": {
+          "size": 6071751,
+          "mtime_ns": 1791883657850661933
+        }
+      }
+    },
+    "shared_small": {
+      "observed_at": "2026-10-13T10:50:13.056193+00:00",
+      "remote_sha": "84b48537b3fe32ac68a271307aad518ead014741",
+      "summary": {
+        "before": {
+          "n": 108,
+          "median_ms": 110.86558806709945,
+          "mean_ms": 113.71027647207181,
+          "p95_ms": 141.2849251413718,
+          "part_mean_ms": {
+            "payload_construct": 2.5929173894433513,
+            "lock_acquire": 6.558295516124754,
+            "dependency_validation": 23.445215136571615,
+            "payload_publish": 11.779098107514006,
+            "header_publish": 10.480582856366205,
+            "database_commit": 20.962985952522743,
+            "audit_append_sync": 9.944217891811773,
+            "lock_release": 1.5368702200551827,
+            "remaining": 26.410093401662177
+          },
+          "fsync": {
+            "payload": {
+              "mean_calls": 1,
+              "mean_ms": 4.194964072667062
+            },
+            "header": {
+              "mean_calls": 1,
+              "mean_ms": 4.295526546667571
+            },
+            "trace": {
+              "mean_calls": 2,
+              "mean_ms": 6.81748167887606
+            },
+            "lock": {
+              "mean_calls": 1,
+              "mean_ms": 3.16011490886686
+            }
+          }
+        },
+        "after": {
+          "n": 108,
+          "median_ms": 107.61811351403594,
+          "mean_ms": 109.07486834373601,
+          "p95_ms": 140.2608231175691,
+          "part_mean_ms": {
+            "payload_construct": 2.6570259360596538,
+            "lock_acquire": 6.419013547538607,
+            "dependency_validation": 22.543786425591893,
+            "payload_publish": 11.573148412733442,
+            "header_publish": 11.018513775154672,
+            "database_commit": 20.75949215968312,
+            "audit_append_sync": 5.535817743899922,
+            "lock_release": 1.6708852490410209,
+            "remaining": 26.897185094033677
+          },
+          "fsync": {
+            "payload": {
+              "mean_calls": 1,
+              "mean_ms": 4.0105814502264066
+            },
+            "header": {
+              "mean_calls": 1,
+              "mean_ms": 4.677707484612863
+            },
+            "trace": {
+              "mean_calls": 1,
+              "mean_ms": 3.500456145654122
+            },
+            "lock": {
+              "mean_calls": 1,
+              "mean_ms": 3.0679992072422198
+            }
+          }
+        }
+      },
+      "temporary_root": "/autodl-fs/data/OpenGU/GULib-master/.syncmate/save-ab-o63hxxvj",
+      "temporary_cleanup": "complete",
+      "formal_cache_before": {
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/index.sqlite": {
+          "size": 91619328,
+          "mtime_ns": 1791883657819653451
+        },
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/trace.jsonl": {
+          "size": 6071751,
+          "mtime_ns": 1791883657850661933
+        }
+      },
+      "formal_cache_after": {
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/index.sqlite": {
+          "size": 91619328,
+          "mtime_ns": 1791883657819653451
+        },
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/trace.jsonl": {
+          "size": 6071751,
+          "mtime_ns": 1791883657850661933
+        }
+      }
+    },
+    "full_index": {
+      "observed_at": "2026-10-13T11:03:38.015617+00:00",
+      "remote_sha": "84b48537b3fe32ac68a271307aad518ead014741",
+      "summary": {
+        "before": {
+          "n": 108,
+          "median_ms": 1144.532885402441,
+          "mean_ms": 1377.5284750412943,
+          "p95_ms": 3896.706020878628,
+          "part_mean_ms": {
+            "payload_construct": 2.8003378064130193,
+            "lock_acquire": 55.49460438218106,
+            "dependency_validation": 107.15406295343267,
+            "payload_publish": 464.1889820513488,
+            "header_publish": 249.3972230133497,
+            "database_commit": 216.19429247005394,
+            "audit_append_sync": 79.9418377034642,
+            "lock_release": 6.589724699518195,
+            "remaining": 195.76740996153265
+          },
+          "fsync": {
+            "payload": {
+              "mean_calls": 1,
+              "mean_ms": 437.1615989021612
+            },
+            "header": {
+              "mean_calls": 1,
+              "mean_ms": 228.53364062892203
+            },
+            "trace": {
+              "mean_calls": 2,
+              "mean_ms": 73.28386808728317
+            },
+            "lock": {
+              "mean_calls": 1,
+              "mean_ms": 45.228590503231516
+            }
+          }
+        },
+        "after": {
+          "n": 108,
+          "median_ms": 1106.0631428845227,
+          "mean_ms": 1254.3153517784688,
+          "p95_ms": 2343.9860890386626,
+          "part_mean_ms": {
+            "payload_construct": 2.777504221605206,
+            "lock_acquire": 51.55773020211469,
+            "dependency_validation": 97.6008824115895,
+            "payload_publish": 387.8872321737516,
+            "header_publish": 189.43141892776583,
+            "database_commit": 248.9874974169113,
+            "audit_append_sync": 89.04510072035784,
+            "lock_release": 5.68832921433366,
+            "remaining": 181.33965649003923
+          },
+          "fsync": {
+            "payload": {
+              "mean_calls": 1,
+              "mean_ms": 361.34246588874333
+            },
+            "header": {
+              "mean_calls": 1,
+              "mean_ms": 170.20830110629538
+            },
+            "trace": {
+              "mean_calls": 1,
+              "mean_ms": 85.07185512550038
+            },
+            "lock": {
+              "mean_calls": 1,
+              "mean_ms": 42.29823905215771
+            }
+          }
+        }
+      },
+      "temporary_root": "/autodl-fs/data/OpenGU/GULib-master/.syncmate/save-ab-jza_uk_a",
+      "temporary_cleanup": "complete",
+      "formal_cache_before": {
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/index.sqlite": {
+          "size": 91619328,
+          "mtime_ns": 1791883657819653451
+        },
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/trace.jsonl": {
+          "size": 6071751,
+          "mtime_ns": 1791883657850661933
+        }
+      },
+      "formal_cache_after": {
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/index.sqlite": {
+          "size": 91619328,
+          "mtime_ns": 1791883657819653451
+        },
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/trace.jsonl": {
+          "size": 6071751,
+          "mtime_ns": 1791883657850661933
+        }
+      }
+    },
+    "tail_small": {
+      "observed_at": "2026-10-13T11:11:00.563671+00:00",
+      "remote_sha": "84b48537b3fe32ac68a271307aad518ead014741",
+      "summary": {
+        "before": {
+          "n": 18,
+          "median_ms": 114.40093256533146,
+          "mean_ms": 120.62864261679351,
+          "p95_ms": 156.93317675031722,
+          "part_mean_ms": {
+            "payload_construct": 2.6656585848993726,
+            "lock_acquire": 7.659887144755986,
+            "dependency_validation": 24.848140000055235,
+            "payload_publish": 12.850694125518203,
+            "header_publish": 12.354016459236542,
+            "database_commit": 21.267013417349922,
+            "audit_append_sync": 9.695997254716026,
+            "lock_release": 1.6670791794442468,
+            "remaining": 27.620156450817984
+          },
+          "fsync": {
+            "payload": {
+              "mean_calls": 1,
+              "mean_ms": 4.73382282588217
+            },
+            "header": {
+              "mean_calls": 1,
+              "mean_ms": 4.22106820365621
+            },
+            "trace": {
+              "mean_calls": 2,
+              "mean_ms": 6.416168633020586
+            },
+            "lock": {
+              "mean_calls": 1,
+              "mean_ms": 4.25649361891879
+            }
+          }
+        },
+        "after": {
+          "n": 18,
+          "median_ms": 110.08905852213502,
+          "mean_ms": 108.47951652896073,
+          "p95_ms": 131.08889625873417,
+          "part_mean_ms": {
+            "payload_construct": 2.6214843512409263,
+            "lock_acquire": 6.70909304689202,
+            "dependency_validation": 21.13041170458827,
+            "payload_publish": 12.02412562755247,
+            "header_publish": 11.010309215635061,
+            "database_commit": 21.329944668751622,
+            "audit_append_sync": 5.157092534419563,
+            "lock_release": 1.5838676546182897,
+            "remaining": 26.91318772526251
+          },
+          "fsync": {
+            "payload": {
+              "mean_calls": 1,
+              "mean_ms": 4.2682484620147285
+            },
+            "header": {
+              "mean_calls": 1,
+              "mean_ms": 4.8332991492417126
+            },
+            "trace": {
+              "mean_calls": 1,
+              "mean_ms": 3.0156631126172013
+            },
+            "lock": {
+              "mean_calls": 1,
+              "mean_ms": 2.853457583114505
+            }
+          }
+        }
+      },
+      "temporary_root": "/autodl-fs/data/OpenGU/GULib-master/.syncmate/save-ab-tylrpfsv",
+      "temporary_cleanup": "complete",
+      "formal_cache_before": {
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/index.sqlite": {
+          "size": 91619328,
+          "mtime_ns": 1791883657819653451
+        },
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/trace.jsonl": {
+          "size": 6071751,
+          "mtime_ns": 1791883657850661933
+        }
+      },
+      "formal_cache_after": {
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/index.sqlite": {
+          "size": 91619328,
+          "mtime_ns": 1791883657819653451
+        },
+        "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/trace.jsonl": {
+          "size": 6071751,
+          "mtime_ns": 1791883657850661933
+        }
+      }
+    }
+  },
+  "source_index_bytes": 91619328,
+  "all_formal_cache_checks_passed": true,
+  "all_temporary_roots_removed": true,
+  "full_index_slow_state": {
+    "python_fsync_ms": 658.9208611726968,
+    "sqlite_commit_ms": 248.9874974169113,
+    "total_mean_ms": 1254.3153517784688,
+    "sync_and_commit_fraction": 0.7238278295026072
+  },
+  "limits": "Current verification, not retrospective timing of513s. Full metadata snapshots preserve logical population; physical layout, historical load, and snapshot IO differ. New diagnostic protocol identity only in copies; metric values and Output references preserved. Index size and IO state not isolated causally.",
+  "decision": "No saving rollback; no systematic saving-code slowdown found. Small gains under light IO, overwhelmed during slow IO; history root cause still not confirmed"
+}
