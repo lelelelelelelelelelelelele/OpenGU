@@ -1,10 +1,24 @@
-# EXP-079：十 seed 条件性迁移结果分析
+# EXP-079：十 seed 的 selector 与 GU 响应检测
 
 2026-10-14 · e79r5 · 完整 2520 格 · 分析完成，科学结论待用户审阅
 
-## 结论
+## 先看全局：哪些选点在哪些 GU 上造成额外损伤？
 
-**新增七个 seed 复现了 Cora / GNNDelete / gt_full 的 GIN 攻击正例，支持条件性迁移；其余条件存在明显失败和关系变化，不能升级为通用代理替代结论。** 本轮原 3 seed、新增 7 seed、合计 10 seed 分开统计，没有按结果删 seed 或只挑有利方法。
+**主展示统一使用全部 10 个训练 seed。** 三个数据集、两种 selector、四种选点架构和六种 GU 都在图中。列表示攻击选点模型；目标保持 GCN 设置。横着看选点架构敏感性，竖着看 GU 响应。
+
+![十seed全矩阵相对随机删除的额外损伤](diagnostic_random_10seeds.png)
+
+每格为选点请求相对 Random 多造成的 F1 损失，单位 pp。红色为更多、蓝色为更少；深框表示逐 seed 配对差的点态 95% t 区间不跨零，未作多重比较调整。没有深框不表示等效或无效。Random 每个训练 seed 内先平均三个抽样。
+
+- **同一个 GU，两种 selector 的表现可以相反。** 看 Cora 的 GNNDelete 行：gt_full 的四种选点架构均比 Random 造成更多损伤；r_point 的 SGC、GAT、GIN 均比 Random 造成更少损伤。GIN 分别为 **+9.46** 与 **-3.39 pp**，两者区间均不跨零。
+- **同一个 selector，不同代理架构可能给出不同攻击结果。** 看 PubMed / gt_full 的 GNNDelete 行：SGC 比 Random 多 **+5.78 pp**，GIN 为 **-0.66 pp**，两者区间均不跨零。
+- **也保留未观察到清晰增益的条件。** CiteSeer 的 GNNDelete 在两种 selector、四种选点架构下，相对 Random 的区间全部跨零。这是当前设置中的不确定结果，不证明这些攻击在其他设置中无效。
+
+**[打开全局检测图解](OVERVIEW_REPORT.html)** · [图解 Markdown](OVERVIEW_REPORT.md)：另含 Degree 对照、更换选点架构后的配对变化、同请求 Retrain 差距。效用损伤小并不自动证明 GU 防御成功；结合重训对照解释。
+
+## 详细结论与复现核验
+
+**十 seed 矩阵同时包含攻击增益、相对基线更弱以及方向不确定的结果；这些结果共同用于检测 selector 的架构依赖和 GU 的条件性响应。** 历史三 seed 与新增七 seed 的拆分仅用于复现核验，不作为论文图表的比较轴或叙事顺序；没有按结果删 seed 或只挑有利方法。
 
 - 核心正例：十 seed 的 GIN 平均 F1 drop 为 **22.38 pp**，GCN direct 为 **20.42 pp**，Random 为 **12.92 pp**，Degree 为 **18.89 pp**。GIN−Random 的配对差为 **9.46 pp，95% CI [6.91, 12.02]**。新增七 seed 全部高于 Random，十 seed 为 10/10。
 - Degree 优势比原探索更清晰，但有限：十 seed GIN−Degree 为 **3.49 pp [0.43, 6.54]**，7/10 seed 为正；新增七 seed 为 5/7。这里是未经多重比较调整的点态区间，不称全矩阵确认性显著优势。
@@ -91,11 +105,11 @@ GIN 表如下，完整 SGC/GAT/GIN 的 54 行见 correlations.csv。old3/new7/al
 | PubMed | gt_full | 0.900 | 0.667 | 0.500 | 0.600 | 0.600 | 0.500 | 1.000 |
 | PubMed | r_point | 0.300 | 1.000 | 0.900 | 0.900 | 0.600 | 0.500 | 1.000 |
 
-### 论文展示：Cora / r_point，全部十 seed
+### 补充诊断：Cora / r_point，全部十 seed
 
 ![Cora r_point 十seed实际效果散点图](cora_r_point_transfer_10seeds.png)
 
-论文图统一使用全部十个训练 seed，不按运行先后拆成三组。横轴为 GCN direct 的平均 F1 drop，纵轴为 GIN surrogate 的平均 F1 drop；一个点对应一种 GU 的平均响应。GIF/IDEA 的响应完全重合，合并标注并仅计一次排序相关。误差棒分别表示两侧均值的点态 95% t 区间；右图放大左图框出的近原点区域，没有删去负值或小效应。
+此图仅用于单个条件的补充诊断；全局叙事采用报告开头的十 seed 检测矩阵。横轴为 GCN direct 的平均 F1 drop，纵轴为 GIN surrogate 的平均 F1 drop；一个点对应一种 GU 的平均响应。GIF/IDEA 的响应完全重合，合并标注并仅计一次排序相关。误差棒分别表示两侧均值的点态 95% t 区间；右图放大左图框出的近原点区域，没有删去负值或小效应。
 
 虚线 y=x 表示两侧的平均效用损伤相同，点在虚线下方意味着 GIN 的平均损伤较小。Cora / r_point 的 GNNDelete 为 13.71 vs 9.52 pp，GraphRevoker 为 4.15 vs −0.54 pp；其余 GU 的效应较小，见右侧放大图。图中直接呈现损伤幅度与不确定性，Spearman rho=0.40 作为辅助描述，不绘制拟合直线、不将 seed 编号当比较轴。
 
@@ -147,7 +161,7 @@ GraphRevoker 在 Cora 的 GIN / gt_full 平均 drop 为 1.81 pp，signed retrain
 
 ## 9. 建议采用的结论与下一步
 
-建议的论文表述：在固定划分、10% 删除预算和本次 GCN 目标设置下，GIN 代理的 gt_full 选点在 Cora / GNNDelete 上跨新增七个训练 seed 复现了明显效用下降，且相对 Random 保留稳定优势。迁移程度依赖数据集、选点算法和 GU；r_point 等条件存在失败，跨方法相关也可被简单基线复现，因此当前证据支持有边界的条件性迁移。
+建议的论文表述：在固定划分、10% 删除预算和本次 GCN 目标设置下，完整十 seed 矩阵显示攻击增益依赖数据集、选点算法和选点架构，并在不同 GU 上产生不同响应。Cora / GNNDelete 的 gt_full / GIN 相对 Random 存在正向增益，r_point / GIN 则弱于 Random；PubMed / GNNDelete / gt_full 的 SGC 产生正向增益而 GIN 弱于 Random。这些结果支持将 surrogate 作为攻击评估的一项受控变量，同时用基线与 Retrain 对照检测 GU 的条件性响应；不据未观察到增益宣布一般防御能力。
 
 本轮可以结束“十 seed 矩阵尚未完成”的运行结论，并将当前科学分析送审。科学接受仍由用户决定；没有将 analysis complete 写成 accepted。后续若要提出普遍替代、等效性或跨 split 泛化，需要另行定义目标范围与确认性门槛；本次不据结果自动扩实验或选择最优代理后声称无偏确认。
 
