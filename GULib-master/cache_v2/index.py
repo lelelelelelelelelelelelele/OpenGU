@@ -550,7 +550,13 @@ class CacheIndex:
             parameters.append('[' + canonical_json(name) + ',' + canonical_json(value) + ']')
         query = "SELECT * FROM artifacts WHERE artifact_type = ?"
         if parent_artifact_id is not None:
-            query += " AND artifact_id IN (SELECT child_artifact_id FROM dependencies WHERE parent_artifact_id = ?)"
+            # Drive the lookup from the small parent adjacency list. Without
+            # CROSS JOIN SQLite can prefer the type/Recipe index and visit the
+            # entire type catalogue before testing the parent restriction.
+            # A parent may have several relations to the same child.
+            query = ("SELECT DISTINCT artifacts.* FROM dependencies CROSS JOIN artifacts "
+                     "ON artifacts.artifact_id = dependencies.child_artifact_id "
+                     "WHERE artifact_type = ? AND parent_artifact_id = ?")
             parameters.insert(1, parent_artifact_id)
         if filters:
             query += " AND " + " AND ".join(filters)
@@ -568,12 +574,6 @@ class CacheIndex:
                     matching.append(record)
             records = matching
         return records
-
-    def artifact_count(self, artifact_type: Union[ArtifactType, str]) -> int:
-        """Registration advances this append-only catalogue; statuses stay live."""
-        with self._read_connection() as connection:
-            return int(connection.execute('SELECT COUNT(*) FROM artifacts WHERE artifact_type=?',
-                (ArtifactType(artifact_type).value,)).fetchone()[0])
 
     def lookup_exact(
         self, artifact_type: Union[ArtifactType, str], recipe_hash: str

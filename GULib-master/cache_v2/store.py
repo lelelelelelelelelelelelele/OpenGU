@@ -493,9 +493,12 @@ class ArtifactStore:
         self.index.check_schema()
 
     def _trace(self, event: str, **fields: Any) -> None:
-        entry = {"event": event, "timestamp": utc_now_iso()}
-        entry.update(fields)
-        payload = _plain_json_bytes(entry) + b"\n"
+        self._trace_events(({"event": event, **fields},))
+
+    def _trace_events(self, entries) -> None:
+        """Durably append the synchronous facts for one completed operation."""
+        payload = b"".join(_plain_json_bytes({"timestamp": utc_now_iso(), **entry}) + b"\n"
+                           for entry in entries)
         trace_path = self._safe_output_path(self.trace_path, "trace")
         trace_path.parent.mkdir(parents=True, exist_ok=True)
         trace_path = self._safe_output_path(trace_path, "trace")
@@ -503,7 +506,12 @@ class ArtifactStore:
             str(trace_path), os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o600
         )
         try:
-            os.write(descriptor, payload)
+            remaining = memoryview(payload)
+            while remaining:
+                written = os.write(descriptor, remaining)
+                if written <= 0:
+                    raise OSError("trace append made no progress")
+                remaining = remaining[written:]
             os.fsync(descriptor)
         finally:
             os.close(descriptor)

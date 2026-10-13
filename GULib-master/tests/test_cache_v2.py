@@ -251,6 +251,31 @@ def test_recipe_field_prefilter_decodes_only_candidates_and_checks_top_level(tmp
         recipe_fields={'scope':0})] == [headers[6].artifact_id]
 
 
+def test_parent_lookup_drives_primary_key_search_and_deduplicates_relations(tmp_path):
+    index = _initialized_index(tmp_path)
+    parent = _artifact_header(ArtifactType.SELECTION, {'parent': True}, b'parent')
+    child = _artifact_header(ArtifactType.PREDICTION, {'scope': 'wanted'}, b'child')
+    unrelated = _artifact_header(ArtifactType.PREDICTION, {'scope': 'wanted', 'other': 1}, b'other')
+    for header in (parent, child, unrelated):
+        index.register_artifact(header)
+    index.add_dependency(parent.artifact_id, child.artifact_id, 'input')
+    index.add_dependency(parent.artifact_id, child.artifact_id, 'other_relation')
+    queries = []
+    with index.read_session(), index._read_connection() as connection:
+        connection.set_trace_callback(queries.append)
+        records = index.find_artifacts_by_type(ArtifactType.PREDICTION,
+            parent_artifact_id=parent.artifact_id, recipe_fields={'scope': 'wanted'})
+        connection.set_trace_callback(None)
+        sql = next(query for query in queries if 'CROSS JOIN' in query)
+        plan = [row[3] for row in connection.execute('EXPLAIN QUERY PLAN ' + sql)]
+    assert [row['artifact_id'] for row in records] == [child.artifact_id]
+    assert 'parent_artifact_id=?' in plan[0]
+    assert any('artifact_id=?' in step for step in plan)
+    assert not any('(artifact_type=?)' in step for step in plan)
+    assert index.find_artifacts_by_type(ArtifactType.PREDICTION,
+        parent_artifact_id=unrelated.artifact_id) == []
+
+
 def _run_cachectl(arguments, cwd):
     env = os.environ.copy()
     return subprocess.run(

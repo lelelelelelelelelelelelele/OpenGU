@@ -129,3 +129,79 @@ def test_metadata_reader_equals_model_preparation_identity(tables, architecture)
     instance = dict(model=model, training=training)
     actual = create_model(model, 'fixture', data, 'cpu')
     assert training_identity(instance, data) == training_metadata(actual, instance, data)
+
+
+def direct_lookup(tables, monkeypatch):
+    """Use real saved Output identities, isolating catalogue selection from metrics."""
+    from types import SimpleNamespace
+    from cache_v2 import CacheIndex
+    from cache_v2.source_compatibility import stored_recipe
+    from experiments.output_lookup import OutputLookup
+    import experiments.evaluation_cache as evaluation
+    first = legacy_output(tables, monkeypatch, setup(tables, 'GNNDelete'))
+    root = tables[0] / 'results/cache_v2'
+    index = CacheIndex(root / 'index.sqlite')
+    fields = stored_recipe(index.get_artifact(first['artifact_id'])).fields
+    instance = {key: fields['pairing'][key] for key in ('model', 'training', 'deletion')}
+    instance.update(method=fields['target']['method'], parameters=fields['target']['parameters'])
+    lookup = OutputLookup(None, root, None)
+    monkeypatch.setattr(lookup, 'checkpoint', lambda *a, **k: {'state_hash':fields['target']['checkpoint_state_hash']})
+    monkeypatch.setattr(evaluation, 'evaluate_single', lambda *a, **k: (
+        {key:first[key] for key in ('result', 'evaluation')}, {'hit': True}))
+    monkeypatch.setattr(index.__class__, 'artifact_count', lambda *a: pytest.fail('global catalogue count'), raising=False)
+    args = dict(selection=SimpleNamespace(**fields['selection'], selected_nodes=fields['pairing']['selected_nodes']),
+        data=None, dataset_input=fields['dataset_input'], dataset_identity=fields['pairing']['data_identity'],
+        dataset_root=None, inputs=SimpleNamespace(graph_fingerprint=fields['graph_fingerprint']))
+    return lookup, instance, args, fields, first, index
+
+
+def test_output_source_rank_rechecks_new_preferred_and_ambiguous_candidates(tables, monkeypatch):
+    from cache_v2 import ArtifactRecipe, ProducerVersion
+    from cache_v2.formal_store import FormalArtifactStore
+    from cache_v2.unlearning_output import UnlearningOutputPayload
+    import cache_v2.source_compatibility as compatibility
+    import experiments.modular_gu as gu
+    lookup, instance, args, fields, first, index = direct_lookup(tables, monkeypatch)
+    previous = ProducerVersion(**fields['producer_version'])
+    current = ProducerVersion(previous.semantic_version, 'new-output-source')
+    monkeypatch.setattr(gu, 'gu_producer', lambda *a: current)
+    monkeypatch.setattr(compatibility, 'registry', lambda: [dict(cache_scope='prediction',producer='GNNDelete',
+        applies_to={'semantic_version':current.semantic_version, 'model':instance['model']},
+        fingerprints=[{'source_fingerprint':current.source_fingerprint},
+                      {'source_fingerprint':previous.source_fingerprint}])])
+    assert lookup.lookup(instance, **args)[0]['output'] == first['output']
+    original = FormalArtifactStore(lookup.store_root, producer_version=previous).load_payload_read_only(
+        'prediction', ArtifactRecipe(fields)).payload
+    def publish(new_fields):
+        identity = {key:value for key,value in new_fields.items() if key != 'artifact_contract'}
+        payload = UnlearningOutputPayload(identity, original.arrays, original.state, original.auxiliary)
+        return FormalArtifactStore(lookup.store_root, producer_version=current).store_payload(
+            ArtifactRecipe(new_fields), payload)
+    new_fields = {**fields, 'producer_version':current.to_dict()}
+    preferred = publish(new_fields)
+    assert lookup.lookup(instance, **args)[0]['artifact_id'] == preferred.artifact_id
+    alternative = copy.deepcopy(new_fields)
+    alternative['pairing']['extra_scientific_identity'] = 'second-admitted-candidate'
+    publish(alternative)
+    with pytest.raises(ValueError, match='ambiguous registered Output'):
+        lookup.lookup(instance, **args)
+
+
+@pytest.mark.parametrize('fault', ['invalid', 'conflict', 'foreign_source'])
+def test_parent_local_output_lookup_preserves_fail_closed_and_clean_miss(tables, monkeypatch, fault):
+    from cache_v2 import ArtifactConflictRecord, ArtifactType, ProducerVersion
+    import experiments.modular_gu as gu
+    lookup, instance, args, fields, first, index = direct_lookup(tables, monkeypatch)
+    if fault == 'foreign_source':
+        monkeypatch.setattr(gu, 'gu_producer', lambda *a: ProducerVersion('foreign-protocol','foreign-source'))
+        assert lookup.lookup(instance, **args) == (None, None)
+        return
+    if fault == 'invalid':
+        with index.transaction() as writer:
+            writer.connection.execute("UPDATE artifacts SET status='invalid' WHERE artifact_id=?", (first['artifact_id'],))
+    else:
+        index.record_conflict(ArtifactConflictRecord(artifact_type=ArtifactType.PREDICTION,
+            recipe_hash=first['recipe_hash'], existing_artifact_id=first['artifact_id'],
+            existing_content_hash=first['content_hash'], observed_content_hash='0'*64))
+    with pytest.raises(ValueError, match='Output lookup failed closed'):
+        lookup.lookup(instance, **args)

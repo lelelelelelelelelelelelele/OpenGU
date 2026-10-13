@@ -1,5 +1,31 @@
 # EXP-079 · Surrogate 多 seed 验证
 
+## AAGU-096 最终效果测试：seed212 的252格冷热 Gate
+
+[seed212配置](cache_speed_gate_s212.yaml)保留Cora、CiteSeer、PubMed，每个数据集12种选点条件×七种方法，共252格。与seed2024 Gate相比只改变训练seed，并显式声明七种方法使用原默认 `gu_cache=reuse`；预算0.1、Dataset/Split、方法参数和两套配对评价保持。两份Recipe绑定同一配置SHA和指纹，RID分别为e79g8c/e79g8w，均通过普通 `experiments/run.py --syncmate` 执行。
+
+| 轮次 | Recipe | RID | 硬上限 |
+|---|---|---|---|
+| 冷轮 | [252-s212-cold](../../../scripts/syncmate/recipes/opengu-exp079-cache-speed-gate-252-s212-cold.yaml) | e79g8c | 1800秒 |
+| 热轮 | [252-s212-warm](../../../scripts/syncmate/recipes/opengu-exp079-cache-speed-gate-252-s212-warm.yaml) | e79g8w | 1800秒 |
+
+2026-10-13只读预检在已安装版本35f7df93上确认252/252方法Output、36/36 Selection精确命中，无关联Evaluation；原始逐点证据及报告位于 `.syncmate/exp079-gate-precheck-096-20261013/`。这份预检不替代最终执行版本的检查：096软件接受后，将代码、配置与两份Recipe统一落到main、同步一次；再由正式preflight核对三端同SHA、GPU、正式数据、锁及新RID占用，并以该执行版本只读复核每个真实请求。任何Output/Selection MISS或关联Evaluation已生成都停止冷轮准备，保留证据并由Work Plan调整未提交身份；不删除或改写Artifact制造冷态。
+
+两轮各252点、684个Evaluation请求（252基础、216 utility/retrain-gap、216 flip-hop）。冷轮要求上游全部HIT、684次Evaluation MISS并计算保存；冷轮完整执行、可信回传及项目核验通过后才提交热轮，热轮要求684次Evaluation HIT且计算回调全部未调用。两份Recipe采用现有数据声明接口，不能单靠文件名强制这些缓存状态：实际状态须在启动前复核，并在回传后自动核验。两轮各505份结果通过SyncMate收集、SHA核验和项目结果检查；AutoReport原始事件快照必须绑定各自RID和同一完整执行SHA。
+
+回传后使用[效果核验器](../../../scripts/verify_exp079_cache_gate.py)。以下大写参数由本次实际回执和事件快照填写，不能复制历史值：
+
+```powershell
+E:/conda_package/envs/gnn/python.exe scripts/verify_exp079_cache_gate.py `
+  --cold-job COLD_JOB_ID --warm-job WARM_JOB_ID `
+  --cold-audit COLD_AUDIT_SNAPSHOT --warm-audit WARM_AUDIT_SNAPSHOT `
+  --expected-sha LANDED_EXECUTION_SHA --output EFFECT_CHECK_JSON
+```
+
+核验器默认消费本节两份seed212 Recipe，检查完整回传、配置/代码/运行身份、三数据集各84格、七方法各36格、上游HIT且不调用producer、冷热684次指标缓存状态、无失败或悬空审计事件，以及252格逐点指标/Selection文件和Output/Selection/Evaluation引用一致。Runner完整作业wall取原receipt的started_at至finished_at；排队独立列出，回传不计入。AutoReport条目分项与方法条目分项分别输出，不能相加或冒充完整作业时间。核验失败返回非零，不提交、不重试、不更新Work Plan或科研接受。
+
+不补做修复前前测：以已核验的seed2024 **790秒/91秒**为历史工程基准，seed42的941秒/278秒仅作更早参照。核验结果列出耗时变化及是否低于300秒，但它们是观察项，不是预设通过阈值；披露跨seed、GPU/数值环境和主机负载差异后，由用户判断实际改善。当前只完成软件/Recipe准备，正式效果仍为NOT OBSERVED，既不代表2520点全矩阵完成，也不自动启动两轮。
+
 ## seed2024 的252格冷热 Gate（2026-10-13）
 
 用户授权在 AAGU-095 已交付版本上运行 [seed2024 配置](cache_speed_gate_s2024.yaml)：Cora、CiteSeer、PubMed，各12种选点条件×七种方法，共252格；预算、Split、参数及评价均沿用完整矩阵。只执行本组冷热两轮，不重跑前测；以已完成的 seed42 `e79g4c` 941秒和 `e79g4w` 278秒作为历史工程参考。

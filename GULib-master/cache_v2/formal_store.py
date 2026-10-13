@@ -784,14 +784,6 @@ class FormalArtifactStore(ArtifactStore):
                 producer_called=False,
                 miss_reasons=miss_reasons,
             )
-        self._trace(
-            "artifact_registered",
-            artifact_type=artifact_type.value,
-            recipe_hash=recipe.recipe_hash,
-            artifact_id=header.artifact_id,
-            outcome=RegisterOutcome.CREATED.value,
-            semantic_path=semantic,
-        )
         return FormalStoreResult(
             hit=False,
             outcome=RegisterOutcome.CREATED.value,
@@ -846,14 +838,15 @@ class FormalArtifactStore(ArtifactStore):
                 result = replace(result, recipe_hash=recipe.recipe_hash,
                     generation_producer=self.producer_version.to_dict(),
                     consumption_producer=self.producer_version.to_dict())
-            self._trace(
-                "upstream_formal_artifact_stored",
-                artifact_type=artifact_type.value,
-                recipe_hash=recipe.recipe_hash,
-                artifact_id=result.artifact_id,
-                content_hash=result.content_hash,
-                outcome=result.outcome,
-            )
+            entries = []
+            if result.outcome == RegisterOutcome.CREATED.value:
+                entries.append(dict(event="artifact_registered", artifact_type=artifact_type.value,
+                    recipe_hash=recipe.recipe_hash, artifact_id=result.artifact_id,
+                    outcome=result.outcome, semantic_path=result.semantic_path))
+            entries.append(dict(event="upstream_formal_artifact_stored", artifact_type=artifact_type.value,
+                recipe_hash=recipe.recipe_hash, artifact_id=result.artifact_id,
+                content_hash=result.content_hash, outcome=result.outcome))
+            self._trace_events(entries)
             return result
 
     def _read_cached_candidate(self, candidate, recipe, artifact_type, reader=None):

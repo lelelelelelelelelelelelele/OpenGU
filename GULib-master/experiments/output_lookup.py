@@ -4,7 +4,7 @@ The request matches the persisted Output v2 contract and its registered source
 compatibility. Execution consumers still own production and recheck on MISS.
 """
 from pathlib import Path
-from cache_v2 import ArtifactRecipe, ArtifactType, canonical_sha256
+from cache_v2 import ArtifactType, canonical_sha256
 from cache_v2.unlearning_output import OUTPUT_CONTRACT
 from experiments.checkpoint_references import training_identity, ensemble_identity, read_checkpoint_reference
 
@@ -16,14 +16,10 @@ class OutputLookup:
         self.reference_directory = reference_directory
         self.group = None
         self.references = {}
-        self.requests = {}
-        self.catalogue_count = None
 
     def select_group(self, group):
         if group != self.group:
             self.references.clear()
-            self.requests.clear()
-            self.catalogue_count = None
             self.group = group
 
     def checkpoint(self, instance, data, *, ensemble=False):
@@ -91,10 +87,8 @@ class OutputLookup:
         lookup_fields = {'dataset_input':dataset_input, 'target':target,
             'selection':{k:getattr(selection,k) for k in ('artifact_id','recipe_hash','content_hash')},
             'graph_fingerprint':inputs.graph_fingerprint, 'artifact_contract':OUTPUT_CONTRACT}
-        key = canonical_sha256(dict(fields=lookup_fields,pairing=pairing,producer=producer.to_dict()))
         from cache_v2 import CacheIndex, ArtifactResolver
-        from cache_v2.runtime import _decode_exact_mapping
-        from cache_v2.source_compatibility import recipe_candidates
+        from cache_v2.source_compatibility import stored_recipe, source_candidates
         from experiments.evaluation_cache import evaluate_single, phase
         index_path = self.store_root / 'index.sqlite'
         if not index_path.is_file():
@@ -102,35 +96,33 @@ class OutputLookup:
         with phase(audit, 'output_query'):
             index = CacheIndex(index_path)
             with index.read_session():
-                count = index.artifact_count(ArtifactType.PREDICTION)
-                if count != self.catalogue_count:
-                    self.requests.clear()
-                    self.catalogue_count = count
-                matched = None
-                if key not in self.requests:
-                    candidates = []
-                    for record in index.find_artifacts_by_type(ArtifactType.PREDICTION, recipe_fields=lookup_fields,
-                                                              parent_artifact_id=selection.artifact_id):
-                        wrapper = _decode_exact_mapping(record['recipe'],'Output Recipe')
-                        recipe = ArtifactRecipe(wrapper['fields'],recipe_version=wrapper['recipe_version'])
-                        fields = recipe.fields
-                        if any(fields['pairing'].get(k) != v for k,v in pairing.items()):
-                            continue
-                        current = ArtifactRecipe({**fields,'producer_version':producer.to_dict()})
-                        rank = next((i for i,candidate in enumerate(recipe_candidates(ArtifactType.PREDICTION,current)) if candidate==recipe),None)
-                        if rank is not None:
-                            candidates.append((rank,record,recipe))
-                    if not candidates:
-                        return None, None
-                    first_rank = min(c[0] for c in candidates)
-                    preferred = [c for c in candidates if c[0]==first_rank]
-                    if len(preferred) != 1:
-                        raise ValueError('ambiguous registered Output for the same effective inputs')
-                    _, record, recipe = preferred[0]
-                    matched = record
-                    self.requests[key] = ({k:record[k] for k in ('artifact_id','recipe_hash','content_hash')},recipe)
-                reference, recipe = self.requests[key]
-                explanation = ArtifactResolver(index).explain_cached(ArtifactType.PREDICTION,recipe,candidate=matched)
+                # Query the parent-local catalogue on every access. This avoids
+                # a global count for invalidating memoized candidates and sees
+                # new preferred/ambiguous rows and current statuses directly.
+                versions = [{**producer.to_dict(), **member} for member in source_candidates(
+                    ArtifactType.PREDICTION.value, instance['method'],
+                    {'semantic_version': producer.semantic_version, 'model': instance['model']},
+                    {'source_fingerprint': producer.source_fingerprint})]
+                candidates = []
+                for record in index.find_artifacts_by_type(ArtifactType.PREDICTION, recipe_fields=lookup_fields,
+                                                          parent_artifact_id=selection.artifact_id):
+                    recipe = stored_recipe(record)
+                    fields = recipe.fields
+                    if any(fields['pairing'].get(k) != v for k,v in pairing.items()):
+                        continue
+                    version = fields.get('producer_version')
+                    rank = next((i for i, candidate in enumerate(versions) if candidate == version), None)
+                    if rank is not None:
+                        candidates.append((rank, record, recipe))
+                if not candidates:
+                    return None, None
+                first_rank = min(c[0] for c in candidates)
+                preferred = [c for c in candidates if c[0] == first_rank]
+                if len(preferred) != 1:
+                    raise ValueError('ambiguous registered Output for the same effective inputs')
+                _, record, recipe = preferred[0]
+                reference = {k:record[k] for k in ('artifact_id','recipe_hash','content_hash')}
+                explanation = ArtifactResolver(index).explain_cached(ArtifactType.PREDICTION,recipe,candidate=record)
                 if not explanation.hit or any(explanation.exact_candidate[k] != v for k,v in reference.items()):
                     raise ValueError('Output lookup failed closed: ' + ','.join(explanation.miss_reasons))
             reference = dict(reference)
