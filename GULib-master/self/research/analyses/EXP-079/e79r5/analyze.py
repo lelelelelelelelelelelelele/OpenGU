@@ -282,6 +282,8 @@ def rank_figure(summary, correlations):
     fig.text(.5,.055,'Rank the seed-averaged drops, not individual seeds. GIF/IDEA have identical drops; retain GIF only.\nAll 10 includes the original 3 and new 7; these are not three independent experiments. Point rankings do not establish significant order differences.',ha='center',fontsize=10,color='#52616e')
     for extension in ['png','svg','pdf']:
         fig.savefig(OUT/f'cora_r_point_rank_comparison.{extension}',dpi=180,facecolor='white')
+    svg=OUT/'cora_r_point_rank_comparison.svg'
+    svg.write_text('\n'.join(line.rstrip() for line in svg.read_text(encoding='utf-8').splitlines())+'\n',encoding='utf-8')
     plt.close(fig)
     pd.DataFrame(rows).to_csv(OUT/'cora_r_point_rank_values.csv',index=False)
 
