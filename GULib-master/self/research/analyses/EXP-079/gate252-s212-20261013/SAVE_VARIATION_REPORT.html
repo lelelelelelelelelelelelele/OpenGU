@@ -1,6 +1,6 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXP-079保存耗时排查</title><style>body{margin:0;background:#f3f5f7;color:#172938;font:16px/1.8 "Segoe UI","Microsoft YaHei",sans-serif}main{max-width:1080px;margin:32px auto;padding:32px;background:white;border:1px solid #dce4e8;border-radius:8px}h1{font-size:29px}h2{font-size:21px;margin-top:30px}table{width:100%;border-collapse:collapse;display:block;overflow-x:auto;margin:18px 0;font-size:15px}th,td{text-align:left;padding:10px 14px;border-bottom:1px solid #dce4e8}th{background:#eef4f6}a{color:#126b86}code{overflow-wrap:anywhere}@media(max-width:780px){main{margin:0;padding:20px;border:0}h1{font-size:25px}}</style></head><body><main><h1>EXP-079 · 首次保存变慢的只读排查</h1>
 <p>现有证据支持“这次运行的写入环境和起点不同”这一解释，尚未找到多保存、重试或文件变大的迹象。大多数请求的保存都变慢了，不能只归因于几个异常慢的请求；没有当时的磁盘等待、逐次fsync和数据库提交计时，所以还不能确认这是正常波动，也不能确认是保存代码退化。</p>
-<p>此次只分析已有冷轮e79g7c与e79g8c的原始审计，并只读核对远端已保存文件的大小和状态。没有重跑测试，没有修改缓存或代码。训练seed分别为2024与212；下面按相同数据集、方法、选点规则和指标类型对照，两轮保存的内容与缓存身份不同。</p>
+<p>此次只分析已有冷轮e79g7c与e79g8c的原始审计，并只读核对远端已保存文件的大小和状态。没有重跑正式测试，没有修改正式缓存或程序代码。后续复查复用本地已有20节点单元夹具，在临时测试库中做同内容保存对照。训练seed分别为2024与212；下面按相同数据集、方法、选点规则和指标类型对照，两轮保存的内容与缓存身份不同。</p>
 <h2>慢在哪里</h2>
 <table>
 <thead>
@@ -121,6 +121,41 @@
 </table>
 <p>两轮各有2450条AutoReport事件。这些审计和导出实现，在历史35f7df93到本轮84b48537之间没有代码修改，却也普遍变慢。特别是热轮没有首次保存Evaluation，审计仍从29.363秒增到43.617秒、导出从11.799秒增到16.719秒。这个独立线索支持运行环境、缓存或日志起点变化，而不是把全部增加归给本次保存改动。</p>
 <p>AutoReport计时包括准备事件、首次读取校验已有日志、锁、追加和同步，不是纯fsync耗时。日志增长、文件缓存和存储等待都可能影响它。两轮记录的容器名称相同，但相隔约12小时；没有保存当时磁盘/主机负载，也没有每次文件同步与数据库提交的分项，所以无法分清具体因素。</p>
+<h2>单独复查保存改动</h2>
+<p>按用户“如果不行就撤回保存、保留查询”的要求，单独对照保存旧、新实现。复用本地已有20节点单元夹具，做128对AB/BA交替首次保存，分成两批各64对；每一对的Recipe、指标内容、Artifact ID及哈希一致。每次请求独立建立读写scope并同步提交，计时不含指标计算与Recipe/payload构造。没有创建新的Cache测试环境，也没有触碰正式缓存。</p>
+<table>
+<thead>
+<tr>
+<th>首次保存中位数</th>
+<th style="text-align:right">旧保存实现</th>
+<th style="text-align:right">当前保存实现</th>
+<th style="text-align:right">减少</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一批64对</td>
+<td style="text-align:right">12.883ms</td>
+<td style="text-align:right">11.947ms</td>
+<td style="text-align:right">7.3%</td>
+</tr>
+<tr>
+<td>第二批64对</td>
+<td style="text-align:right">13.462ms</td>
+<td style="text-align:right">12.650ms</td>
+<td style="text-align:right">6.0%</td>
+</tr>
+<tr>
+<td>合计128对</td>
+<td style="text-align:right">13.260ms</td>
+<td style="text-align:right">12.323ms</td>
+<td style="text-align:right">7.1%</td>
+</tr>
+</tbody>
+</table>
+<p>合计均值14.215→13.012ms，P95为19.895→17.505ms。单独profiler记录中，旧实现有两次审计追加，新实现一次；Python层fsync调用由5次减为4次，SQLite自身同步不计入。Profiler计时与普通样本分开，没有用于计算上表降幅。</p>
+<p>保存源码与对应测试从已验证候选81e3e44a至本次复查没有变化，复用原204项软件回归。检查仍保留两条审计事实、返回前同步、错误上报及并发查重；没有发现额外工作或正确性缺陷。此次收益小但两批方向一致，暂时保留保存改动和查询改动，没有执行回退。该本地对照不证明远端同样提速，也不确认历史513秒的具体原因。</p>
+<p><a href="save-recheck-summary.json">128对复查摘要</a>、<a href="../../../../../.syncmate/exp079-gate252-s212-20261013/save-recheck-ab.json">原始样本与profiler</a>、<a href="../../../../../.syncmate/exp079-gate252-s212-20261013/recheck_save_ab.py">复查脚本</a>。</p>
 <h2>目前怎么处理</h2>
 <p>可以暂时保留当前实现：查询确实改善，保存只删了一次重复同步，目前没有证据要求回退。报告保留实际846秒/109秒及保存变慢的结果，也保留原因未确认。若以后需要继续优化，应在下一次已授权运行中测文件发布、数据库提交和同步等待，先确认哪个子项占时，再决定是否改动；此次不增加一次实验。</p>
 <h2>证据</h2>
