@@ -686,12 +686,21 @@
       {
         "label": "seed212冷热效果报告html",
         "path": "self/research/analyses/EXP-079/gate252-s212-20261013/REPORT.html"
+      },
+      {
+        "label": "保存耗时只读排查md",
+        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/SAVE_VARIATION_REPORT.md"
+      },
+      {
+        "label": "保存耗时只读排查html",
+        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/SAVE_VARIATION_REPORT.html"
       }
     ],
     "highlights": [
       "seed212指定252点冷热两轮核验通过，846秒/109秒；完整2520点矩阵仍partial。",
       "冷轮684次指标未命中、热轮684次命中，504份指标与选点文件逐字节一致。",
-      "跨seed历史比较，未增加前测，未扩大完整矩阵。"
+      "跨seed历史比较，未增加前测，未扩大完整矩阵。",
+      "保存耗时只读排查：没有数量、重试或体积增加；未改动的审计和导出也变慢，环境与缓存/日志起点是候选解释，尚未确认。"
     ]
   },
   "decision": {

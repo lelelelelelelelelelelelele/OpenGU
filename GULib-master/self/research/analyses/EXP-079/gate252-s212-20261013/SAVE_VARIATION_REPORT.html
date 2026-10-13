@@ -1,0 +1,133 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXP-079保存耗时排查</title><style>body{margin:0;background:#f3f5f7;color:#172938;font:16px/1.8 "Segoe UI","Microsoft YaHei",sans-serif}main{max-width:1080px;margin:32px auto;padding:32px;background:white;border:1px solid #dce4e8;border-radius:8px}h1{font-size:29px}h2{font-size:21px;margin-top:30px}table{width:100%;border-collapse:collapse;display:block;overflow-x:auto;margin:18px 0;font-size:15px}th,td{text-align:left;padding:10px 14px;border-bottom:1px solid #dce4e8}th{background:#eef4f6}a{color:#126b86}code{overflow-wrap:anywhere}@media(max-width:780px){main{margin:0;padding:20px;border:0}h1{font-size:25px}}</style></head><body><main><h1>EXP-079 · 首次保存变慢的只读排查</h1>
+<p>现有证据支持“这次运行的写入环境和起点不同”这一解释，尚未找到多保存、重试或文件变大的迹象。大多数请求的保存都变慢了，不能只归因于几个异常慢的请求；没有当时的磁盘等待、逐次fsync和数据库提交计时，所以还不能确认这是正常波动，也不能确认是保存代码退化。</p>
+<p>此次只分析已有冷轮e79g7c与e79g8c的原始审计，并只读核对远端已保存文件的大小和状态。没有重跑测试，没有修改缓存或代码。训练seed分别为2024与212；下面按相同数据集、方法、选点规则和指标类型对照，两轮保存的内容与缓存身份不同。</p>
+<h2>慢在哪里</h2>
+<table>
+<thead>
+<tr>
+<th>保存统计</th>
+<th style="text-align:right">历史seed2024</th>
+<th style="text-align:right">本轮seed212</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>保存次数</td>
+<td style="text-align:right">684</td>
+<td style="text-align:right">684</td>
+</tr>
+<tr>
+<td>总耗时</td>
+<td style="text-align:right">358.872秒</td>
+<td style="text-align:right">513.321秒</td>
+</tr>
+<tr>
+<td>单次均值</td>
+<td style="text-align:right">0.525秒</td>
+<td style="text-align:right">0.750秒</td>
+</tr>
+<tr>
+<td>单次中位数</td>
+<td style="text-align:right">0.570秒</td>
+<td style="text-align:right">0.760秒</td>
+</tr>
+<tr>
+<td>单次P95</td>
+<td style="text-align:right">0.968秒</td>
+<td style="text-align:right">1.235秒</td>
+</tr>
+<tr>
+<td>最慢一次</td>
+<td style="text-align:right">2.000秒</td>
+<td style="text-align:right">2.432秒</td>
+</tr>
+<tr>
+<td>超过1秒的次数</td>
+<td style="text-align:right">27</td>
+<td style="text-align:right">105</td>
+</tr>
+</tbody>
+</table>
+<p>按数据集、方法、选点条件和指标类型对齐684次保存，501次变慢、183次变快，差值中位数约0.210秒。增加最多的10次只占154.448秒净增量的10.9%，30次占24.5%。这说明增加分布在较多请求里，不能只用几个偶发慢请求解释。P95用线性插值（statistics.quantiles的inclusive方法）。</p>
+<table>
+<thead>
+<tr>
+<th>指标类型</th>
+<th style="text-align:right">次数</th>
+<th style="text-align:right">历史累计</th>
+<th style="text-align:right">本轮累计</th>
+<th style="text-align:right">增加</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基础指标</td>
+<td style="text-align:right">252</td>
+<td style="text-align:right">61.578秒</td>
+<td style="text-align:right">162.705秒</td>
+<td style="text-align:right">101.126秒</td>
+</tr>
+<tr>
+<td>效用与重训练差距</td>
+<td style="text-align:right">216</td>
+<td style="text-align:right">146.265秒</td>
+<td style="text-align:right">173.796秒</td>
+<td style="text-align:right">27.532秒</td>
+</tr>
+<tr>
+<td>预测翻转与邻域指标</td>
+<td style="text-align:right">216</td>
+<td style="text-align:right">151.030秒</td>
+<td style="text-align:right">176.819秒</td>
+<td style="text-align:right">25.790秒</td>
+</tr>
+</tbody>
+</table>
+<p>252次基础指标保存增加101.126秒，占全部增量约65.5%；另外432次配对指标保存增加约53.322秒。Cora、CiteSeer、PubMed都变慢，七种方法也都有增加，未集中于某个图或某种方法。</p>
+<h2>排除了哪些解释</h2>
+<p>两轮都是684次首次保存、每条attempt为1，原始审计没有失败或重试记录。只读检查1368份已登记Evaluation，状态均有效，文件大小与各自header声明一致。两轮的payload加header总量分别为18,502,120与18,498,342字节，本轮略小；因此没有发现数量或文件体积增加导致多写的证据。该检查读取metadata并stat文件大小，没有重新计算payload哈希，也不补作完整内容审计。</p>
+<p>保存相关代码差异只涉及两条审计记录合并追加并同步、短写补全；结果文件发布、数据库提交和依赖检查未增加新步骤。本地同内容受控测量中，保存中位数12.79→11.74ms，收益约8.2%。它说明省掉一次同步的收益较小，不能保证远端整段保存降幅。</p>
+<h2>为什么怀疑写入环境</h2>
+<table>
+<thead>
+<tr>
+<th>未改动的操作</th>
+<th style="text-align:right">历史</th>
+<th style="text-align:right">本轮</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>冷轮：AutoReport记审计</td>
+<td style="text-align:right">74.743秒</td>
+<td style="text-align:right">96.811秒</td>
+</tr>
+<tr>
+<td>冷轮：结果导出</td>
+<td style="text-align:right">14.262秒</td>
+<td style="text-align:right">25.123秒</td>
+</tr>
+<tr>
+<td>热轮：AutoReport记审计</td>
+<td style="text-align:right">29.363秒</td>
+<td style="text-align:right">43.617秒</td>
+</tr>
+<tr>
+<td>热轮：结果导出</td>
+<td style="text-align:right">11.799秒</td>
+<td style="text-align:right">16.719秒</td>
+</tr>
+</tbody>
+</table>
+<p>两轮各有2450条AutoReport事件。这些审计和导出实现，在历史35f7df93到本轮84b48537之间没有代码修改，却也普遍变慢。特别是热轮没有首次保存Evaluation，审计仍从29.363秒增到43.617秒、导出从11.799秒增到16.719秒。这个独立线索支持运行环境、缓存或日志起点变化，而不是把全部增加归给本次保存改动。</p>
+<p>AutoReport计时包括准备事件、首次读取校验已有日志、锁、追加和同步，不是纯fsync耗时。日志增长、文件缓存和存储等待都可能影响它。两轮记录的容器名称相同，但相隔约12小时；没有保存当时磁盘/主机负载，也没有每次文件同步与数据库提交的分项，所以无法分清具体因素。</p>
+<h2>目前怎么处理</h2>
+<p>可以暂时保留当前实现：查询确实改善，保存只删了一次重复同步，目前没有证据要求回退。报告保留实际846秒/109秒及保存变慢的结果，也保留原因未确认。若以后需要继续优化，应在下一次已授权运行中测文件发布、数据库提交和同步等待，先确认哪个子项占时，再决定是否改动；此次不增加一次实验。</p>
+<h2>证据</h2>
+<ul>
+<li><a href="save-variation-summary.json">统计与文件大小摘要</a>、<a href="REPORT.md">两轮效果报告</a>。</li>
+<li><a href="../../../../../.syncmate/exp079-gate252-s212-20261013/save-variation.json">逐条保存分析</a>、<a href="../../../../../.syncmate/exp079-gate252-s212-20261013/save-metadata.json">只读文件检查</a>。</li>
+<li><a href="../../../../../.syncmate/exp079-gate252-s212-20261013/analyze_save_variation.py">统计脚本</a>、<a href="../../../../../.syncmate/exp079-gate252-s212-20261013/check_save_metadata.py">只读检查脚本</a>。</li>
+<li><a href="../../../../../.syncmate/exp079-gate252-20261013/e79g7c.audit-snapshot.json">历史原始审计</a>、<a href="../../../../../.syncmate/exp079-gate252-s212-20261013/e79g8c.audit-snapshot.json">本轮原始审计</a>。</li>
+</ul>
+</main></body></html>
