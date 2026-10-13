@@ -104,7 +104,8 @@ def test_real_exp079_plan_stays_within_core_capacity():
     from scripts.syncmate.opengu_progress import _transport_steps
     batches = [s for s in _transport_steps(config)[0] if s["position"]["stage"] == "output_evaluation"]
     assert len(batches) == 120
-    assert all(s["total"] == 21 for s in batches)
+    from collections import Counter
+    assert Counter(s["total"] for s in batches) == {63: 30, 7: 90}
     assert sum(s["total"] for s in batches) == 2520
     assert len(progress_steps(config)) == 5764
     assert sum(s['total'] for s in progress_steps(config)
