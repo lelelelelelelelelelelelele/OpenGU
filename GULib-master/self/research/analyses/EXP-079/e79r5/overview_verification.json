@@ -5,6 +5,8 @@
   "n_seeds_per_condition": 10,
   "summary_all10_agreement": true,
   "displayed_cells": 540,
+  "focus_conditions": 24,
+  "focus_target": "GNNDelete / GCN; illustrative subset, all datasets",
   "omitted_cells": "36 GCN-vs-itself zeros in source-change view only",
   "paired_input_sha256": "70cbfcdee534ce9d12cfccd8c267494371637c6821f6bed08c51b657dfe17f82",
   "execution_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",

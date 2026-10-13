@@ -51,17 +51,17 @@ def build_report():
 
 2026-10-14 · e79r5 · 完整 2520 格 · 分析完成，科学结论待用户审阅
 
-## 先看全局：哪些选点在哪些 GU 上造成额外损伤？
+## 先看迁移案例：GCN 选点的攻击增益能否保留？
 
-**主展示统一使用全部 10 个训练 seed。** 三个数据集、两种 selector、四种选点架构和六种 GU 都在图中。列表示攻击选点模型；目标保持 GCN 设置。横着看选点架构敏感性，竖着看 GU 响应。
+**主展示统一使用全部 10 个训练 seed。** 以下选择 GNNDelete 为说明性案例，同时保留三个数据集、两种 selector、四种选点架构。GCN 是明确的参照组；替换 SGC / GAT / GIN 时，目标仍保持 GNNDelete / GCN。全部六种 GU 的矩阵保留在图解的补充部分。
 
-![十seed全矩阵相对随机删除的额外损伤](diagnostic_random_10seeds.png)
+![十seed的GCN参照与代理选点迁移案例](transfer_focus_10seeds.png)
 
-每格为选点请求相对 Random 多造成的 F1 损失，单位 pp。红色为更多、蓝色为更少；深框表示逐 seed 配对差的点态 95% t 区间不跨零，未作多重比较调整。没有深框不表示等效或无效。Random 每个训练 seed 内先平均三个抽样。
+柱高为相对 Random 的额外 F1 损失，误差棒为十 seed 配对差的点态 95% t 区间，未作多重比较调整。蓝色为 gt_full，橙色为 r_point；灰底 GCN 是参照，零线为 Random，虚线仅表示 Degree 均值。Cora / gt_full 从 GCN 到三个 surrogate 都保持正向增益，构成条件性迁移正例；Cora / r_point 的 GCN 增益尚未确立，不能称已有效攻击的迁移失败。
 
 {overview_highlights}
 
-**[打开全局检测图解](OVERVIEW_REPORT.html)** · [图解 Markdown](OVERVIEW_REPORT.md)：另含 Degree 对照、更换选点架构后的配对变化、同请求 Retrain 差距。效用损伤小并不自动证明 GU 防御成功；结合重训对照解释。
+**[打开迁移主图与完整补充矩阵](OVERVIEW_REPORT.html)** · [图解 Markdown](OVERVIEW_REPORT.md)：包含两种 IF selector 的具体区别、GCN 参照、Degree 对照、更换选点架构后的配对变化与同请求 Retrain 差距。效用损伤小并不自动证明 GU 防御成功；结合重训对照解释。
 
 ## 详细结论与复现核验
 
@@ -134,7 +134,7 @@ GIN 表如下，完整 SGC/GAT/GIN 的 54 行见 correlations.csv。old3/new7/al
 
 ![Cora r_point 十seed实际效果散点图](cora_r_point_transfer_10seeds.png)
 
-此图仅用于单个条件的补充诊断；全局叙事采用报告开头的十 seed 检测矩阵。横轴为 GCN direct 的平均 F1 drop，纵轴为 GIN surrogate 的平均 F1 drop；一个点对应一种 GU 的平均响应。GIF/IDEA 的响应完全重合，合并标注并仅计一次排序相关。误差棒分别表示两侧均值的点态 95% t 区间；右图放大左图框出的近原点区域，没有删去负值或小效应。
+此图仅用于单个条件的补充诊断；主展示采用报告开头的十 seed GCN 参照柱状图，完整矩阵用于核对范围。横轴为 GCN direct 的平均 F1 drop，纵轴为 GIN surrogate 的平均 F1 drop；一个点对应一种 GU 的平均响应。GIF/IDEA 的响应完全重合，合并标注并仅计一次排序相关。误差棒分别表示两侧均值的点态 95% t 区间；右图放大左图框出的近原点区域，没有删去负值或小效应。
 
 虚线 y=x 表示两侧的平均效用损伤相同，点在虚线下方意味着 GIN 的平均损伤较小。Cora / r_point 的 GNNDelete 为 13.71 vs 9.52 pp，GraphRevoker 为 4.15 vs −0.54 pp；其余 GU 的效应较小，见右侧放大图。图中直接呈现损伤幅度与不确定性，Spearman rho=0.40 作为辅助描述，不绘制拟合直线、不将 seed 编号当比较轴。
 
@@ -189,7 +189,7 @@ GraphRevoker 在 Cora 的 GIN / gt_full 平均 drop 为 1.81 pp，signed retrain
 '''
     (OUT/'REPORT.md').write_text(md,encoding='utf-8')
     body=MarkdownIt('commonmark',{'html':False}).enable('table').render(md)
-    for name in ['gt_full_drop.png','r_point_drop.png','gin_contrasts.png','cora_r_point_transfer_10seeds.png','diagnostic_random_10seeds.png']:
+    for name in ['gt_full_drop.png','r_point_drop.png','gin_contrasts.png','cora_r_point_transfer_10seeds.png','transfer_focus_10seeds.png']:
         body=body.replace('src="'+name+'"','src="data:image/png;base64,'+base64.b64encode((OUT/name).read_bytes()).decode()+'"')
     css='body{margin:0;background:#f4f6f8;color:#243342;font:16px/1.8 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1300px;margin:auto;padding:40px 32px;background:white}h1{font-size:32px}h2{border-top:1px solid #d5dfe7;padding-top:24px;margin-top:38px;color:#143e63}table{display:block;overflow:auto;border-collapse:collapse;font-size:14px}th,td{border:1px solid #d3dce4;padding:8px 10px}th{background:#eaf1f6}img{width:100%;height:auto}a{color:#17669b}code{overflow-wrap:anywhere}p,li{overflow-wrap:anywhere}strong{color:#174a6e}'
     (OUT/'REPORT.html').write_text('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXP-079 十 seed 结果分析</title><style>'+css+'</style></head><body><main>'+body+'</main></body></html>',encoding='utf-8')

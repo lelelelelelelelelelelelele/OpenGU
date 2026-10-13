@@ -788,14 +788,22 @@
   ],
   "analysis": {
     "state": "complete",
-    "note": "e79r5全部2520格分析完成，可信链及旧格匹配已核验；展示采用全量10seed的selector与GU检测矩阵，分别呈现Random/Degree攻击增益、选点架构敏感性和同请求Retrain差距。正例、负例和不确定结果共同用于解释条件性响应，科学接受尚未请求。",
+    "note": "e79r5全部2520格分析完成，可信链及旧格匹配已核验；主图以GNNDelete为说明性案例，明确GCN参照，展示Cora/gt_full正向攻击增益的条件性迁移及其他数据集边界。全部10seed、六GU检测矩阵保留为补充；科学接受尚未请求。",
     "evidence": [
       {
-        "label": "全量十seed检测图解 HTML",
+        "label": "十seed GCN参照迁移主图",
+        "path": "self/research/analyses/EXP-079/e79r5/transfer_focus_10seeds.png"
+      },
+      {
+        "label": "迁移主图全部配对统计",
+        "path": "self/research/analyses/EXP-079/e79r5/transfer_focus_10seeds.csv"
+      },
+      {
+        "label": "GCN参照迁移主图与完整矩阵 HTML",
         "path": "self/research/analyses/EXP-079/e79r5/OVERVIEW_REPORT.html"
       },
       {
-        "label": "全量十seed检测图解 Markdown",
+        "label": "GCN参照迁移主图与完整矩阵 Markdown",
         "path": "self/research/analyses/EXP-079/e79r5/OVERVIEW_REPORT.md"
       },
       {
@@ -876,7 +884,7 @@
       }
     ],
     "highlights": [
-      "检测主图统一使用全部10训练seed，覆盖3数据集×2selector×4选点架构×6GU；固定目标GCN设置、只改变选点模型。相对Random/Degree的效用增益、相对GCN选点的配对变化和同请求Retrain差距分别展示；无增益不自动等于防御成功。",
+      "迁移主图采用完整10seed的GNNDelete案例，保留三个数据集与两种selector，以GCN选点为明确参照。Cora/gt_full的GCN增益为7.51pp，SGC/GAT/GIN为2.42/4.26/9.46pp，点态区间均在零上方；仅支持此条件的正向增益迁移，不宣称等效或普遍迁移。六GU全矩阵保留补充。",
       "e79r5完整2520格、10训练seed；5041/5041文件哈希及可信索引一致，原756格与EXP-013身份和关键指标一致。",
       "Cora/GNNDelete/gt_full：GIN drop 22.38pp，GCN 20.42pp、Random 12.92pp、Degree 18.89pp；GIN−Random 9.46pp，点态95%配对区间[6.91,12.02]。新增7seed全部胜Random。",
       "同条件GIN−Degree为3.49pp [0.43,6.54]，GIN−direct为1.96pp [-0.95,4.86]；无预设等效阈值，未经全矩阵多重比较调整，不作等效或普遍优势声明。",
