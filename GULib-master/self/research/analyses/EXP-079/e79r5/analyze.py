@@ -227,14 +227,14 @@ def figures(a,summary):
                 ax=axes[i,j];g=a[(a.dataset==d)&(a.method==m)&(a.selector==selector)]
                 for k,src in enumerate(SOURCES):
                     z=g[g.source==src].sort_values('seed');mu,sd,lo,hi=interval(z.U)
-                    ax.scatter(k+np.linspace(-.1,.1,10),z.U,s=15,c=[colors[k] if s in range(7) else '#aab1ba' for s in z.seed],alpha=.7)
+                    ax.scatter(k+np.linspace(-.1,.1,10),z.U,s=15,c=colors[k],alpha=.7)
                     ax.errorbar(k,mu,yerr=[[mu-lo],[hi-mu]],fmt='D',color=colors[k],capsize=3,ms=4)
                 ax.axhline(g.U_random.mean(),color='#444',ls='--',label='Random')
                 ax.axhline(g.U_degree.mean(),color='#b68b21',ls=':',label='Degree')
                 ax.axhline(0,color='#bbb',lw=.7);ax.set_xticks(range(4),SOURCES);ax.set_title(d+' / '+m)
                 if j==0:ax.set_ylabel('F1 drop (pp)')
                 ax.grid(axis='y',alpha=.15)
-        fig.suptitle(selector+' | 10 training seeds, fixed split, deletion ratio 0.1\nDiamond: mean; bar: pointwise 95% t CI; dots: seeds (gray = original 3); dashed: Random; dotted: Degree. Each panel has its own scale.',fontsize=13)
+        fig.suptitle(selector+' | 10 training seeds, fixed split, deletion ratio 0.1\nDiamond: mean; bar: pointwise 95% t CI; dots: all 10 seeds; dashed: Random; dotted: Degree. Each panel has its own scale.',fontsize=13)
         fig.savefig(OUT/f'{selector}_drop.png',dpi=155);plt.close(fig)
     focus=summary[(summary.cohort=='all10') & (summary.source=='GIN')]
     fig,axes=plt.subplots(1,3,figsize=(15,7),layout='constrained')
@@ -249,49 +249,59 @@ def figures(a,summary):
     fig.suptitle('GIN transfer contrasts | 10 seeds | pointwise 95% paired t intervals\nPositive = larger utility loss; zero-crossing does not establish equivalence.',fontsize=13)
     fig.savefig(OUT/'gin_contrasts.png',dpi=160);plt.close(fig)
 
-def rank_figure(summary, correlations):
-    """Show the actual five-GU rankings behind the Cora/r_point correlations."""
+def transfer_figure(summary, correlations):
+    """Paper-facing plot: ten-seed mean effects, with no seed-cohort ordering."""
+    from matplotlib.patches import Rectangle
     methods=['GNNDelete','GraphRevoker','GraphEraser','MEGU','GIF']
-    colors=dict(zip(methods,['#315f92','#c44c43','#47936f','#aa7d24','#8765a8']))
-    fig,axes=plt.subplots(1,3,figsize=(18,6.5))
-    fig.subplots_adjust(left=.045,right=.99,top=.76,bottom=.17,wspace=.11)
-    rows=[]
-    for ax,cohort,title in zip(axes,['old3','new7','all10'],['Original 3 seeds','New 7 seeds','All 10 seeds']):
-        frame=summary[(summary.dataset=='Cora')&(summary.selector=='r_point')&(summary.cohort==cohort)&summary.source.isin(['GCN','GIN'])&summary.method.isin(methods)]
-        means=frame.pivot(index='method',columns='source',values='U_mean').reindex(methods)
-        ranks=means.round(10).rank(ascending=False,method='average')
-        correlation=correlations[(correlations.dataset=='Cora')&(correlations.selector=='r_point')&(correlations.source=='GIN')&(correlations.cohort==cohort)].iloc[0]
-        calculated=rho(means.GCN,means.GIN)
-        assert abs(calculated-correlation.rho)<1e-10
-        for method in methods:
-            left,right=ranks.loc[method,['GCN','GIN']]
-            ax.plot([0,1],[left,right],color=colors[method],lw=2.8 if method=='GraphRevoker' else 1.7,alpha=.9,zorder=2)
-            ax.scatter([0,1],[left,right],color=colors[method],s=45,zorder=3)
-            ax.text(-.10,left,f'{method}  {means.loc[method,"GCN"]:.2f}',ha='right',va='center',fontsize=10,color=colors[method])
-            ax.text(1.10,right,f'{means.loc[method,"GIN"]:.2f}  {method}',ha='left',va='center',fontsize=10,color=colors[method])
-            rows.append(dict(cohort=cohort,method=method,GCN_drop=means.loc[method,'GCN'],GIN_drop=means.loc[method,'GIN'],GCN_rank=left,GIN_rank=right,rho=calculated))
-        ax.set_xlim(-1.28,2.28);ax.set_ylim(5.45,.45)
-        ax.set_xticks([0,1],['GCN direct','GIN surrogate'],fontsize=11)
-        ax.set_yticks(range(1,6));ax.tick_params(axis='both',length=0)
-        for spine in ax.spines.values():spine.set_visible(False)
-        ax.set_axisbelow(True);ax.grid(axis='y',color='#e5e9ee',lw=.7)
-        ax.set_title(f'{title}  |  Spearman rho = {calculated:.2f}\nSeed bootstrap interval: [{correlation.bootstrap_lo:.2f}, {correlation.bootstrap_hi:.2f}]',fontsize=13,pad=20)
-    axes[0].set_ylabel('Rank  (1 = largest mean F1 drop)',fontsize=11,labelpad=5)
-    fig.suptitle('Cora / r_point: which GU rankings changed?',fontsize=21,y=.965,fontweight='bold',color='#213a52')
-    fig.text(.5,.88,'Each line is one GU. Endpoint labels show mean F1 drop in percentage points; crossing lines reveal order reversals.',ha='center',fontsize=12,color='#4d5e6d')
-    fig.text(.5,.055,'Rank the seed-averaged drops, not individual seeds. GIF/IDEA have identical drops; retain GIF only.\nAll 10 includes the original 3 and new 7; these are not three independent experiments. Point rankings do not establish significant order differences.',ha='center',fontsize=10,color='#52616e')
-    for extension in ['png','svg','pdf']:
-        fig.savefig(OUT/f'cora_r_point_rank_comparison.{extension}',dpi=180,facecolor='white')
-    svg=OUT/'cora_r_point_rank_comparison.svg'
+    colors=dict(zip(methods,['#23669a','#b95345','#3a896e','#b1822e','#8068a6']))
+    markers=dict(zip(methods,['o','s','D','^','P']))
+    frame=summary[(summary.dataset=='Cora')&(summary.selector=='r_point')&(summary.cohort=='all10')&summary.source.isin(['GCN','GIN'])&summary.method.isin(methods)]
+    means=frame.pivot(index='method',columns='source',values='U_mean').reindex(methods)
+    lower=frame.pivot(index='method',columns='source',values='U_lo').reindex(methods)
+    upper=frame.pivot(index='method',columns='source',values='U_hi').reindex(methods)
+    corr=correlations.query("dataset=='Cora' and selector=='r_point' and source=='GIN' and cohort=='all10'").iloc[0]
+    assert abs(rho(means.GCN,means.GIN)-corr.rho)<1e-10
+    fig,axes=plt.subplots(1,2,figsize=(10.4,5.0))
+    fig.subplots_adjust(left=.09,right=.975,bottom=.17,top=.82,wspace=.30)
+    labels={'GIF':'GIF / IDEA'}
+    offsets={'GNNDelete':(-65,17),'GraphRevoker':(12,-23),'GraphEraser':(14,21),'MEGU':(-48,48),'GIF':(12,-21)}
+    for j,ax in enumerate(axes):
+        lim=(-5,18) if j==0 else (-.35,2.3)
+        ax.plot(lim,lim,color='#89939b',ls='--',lw=1,zorder=0)
+        ax.axhline(0,color='#d2d6da',lw=.6,zorder=0);ax.axvline(0,color='#d2d6da',lw=.6,zorder=0)
+        for m in methods if j==0 else ['GraphEraser','MEGU','GIF']:
+            x,y=means.loc[m,['GCN','GIN']]
+            ax.errorbar(x,y,xerr=[[x-lower.loc[m,'GCN']],[upper.loc[m,'GCN']-x]],yerr=[[y-lower.loc[m,'GIN']],[upper.loc[m,'GIN']-y]],fmt=markers[m],ms=6,color=colors[m],ecolor=colors[m],elinewidth=1,alpha=.9,capsize=2.5,zorder=3)
+            if j==0 and m in ['GIF','MEGU','GraphEraser']:continue
+            ax.annotate(labels.get(m,m),(x,y),xytext=offsets[m],textcoords='offset points',fontsize=10,color=colors[m],arrowprops={'arrowstyle':'-','color':colors[m],'lw':.6})
+        ax.set_xlim(lim);ax.set_ylim(lim);ax.set_aspect('equal',adjustable='box')
+        ax.spines['top'].set_visible(False);ax.spines['right'].set_visible(False)
+        ax.set_xlabel('GCN direct: mean F1 drop (pp)',fontsize=10)
+        ax.set_ylabel('GIN surrogate: mean F1 drop (pp)',fontsize=10)
+        ax.tick_params(labelsize=9)
+        ax.set_title('(a) All GU responses' if j==0 else '(b) Detail near the origin',loc='left',fontsize=11,pad=10)
+    axes[0].add_patch(Rectangle((-.35,-.35),2.65,2.65,fill=False,edgecolor='#667681',lw=.8))
+    axes[0].text(.045,.94,rf'Spearman $\rho$ = {corr.rho:.2f}',transform=axes[0].transAxes,va='top',fontsize=11)
+    axes[1].text(.95,.94,'y = x',transform=axes[1].transAxes,ha='right',va='top',color='#727d85',fontsize=9)
+    fig.suptitle('Cora | r_point | GIN → GCN',fontsize=14,y=.965)
+    fig.text(.5,.055,'10 training seeds · mean and pointwise 95% t intervals · dashed line: equal F1 drop',ha='center',fontsize=10,color='#46545f')
+    for ext in ['png','svg','pdf']:fig.savefig(OUT/f'cora_r_point_transfer_10seeds.{ext}',dpi=220,facecolor='white')
+    svg=OUT/'cora_r_point_transfer_10seeds.svg'
     svg.write_text('\n'.join(line.rstrip() for line in svg.read_text(encoding='utf-8').splitlines())+'\n',encoding='utf-8')
     plt.close(fig)
-    pd.DataFrame(rows).to_csv(OUT/'cora_r_point_rank_values.csv',index=False)
+    rows=[]
+    for m in methods:
+        row=dict(method=labels.get(m,m),n_seeds=10)
+        for src in ['GCN','GIN']:
+            row.update({src+'_mean':means.loc[m,src],src+'_lo':lower.loc[m,src],src+'_hi':upper.loc[m,src]})
+        rows.append(row)
+    pd.DataFrame(rows).to_csv(OUT/'cora_r_point_transfer_10seeds.csv',index=False)
 
 def main():
     df,selections,audit=load();a,s=paired(df)
     corr=correlations(a,audit['gif_idea_max_U_difference']<1e-10)
     overlap(df,selections);figures(a,s)
-    rank_figure(s,corr)
+    transfer_figure(s,corr)
     from report import build_report
     build_report()
     print(json.dumps(audit,ensure_ascii=False,indent=2))

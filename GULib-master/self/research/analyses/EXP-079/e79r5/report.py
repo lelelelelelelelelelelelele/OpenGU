@@ -94,7 +94,7 @@ Cora / GNNDelete / gt_full，表内 drop 为均值；差值同时给点态 95% �
 
 {table(architecture[['dataset','GCN','SGC','GAT','GIN','U_random','U_degree']])}
 
-以下两张图覆盖四种选点架构、六 GU、三数据集；每个分面使用自己的纵轴，避免大幅 drop 掩盖小幅变化。原三 seed 灰点，新增七 seed 彩点；菱形为十 seed 均值，误差线为点态 95% 均值区间，虚线为 Random，点线为 Degree。
+以下两张图覆盖四种选点架构、六 GU、三数据集；每个分面使用自己的纵轴，避免大幅 drop 掩盖小幅变化。散点为全部十个训练 seed，不按运行先后区分颜色；菱形为十 seed 均值，误差线为点态 95% 均值区间，虚线为 Random，点线为 Degree。
 
 ![gt_full 完整结果](gt_full_drop.png)
 
@@ -116,19 +116,19 @@ GIN 表如下，完整 SGC/GAT/GIN 的 54 行见 correlations.csv。old3/new7/al
 
 {table(cor[['dataset','selector','old3','new7','all10','rho_random','rho_degree','bootstrap_lo','bootstrap_hi']])}
 
-### Cora / r_point：相关为何从 1.00 变为 0.30 / 0.40
+### 论文展示：Cora / r_point，全部十 seed
 
-![Cora r_point 三组seed跨GU排名对照](cora_r_point_rank_comparison.png)
+![Cora r_point 十seed实际效果散点图](cora_r_point_transfer_10seeds.png)
 
-每一栏都先计算该组 seed 的平均 F1 drop，再比较五种 GU 在 GCN direct 与 GIN surrogate 下的排名；第 1 名表示平均 drop 最大。同色线连接同一 GU，端点数字为实际 drop（百分点），**线交叉表示方法之间的相对顺序翻转**。
+论文图统一使用全部十个训练 seed，不按运行先后拆成三组。横轴为 GCN direct 的平均 F1 drop，纵轴为 GIN surrogate 的平均 F1 drop；一个点对应一种 GU 的平均响应。GIF/IDEA 的响应完全重合，合并标注并仅计一次排序相关。误差棒分别表示两侧均值的点态 95% t 区间；右图放大左图框出的近原点区域，没有删去负值或小效应。
 
-关键变化是 **GraphRevoker**：原三 seed 下 GCN/GIN 都排第 2（5.72 / 1.85 pp）；新增七 seed 下，GCN 仍第 2（3.48 pp），GIN 降到第 5（−1.56 pp）。与此同时 MEGU 在 GIN 侧升到第 2，GraphEraser 保持第 3。因此新七 seed 的排名平方差和为 14，Spearman = 1−6×14/(5×24) = **0.30**。合计十 seed 时 GraphRevoker 仍为 2→5，但 GraphEraser / MEGU / GIF 的位次组合不同，平方差和为 12，对应 **0.40**。
+虚线 y=x 表示两侧的平均效用损伤相同，点在虚线下方意味着 GIN 的平均损伤较小。Cora / r_point 的 GNNDelete 为 13.71 vs 9.52 pp，GraphRevoker 为 4.15 vs −0.54 pp；其余 GU 的效应较小，见右侧放大图。图中直接呈现损伤幅度与不确定性，Spearman rho=0.40 作为辅助描述，不绘制拟合直线、不将 seed 编号当比较轴。
 
-GNNDelete 在三组中始终是两侧第 1：相关下降并不表示所有方法都不再迁移，主要是其余方法的排序改变。并且排名只看顺序：原三 seed 的 rho=1.00 时，GraphRevoker 的两侧均值已经是 5.72 vs 1.85 pp，完全同序并不等于幅度一致。
+rho 的 seed 整块 bootstrap 区间为 [0.10, 1.00]，说明跨 GU 排序关系仍不确定。单侧均值误差棒不等于配对差的区间；是否接近 direct、是否超过 Random/Degree，仍须结合前面的逐 seed 配对差。不能只凭 rho 判断代理选点的攻击价值。
 
-图上同时给 seed 整块 bootstrap 百分位区间；各组区间较宽且重叠，仅作不确定性诊断，不能凭三个点估计的变化宣称“相关显著下降”。合计十 seed 包含前两组，不是第三个独立验证组。
+图注建议：**GCN direct 与 GIN surrogate 在 Cora/r_point 下的跨 GU 效用响应。** 点和误差棒为十个训练 seed 的均值及点态 95% t 区间；虚线表示相同 F1 drop。右图为近原点区域的放大。GIF 和 IDEA 的响应重合；相关系数在五个不同 GU 响应上计算。
 
-[查看图中精确数值](cora_r_point_rank_values.csv) · [SVG 矢量图](cora_r_point_rank_comparison.svg) · [PDF](cora_r_point_rank_comparison.pdf)。展示时建议把此图放在相关系数总表后，主讲“哪几个 GU 改变顺序”；效用下降幅度与基线优势仍由第 4 节的原始 drop 图承担。
+[图中数值](cora_r_point_transfer_10seeds.csv) · [SVG](cora_r_point_transfer_10seeds.svg) · [PDF](cora_r_point_transfer_10seeds.pdf)。三/七 seed 的独立核验保留在分析记录中，不作为论文主图的分组或叙事顺序。
 
 稳定的例子是 Cora / gt_full：旧三 seed 与新增七 seed 的 GIN 排序相关均为 1.00。反例是 Cora / r_point：原本 1.00 的关系没有稳定复现。CiteSeer / r_point 的 GAT 从旧三 seed 0.80 变为新增七 seed −0.30，也说明代理架构不能一概替换。PubMed / r_point 的 GIN 从旧三 seed 0.30 升至新增七 seed 1.00，展示旧小样本结果的不稳定。十 seed 的 PubMed / r_point 为 0.90，Random 同为 0.90。
 
@@ -175,7 +175,7 @@ GraphRevoker 在 Cora 的 GIN / gt_full 平均 drop 为 1.81 pp，signed retrain
 '''
     (OUT/'REPORT.md').write_text(md,encoding='utf-8')
     body=MarkdownIt('commonmark',{'html':False}).enable('table').render(md)
-    for name in ['gt_full_drop.png','r_point_drop.png','gin_contrasts.png','cora_r_point_rank_comparison.png']:
+    for name in ['gt_full_drop.png','r_point_drop.png','gin_contrasts.png','cora_r_point_transfer_10seeds.png']:
         body=body.replace('src="'+name+'"','src="data:image/png;base64,'+base64.b64encode((OUT/name).read_bytes()).decode()+'"')
     css='body{margin:0;background:#f4f6f8;color:#243342;font:16px/1.8 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1300px;margin:auto;padding:40px 32px;background:white}h1{font-size:32px}h2{border-top:1px solid #d5dfe7;padding-top:24px;margin-top:38px;color:#143e63}table{display:block;overflow:auto;border-collapse:collapse;font-size:14px}th,td{border:1px solid #d3dce4;padding:8px 10px}th{background:#eaf1f6}img{width:100%;height:auto}a{color:#17669b}code{overflow-wrap:anywhere}p,li{overflow-wrap:anywhere}strong{color:#174a6e}'
     (OUT/'REPORT.html').write_text('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXP-079 十 seed 结果分析</title><style>'+css+'</style></head><body><main>'+body+'</main></body></html>',encoding='utf-8')
