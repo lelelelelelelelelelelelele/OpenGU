@@ -1,0 +1,75 @@
+{
+  "job_id": "exp079-20261013-e79r5",
+  "run_id": "e79r5",
+  "execution_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",
+  "run_sha256": "115ebaa86a7fa95dd65ca64fc34d5fcc0d6033a2a9ee912ad54d947dbda38f56",
+  "verified_files": 5041,
+  "raw_cells": 2520,
+  "raw_gu_cells": 2160,
+  "paired_selector_gu_rows": 1440,
+  "seed_profile_gu_rows": 1800,
+  "seed_clusters": 10,
+  "gu_coordinates_main": 5,
+  "gu_coordinates_full": 6,
+  "random_selections_per_training_seed": 3,
+  "random_seed_ids": [
+    11,
+    22,
+    33
+  ],
+  "split_seed": 2024,
+  "budget_ratio": 0.1,
+  "requested_k": {
+    "Cora": [
+      189
+    ],
+    "CiteSeer": [
+      232
+    ],
+    "PubMed": [
+      1380
+    ]
+  },
+  "flip_protocol": [
+    "argmax_gu_vs_same_request_retrain_first_index_ties"
+  ],
+  "flip_masks": [
+    "test_mask_excluding_selected_nodes"
+  ],
+  "gif_idea_U_max_difference": 0.0,
+  "gif_idea_CE_max_difference": 1.0118267834702266e-08,
+  "csv_matches_raw": true,
+  "summary_used_cohort": "all10",
+  "source_checks": [
+    {
+      "path": "experiments/flip_hop_metrics.py",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "experiments/node_deletion.py",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "experiments/target_direct_v1/methods.py",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "experiments/configs/exp079/surrogate_multiseed.yaml",
+      "matches_execution_sha": true
+    }
+  ],
+  "input_hashes": {
+    "cells.csv": "099265b44e8862e1478bbd1507791a5c1202009ccd0e80411a43f503f404fc84",
+    "paired_seed_values.csv": "70cbfcdee534ce9d12cfccd8c267494371637c6821f6bed08c51b657dfe17f82",
+    "summary.csv": "3c2f18ef1af03ea597ab63df250351856f153f561b4820ae7460d9e621252935"
+  },
+  "versions": {
+    "python": "3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pandas": "3.0.3",
+    "matplotlib": "3.11.0"
+  },
+  "new_gpu_runs": 0,
+  "scientific_acceptance": "not_requested"
+}

@@ -1,8 +1,8 @@
 {
   "id": "EXP-079",
   "title": "Surrogate 条件性迁移的多 seed 验证（总10个）",
-  "question": "增加独立训练重复后，跨架构选点一致性、跨GU平均F1 drop响应关系及相对Random/Degree的效果能否稳定复现？",
-  "scope": "e79r5完整2520格：3数据集、10训练seed、12选点条件、6 GU与Retrain；原3seed与新增7seed分别分析后合计10seed。历史252格工程Gate保留为独立证据，不并入科学样本。",
+  "question": "固定目标GCN时，gt_full/r_point/Degree/Random是否形成可辨认的多GU响应；同策略换选点surrogate后相对影响是否保持并比异策略更接近？",
+  "scope": "e79r5完整2520格，3数据集、完整10训练seed、12请求实例、6 GU与Retrain；响应模式科学图表统一十seed。历史252格工程Gate不并入科学样本；已有诊断保留为范围独立的辅助证据。",
   "configs": [
     {
       "label": "252格Gate",
@@ -788,8 +788,44 @@
   ],
   "analysis": {
     "state": "complete",
-    "note": "完整十seed分析及后续诊断完成：GCN参照在GNNDelete六条件中仅一项点态区间明确高于Random；局部迁移不能升级为普遍规律。补查CE/AUC未找到CiteSeer一致增益，核对5040文件及9项执行版本源码。IF数值残差、原图/保留图评估敏感性仍NOT OBSERVED；未新增GPU实验，科学接受未请求。",
+    "note": "完整十seed响应模式研究完成：重新核验5041原始文件、CSV配对与flip的同请求GU/Retrain语义。Cora的gt_full/r_point相对区分主要依赖GNNDelete；PubMed的SGC可反转GU相对影响，GCN/GAT/GIN有局部保留；CiteSeer未建立稳定U区分。flip有附加且坐标敏感的探索性模式。采用S/K交互对比、去中心化距离及跨seed平方距离裕量；U/G的该几何代数相同，不重复计票。保留原始强度、共享Random依赖、GIF/IDEA去重及逐GU敏感性。未新增GPU实验，科学接受未请求。",
     "evidence": [
+      {
+        "label": "响应模式中文论文研究报告 HTML",
+        "path": "self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html"
+      },
+      {
+        "label": "响应模式中文论文研究报告 Markdown",
+        "path": "self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md"
+      },
+      {
+        "label": "完整原始输入及配对核验",
+        "path": "self/research/analyses/EXP-079/e79r5/response_input_audit.json"
+      },
+      {
+        "label": "多GU选择性与Holm结果",
+        "path": "self/research/analyses/EXP-079/e79r5/response_selectivity.csv"
+      },
+      {
+        "label": "跨surrogate相对区分及敏感性",
+        "path": "self/research/analyses/EXP-079/e79r5/response_consistency_margin.csv"
+      },
+      {
+        "label": "响应图谱 U/G PNG",
+        "path": "self/research/analyses/EXP-079/e79r5/response_atlas_U_G_10seeds.png"
+      },
+      {
+        "label": "科研图 PDF",
+        "path": "self/research/analyses/EXP-079/e79r5/response_atlas_U_G_10seeds.pdf"
+      },
+      {
+        "label": "可复现响应分析脚本",
+        "path": "self/research/analyses/EXP-079/e79r5/response_pattern.py"
+      },
+      {
+        "label": "报告及公式核验",
+        "path": "self/research/analyses/EXP-079/e79r5/response_report_verification.json"
+      },
       {
         "label": "迁移规律偏窄的诊断 HTML",
         "path": "self/research/analyses/EXP-079/e79r5/DIAGNOSIS_REPORT.html"
@@ -900,8 +936,12 @@
       }
     ],
     "highlights": [
+      "响应模式：Cora去中心化U距离裕量9.976 [5.122,14.830] pp²；去掉GNNDelete后0.333 [-0.200,0.865]，整体策略差异主要依赖此坐标。",
+      "PubMed的gt_full：GNNDelete/GraphRevoker交互从GCN的-1.269 pp变成SGC的+5.658 pp，配对变化+6.927 [4.865,8.989]；不能称跨所有surrogate保留。",
+      "CiteSeer U裕量-0.003 [-0.041,0.035]；flip另有小幅、坐标敏感的探索性优势。U/G去中心化几何在该设计中代数相同，不算独立验证。",
+      "Degree每数据集只有一份节点集合，Random每数据集只有三份集合跨训练seed重用；训练重复不是独立删除请求重复。",
       "后续诊断：区分GCN参照有效性、验证CE与GU后F1的目标错位、last_layer/20步LiSSA数值疑点、训练删边但原图评估、静态单点top-k的批量交互；均未伪称已确认机制或实现错误。",
-      "迁移主图采用完整10seed的GNNDelete案例，保留三个数据集与两种selector，以GCN选点为明确参照。Cora/gt_full的GCN增益为7.51pp，SGC/GAT/GIN为2.42/4.26/9.46pp，点态区间均在零上方；仅支持此条件的正向增益迁移，不宣称等效或普遍迁移。六GU全矩阵保留补充。",
+      "此前transfer_focus保留为单GU局部增益辅助图；本轮主图为三数据集、全部六GU、全部选点条件的响应图谱与选择性/敏感性图，不以GNNDelete案例代替整体。",
       "e79r5完整2520格、10训练seed；5041/5041文件哈希及可信索引一致，原756格与EXP-013身份和关键指标一致。",
       "Cora/GNNDelete/gt_full：GIN drop 22.38pp，GCN 20.42pp、Random 12.92pp、Degree 18.89pp；GIN−Random 9.46pp，点态95%配对区间[6.91,12.02]。新增7seed全部胜Random。",
       "同条件GIN−Degree为3.49pp [0.43,6.54]，GIN−direct为1.96pp [-0.95,4.86]；无预设等效阈值，未经全矩阵多重比较调整，不作等效或普遍优势声明。",
@@ -948,8 +988,16 @@
   },
   "decision": {
     "state": "not_requested",
-    "note": "用户请求分析，尚未确认科学接受。建议接受的解释范围为固定split、10%删除预算下的条件性迁移；不支持普遍替代或统计等效。",
+    "note": "用户请求研究与报告，尚未确认科学接受。本轮支持局部可辨认GU响应及条件性跨surrogate保留；不支持普遍不变策略指纹。近似区间为固定split/预算/算法集合下的探索性训练seed推断，未进行等效检验或新增GPU确认。",
     "evidence": [
+      {
+        "label": "响应模式研究 md",
+        "path": "self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md"
+      },
+      {
+        "label": "响应模式研究 html",
+        "path": "self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html"
+      },
       {
         "label": "完整十seed科学分析 md",
         "path": "self/research/analyses/EXP-079/e79r5/REPORT.md"
@@ -960,7 +1008,7 @@
       }
     ]
   },
-  "recorded_at": "2026-10-14",
+  "recorded_at": "2026-10-15",
   "sources": [
     {
       "label": "首轮可信结果",

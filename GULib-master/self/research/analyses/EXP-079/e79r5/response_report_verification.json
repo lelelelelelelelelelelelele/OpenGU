@@ -1,0 +1,35 @@
+{
+  "execution_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",
+  "all_seed_count": 10,
+  "raw_hashes_verified": 5041,
+  "algebra_checks": [
+    {
+      "dataset": "Cora",
+      "explicit_cross_seed_agrees": true,
+      "strategy_difference_identity_agrees": true
+    },
+    {
+      "dataset": "CiteSeer",
+      "explicit_cross_seed_agrees": true,
+      "strategy_difference_identity_agrees": true
+    },
+    {
+      "dataset": "PubMed",
+      "explicit_cross_seed_agrees": true,
+      "strategy_difference_identity_agrees": true
+    }
+  ],
+  "local_links_checked": 47,
+  "local_links_unique": 35,
+  "figures": 6,
+  "figure_exports": 18,
+  "markdown_and_html_same_body": true,
+  "html_embedded_images": 6,
+  "report_sha256": {
+    "RESPONSE_PATTERN_REPORT.md": "445dcbe25ffd580a023ff0e4a9785249f03d3e02517a8324aa422c97db61a6f2",
+    "RESPONSE_PATTERN_REPORT.html": "0135b1ba28c90353ac73ee9b6a877b889ff4fd57d4541a9394b1118b50a5a0c8"
+  },
+  "scientific_acceptance": "not_requested",
+  "html_browser_render": "passed",
+  "html_browser_evidence": "response_html_qa.json"
+}
