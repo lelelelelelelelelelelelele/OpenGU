@@ -10,20 +10,21 @@ from experiments.effective_config import ConfigurationError
 
 
 def _transport_steps(config):
-    """Count one Output plus all its applicable evaluations as one batch unit."""
-    from experiments.modular_progress import batch_label, execution_batches, progress_steps
+    """Keep Selection separate; count complete Output/Evaluation groups per request."""
+    from experiments.modular_progress import progress_steps
     steps, mapping = [], {}
-    batches = execution_batches(config) if config['stage'] == 'unlearning' else []
     for step in progress_steps(config):
         position = step['position']
-        grouped = config['stage'] == 'unlearning' and 'selector_ref' in position
-        target = ({key: value for key, value in position.items() if key not in ('unlearning_ref', 'selector_ref')}
+        grouped = (config['stage'] == 'unlearning' and 'selector_ref' in position
+                   and position['stage'] != 'selector')
+        target = ({key: value for key, value in position.items() if key != 'unlearning_ref'}
                   if grouped else dict(position))
         if grouped:
             target['stage'] = 'output_evaluation'
         if not steps or steps[-1]['position'] != target:
-            label = (batch_label(position['batch_index'], batches[position['batch_index']])
-                     + ' / Output + Evaluation' if grouped else step['label'])
+            label = ('Output + Evaluation' if grouped else
+                     'Selection' if config['stage'] == 'unlearning' and position['stage'] == 'selector'
+                     else step['label'])
             steps.append({'position': target, 'label': label, 'total': 0})
         entry = steps[-1]
         if not grouped:
@@ -37,18 +38,39 @@ def _transport_steps(config):
             # Partial or failed evaluation must never count a finished Output group.
             counts = (entry['total'] - 1,) * step['total'] + (entry['total'],)
         else:
-            # Selection and request boundaries are prerequisites, not extra groups.
+            # Request boundaries do not add another completed method.
             counts = (entry['total'],) * (step['total'] + 1)
         mapping[json.dumps(position, sort_keys=True)] = (entry, counts)
     return steps, mapping
 
 
 def progress_plan(config):
-    """Core counts complete Output/Evaluation groups; audit retains method detail."""
+    """Declare batch/request hierarchy using Core's existing generic tree."""
+    from experiments.modular_progress import batch_label, execution_batches
     from syncmate_core.progress import validate_plan
     steps, _ = _transport_steps(config)
-    return validate_plan([{'id': f'step-{index}', 'label': step['label'], 'match': step['position']}
-                          for index, step in enumerate(steps)])
+    batches = execution_batches(config) if config['stage'] == 'unlearning' else []
+    plan, batch_nodes, request_nodes = [], {}, {}
+    for index, step in enumerate(steps):
+        position = step['position']
+        leaf = {'id': f'step-{index}', 'label': step['label'], 'match': position}
+        if config['stage'] != 'unlearning' or 'selector_ref' not in position:
+            plan.append(leaf)
+            continue
+        batch_index = position['batch_index']
+        if batch_index not in batch_nodes:
+            batch_nodes[batch_index] = {'id': f'batch-{batch_index}',
+                'label': batch_label(batch_index, batches[batch_index]), 'children': []}
+            plan.append(batch_nodes[batch_index])
+        parent = batch_nodes[batch_index]
+        key = (batch_index, position['selector_ref'])
+        if key not in request_nodes:
+            number = len(parent['children']) + 1
+            request_nodes[key] = {'id': f'request-{batch_index}-{number}',
+                'label': f"请求 {number} · {Path(position['selector_ref']).stem}", 'children': []}
+            parent['children'].append(request_nodes[key])
+        request_nodes[key]['children'].append(leaf)
+    return validate_plan(plan)
 
 
 def make_notify(config, context, *, config_path=None, enabled=True):

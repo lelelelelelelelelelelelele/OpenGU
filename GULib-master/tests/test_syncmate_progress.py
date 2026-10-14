@@ -102,11 +102,19 @@ def test_real_exp079_plan_stays_within_core_capacity():
     assert plan == definition['progress_plan']
     assert len(plan) == 124
     from scripts.syncmate.opengu_progress import _transport_steps
-    batches = [s for s in _transport_steps(config)[0] if s["position"]["stage"] == "output_evaluation"]
-    assert len(batches) == 120
+    requests = [s for s in _transport_steps(config)[0] if s['position']['stage'] == 'output_evaluation']
+    assert len(requests) == 360
+    assert all(s['total'] == 7 for s in requests)
+    assert sum(s['total'] for s in requests) == 2520
+    batch_nodes = [n for n in plan if 'children' in n]
+    assert len(batch_nodes) == 120
     from collections import Counter
-    assert Counter(s["total"] for s in batches) == {63: 30, 7: 90}
-    assert sum(s["total"] for s in batches) == 2520
+    assert Counter(len(n['children']) for n in batch_nodes) == {9: 30, 1: 90}
+    assert len(list(progress.leaves(plan))) == 724
+    for batch in batch_nodes:
+        for request in batch['children']:
+            assert [n['label'] for n in request['children']] == ['Selection', 'Output + Evaluation']
+            assert len({n['match']['selector_ref'] for n in request['children']}) == 1
     assert len(progress_steps(config)) == 5764
     assert sum(s['total'] for s in progress_steps(config)
                if s['position']['stage'] == 'unlearning') == 2520
@@ -163,9 +171,9 @@ print(json.dumps({'status': result['status'], 'snapshot': snapshot, 'opengu_impo
 
 
 @pytest.mark.parametrize('with_evaluations', [True, False])
-def test_batch_counter_counts_finished_output_evaluation_groups(publishing, monkeypatch, with_evaluations):
-    from experiments.modular_config import unlearning_entries
-    from experiments.modular_progress import execution_batches
+def test_request_counter_counts_finished_output_evaluation_groups(publishing, monkeypatch, with_evaluations):
+    from experiments.modular_config import selector_entries
+    from experiments.modular_progress import execution_batches, request_entries
     root, path, _, context, job = publishing
     import yaml
     raw = yaml.safe_load(path.read_text(encoding='utf-8'))
@@ -179,22 +187,28 @@ def test_batch_counter_counts_finished_output_evaluation_groups(publishing, monk
     monkeypatch.setenv(progress.ENV, env[progress.ENV])
     notify = make_notify(config, context, config_path=path)
     snapshot_path = progress.safe_path(root, job['id'], 'current.json')
-    totals = [len(unlearning_entries(batch)) for batch in execution_batches(config)]
-    finished = [0] * len(totals)
+    totals = {(index, ref): len(request_entries(batch, ref))
+              for index, batch in enumerate(execution_batches(config)) for _, ref in selector_entries(batch)}
+    finished = dict.fromkeys(totals, 0)
     for step in progress_steps(config):
         for amount in range(step['total'] + 1):
             assert notify('progress', position=step['position'], current=amount, total=step['total'])
             snapshot = progress.read_json(snapshot_path)
             if 'batch_index' not in step['position']:
                 continue
-            index = step['position']['batch_index']
+            if step['position']['stage'] == 'selector':
+                assert snapshot['position'] == step['position']
+                assert snapshot['current'] == amount and snapshot['total'] == 1
+                continue
+            index = (step['position']['batch_index'], step['position']['selector_ref'])
             terminal = 'evaluation' if with_evaluations else 'unlearning'
             if step['position']['stage'] == terminal and amount == step['total']:
                 finished[index] += 1
             assert snapshot['current'] == finished[index]
             assert snapshot['total'] == totals[index]
             assert snapshot['position'] == {'stage': 'output_evaluation',
-                'batch_index': index, 'dataset_index': step['position']['dataset_index']}
+                'batch_index': index[0], 'dataset_index': step['position']['dataset_index'],
+                'selector_ref': index[1]}
     assert finished == totals
     assert notify('completed', position={})
 
