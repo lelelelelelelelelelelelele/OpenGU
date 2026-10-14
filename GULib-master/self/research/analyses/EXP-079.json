@@ -788,8 +788,24 @@
   ],
   "analysis": {
     "state": "complete",
-    "note": "e79r5全部2520格分析完成，可信链及旧格匹配已核验；主图以GNNDelete为说明性案例，明确GCN参照，展示Cora/gt_full正向攻击增益的条件性迁移及其他数据集边界。全部10seed、六GU检测矩阵保留为补充；科学接受尚未请求。",
+    "note": "完整十seed分析及后续诊断完成：GCN参照在GNNDelete六条件中仅一项点态区间明确高于Random；局部迁移不能升级为普遍规律。补查CE/AUC未找到CiteSeer一致增益，核对5040文件及9项执行版本源码。IF数值残差、原图/保留图评估敏感性仍NOT OBSERVED；未新增GPU实验，科学接受未请求。",
     "evidence": [
+      {
+        "label": "迁移规律偏窄的诊断 HTML",
+        "path": "self/research/analyses/EXP-079/e79r5/DIAGNOSIS_REPORT.html"
+      },
+      {
+        "label": "迁移诊断 Markdown",
+        "path": "self/research/analyses/EXP-079/e79r5/DIAGNOSIS_REPORT.md"
+      },
+      {
+        "label": "补充指标与配对区间",
+        "path": "self/research/analyses/EXP-079/e79r5/diagnostic_metric_checks.csv"
+      },
+      {
+        "label": "诊断原始证据及执行源码核验",
+        "path": "self/research/analyses/EXP-079/e79r5/diagnosis_verification.json"
+      },
       {
         "label": "十seed GCN参照迁移主图",
         "path": "self/research/analyses/EXP-079/e79r5/transfer_focus_10seeds.png"
@@ -884,6 +900,7 @@
       }
     ],
     "highlights": [
+      "后续诊断：区分GCN参照有效性、验证CE与GU后F1的目标错位、last_layer/20步LiSSA数值疑点、训练删边但原图评估、静态单点top-k的批量交互；均未伪称已确认机制或实现错误。",
       "迁移主图采用完整10seed的GNNDelete案例，保留三个数据集与两种selector，以GCN选点为明确参照。Cora/gt_full的GCN增益为7.51pp，SGC/GAT/GIN为2.42/4.26/9.46pp，点态区间均在零上方；仅支持此条件的正向增益迁移，不宣称等效或普遍迁移。六GU全矩阵保留补充。",
       "e79r5完整2520格、10训练seed；5041/5041文件哈希及可信索引一致，原756格与EXP-013身份和关键指标一致。",
       "Cora/GNNDelete/gt_full：GIN drop 22.38pp，GCN 20.42pp、Random 12.92pp、Degree 18.89pp；GIN−Random 9.46pp，点态95%配对区间[6.91,12.02]。新增7seed全部胜Random。",

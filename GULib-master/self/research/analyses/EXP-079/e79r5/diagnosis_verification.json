@@ -1,0 +1,74 @@
+{
+  "execution_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",
+  "verified_metric_selection_files": 5040,
+  "cells": 2520,
+  "paired_conditions": 144,
+  "requested_k": {
+    "Cora": [
+      189
+    ],
+    "CiteSeer": [
+      232
+    ],
+    "PubMed": [
+      1380
+    ]
+  },
+  "source_checks": [
+    {
+      "path": "experiments/target_direct_v1/methods.py",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "experiments/c_target_v1/core.py",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "experiments/target_direct_v1/method_cache.py",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "experiments/modular_model.py",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "experiments/modular_config.py",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "experiments/node_deletion.py",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "model/base_gnn/sgc.py",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "experiments/configs/exp079/surrogate_multiseed.yaml",
+      "matches_execution_sha": true
+    },
+    {
+      "path": "experiments/configs/profiles/gif_idea_fixed_pt.yaml",
+      "matches_execution_sha": true
+    }
+  ],
+  "scalar_recurrence_illustration_not_model_measurement": [
+    {
+      "hypothetical_eigenvalue": 0.0,
+      "relative_residual_after_20_updates": 0.8097278682212585
+    },
+    {
+      "hypothetical_eigenvalue": 1.0,
+      "relative_residual_after_20_updates": 0.34056162628811537
+    },
+    {
+      "hypothetical_eigenvalue": 5.0,
+      "relative_residual_after_20_updates": 0.0070822119061706434
+    }
+  ],
+  "actual_ihvp_residual": "NOT OBSERVED",
+  "source_model_validation_metrics": "NOT OBSERVED",
+  "model_scores": "NOT OBSERVED",
+  "retained_graph_evaluation": "NOT OBSERVED",
+  "new_gpu_runs": 0
+}

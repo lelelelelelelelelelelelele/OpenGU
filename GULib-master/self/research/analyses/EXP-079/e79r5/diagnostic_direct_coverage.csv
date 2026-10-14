@@ -1,0 +1,7 @@
+GU,条件数,高于Random的点态区间,高于Degree的点态区间
+GIF,6,3,4
+GNNDelete,6,1,0
+GraphEraser,6,2,2
+GraphRevoker,6,3,2
+IDEA,6,3,4
+MEGU,6,1,1
