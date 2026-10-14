@@ -94,7 +94,7 @@ def test_runtime_write_failure_is_observational_and_diagnostic(publishing, monke
     assert 'temporary snapshot is read-only' in capsys.readouterr().err
 
 
-def test_real_exp079_plan_stays_within_core_capacity():
+def test_real_exp079_plan_stays_within_core_capacity(tmp_path, monkeypatch):
     from scripts.syncmate.opengu_recipes import ROOT, resolve_recipe
     definition = resolve_recipe(ROOT, 'opengu-exp079-surrogate-multiseed')
     config = load_experiment(ROOT / definition['config_path'])
@@ -114,11 +114,23 @@ def test_real_exp079_plan_stays_within_core_capacity():
     for batch in batch_nodes:
         for request in batch['children']:
             assert [n['label'] for n in request['children']] == ['Selection', 'Output + Evaluation']
-            assert len({n['match']['selector_ref'] for n in request['children']}) == 1
+            assert len({n['match']['step'] for n in request['children']}) == 2
     assert len(progress_steps(config)) == 5764
     assert sum(s['total'] for s in progress_steps(config)
                if s['position']['stage'] == 'unlearning') == 2520
     assert progress.validate_plan(plan) == plan
+    # Validate the actual serialized context, not only the smaller plan object.
+    from types import SimpleNamespace
+    path = ROOT / definition['config_path']
+    job = {'id': 'full-tree', 'recipe': 'full-tree', 'expected_git_sha': 'a' * 40,
+           'expected_config_sha256': sha256_recipe_config(path)}
+    env = progress.prepare_environment(tmp_path, job, plan)
+    monkeypatch.setenv(progress.ENV, env[progress.ENV])
+    notify = make_notify(config, SimpleNamespace(store_root=tmp_path/'cache/store',
+        source_git_sha='a' * 40), config_path=path)
+    for step in progress_steps(config)[:10]:
+        assert notify('progress', position=step['position'], current=step['total'], total=step['total'])
+    assert progress.read_json(progress.safe_path(tmp_path, job['id'], 'current.json'))['current'] == 3
 
 
 def test_installed_core_serves_a_standalone_consumer_without_opengu(tmp_path):
@@ -197,7 +209,8 @@ def test_request_counter_counts_finished_output_evaluation_groups(publishing, mo
             if 'batch_index' not in step['position']:
                 continue
             if step['position']['stage'] == 'selector':
-                assert snapshot['position'] == step['position']
+                leaf = next(n for n in progress.leaves(progress_plan(config)) if n['match'] == snapshot['position'])
+                assert leaf['label'] == 'Selection'
                 assert snapshot['current'] == amount and snapshot['total'] == 1
                 continue
             index = (step['position']['batch_index'], step['position']['selector_ref'])
@@ -206,9 +219,9 @@ def test_request_counter_counts_finished_output_evaluation_groups(publishing, mo
                 finished[index] += 1
             assert snapshot['current'] == finished[index]
             assert snapshot['total'] == totals[index]
-            assert snapshot['position'] == {'stage': 'output_evaluation',
-                'batch_index': index[0], 'dataset_index': step['position']['dataset_index'],
-                'selector_ref': index[1]}
+            leaf = next(n for n in progress.leaves(progress_plan(config)) if n['match'] == snapshot['position'])
+            assert leaf['label'] == 'Output + Evaluation'
+
     assert finished == totals
     assert notify('completed', position={})
 

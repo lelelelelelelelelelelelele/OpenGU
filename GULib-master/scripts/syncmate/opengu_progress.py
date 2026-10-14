@@ -41,6 +41,11 @@ def _transport_steps(config):
             # Request boundaries do not add another completed method.
             counts = (entry['total'],) * (step['total'] + 1)
         mapping[json.dumps(position, sort_keys=True)] = (entry, counts)
+    for index, step in enumerate(steps):
+        # The transport cursor is opaque; full scientific positions stay in the
+        # executor mapping. Avoid repeating long selector refs in the tree file.
+        step['match'] = ({'step': index} if config['stage'] == 'unlearning'
+                         and 'selector_ref' in step['position'] else step['position'])
     return steps, mapping
 
 
@@ -53,7 +58,7 @@ def progress_plan(config):
     plan, batch_nodes, request_nodes = [], {}, {}
     for index, step in enumerate(steps):
         position = step['position']
-        leaf = {'id': f'step-{index}', 'label': step['label'], 'match': position}
+        leaf = {'id': f'step-{index}', 'label': step['label'], 'match': step['match']}
         if config['stage'] != 'unlearning' or 'selector_ref' not in position:
             plan.append(leaf)
             continue
@@ -133,7 +138,7 @@ def make_notify(config, context, *, config_path=None, enabled=True):
                 step, counts = positions[json.dumps(position, sort_keys=True)]
                 if type(current) is not int or not 0 <= current < len(counts) or total != len(counts) - 1:
                     raise ValueError('invalid experiment progress counter')
-                written = publisher.update(current=counts[current], total=step['total'], **step['position'])
+                written = publisher.update(current=counts[current], total=step['total'], **step['match'])
             elif kind == 'completed' and not position and current is None and total is None:
                 written = publisher.completed(**last_position)
             else:
