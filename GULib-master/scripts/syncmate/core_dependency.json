@@ -68,15 +68,15 @@
     "syncmate_core/storage.py": "8539905f6b25f3d35bcb6cb55759afa46ade30062f211da818ff1b115c933a51",
     "syncmate_core/trace.py": "9ad1cc9e154123b90e9d829a33ab0ecf88c8b156dadbf9dbd261f92b2c5df3ea",
     "syncmate_core/transport.py": "c4848e6636ad4088fc2b027da4f1df63792a7eb22d90b2c1bdb34580b00c51cd",
-    "syncmate_core/web/app.js": "87119b6b3655490cfea829b1c65b0eaf813e168c898b1ed25edbad3c4e6ec170",
+    "syncmate_core/web/app.js": "fbac9648905615a5376ea65bb937b91658bc24fbb78302c33ce6b76226da0cce",
     "syncmate_core/web/index.html": "752192893e061edbbd9333c8945fdbccaadf133c4c59856b61f11e612893b238",
-    "syncmate_core/web/style.css": "edd9722cae90e460f5b7b398b88a194762268d5cc374e093efe364341c09eaed",
+    "syncmate_core/web/style.css": "6bc10523ce41f651ad0057ec37b7490fa74d540e94aa47a9359ce0c229250e6a",
     "syncmate_core/worker.py": "c69e4f2b0d6bc809287a67ed530e0b0a8b83dc6dd806444c46e78d0ab104c533",
     "syncmate_core/workflow.py": "cc270d7778e7510bc50ae87f47d61d7e9e2edc2431a8948b3ad6260167afedc9"
   },
   "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
-  "source_commit": "57fc133c445fc7d63b6984894699d09510ffc2cf",
+  "source_commit": "2ccd13d3403cf9e27962e563e006d2b9820b565c",
   "version": "0.5.1",
   "wheel": "syncmate-0.5.1-py3-none-any.whl",
-  "wheel_sha256": "3581eb75321a22e6dc3bbf555f3840c0dbe66799dcbcf8ec8d19072773bb63fe"
+  "wheel_sha256": "18c1134fe6ca5f7f0462ebe50b0a473f7e9f29a9717c2d0c6a6a168655ea7be5"
 }

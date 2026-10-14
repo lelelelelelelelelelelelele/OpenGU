@@ -214,12 +214,13 @@ def test_dry_run_never_notifies(tables):
     assert result['dry_run'] and events == []
 
 
-def test_exp079_batch_plan_covers_real_matrix_without_per_cell_nodes():
+def test_exp079_detailed_progress_covers_each_request_and_method():
     root = Path(__file__).resolve().parents[1]
     config = load_experiment(root/'experiments/configs/exp079/surrogate_multiseed.yaml')
     steps = progress_steps(config)
     assert len(execution_batches(config)) == 120
-    assert len(steps) == 247
+    assert len(steps) == 5764
+    assert sum(step['total'] for step in steps if step['position']['stage'] == 'request_complete') == 360
     assert sum(step['total'] for step in steps if step['position']['stage'] == 'selector') == 360
     assert sum(step['total'] for step in steps if step['position']['stage'] == 'unlearning') == 2520
     assert len({json.dumps(step['position'], sort_keys=True) for step in steps}) == len(steps)

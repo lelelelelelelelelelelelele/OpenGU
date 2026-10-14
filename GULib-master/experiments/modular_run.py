@@ -12,7 +12,7 @@ from experiments.effective_config import fields, ConfigurationError
 from experiments.modular_config import load_experiment, resolve_budget, experiment_batches, configuration_fingerprint, selector_entries, unlearning_entries
 from experiments.modular_evaluation import evaluate_modular, require_consumer, is_paired_evaluation
 from experiments.modular_execution import ExecutionContext
-from experiments.modular_progress import execution_batches, batch_position, notify_event
+from experiments.modular_progress import execution_batches, request_entries, request_position, notify_event
 from experiments.modular_model import prepare_model, runtime_defaults
 from experiments.selection_inputs import make_dataset_selection_inputs
 from experiments.target_direct_v1.method_cache import resolve_methods
@@ -215,11 +215,12 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     from experiments.output_lookup import OutputLookup
     prepared = PreparedModels(prepare_model)
     outputs = OutputLookup(checkpoint_root, store_root, directory)
+    declaration_order = {}
     for batch_index, batch in enumerate(ordered_batches):
-        position = batch_position('selector', batch_index, batch)
+        for _, gu_ref, _, selector_ref in unlearning_entries(batch):
+            key = (json.dumps(batch['matrix_values'], sort_keys=True), gu_ref, selector_ref)
+            declaration_order[key] = len(declaration_order)
         entries = selector_entries(batch)
-        total = len(entries)
-        notify_event(notify, 'progress', position=position, current=0, total=total)
         group = (batch['matrix_values']['dataset_index'], batch['matrix_values']['training_seed'])
         prepared.select_group(group)
         outputs.select_group(group)
@@ -229,8 +230,9 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
             with audit.phase('shared_output_request_prepare'):
                 outputs.prepare([item for item in batch['unlearnings']
                     if config.get('execution',{}).get('gu_cache',{}).get(item['method'],'reuse')=='reuse'],data)
-        loaded_selections = {}
-        for selector_index, (item, selector_ref) in enumerate(entries):
+        for item, selector_ref in entries:
+            position = request_position('selector', batch_index, batch, selector_ref)
+            notify_event(notify, 'progress', position=position, current=0, total=1)
             run_state['active'] = [c for c in run['cells'] if c['conditions']['selector_ref'] == selector_ref
                 and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
             conditions = {**run_state['active'][0]['conditions'], 'method': 'selector', 'model': item.get('model', {}).get('architecture')}
@@ -254,7 +256,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                 loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
                     expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'],
                     expected_parameters=item['parameters'] if item['method'] in IM_METHODS else None)
-                loaded_selections[selector_ref] = selection_prefix(loaded, item['budget']['k'])
+                selection = selection_prefix(loaded, item['budget']['k'])
                 summary['selectors'].append({**resolved, 'checkpoint': observation, 'matrix_values': batch['matrix_values'],
                     'selector_ref': selector_ref, 'requested_k': item['budget']['k'],
                     'configuration_sources': batch['configuration_sources']['selectors'][batch['selector_refs'].index(selector_ref)]})
@@ -266,99 +268,124 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                 fact['metrics'] = {'selected_node_count': item['budget']['k']}
             summary['selectors'][-1]['access_timing'] = fact['timing']
             run_state['active'] = []
-            notify_event(notify, 'progress', position=position, current=selector_index + 1, total=total)
-        if config['stage'] == 'unlearning':
-            from experiments.modular_gu import run_unlearning
-            position = batch_position('unlearning', batch_index, batch)
-            entries = unlearning_entries(batch)
-            total = len(entries)
-            notify_event(notify, 'progress', position=position, current=0, total=total)
-            for unlearning_index, (item, gu_ref, _, selector_ref) in enumerate(entries):
-                run_state['active'] = [c for c in run['cells']
-                    if c['conditions']['selector_ref'] == selector_ref and c['conditions']['unlearning_ref'] == gu_ref
-                    and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
-                with audit.entry('attack', run_state['active'][0]['conditions']) as fact:
-                    model, checkpoint = None, None
-                    consumer = run_unlearning
-                    if item['method'] == 'MEGU':
-                        from experiments.modular_megu import run_megu_unlearning
-                        consumer = run_megu_unlearning
-                    elif item['method'] == 'GraphEraser':
-                        from experiments.modular_shards import run_shard_unlearning
-                        consumer = run_shard_unlearning
-                    elif item['method'] == 'GraphRevoker':
-                        from experiments.modular_graphrevoker import run_graphrevoker_unlearning
-                        consumer = run_graphrevoker_unlearning
-                    from experiments.observers import observer_specs, ObserverSession
-                    from experiments.modular_artifacts import update_run
-                    cell = run_state['active'][0]
-                    folder = context.output.parent / cell['path']
-                    specs = observer_specs(config, item['method'])
-                    session = ObserverSession(specs, folder, dict(run_id=context.run_id,
-                        experiment_id=config['experiment_id'], cell_id=cell['cell_id'],
-                        conditions=cell['conditions'], commit=context.source_git_sha,
-                        configuration_fingerprint=plan['configuration_fingerprint'])) if specs else None
-                    policy = config.get('execution', {}).get('gu_cache', {}).get(item['method'], 'reuse')
-                    options = dict(gu_cache=policy, observer=session, output_path=folder/'output.npz') if consumer is run_unlearning else {}
-                    error = None
-                    result = None
-                    try:
-                        dataset_input = datasets[batch['matrix_values']['dataset_index']]['input_reference']
-                        if policy == 'reuse':
-                            with audit.phase('output_access'):
-                                result, checkpoint = outputs.lookup(item, selection=loaded_selections[selector_ref],
-                                data=data, dataset_input=dataset_input, dataset_root=dataset_root,
-                                dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'],
-                                inputs=inputs, observer=session, audit=audit)
-                        if result is None:
-                            if item['method'] != 'Retrain':
-                                with audit.phase('model_prepare'):
-                                    model, _, checkpoint = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
-                                    checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
-                            with audit.phase('method_execution'):
-                                result = consumer(item, selection=loaded_selections[selector_ref], model=model, data=data,
-                                dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
-                                dataset_input=dataset_input, **options)
-                    except BaseException as exc:
-                        error = exc
-                        raise
-                    finally:
-                        if session is not None:
-                            try:
-                                session.finish(error, cache_hit=bool(result and result["hit"]))
-                            finally:
-                                cell['observers'] = session.references
-                                for reference in cell['observers']:
-                                    cell['files'].update(reference['files'])
-                                update_run(run, context.output)
-                    result['observer_seconds'] = session.seconds if session else 0.0
-                    if 'evaluation_cache' not in result:
-                        from experiments.evaluation_cache import persist_single
-                        result['evaluation_cache'] = persist_single(result, store_root=store_root,
-                            dataset_input=dataset_input, audit=audit)
-                    summary['unlearning'].append({**result, 'checkpoint': checkpoint, 'conditions': cell['conditions'],
-                        'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
-                        'unlearning_ref': gu_ref})
-                    fact['cache'] = [cache_fact('artifact', result['output'], result['hit'], disabled=policy == 'disabled')]
-                    if result['evaluation_cache'] is not None:
-                        fact['cache'].append(cache_fact('result', result['evaluation_cache'], result['evaluation_cache']['hit']))
-                    fact['metrics'] = {**result['result'], **result['evaluation']['metrics']}
-                    fact['metadata_compute_seconds'] = result.get('compute_seconds')
-                summary['unlearning'][-1]['access_timing'] = fact['timing']
-                run_state['active'] = []
-                notify_event(notify, 'progress', position=position, current=unlearning_index + 1, total=total)
+            notify_event(notify, 'progress', position=position, current=1, total=1)
+            if config['stage'] == 'unlearning':
+                from experiments.modular_gu import run_unlearning
+                request_rows = []
+                loaded_outputs = {}  # Bounded to this request; share exact Retrain payloads across cases/methods.
+                for item, gu_ref, _, selector_ref in request_entries(batch, selector_ref):
+                    position = request_position('unlearning', batch_index, batch, selector_ref, gu_ref)
+                    notify_event(notify, 'progress', position=position, current=0, total=1)
+                    run_state['active'] = [c for c in run['cells']
+                        if c['conditions']['selector_ref'] == selector_ref and c['conditions']['unlearning_ref'] == gu_ref
+                        and all(c['conditions'][k] == v for k, v in batch['matrix_values'].items())]
+                    with audit.entry('attack', run_state['active'][0]['conditions']) as fact:
+                        model, checkpoint = None, None
+                        consumer = run_unlearning
+                        if item['method'] == 'MEGU':
+                            from experiments.modular_megu import run_megu_unlearning
+                            consumer = run_megu_unlearning
+                        elif item['method'] == 'GraphEraser':
+                            from experiments.modular_shards import run_shard_unlearning
+                            consumer = run_shard_unlearning
+                        elif item['method'] == 'GraphRevoker':
+                            from experiments.modular_graphrevoker import run_graphrevoker_unlearning
+                            consumer = run_graphrevoker_unlearning
+                        from experiments.observers import observer_specs, ObserverSession
+                        from experiments.modular_artifacts import update_run
+                        cell = run_state['active'][0]
+                        folder = context.output.parent / cell['path']
+                        specs = observer_specs(config, item['method'])
+                        session = ObserverSession(specs, folder, dict(run_id=context.run_id,
+                            experiment_id=config['experiment_id'], cell_id=cell['cell_id'],
+                            conditions=cell['conditions'], commit=context.source_git_sha,
+                            configuration_fingerprint=plan['configuration_fingerprint'])) if specs else None
+                        policy = config.get('execution', {}).get('gu_cache', {}).get(item['method'], 'reuse')
+                        options = dict(gu_cache=policy, observer=session, output_path=folder/'output.npz') if consumer is run_unlearning else {}
+                        error = None
+                        result = None
+                        try:
+                            dataset_input = datasets[batch['matrix_values']['dataset_index']]['input_reference']
+                            if policy == 'reuse':
+                                with audit.phase('output_access'):
+                                    result, checkpoint = outputs.lookup(item, selection=selection,
+                                    data=data, dataset_input=dataset_input, dataset_root=dataset_root,
+                                    dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'],
+                                    inputs=inputs, observer=session, audit=audit)
+                            if result is None:
+                                if item['method'] != 'Retrain':
+                                    with audit.phase('model_prepare'):
+                                        model, _, checkpoint = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
+                                        checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
+                                with audit.phase('method_execution'):
+                                    result = consumer(item, selection=selection, model=model, data=data,
+                                    dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
+                                    dataset_input=dataset_input, **options)
+                        except BaseException as exc:
+                            error = exc
+                            raise
+                        finally:
+                            if session is not None:
+                                try:
+                                    session.finish(error, cache_hit=bool(result and result["hit"]))
+                                finally:
+                                    cell['observers'] = session.references
+                                    for reference in cell['observers']:
+                                        cell['files'].update(reference['files'])
+                                    update_run(run, context.output)
+                        result['observer_seconds'] = session.seconds if session else 0.0
+                        if 'evaluation_cache' not in result:
+                            from experiments.evaluation_cache import persist_single
+                            result['evaluation_cache'] = persist_single(result, store_root=store_root,
+                                dataset_input=dataset_input, audit=audit)
+                        summary['unlearning'].append({**result, 'checkpoint': checkpoint, 'conditions': cell['conditions'],
+                            'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
+                            'unlearning_ref': gu_ref})
+                        fact['cache'] = [cache_fact('artifact', result['output'], result['hit'], disabled=policy == 'disabled')]
+                        if result['evaluation_cache'] is not None:
+                            fact['cache'].append(cache_fact('result', result['evaluation_cache'], result['evaluation_cache']['hit']))
+                        fact['metrics'] = {**result['result'], **result['evaluation']['metrics']}
+                        fact['metadata_compute_seconds'] = result.get('compute_seconds')
+                    summary['unlearning'][-1]['access_timing'] = fact['timing']
+                    notify_event(notify, 'progress', position=position, current=1, total=1)
+                    row = summary['unlearning'][-1]
+                    request_rows.append(row)
+                    position = request_position('evaluation', batch_index, batch, selector_ref, gu_ref)
+                    total = len(config['evaluations'])
+                    if total:
+                        notify_event(notify, 'progress', position=position, current=0, total=total)
+                    from experiments.modular_config import dataset_binding
+                    for evaluation_index, evaluation in enumerate(config['evaluations']):
+                        measured = evaluate_modular(evaluation, [row],
+                            retrain_rows=[r for r in request_rows if r['target']['method'] == 'Retrain'],
+                            loaded_outputs=loaded_outputs, store_root=store_root, data=data,
+                            dataset_root=dataset_root, audit=audit)
+                        binding = dataset_binding(config, batch['matrix_values']['dataset_index'])
+                        group = next((e for e in summary['evaluations']
+                            if e['dataset_binding'] == binding and e['effective_config'] == evaluation), None)
+                        if group is None:
+                            group = {'effective_config': evaluation, 'dataset_binding': binding,
+                                     'rows': [], 'not_applicable': []}
+                            summary['evaluations'].append(group)
+                        group['rows'].extend(measured['rows'])
+                        group['not_applicable'].extend(measured['not_applicable'])
+                        notify_event(notify, 'progress', position=position, current=evaluation_index + 1, total=total)
+                    if item['method'] != 'Retrain':
+                        from cache_v2 import canonical_sha256
+                        loaded_outputs.pop(canonical_sha256(row['output']), None)
+                    run_state['active'] = []
+                position = request_position('request_complete', batch_index, batch, selector_ref)
+                notify_event(notify, 'progress', position=position, current=0, total=1)
+                notify_event(notify, 'progress', position=position, current=1, total=1)
     if config['stage'] == 'unlearning':
-        from experiments.modular_config import dataset_binding
-        for index, (data, _) in enumerate(loaded_data):
-            rows = [row for row in summary['unlearning'] if row['matrix_values']['dataset_index'] == index]
-            position = {'stage': 'evaluation', 'dataset_index': index}
-            total = len(config['evaluations'])
-            if total:
-                notify_event(notify, 'progress', position=position, current=0, total=total)
-            for evaluation_index, item in enumerate(config['evaluations']):
-                result = evaluate_modular(item, rows, store_root=store_root, data=data, dataset_root=dataset_root, audit=audit)
-                summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
-                notify_event(notify, 'progress', position=position, current=evaluation_index + 1, total=total)
+        # Keep the established declaration-order result surface, independent of scheduling.
+        summary['unlearning'].sort(key=lambda row: declaration_order[(
+            json.dumps(row['matrix_values'], sort_keys=True), row['unlearning_ref'], row['selector_ref'])])
+        conditions_order = {json.dumps(row['conditions'], sort_keys=True): index
+                            for index, row in enumerate(summary['unlearning'])}
+        for evaluation in summary['evaluations']:
+            for key in ('rows', 'not_applicable'):
+                evaluation[key].sort(key=lambda row: conditions_order[json.dumps(row['execution_conditions'], sort_keys=True)])
     summary['selector_producer_called'] = any(item['score']['producer_called'] or item['selection']['cache']['producer_called'] for item in summary['selectors'])
     from experiments.modular_artifacts import export_outputs
     notify_event(notify, 'progress', position={'stage': 'export'}, current=0, total=1)

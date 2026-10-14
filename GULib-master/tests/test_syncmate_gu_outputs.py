@@ -52,7 +52,7 @@ def collect(exported):
     runner,collector,sha,definition=exported
     peer=devices.build_peer_config('runner',None,str(runner),transport='local')
     args=('cpu-runner',devices.transport_ssh_value(peer),str(runner),
-        definition['collector_result_roots'],'results/runs/cpu-runner')
+        list(definition['collector_result_roots']),'results/runs/cpu-runner')
     options={'artifact_names':definition['collector_artifact_names'],
         'expected_paths':definition['expected_artifact_paths'],'expected_git_sha':sha,'save':True}
     result=collection.apply_collect(*args,**options)

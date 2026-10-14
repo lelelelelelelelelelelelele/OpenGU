@@ -2,20 +2,80 @@
 from __future__ import annotations
 
 import os
+import json
 from pathlib import Path
 import sys
 
 from experiments.effective_config import ConfigurationError
 
 
-def progress_plan(config):
-    """Generate the transport plan from the same steps used by the executor."""
+def _transport_steps(config):
+    """Keep Selection separate; count complete Output/Evaluation groups per request."""
     from experiments.modular_progress import progress_steps
+    steps, mapping = [], {}
+    for step in progress_steps(config):
+        position = step['position']
+        grouped = (config['stage'] == 'unlearning' and 'selector_ref' in position
+                   and position['stage'] != 'selector')
+        target = ({key: value for key, value in position.items() if key != 'unlearning_ref'}
+                  if grouped else dict(position))
+        if grouped:
+            target['stage'] = 'output_evaluation'
+        if not steps or steps[-1]['position'] != target:
+            label = ('Output + Evaluation' if grouped else
+                     'Selection' if config['stage'] == 'unlearning' and position['stage'] == 'selector'
+                     else step['label'])
+            steps.append({'position': target, 'label': label, 'total': 0})
+        entry = steps[-1]
+        if not grouped:
+            entry['total'] = step['total']
+            counts = tuple(range(step['total'] + 1))
+        elif position['stage'] == 'unlearning':
+            before = entry['total']
+            entry['total'] += 1
+            counts = (before, before if config['evaluations'] else before + 1)
+        elif position['stage'] == 'evaluation':
+            # Partial or failed evaluation must never count a finished Output group.
+            counts = (entry['total'] - 1,) * step['total'] + (entry['total'],)
+        else:
+            # Request boundaries do not add another completed method.
+            counts = (entry['total'],) * (step['total'] + 1)
+        mapping[json.dumps(position, sort_keys=True)] = (entry, counts)
+    for index, step in enumerate(steps):
+        # The transport cursor is opaque; full scientific positions stay in the
+        # executor mapping. Avoid repeating long selector refs in the tree file.
+        step['match'] = ({'step': index} if config['stage'] == 'unlearning'
+                         and 'selector_ref' in step['position'] else step['position'])
+    return steps, mapping
+
+
+def progress_plan(config):
+    """Declare batch/request hierarchy using Core's existing generic tree."""
+    from experiments.modular_progress import batch_label, execution_batches
     from syncmate_core.progress import validate_plan
-    return validate_plan([
-        {'id': f'step-{index}', 'label': step['label'], 'match': step['position']}
-        for index, step in enumerate(progress_steps(config))
-    ])
+    steps, _ = _transport_steps(config)
+    batches = execution_batches(config) if config['stage'] == 'unlearning' else []
+    plan, batch_nodes, request_nodes = [], {}, {}
+    for index, step in enumerate(steps):
+        position = step['position']
+        leaf = {'id': f'step-{index}', 'label': step['label'], 'match': step['match']}
+        if config['stage'] != 'unlearning' or 'selector_ref' not in position:
+            plan.append(leaf)
+            continue
+        batch_index = position['batch_index']
+        if batch_index not in batch_nodes:
+            batch_nodes[batch_index] = {'id': f'batch-{batch_index}',
+                'label': batch_label(batch_index, batches[batch_index]), 'children': []}
+            plan.append(batch_nodes[batch_index])
+        parent = batch_nodes[batch_index]
+        key = (batch_index, position['selector_ref'])
+        if key not in request_nodes:
+            number = len(parent['children']) + 1
+            request_nodes[key] = {'id': f'request-{batch_index}-{number}',
+                'label': f"请求 {number} · {Path(position['selector_ref']).stem}", 'children': []}
+            parent['children'].append(request_nodes[key])
+        request_nodes[key]['children'].append(leaf)
+    return validate_plan(plan)
 
 
 def make_notify(config, context, *, config_path=None, enabled=True):
@@ -67,6 +127,7 @@ def make_notify(config, context, *, config_path=None, enabled=True):
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise ConfigurationError('SyncMate progress setup: ' + str(exc)) from exc
 
+    _, positions = _transport_steps(config)
     last_position = plan[-1]['match']
     last_error = None
 
@@ -74,7 +135,10 @@ def make_notify(config, context, *, config_path=None, enabled=True):
         nonlocal last_error
         try:
             if kind == 'progress':
-                written = publisher.update(current=current, total=total, **position)
+                step, counts = positions[json.dumps(position, sort_keys=True)]
+                if type(current) is not int or not 0 <= current < len(counts) or total != len(counts) - 1:
+                    raise ValueError('invalid experiment progress counter')
+                written = publisher.update(current=counts[current], total=step['total'], **step['match'])
             elif kind == 'completed' and not position and current is None and total is None:
                 written = publisher.completed(**last_position)
             else:

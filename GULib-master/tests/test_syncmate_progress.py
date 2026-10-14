@@ -94,16 +94,43 @@ def test_runtime_write_failure_is_observational_and_diagnostic(publishing, monke
     assert 'temporary snapshot is read-only' in capsys.readouterr().err
 
 
-def test_real_exp079_plan_stays_within_core_capacity():
+def test_real_exp079_plan_stays_within_core_capacity(tmp_path, monkeypatch):
     from scripts.syncmate.opengu_recipes import ROOT, resolve_recipe
     definition = resolve_recipe(ROOT, 'opengu-exp079-surrogate-multiseed')
     config = load_experiment(ROOT / definition['config_path'])
     plan = progress_plan(config)
     assert plan == definition['progress_plan']
-    assert len(plan) == len(progress_steps(config)) == 247
+    assert len(plan) == 124
+    from scripts.syncmate.opengu_progress import _transport_steps
+    requests = [s for s in _transport_steps(config)[0] if s['position']['stage'] == 'output_evaluation']
+    assert len(requests) == 360
+    assert all(s['total'] == 7 for s in requests)
+    assert sum(s['total'] for s in requests) == 2520
+    batch_nodes = [n for n in plan if 'children' in n]
+    assert len(batch_nodes) == 120
+    from collections import Counter
+    assert Counter(len(n['children']) for n in batch_nodes) == {9: 30, 1: 90}
+    assert len(list(progress.leaves(plan))) == 724
+    for batch in batch_nodes:
+        for request in batch['children']:
+            assert [n['label'] for n in request['children']] == ['Selection', 'Output + Evaluation']
+            assert len({n['match']['step'] for n in request['children']}) == 2
+    assert len(progress_steps(config)) == 5764
     assert sum(s['total'] for s in progress_steps(config)
                if s['position']['stage'] == 'unlearning') == 2520
     assert progress.validate_plan(plan) == plan
+    # Validate the actual serialized context, not only the smaller plan object.
+    from types import SimpleNamespace
+    path = ROOT / definition['config_path']
+    job = {'id': 'full-tree', 'recipe': 'full-tree', 'expected_git_sha': 'a' * 40,
+           'expected_config_sha256': sha256_recipe_config(path)}
+    env = progress.prepare_environment(tmp_path, job, plan)
+    monkeypatch.setenv(progress.ENV, env[progress.ENV])
+    notify = make_notify(config, SimpleNamespace(store_root=tmp_path/'cache/store',
+        source_git_sha='a' * 40), config_path=path)
+    for step in progress_steps(config)[:10]:
+        assert notify('progress', position=step['position'], current=step['total'], total=step['total'])
+    assert progress.read_json(progress.safe_path(tmp_path, job['id'], 'current.json'))['current'] == 3
 
 
 def test_installed_core_serves_a_standalone_consumer_without_opengu(tmp_path):
@@ -153,3 +180,84 @@ print(json.dumps({'status': result['status'], 'snapshot': snapshot, 'opengu_impo
     assert result.returncode == 0, result.stdout + result.stderr
     observed = json.loads(result.stdout)
     assert observed['status'] == 'done' and observed['opengu_imported'] is False
+
+
+@pytest.mark.parametrize('with_evaluations', [True, False])
+def test_request_counter_counts_finished_output_evaluation_groups(publishing, monkeypatch, with_evaluations):
+    from experiments.modular_config import selector_entries
+    from experiments.modular_progress import execution_batches, request_entries
+    root, path, _, context, job = publishing
+    import yaml
+    raw = yaml.safe_load(path.read_text(encoding='utf-8'))
+    raw.update(stage='unlearning', selector_refs=['degree.yaml', 'r_point.yaml'],
+               unlearning_refs=['gu.yaml'], seeds=[7, 19],
+               evaluation_refs=['utility.yaml'] if with_evaluations else [])
+    write_yaml(path, raw)
+    config = load_experiment(path)
+    job['expected_config_sha256'] = sha256_recipe_config(path)
+    env = progress.prepare_environment(root, job, progress_plan(config))
+    monkeypatch.setenv(progress.ENV, env[progress.ENV])
+    notify = make_notify(config, context, config_path=path)
+    snapshot_path = progress.safe_path(root, job['id'], 'current.json')
+    totals = {(index, ref): len(request_entries(batch, ref))
+              for index, batch in enumerate(execution_batches(config)) for _, ref in selector_entries(batch)}
+    finished = dict.fromkeys(totals, 0)
+    for step in progress_steps(config):
+        for amount in range(step['total'] + 1):
+            assert notify('progress', position=step['position'], current=amount, total=step['total'])
+            snapshot = progress.read_json(snapshot_path)
+            if 'batch_index' not in step['position']:
+                continue
+            if step['position']['stage'] == 'selector':
+                leaf = next(n for n in progress.leaves(progress_plan(config)) if n['match'] == snapshot['position'])
+                assert leaf['label'] == 'Selection'
+                assert snapshot['current'] == amount and snapshot['total'] == 1
+                continue
+            index = (step['position']['batch_index'], step['position']['selector_ref'])
+            terminal = 'evaluation' if with_evaluations else 'unlearning'
+            if step['position']['stage'] == terminal and amount == step['total']:
+                finished[index] += 1
+            assert snapshot['current'] == finished[index]
+            assert snapshot['total'] == totals[index]
+            leaf = next(n for n in progress.leaves(progress_plan(config)) if n['match'] == snapshot['position'])
+            assert leaf['label'] == 'Output + Evaluation'
+
+    assert finished == totals
+    assert notify('completed', position={})
+
+
+@pytest.mark.parametrize('fail_evaluation', [False, True])
+def test_real_execution_counts_only_after_evaluation(publishing, monkeypatch, fail_evaluation):
+    import yaml
+    import experiments.modular_run as runner
+    root, path, _, context, job = publishing
+    raw = yaml.safe_load(path.read_text(encoding='utf-8'))
+    raw.update(stage='unlearning', selector_refs=['degree.yaml'], unlearning_refs=['gu.yaml'],
+               evaluation_refs=['utility.yaml'])
+    write_yaml(path, raw)
+    config = load_experiment(path)
+    job['expected_config_sha256'] = sha256_recipe_config(path)
+    env = progress.prepare_environment(root, job, progress_plan(config))
+    monkeypatch.setenv(progress.ENV, env[progress.ENV])
+    notify = make_notify(config, context, config_path=path)
+    snapshots = []
+    def observe(kind, **kwargs):
+        assert notify(kind, **kwargs)
+        snapshot = progress.read_json(progress.safe_path(root, job['id'], 'current.json'))
+        snapshots.append((kind, kwargs, snapshot))
+    if fail_evaluation:
+        def fail(*args, **kwargs):
+            raise RuntimeError('evaluation failed')
+        monkeypatch.setattr(runner, 'evaluate_modular', fail)
+        with pytest.raises(RuntimeError, match='evaluation failed'):
+            runner.execute(path, context=context, notify=observe)
+        assert snapshots[-1][2]['current'] == 0
+        assert snapshots[-1][2]['total'] == 1
+        assert progress.tree_report(progress_plan(config), snapshots[-1][2])[1]['state'] == 'in_progress'
+    else:
+        runner.execute(path, context=context, notify=observe)
+        assert any(k == 'progress' and v['position']['stage'] == 'evaluation'
+                   and v['current'] == 1 and s['current'] == 1 for k, v, s in snapshots)
+    output_done = [s for k, v, s in snapshots if k == 'progress'
+                   and v['position']['stage'] == 'unlearning' and v['current'] == 1]
+    assert output_done and all(s['current'] == 0 for s in output_done)

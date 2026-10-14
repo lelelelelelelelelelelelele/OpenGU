@@ -1441,6 +1441,20 @@ selected integration with an invalid dependency or context fails setup.
 python scripts/syncmate/syncmate.py job-progress <job-id> --json
 ```
 
+Unlearning progress follows each deletion request: Selection, configured Retrain
+and its applicable metrics, then each GU Output and its evaluations. The detailed
+executor/audit positions identify the request and method. OpenGU declares a
+batch -> request -> Selection / Output + Evaluation tree for the existing Core
+frontend. Selection has its own state; each request's `Output + Evaluation`
+counter totals its methods (7 for EXP-079), not the whole batch. A unit completes
+only when its Output and all applicable
+evaluations finish; partial or failed evaluation never adds a completed unit.
+Selection does not add method units, and request boundaries add no extra step.
+The existing frontend expands the active path and preserves manual disclosure
+and scroll choices; no frontend parsing or experiment scheduling change is needed.
+Retrain's GU-versus-Retrain
+comparisons are explicitly `not_applicable` and do not add extra units.
+
 The query reads the local progress cache. Missing or stale progress does not
 prove scientific failure; stage completion does not establish result return,
 checksum verification or scientific acceptance. No progress fields enter Cache

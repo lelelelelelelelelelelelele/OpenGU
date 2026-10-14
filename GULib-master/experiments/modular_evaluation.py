@@ -128,7 +128,8 @@ def _pair(instance, identity, candidates):
     return matches[0]
 
 
-def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verified_outputs=(), dataset_root=None, audit=None):
+def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verified_outputs=(), dataset_root=None, audit=None,
+                     retrain_rows=(), loaded_outputs=None):
     from contextlib import nullcontext
     from experiments.evaluation_cache import describe_output, evaluation_request, cached_measurements, phase
     from experiments.unlearning_outputs import load_metric_output
@@ -136,6 +137,13 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
     require_consumer(instance, 'modular_v1')
     # Explicit already-verified in-memory inputs remain a computation consumer.
     # Ordinary YAML uses exact references so its HIT can precede Output loading.
+    loaded = {} if loaded_outputs is None else loaded_outputs
+    def read(ref):
+        key = canonical_sha256(ref)
+        if key not in loaded:
+            with phase(audit, 'evaluation_inputs'):
+                loaded[key] = load_metric_output(ref, store_root, data=data, dataset_root=dataset_root)
+        return loaded[key]
     supplied = [(ref,value,pair,None) for ref,value,pair in verified_outputs]
     references = [(row.get('unlearning', row.get('output', row)), row.get('retrain'), row.get('conditions')) for row in unlearning_rows]
     descriptors = []
@@ -145,28 +153,24 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
         input_conditions = {**input_conditions, 'evaluation':instance['case'], 'evaluation_part':'input_validation'}
         with (audit.entry('evaluation',input_conditions) if audit else nullcontext({})) as fact, phase(audit,'evaluation_identity'):
             if reference.get('storage') == 'run':
-                with phase(audit, 'evaluation_inputs'):
-                    supplied.append((reference, load_metric_output(reference, store_root, data=data, dataset_root=dataset_root), paired_reference, conditions))
+                supplied.append((reference, read(reference), paired_reference, conditions))
             else:
                 descriptors.append((reference, describe_output(reference, store_root), paired_reference, conditions))
             fact['metrics'] = {'identity_verified':1}
     retrains = [(ref,identity) for ref,identity,_,_ in descriptors if identity['target']['method'] == 'Retrain']
-    # Budget display aliases can repeat one verified Artifact, not add baselines.
-    retrains = list({canonical_sha256(ref):(ref,identity) for ref,identity in retrains}.values())
     retrains.extend((ref,output) for ref,output,_,_ in supplied if output.identity['target']['method']=='Retrain')
-    loaded = {}
-    def read(ref):
-        key = canonical_sha256(ref)
-        if key not in loaded:
-            with phase(audit, 'evaluation_inputs'):
-                loaded[key] = load_metric_output(ref, store_root, data=data, dataset_root=dataset_root)
-        return loaded[key]
+    if is_paired_evaluation(instance):
+        for row in retrain_rows:
+            ref = row['output']
+            identity = read(ref) if ref.get('storage') == 'run' else describe_output(ref, store_root)
+            retrains.append((ref, identity))
+    # Display aliases of an exact reference never add another baseline.
+    retrains = list({canonical_sha256(ref):(ref,value) for ref,value in retrains}.values())
+    not_applicable = []
     rows = []
     for reference, value, paired_reference, own_conditions in [*descriptors, *supplied]:
         in_memory = hasattr(value, 'identity')
         identity = value.identity if in_memory else value
-        if identity['target']['method']=='Retrain' and is_paired_evaluation(instance):
-            continue
         conditions = {}
         if audit:
             binding = identity['pairing']
@@ -179,6 +183,11 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
         if audit and own_conditions:
             conditions['ratio'] = own_conditions.get('budget_ratio') or own_conditions.get('budget', {}).get('value', conditions['ratio'])
         with (audit.entry('evaluation', conditions) if audit else nullcontext({})) as fact:
+            if identity['target']['method'] == 'Retrain' and is_paired_evaluation(instance):
+                not_applicable.append({'output': reference, 'execution_conditions': own_conditions,
+                    'reason': 'Retrain is the baseline, not a GU-versus-Retrain comparison'})
+                fact['metrics'] = {'applicability_status': 'not_applicable'}
+                continue
             pair = None
             if is_paired_evaluation(instance):
                 with phase(audit, 'evaluation_pairing'):
@@ -206,6 +215,6 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
             fact['metrics'] = measured['metrics']
             if cache:
                 fact['cache'] = [cache_fact('result', cache, cache['hit'])]
-    if not rows:
+    if not rows and not not_applicable:
         raise ConfigurationError('evaluation has no applicable method outputs')
-    return {'effective_config':instance, 'rows':rows}
+    return {'effective_config':instance, 'rows':rows, 'not_applicable':not_applicable}

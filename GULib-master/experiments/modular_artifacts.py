@@ -203,6 +203,9 @@ def export_outputs(summary, *, config, context, run):
                 measurements = [{'stage': 'method', 'values': row['evaluation']['metrics']},
                                 {'stage': 'utility', 'values': row['result']}]
             for evaluation in summary['evaluations']:
+                for skipped in evaluation.get('not_applicable', []):
+                    if skipped['output'] == row['output'] and skipped['execution_conditions'] == cell['conditions']:
+                        cell['cache'][evaluation['effective_config']['case']] = 'not_applicable'
                 for measured in evaluation['rows']:
                     if (measured['identity']['unlearning_output'] == row['output']
                             and measured.get('execution_conditions') == cell['conditions']):

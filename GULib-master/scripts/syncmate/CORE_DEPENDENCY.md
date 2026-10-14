@@ -1,6 +1,6 @@
 # Independent SyncMate Core dependency
 
-Only explicit SyncMate integration requires the installed `syncmate` distribution. Native OpenGU execution does not import Core or this adapter directory. The authoritative [core_dependency.json](core_dependency.json) binds version `0.5.1`, source commit `57fc133c445fc7d63b6984894699d09510ffc2cf`, wheel SHA-256 `3581eb75321a22e6dc3bbf555f3840c0dbe66799dcbcf8ec8d19072773bb63fe`, and all 72 wheel payload files. RECORD is installation metadata and is excluded.
+Only explicit SyncMate integration requires the installed `syncmate` distribution. Native OpenGU execution does not import Core or this adapter directory. The authoritative [core_dependency.json](core_dependency.json) binds version `0.5.1`, source commit `2ccd13d3403cf9e27962e563e006d2b9820b565c`, wheel SHA-256 `18c1134fe6ca5f7f0462ebe50b0a473f7e9f29a9717c2d0c6a6a168655ea7be5`, and all 72 wheel payload files. RECORD is installation metadata and is excluded.
 
 Verify the active interpreter before integrated execution:
 
