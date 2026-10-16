@@ -1,0 +1,65 @@
+{
+  "execution_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",
+  "files": [
+    {
+      "path": "experiments/output_metrics.py",
+      "matches_execution_source": true,
+      "current_sha256": "a9250e8a443919cb1754c4e90180bffa0924acbc22e48fdb33b17ad3e14cf055"
+    },
+    {
+      "path": "experiments/flip_hop_metrics.py",
+      "matches_execution_source": true,
+      "current_sha256": "4553f2981260f8723e7fdd09983faa858201edbd16b3c90384c72e317abd809b"
+    },
+    {
+      "path": "experiments/node_deletion.py",
+      "matches_execution_source": true,
+      "current_sha256": "2c8ed904d4006a0d5227436fddcca8cbdc66429bb48fad3abc5e569bf3ad2e19"
+    },
+    {
+      "path": "experiments/modular_gu.py",
+      "matches_execution_source": true,
+      "current_sha256": "b20c333f4b3c18770d2e75f44b2962876ee8a540b03af4a0a8ad4efe7166e0bb"
+    },
+    {
+      "path": "experiments/modular_megu.py",
+      "matches_execution_source": true,
+      "current_sha256": "80db36c67cc7c98d7da2e2e738a0f2d45e4485acbe89d2695b99f2002240ee8f"
+    },
+    {
+      "path": "experiments/modular_shards.py",
+      "matches_execution_source": true,
+      "current_sha256": "92006cf5a4f2df2c1e7320e2cdc0e0dbafae5d7b92430d0990ebd2197cd803d9"
+    },
+    {
+      "path": "experiments/modular_graphrevoker.py",
+      "matches_execution_source": true,
+      "current_sha256": "505fd1b0d605c36690bf3b1f036fc787fe2ca098bc3cb84a25e313b9c55601b4"
+    },
+    {
+      "path": "experiments/unlearning_outputs.py",
+      "matches_execution_source": true,
+      "current_sha256": "fed7f35d0bc383aea511f00ebc7d5bc707d5684d44b43b769415df119790af5d"
+    },
+    {
+      "path": "unlearning/unlearning_methods/Retrain/retrain.py",
+      "matches_execution_source": true,
+      "current_sha256": "cbc445fb98a8f06454ac4e3ce5593a5f53929da3280c4b5d137c71eef6ae80f7"
+    }
+  ],
+  "checks": {
+    "source_identity": true,
+    "coverage_table_rows_18": true,
+    "citeseer_interval_rows_4": true,
+    "update_auc_claim": true,
+    "gif_idea_zero_drop_counts": true,
+    "analysis_output_hashes": true,
+    "ratio_endpoint_table_values_12": true,
+    "ratio_output_hashes": true,
+    "ratio_delivery_limitation_preserved": true
+  },
+  "report_sha256": "779c53b1fc8a1ac8babf858234ca253c61c751b88806909875c98af66cf9fac4",
+  "appendix_sha256": "247f328e375d879264f2061b2e600ab1d3ae17fc308027a95f8c18c0e7a86e1d",
+  "scope": "Read-only source and selected numeric report checks. Source identity does not assert remote payload availability. Remaining prose reviewed independently.",
+  "new_gpu_runs": 0
+}

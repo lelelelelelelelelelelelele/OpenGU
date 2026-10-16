@@ -1,0 +1,16 @@
+{
+  "all_output_hashes_match": true,
+  "summary_and_contrast_coverage": true,
+  "svg_xml_parses": true,
+  "png_dimensions": {
+    "citeseer_four_condition_intervals.png": [
+      2393,
+      1319
+    ],
+    "utility_vs_retrain_disagreement.png": [
+      2335,
+      1085
+    ]
+  },
+  "visual_review": "Both PNG plots inspected: labels and legends legible, no observed clipping, all six methods displayed, GIF/IDEA overlap disclosed, pointwise intervals and shared-reference caveat visible."
+}

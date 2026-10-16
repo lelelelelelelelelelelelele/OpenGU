@@ -1,0 +1,9 @@
+{
+  "output_hashes_match": true,
+  "png_dimensions": [
+    2696,
+    1104
+  ],
+  "svg_xml_parses": true,
+  "visual_review": "PNG inspected: three datasets and four named selectors legible, all measured ratios labeled, mean/sample-SD and seed points visible, no observed clipping, no GU/Original/zero endpoint fabricated."
+}

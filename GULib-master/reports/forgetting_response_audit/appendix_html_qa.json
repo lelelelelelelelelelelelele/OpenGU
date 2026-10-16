@@ -1,0 +1,65 @@
+{
+  "passed": true,
+  "html_sha256": "2ecfbbdf81476de884683855384879aeb8e221871adef40ce771dffe81d6eb27",
+  "browser": "151.0.7922.34",
+  "headless": true,
+  "views": [
+    {
+      "label": "desktop",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "1. 这段论文适合借鉴什么",
+        "2. 本轮数据与指标口径",
+        "3. 现有实验已经能够展示的内容",
+        "4. “模型没变化”目前能判断到哪一步",
+        "5. 证据、复算与交付范围"
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 942,
+          "height": 438
+        },
+        {
+          "loaded": true,
+          "width": 942,
+          "height": 519
+        }
+      ],
+      "tables": 5,
+      "missingAnchors": 0,
+      "externalAssets": 0,
+      "placeholder": false
+    },
+    {
+      "label": "mobile",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "1. 这段论文适合借鉴什么",
+        "2. 本轮数据与指标口径",
+        "3. 现有实验已经能够展示的内容",
+        "4. “模型没变化”目前能判断到哪一步",
+        "5. 证据、复算与交付范围"
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 336,
+          "height": 156
+        },
+        {
+          "loaded": true,
+          "width": 336,
+          "height": 185
+        }
+      ],
+      "tables": 5,
+      "missingAnchors": 0,
+      "externalAssets": 0,
+      "placeholder": false
+    }
+  ],
+  "page_errors": []
+}

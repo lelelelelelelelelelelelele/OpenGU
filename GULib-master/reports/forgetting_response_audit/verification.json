@@ -1,0 +1,153 @@
+{
+  "job_id": "exp079-20261013-e79r5",
+  "run_id": "e79r5",
+  "execution_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",
+  "config_path": "experiments/configs/exp079/surrogate_multiseed.yaml",
+  "verified_files": 5041,
+  "raw_cells": 2520,
+  "raw_gu_cells": 2160,
+  "collapsed_seed_rows": 1800,
+  "datasets": [
+    "Cora",
+    "CiteSeer",
+    "PubMed"
+  ],
+  "methods": [
+    "GNNDelete",
+    "GIF",
+    "IDEA",
+    "MEGU",
+    "GraphEraser",
+    "GraphRevoker"
+  ],
+  "conditions_per_dataset_method": 10,
+  "training_seeds": [
+    42,
+    212,
+    2024,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "n_independent_seed_clusters": 10,
+  "random_selector_seeds": [
+    11,
+    22,
+    33
+  ],
+  "random_aggregation": "average three requests within each training seed before inference",
+  "target_model": "OpenGU.GCNNet",
+  "split_seed": 2024,
+  "deletion_budget_ratio": 0.1,
+  "requested_nodes": {
+    "Cora": [
+      189
+    ],
+    "CiteSeer": [
+      232
+    ],
+    "PubMed": [
+      1380
+    ]
+  },
+  "dataset_fingerprints": {
+    "CiteSeer": "5aff7d08d539f2f9a7d85c02b20f85aa94f0ca8ee15ecdf429d8c35fbf12f9ac",
+    "Cora": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+    "PubMed": "af33ba4c4ab691fdb1af14f8b352676bff01bc9c4d5ff5f40ae32e8b90ef182b"
+  },
+  "D_comparison": [
+    "argmax_gu_vs_same_request_retrain_first_index_ties"
+  ],
+  "D_evaluation_mask": [
+    "test_mask_excluding_selected_nodes"
+  ],
+  "gif_idea_raw_metric_max_abs_difference": {
+    "U": 0.0,
+    "G": 0.0,
+    "Rloss": 0.0,
+    "D": 0.0
+  },
+  "gif_idea_independent_method_evidence": false,
+  "csv_matches_raw": true,
+  "matched_retrain_identity_passed": true,
+  "interval": "pointwise two-sided Student t 95% CI over 10 training-seed clusters; df=9; no multiplicity adjustment; not equivalence tests",
+  "metrics": {
+    "U": "100*(utility_before-utility_GU), percentage points; stored f1 is accuracy in this single-label implementation, equivalent to micro-F1, not macro-F1",
+    "G": "100*(utility_shared_Retrain-utility_GU), percentage points",
+    "Rloss": "U-G=100*(utility_method_before-utility_shared_Retrain), percentage points; algebraic baseline-to-shared-Retrain difference, not uniformly pure data-removal damage",
+    "D": "100*mean(argmax_GU != argmax_same_request_shared_Retrain), percent of test nodes",
+    "update_detection_auc": "AUROC distinguishing selected nodes from test nodes using per-node L2 softmax(before)-softmax(after); no update magnitude or privacy guarantee"
+  },
+  "input_hashes": {
+    "self/research/analyses/EXP-079/e79r5/cells.csv": "099265b44e8862e1478bbd1507791a5c1202009ccd0e80411a43f503f404fc84",
+    "results/runs/gpu4090/exp079-surrogate-multiseed/e79r5/run.json": "115ebaa86a7fa95dd65ca64fc34d5fcc0d6033a2a9ee912ad54d947dbda38f56",
+    ".syncmate/deliveries/exp079-20261013-e79r5.json": "6165681a546214cfa7328a210f942c4a7b2915ae30493217b9b07e39cb889803",
+    ".syncmate/artifact_index.json": "75addfe272854bca4c8b1d6c76fead1bf0f424d2ea095cc9fdb152c5f0411639"
+  },
+  "checks": {
+    "delivery_gate_project_acceptance": true,
+    "all_5041_raw_file_sha256_matches_manifest_and_index": true,
+    "csv_full_identity_and_metric_agreement": true,
+    "same_request_retrain_pairing": true,
+    "seed_condition_coverage": true,
+    "random_clusters": true,
+    "metric_algebra": true,
+    "all_condition_summary_rows_180": true,
+    "coverage_rows_18": true,
+    "paired_contrast_rows_324": true,
+    "all_csv_numeric_metrics_finite": true,
+    "input_files_unchanged_during_analysis": true
+  },
+  "limitations": [
+    "One fixed split and one 10% deletion budget; no budget response curve.",
+    "Training-seed intervals do not establish cross-split or cross-request-population generalization.",
+    "D measures GU versus same-request shared retraining, not GU versus pre-unlearning model.",
+    "The shared Retrain reference is a single GCN, not retraining within each sharded model family; G and D may include pre-existing family differences. Rloss is an algebraic baseline-to-shared-Retrain difference, not universally identifiable deletion damage.",
+    "No matched no-update control or independent retrain-versus-retrain stochastic calibration.",
+    "No saved parameters/logits are consumed; metric-only reanalysis cannot estimate update magnitude. Computed update-detection AUC differing from 0.5 is indirect evidence against fully identical softmax outputs under the implemented comparison, not against arbitrarily small changes or score-representation changes.",
+    "Before/after score representations can differ for some method adapters; raw logit distances require semantic alignment before interpretation.",
+    "Small means and confidence intervals crossing zero are not equivalence evidence.",
+    "Cross-condition ranges are descriptive; conditions are neither independent replicates nor random samples.",
+    "All six GU methods are displayed, but GIF and IDEA are identical on these four raw metrics and are not independent corroboration."
+  ],
+  "versions": {
+    "python": "3.8.20 (default, Oct  3 2024, 15:19:54) [MSC v.1929 64 bit (AMD64)]",
+    "numpy": "1.21.6",
+    "pandas": "2.0.3",
+    "scipy": "1.10.1",
+    "matplotlib": "3.7.5"
+  },
+  "new_gpu_runs": 0,
+  "previous_outputs_modified": false,
+  "scientific_acceptance": "not_requested",
+  "update_detection_checks": {
+    "raw_gu_cells": 2160,
+    "computed_cells": 2160,
+    "auc_min": 0.21776097458517119,
+    "auc_max": 0.9124569418189457,
+    "auc_equals_half_cells": 0,
+    "U_exact_zero_cells": 206,
+    "U_exact_zero_auc_not_half_cells": 206
+  },
+  "analysis_script_sha256": "f3fb9939d0c506c91f90c0fdad1c5de82b6d846071b18926c0ff355d76b70034",
+  "output_sha256": {
+    "seed_values.csv": "8f3f8db91a727abf9dccffb054615ed2695bda857367ca5433f7f5de3f03590e",
+    "raw_gu_metrics.csv": "584b85263e0b52a32470d8fe7a9cf394bb3174860550435bc863404517a0744e",
+    "all_condition_summary.csv": "244290dd6620a76b8550e15eb8371f5c5f9da4690ebc2b84afb927a33026f9f8",
+    "all_condition_summary_long.csv": "ca30a9c14d768feea754716c7d362100030006a4de7049886c5e3e3a0fe8c536",
+    "coverage_ranges.csv": "f577d738958d0249d58de6abb67064445d61749fb12e6c0dc6278b84ac97ce62",
+    "paired_contrasts.csv": "c140fc43c952171912cba4399937a732f91f62ed82685ff77720b462f2dc8ea7",
+    "paired_contrasts_long.csv": "a2a930a1e1c0d54ef88f7564229e582b4ce346243c2852c12f14bda38d399b80",
+    "update_detection_coverage.csv": "ccf1b8d9e7ce067da5df17e8b6ab679d60f987cb7d979dd7568c86c37d014762",
+    "utility_vs_retrain_disagreement.png": "d0fd50641140c21ac6d376569086764e3714a301fb1a8b6d8230e5be739e5f11",
+    "utility_vs_retrain_disagreement.svg": "f42eb02220d9dd3f277d0ac2afb16d2090d5f902c39d4417b7d9de54676af26a",
+    "utility_vs_retrain_disagreement.pdf": "336bfed1007b63884ae28525266b3cede0229be37bb6e9ba8a93cf35fb864791",
+    "citeseer_four_condition_intervals.png": "0503b911831ac3f3daef971313418c19beef11240bafea36b4f3f61f77915d5c",
+    "citeseer_four_condition_intervals.svg": "1095b816274aa57a926f0f0bcbf6a292b4b0075f0e7de0b323473bf496407467",
+    "citeseer_four_condition_intervals.pdf": "e811ac889803cea71998aa85b644e13e86cdc068ed8d729bb7887229f0c3dd82"
+  }
+}
