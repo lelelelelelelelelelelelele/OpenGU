@@ -36,9 +36,10 @@ def _incident_edge_mask(edge_index, nodes, num_nodes):
     """
     if len(nodes) == 0:
         raise RuntimeError("stack expects a non-empty TensorList")
-    selected = torch.zeros(num_nodes, dtype=torch.bool, device=edge_index.device)
+    selected = torch.zeros(num_nodes, dtype=torch.bool)
     valid_nodes = nodes[(nodes >= 0) & (nodes < num_nodes)]
-    selected[torch.as_tensor(valid_nodes, dtype=torch.long, device=edge_index.device)] = True
+    selected[torch.as_tensor(valid_nodes, dtype=torch.long)] = True
+    selected = selected.to(edge_index.device)
     return selected[edge_index[0]].logical_or_(selected[edge_index[1]])
 
 
