@@ -113,5 +113,10 @@
     "owner": "EXP-079",
     "kind": "experiment",
     "note": "十训练seed完整矩阵及单份提交Recipe；候选验收及运行状态以EXP-079记录为准。"
+  },
+  "exp080": {
+    "owner": "EXP-080",
+    "kind": "experiment",
+    "note": "删除比例与多GU效用响应；现有指标初步分析，正式范围和运行状态由EXP-080拥有。"
   }
 }

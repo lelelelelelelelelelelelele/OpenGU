@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp080-response-ratios-gate
+runner: experiment
+config_path: experiments/configs/exp080/response_ratios_gate.yaml
+config_sha256: 9fdf397775c39deb562b71a941d8901eb96c714ac12ad1ee75b3eceb446a85b9
+configuration_fingerprint: bcf242cf62f1addb2d7174dcfc539bf855ed99276c418cb46e5ebb89b3004107
+run_identity:
+  experiment_id: exp080-response-ratios-gate
+  run_id: e80g1
+timeout_seconds: 7200
+logical_cells: 70
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

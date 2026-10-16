@@ -1,0 +1,27 @@
+schema_version: 1
+id: exp080-response-ratios-all-supported
+runner: experiment
+config_path: experiments/configs/exp080/response_ratios.yaml
+config_sha256: 9c2faf491e477f4e5394dc65ae5a36252635b6e39d5c75427f0ebf0407838055
+configuration_fingerprint: 5ffa0e22b98f16e7bf922a673e58de347184e2fc27d57f3069e20377849f3014
+run_identity:
+  experiment_id: exp080-response-ratios-all-supported
+  run_id: e80r1
+timeout_seconds: 21600
+logical_cells: 3087
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
