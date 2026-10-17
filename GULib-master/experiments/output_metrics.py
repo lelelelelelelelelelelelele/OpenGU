@@ -47,13 +47,18 @@ def update_detection(payload):
             'update_detection_auc_status': 'computed'}
 
 
+def method_evaluation_identity(reference):
+    """Exact protocol for both fresh calculation and same-Output value reuse."""
+    from experiments.implementation_identity import implementation_fingerprint
+    import sklearn
+    return {'output': reference, 'protocol': 'single-label-test-micro-f1-ovr-macro-auc-v1',
+                'metric_libraries': {'sklearn': sklearn.__version__, 'torch': torch.__version__, 'numpy': np.__version__},
+                'implementation': implementation_fingerprint(method_metrics, update_detection)}
+
+
 def evaluate_method(reference, payload):
     """A rebuildable metrics receipt, separate from model computation identity."""
     from cache_v2 import canonical_sha256
-    from experiments.implementation_identity import implementation_fingerprint
-    import sklearn
-    identity = {'output': reference, 'protocol': 'single-label-test-micro-f1-ovr-macro-auc-v1',
-                'metric_libraries': {'sklearn': sklearn.__version__, 'torch': torch.__version__, 'numpy': np.__version__},
-                'implementation': implementation_fingerprint(method_metrics, update_detection)}
+    identity = method_evaluation_identity(reference)
     return {'evaluation_receipt_id': 'evalr_' + canonical_sha256(identity)[:32],
             'identity': identity, 'metrics': {**method_metrics(payload), **update_detection(payload)}}
