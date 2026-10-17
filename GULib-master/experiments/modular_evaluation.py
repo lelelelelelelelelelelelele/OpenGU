@@ -96,7 +96,7 @@ def _formula_functions(case):
     return [flip_metrics, exact_retrain, flip_hop, hop_groups, retrain_pairing_matches]
 
 
-def _measure(instance, reference, output, pair=None):
+def _measure(instance, reference, output, pair=None, *, method_evaluation=None):
     from experiments.measurement_formulas import utility_metrics, retrain_gap, flip_metrics, method_values
     from experiments.implementation_identity import implementation_fingerprint
     identity = dict(case=instance['case'], metrics=sorted(instance['metrics']),
@@ -105,7 +105,15 @@ def _measure(instance, reference, output, pair=None):
         unlearning_output=reference)
     case = instance['case']
     if case == 'post_method_metrics':
-        values, protocol = method_values(reference, output)
+        if method_evaluation is None:
+            values, protocol = method_values(reference, output)
+        else:
+            from experiments.output_metrics import method_evaluation_identity
+            protocol = method_evaluation_identity(reference)
+            if (method_evaluation['identity'] != protocol or
+                    method_evaluation['evaluation_receipt_id'] != 'evalr_' + canonical_sha256(protocol)[:32]):
+                raise ConfigurationError('method evaluation receipt does not match current Output and protocol')
+            values = method_evaluation['metrics']
         identity['method_evaluation'] = protocol
     elif case == 'post_unlearning_utility':
         values, _ = utility_metrics(output)
@@ -146,6 +154,8 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
         return loaded[key]
     supplied = [(ref,value,pair,None) for ref,value,pair in verified_outputs]
     references = [(row.get('unlearning', row.get('output', row)), row.get('retrain'), row.get('conditions')) for row in unlearning_rows]
+    method_evaluations = {canonical_sha256(row.get('unlearning', row.get('output', row))): row['evaluation']
+                          for row in unlearning_rows if instance['case'] == 'post_method_metrics' and 'evaluation' in row}
     descriptors = []
     for reference, paired_reference, conditions in references:
         input_conditions = conditions or dict(scope='experiment', experiment_id=audit.experiment_id if audit else 'evaluation',
@@ -197,6 +207,10 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
                             else describe_output(paired_reference, store_root))]
                     pair = _pair(instance, identity, candidates)
             def produce():
+                method_evaluation = method_evaluations.get(canonical_sha256(reference))
+                if method_evaluation is not None:
+                    with phase(audit, 'metric_formula'):
+                        return _measure(instance, reference, None, method_evaluation=method_evaluation)
                 output = value if in_memory else read(reference)
                 baseline = None if pair is None else (pair[0], pair[1] if hasattr(pair[1],'identity') else read(pair[0]))
                 with phase(audit, 'metric_formula'):
