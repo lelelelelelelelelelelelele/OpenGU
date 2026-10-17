@@ -1,19 +1,19 @@
-# Independent failure scope; original method parameters and cache semantics unchanged.
+# Cora/CiteSeer scope; effective scientific inputs are unchanged.
 kind: experiment
 schema_version: 1
-experiment_id: exp080-i-ge-pubmed-high
+experiment_id: exp080-cc-cora-high-gate
 stage: unlearning
 dataset_refs:
-- pubmed.yaml
+- cora.yaml
 selector_refs:
-- random.yaml
 - degree.yaml
-- r_point.yaml
-- gt_full.yaml
-- ../im_group_discussion/rr_65536.yaml
 unlearning_refs:
 - retrain.yaml
-- grapheraser.yaml
+- gif_h64.yaml
+- idea_h64.yaml
+- megu.yaml
+- gnndelete.yaml
+parameter_profile_ref: gif_idea_fixed_pt.yaml
 evaluation_refs:
 - post_method_metrics.yaml
 - post_unlearning_utility_and_retrain_gap.yaml
@@ -21,12 +21,6 @@ evaluation_refs:
 matrix: cartesian_product
 seeds:
 - 42
-- 212
-- 2024
-im_selector_seeds:
-- 11
-- 22
-- 33
 budget_ratios:
 - 0.5
 return_scores: false
