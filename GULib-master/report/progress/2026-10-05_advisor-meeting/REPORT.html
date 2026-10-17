@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>从节点影响到图遗忘响应 · 2026-10-05 研究讨论</title><style>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>从节点影响到图遗忘响应 · 10月18日修订</title><style>
 :root{color-scheme:light;--ink:#203440;--muted:#647681;--teal:#167a76}
 *{box-sizing:border-box}body{margin:0;background:#f2f5f4;color:var(--ink);font:16px/1.9 "Microsoft YaHei","Segoe UI",sans-serif}
 header{background:#193b48;color:#e6f0ef;padding:28px max(24px,calc((100vw - 1060px)/2));font-size:14px;letter-spacing:.06em}
@@ -10,13 +10,13 @@ img{max-width:100%;height:auto;display:block;margin:22px auto}code{font: .88em C
 nav{display:flex;gap:8px 20px;flex-wrap:wrap;padding:20px 0;margin-top:14px;border-top:1px solid #dbe5e2;font-size:13px}nav a{text-decoration:none}details{margin:24px 0;padding:12px 18px;border:1px solid #d5e5e1;border-radius:6px}summary{cursor:pointer;color:var(--teal);font-size:14px}li{margin:7px 0}footer{padding:24px;color:var(--muted);text-align:center;font-size:12px}
 @media(max-width:720px){main{padding:28px 20px}h1{font-size:26px}h2{font-size:22px}table{display:block;overflow-x:auto}blockquote{padding:8px 16px}}
 @media print{body{background:white;font-size:11pt}header,details,nav,footer{display:none}main{padding:0;max-width:none}h1{font-size:23pt}h2{font-size:17pt;break-after:avoid;margin-top:28px}h3{break-after:avoid}table,img,.equation{break-inside:avoid}a{color:inherit;text-decoration:none}blockquote{font-size:12pt}img{max-height:22cm}thead{display:table-header-group}}
-</style></head><body><header>OPENGU RESEARCH / 研究讨论 / 2026.10.05</header><main><h1>从节点影响到图遗忘响应：实验结果与理论问题</h1>
-<p>研究讨论稿 · 刘丞毓 · 2026 年 10 月 5 日初稿，10 月 6 日修订</p>
-<p>正文按约 18–20 分钟安排；表格、图注、材料链接和附录供展示与讨论时查阅，不逐项朗读。</p>
+</style></head><body><header>OPENGU RESEARCH / 研究讨论 / 2026.10.05 初稿 · 2026.10.18 修订</header><main><h1>从节点影响到图遗忘响应：实验结果与理论问题</h1>
+<p>研究讨论稿 · 刘丞毓 · 2026 年 10 月 5 日初稿，10 月 18 日补充十 seed 分析与贡献讨论</p>
+<p>本稿尚未用于汇报，继续在原稿上推进。正文按约 22–25 分钟安排；表格、图注、材料链接和附录供展示与讨论时查阅，不逐项朗读。第 2–4.3 节保留早期三 seed 证据，第 4.4 节补充 EXP-079 十 seed 分析，第 5 节讨论贡献是否成立及下一步如何检验；不同批次不合并计数。</p>
 <blockquote>
-<p>主要实验已经完成。IF 在部分 Retrain 条件下有明确效果，但这种效果没有稳定传递到不同 GU。当前框架能够定位差异，尚未解释差异。这次希望讨论：优先深化 IF 有效性的条件，还是建立从 Retrain 影响到 GU 响应的理论联系，以及哪条更可能形成论文贡献。</p>
+<p>IF 在部分 Retrain 条件下有明确效果，但这种效果没有稳定传递到不同 GU。十 seed 分析进一步区分了局部策略差异、共同 GU 敏感性与 surrogate 引起的反转。结果的组织已有推进，核心贡献仍未闭合。这次希望讨论：能否围绕“删除请求怎样改变对 GU 方法的评价”形成一个可验证的主张，以及它还缺哪条决定性证据。</p>
 </blockquote>
-<details><summary>目录：讲稿、实验验收、数据与理论备稿</summary><nav aria-label="章节导航"><a href="#section-1">汇报路线</a><a href="#section-2">1. 研究问题与实验安排</a><a href="#section-3">2. 选点依据能否预测 Retrain 的变化？</a><a href="#section-4">3. GU 怎样改变删除的影响？</a><a href="#section-5">4. 换模型选点后，哪些响应还能保留？</a><a href="#section-6">5. 哪个关系最值得形成理论主线？</a><a href="#section-7">附录 A. Work Plan 中的验收与材料入口</a><a href="#section-8">附录 B. 数据、图表与复核口径</a><a href="#section-9">附录 C. 理论讨论备稿</a><a href="#section-10">附录 D. 现场追问的回答准备</a></nav></details><h2 id="section-1">汇报路线</h2>
+<details><summary>目录：讲稿、实验验收、数据与理论备稿</summary><nav aria-label="章节导航"><a href="#section-1">汇报路线</a><a href="#section-2">1. 研究问题与实验安排</a><a href="#section-3">2. 选点依据能否预测 Retrain 的变化？</a><a href="#section-4">3. GU 怎样改变删除的影响？</a><a href="#section-5">4. 换模型选点后，哪些响应还能保留？</a><a href="#section-6">5. 哪个关系最值得形成核心贡献？</a><a href="#section-7">附录 A. Work Plan 中的验收与材料入口</a><a href="#section-8">附录 B. 数据、图表与复核口径</a><a href="#section-9">附录 C. 理论讨论备稿</a><a href="#section-10">附录 D. 现场追问的回答准备</a></nav></details><h2 id="section-1">汇报路线</h2>
 <p><strong>IF 认为哪些节点重要 → 删除后 Retrain 是否真的受损 → GU 怎样改变这种损伤 → 换模型选点后能否保留 → 哪一段值得形成理论主线。</strong></p>
 <table>
 <thead>
@@ -49,18 +49,18 @@ nav{display:flex;gap:8px 20px;flex-wrap:wrap;padding:20px 0;margin-top:14px;bord
 <tr>
 <td>4</td>
 <td>换模型选点后，哪些响应还能保留？</td>
-<td>GAT、GIN 与 SGC 的不同表现，以及跨 GU 的正反案例，限定解释范围</td>
-<td style="text-align:right">5 分钟</td>
+<td>早期迁移案例与十 seed 响应分析，保留局部支持、反转和不确定结果</td>
+<td style="text-align:right">6 分钟</td>
 </tr>
 <tr>
 <td>5</td>
-<td>哪个关系最值得形成理论主线？</td>
-<td>比较候选解释，讨论还缺什么证据</td>
-<td style="text-align:right">3.5 分钟</td>
+<td>哪个关系最值得形成核心贡献？</td>
+<td>区分叙事统一与贡献成立，核验一个候选主张及其最小证据缺口</td>
+<td style="text-align:right">6 分钟</td>
 </tr>
 </tbody>
 </table>
-<p>快速入口：<a href="../../../self/research/index.html">Work Plan 总表</a> · <a href="../../../self/research/analyses/EXP-011/table02-v2-tables.html">EXP-011 完整主表</a> · <a href="../../../self/research/analyses/EXP-013/REPORT.html">EXP-013 全量图表</a>。验收范围见附录 A。</p>
+<p>快速入口：<a href="../../../self/research/index.html">Work Plan 总表</a> · <a href="../../../self/research/analyses/EXP-011/table02-v2-tables.html">EXP-011 完整主表</a> · <a href="../../../self/research/analyses/EXP-013/REPORT.html">EXP-013 全量图表</a> · <a href="../../../self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html">EXP-079 十 seed 响应分析</a>。附录 A 保留 10 月 6 日状态快照，EXP-079 的新增证据见第 4.4 节。</p>
 <h2 id="section-2">1. 研究问题与实验安排</h2>
 <p>我们想研究的是：策略性地选择删除节点，会不会让图遗忘方法出现随机删除下不明显的问题？最初的思路是用 IF 或传播影响找到重要节点，再观察这些请求对 Retrain 和 GU 的影响。</p>
 <p>现在，实验基本已经跑完，但这条推理没有完整成立。IF 在部分条件下确实能找到对 Retrain 更有破坏力的节点；到了 GU，效果可能被放大，也可能减弱，甚至方向不同。同一个选点方法跨数据集也没有一致的优势。我现在最想解决的是，这些变化能不能由一个有条件、可检验的解释串起来。</p>
@@ -104,7 +104,7 @@ nav{display:flex;gap:8px 20px;flex-wrap:wrap;padding:20px 0;margin-top:14px;bord
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.345554</dc:date>
+    <dc:date>2026-10-18T06:35:21.818157</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -521,7 +521,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.353646</dc:date>
+    <dc:date>2026-10-18T06:35:21.827375</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -988,7 +988,105 @@ z
 <p>这说明效用变化较小、行为偏离增加并不只出现在 GIF/IDEA。另一方面，GraphEraser、GraphRevoker 的部分代理条件中，分歧增量为负；现有结果不支持所有 GU 都出现同一种响应。</p>
 <p>因此，surrogate 层次可以直接检验核心现象的边界：哪些选点模型保留了行为偏离，哪些模型没有；换一个 GU 方法后，这个关系是否改变。训练 seed 用来估计重复波动，选点模型、选点策略和 GU 方法才是这里要讨论的对象。</p>
 <p>材料：<a href="../../../self/research/analyses/EXP-013/transfer_conclusion_REPORT.html">当前迁移结论</a> · <a href="../../../self/research/analyses/EXP-013/gin_transfer_discussion_REPORT.html">GIN 跨六 GU 比较与 Discussion</a> · <a href="../../../self/research/analyses/EXP-013/post_REPORT.html">选集重叠分析</a>。</p>
-<h2 id="section-6">5. 哪个关系最值得形成理论主线？</h2>
+<h3>4.4 十 seed 分析增加了什么判断？</h3>
+<p>EXP-079/e79r5 已完成三数据集、十个训练 seed、12 个请求实例、六 GU 与同请求 Retrain 的 2,520 格分析。固定 split seed 2024、训练候选池 10% 节点删除，目标为 GCN 设置；分片方法为 GCN ensemble。Random 每个训练 seed 内先平均三次。评估使用原图，不能直接解释成 retained graph 部署结果。下面采用该批次自己的配对数据，不给前面的三 seed 表补上新的样本量；也不把 EXP-013 与 EXP-079 当作独立复现。本次核对分析文件与 CSV，未重新执行 e79r5 全量原始文件哈希核验；科学接受状态仍为 <code>not_requested</code>。</p>
+<p>这次分析先看全部 GU 的原始效应，再扣除共同响应、比较策略差异及其跨来源保留。GIF/IDEA 的重合 F1 响应只算一个独特坐标；完整图仍保留六方法。结果让主张的范围更清楚，但没有把局部现象变成普遍规律。</p>
+<table>
+<thead>
+<tr>
+<th>十 seed 结果</th>
+<th>相比只看效果均值，多获得什么判断？</th>
+<th>必须同时保留的边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cora 的同策略跨来源相对响应更接近，效用距离裕量 M = 9.976 [5.122, 14.830] pp²</td>
+<td>gt_full/r_point 的差异方向具有跨来源重复的线索</td>
+<td>去掉 GNNDelete 后 M = 0.333 [−0.200, 0.865]，不能称稳健的多 GU 指纹</td>
+</tr>
+<tr>
+<td>CiteSeer 的效用 M = −0.003 [−0.041, 0.035] pp²</td>
+<td>没有建立稳定的整体效用区分</td>
+<td>不等于策略完全相同，也不是等效检验</td>
+</tr>
+<tr>
+<td>PubMed 的效用 M = 0.117 [−0.137, 0.372] pp²</td>
+<td>应分析局部关系而非宣布统一迁移</td>
+<td>gt_full 对 GNNDelete 与 GraphRevoker 的相对影响 K，从 GCN 的 −1.269 pp 变成 SGC 的 +5.658 pp，方向反转</td>
+</tr>
+</tbody>
+</table>
+<p>表 5. M 为异策略跨来源平方距离减同策略跨来源平方距离，采用去中心化、五个独特 GU 坐标和不同训练 seed 交叉乘积；区间为十 seed 簇 jackknife 的近似 95% 区间，单位 pp²。去中心化仍保留相对幅度，M 不表示每个策略的完整响应不变。K 为两 GU 相对 Random 的额外损失之差，单位 pp。不能把共享 profile 的架构对当独立样本。<a href="../../../self/research/analyses/EXP-079/e79r5/response_consistency_margin.csv">M 及敏感性数据</a> · <a href="../../../self/research/analyses/EXP-079/e79r5/response_interaction_preservation.csv">K 的跨来源配对变化</a>。</p>
+<p>局部响应也不只发生在 GNNDelete：Cora/r_point/SGC 的 GraphEraser、PubMed/r_point/GAT 的 GraphRevoker、PubMed/Degree 的 MEGU，都有相对其余 GU 更集中的变化。但它们的绝对损失与相对集中程度不同，不能据此拼成共同机制。预测不一致率还提供了效用之外的区分，不过跨来源裕量对 GU 坐标选择敏感；U/G 的去中心化几何在当前设计下代数相同，也不能算两份独立验证。</p>
+<p>展示时先打开<a href="../../../self/research/analyses/EXP-079/e79r5/response_atlas_U_G_10seeds.png">全 GU 的 U/G 图谱</a>，再看<a href="../../../self/research/analyses/EXP-079/e79r5/response_margin_sensitivity_10seeds.png">逐 GU 删除敏感性</a>与<a href="../../../self/research/analyses/EXP-079/e79r5/response_disagreement_10seeds.png">预测不一致率</a>。<a href="../../../self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md">完整分析</a>保留多重比较、非 GNNDelete 案例及所有反例；上述选例属于探索性分析。</p>
+<h2 id="section-6">5. 哪个关系最值得形成核心贡献？</h2>
+<h3>5.1 结果整理推进了，但贡献问题还没有闭合</h3>
+<p>现在可以把发现、对应图表、反例和适用范围写成完整段落。这解决了结果怎样组织的问题。它还没有自动解决两个更关键的问题：我们究竟提供了什么新认识，以及各部分为什么属于同一个贡献。增加 seed、补全图表、把观察分成三个 Q，都不能替代这个判断。</p>
+<p>这里继续沿用本稿原来的三个主问题，不另换一套平行主线：</p>
+<table>
+<thead>
+<tr>
+<th>主问题</th>
+<th>在统一论证中的职责</th>
+<th>当前回答与缺口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Q1：选点依据能否预测 Retrain 的变化？</td>
+<td>检查进入 GU 前的影响信号是否成立</td>
+<td>有条件性的实际效果；评分近似、批量交互与评价端点之间的关系尚未验证</td>
+</tr>
+<tr>
+<td>Q2：GU 如何改变这些影响？</td>
+<td>承担核心发现：同一请求如何改变效用与重训行为偏离</td>
+<td>已有配对差异与效用/行为分离，但尚缺能解释或预测边界的关系</td>
+</tr>
+<tr>
+<td>Q3：换选点模型后，哪些响应保留？</td>
+<td>检验 Q2 的可靠性与适用范围</td>
+<td>十 seed 提供局部保留、反转及不确定结果；不独立包装成第三项贡献</td>
+</tr>
+</tbody>
+</table>
+<p>OB 结果章新整理的三个问题——改变了什么、策略响应能否区分、跨 surrogate 是否保留——是对 Q2/Q3 结果的展开，不替代这里从选点到 Retrain 的完整问题链。框架是获得可信配对证据的工具，实验是检验主张的材料；两者都应服务于一个中心认识。</p>
+<h3>5.2 候选核心主张及其证据缺口</h3>
+<p>候选中心问题是：<strong>删除请求会怎样改变我们对 GU 方法的评价？这种改变能否被可靠识别，并在什么条件下保持？</strong> 这句话目前用于组织研究，不是已成立的贡献声明。</p>
+<p>更具体的候选主张是：在固定协议下，只看相对 Random 的效用损伤不足以判断同请求 GU 与 Retrain 的接近程度；需要同时观察请求与 GU 的相对响应，并检验这些关系对选点来源的依赖。要让它超出“多报几个指标”的常识，必须说明一个已有评价会遗漏的实质问题，以及我们的分析如何可靠识别它。</p>
+<table>
+<thead>
+<tr>
+<th>主张核验项</th>
+<th>当前能展示什么</th>
+<th>尚不能声称什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>原来的判断会漏掉什么？</td>
+<td>Cora/gt_full/GIN 的 GraphRevoker，相对 Random 的额外损失为 −0.23 pp [−1.12, 0.65]，但同请求 Retrain 差距为 +20.37 pp [16.00, 24.74]</td>
+<td>不能因额外损伤不明显就说它接近重训；也不能把这个案例说成已经纠正了某篇论文的具体错误</td>
+</tr>
+<tr>
+<td>加入分析后，判断改变在哪里？</td>
+<td>区分“请求额外增加损伤”与“GU 本身偏离重训”，再用预测不一致率检查效用接近时的行为差异</td>
+<td>分解恒等式和不同指标回答不同问题，本身不构成新理论</td>
+</tr>
+<tr>
+<td>这个判断是否可靠？</td>
+<td>完整十 seed 配对、Random/Degree 对照、全 GU 图谱与逐坐标敏感性明确了局部支持和反例</td>
+<td>已分析条件不是独立的未见验证；不能声称普遍规律或机制已解释</td>
+</tr>
+<tr>
+<td>为什么值得作为贡献？</td>
+<td>可以把问题收敛为“请求条件下的 GU 评价何时产生实质差别”</td>
+<td>目前尚未证明相对已有评价方法的新增能力，也未证明这种差别足够稳定和重要</td>
+</tr>
+</tbody>
+</table>
+<p>GraphRevoker 案例来源为 <a href="../../../self/research/analyses/EXP-079/e79r5/diagnostic_atlas_10seeds.csv">diagnostic_atlas_10seeds.csv</a>，同一 <code>dataset/selector/source/method</code> 下分别读取 <code>U_vs_random</code> 与 <code>G</code> 的 <code>mean/lo/hi</code>。它是讨论入口，不是通过挑选一格完成贡献论证。</p>
+<h3>5.3 理论解释与经验发现的取舍</h3>
 <p>把这几组结果放在一起，核心困难可以说得更准确一些：我们已经能测量节点选择造成的损伤，却还不能解释这种损伤为什么随训练条件和 GU 方法变化。</p>
 <p>目前有两条值得认真讨论的主线。第一条是往前追，解释 IF 在 Retrain 上什么时候有效。它会重点分析影响估计、批量删除、损失与准确率之间的关系，EXP-032 是主要材料。它的好处是理论对象相对集中；难点是最后可能更接近一般图影响估计问题，需要说明与图遗忘研究的联系。</p>
 <p>第二条是从 Retrain 往 GU 推，解释删除影响如何被具体遗忘算法改变。现在其中有一个更集中的切口：为什么一些策略对准确率的影响不大，却扩大了与重训的预测分歧？EXP-011 比较 IF、IM 和结构基线；EXP-013 则检查这个现象能否跨选点模型及 GU 方法保留。它更贴近图遗忘本身，但不能用一个分解式就宣布统一解释了所有算法。</p>
@@ -1026,7 +1124,42 @@ z
 <p>理论上可以从一个很简单的关系起步：如果 GU 与 Retrain 在策略性请求和比较请求上的效用误差都有界，而且两次误差的合计上界小于 Retrain 的攻击优势，那么优势就能保留。这个结论本身只是误差传递，不足以成为论文贡献。真正要做的是解释误差为什么受控、依赖什么、什么时候会变大。</p>
 <p>理论需要回答，什么样的 GU 更新会保留重训的变化，什么样的更新会让两者分离。能否先在一个可分析的方法家族上建立关系，再用其他方法检验它的适用范围，是需要讨论的取舍。</p>
 <p>接下来我希望优先利用已有结果，沿选点策略、代理模型、GU 方法比较效用与行为变化，再检查分歧是集中在什么节点、主要由哪一侧的变化产生。若缺少必要的原模型预测、评分或更新诊断，再围绕具体假设决定是否补最小验证。大矩阵本身已经足够丰富，继续增加组合未必会解决解释问题。</p>
-<h3>5.1 需要讨论的问题</h3>
+<h3>5.4 下一步推进到什么可审阅结果</h3>
+<p>先完成一页核心主张核验材料，围绕上面的候选主张列出“通常怎样判断—加入分析后怎样判断—哪个控制排除了哪种解释—仍有哪些反例”。本节已经给出第一版证据映射；下一步不是再加一个 dashboard 或把 M/S/K 命名为新方法。</p>
+<table>
+<thead>
+<tr>
+<th>推进项</th>
+<th>具体交付与判定</th>
+<th>当前状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>判断是否只是由一个 GU 主导</td>
+<td>同时看全 GU、GIF/IDEA 去重与逐 GU 删除；优势消失就把主张收窄到相应方法</td>
+<td>已有分析，Cora 的整体优势依赖 GNNDelete，已纳入本稿</td>
+</tr>
+<tr>
+<td>效用与行为分离是否超出指标定义差别</td>
+<td>同请求对照原模型、GU、Retrain 的逐节点预测，区分 GU 改变、Retrain 改变及两者共同改变；检验是否出现可解释的错误类型或受影响节点范围</td>
+<td>尚未完成；先核对原始预测是否足够，缺失时标明，不能用汇总 flip 反推</td>
+</tr>
+<tr>
+<td>是否有可预测的边界</td>
+<td>先固定一个候选解释及其反例条件，再选择未参与形成解释的验证条件；失败也保留</td>
+<td>尚未完成；不能把已看过的三数据集或十 seed 事后称作独立验证</td>
+</tr>
+<tr>
+<td>是否带来已有评价之外的能力</td>
+<td>对照现有相关工作实际使用的评价与控制，指出新增判断在哪里；若已有方法已回答，就进一步收窄或放弃该候选贡献</td>
+<td>尚未完成；本次未新增文献检索，不宣称首次发现</td>
+</tr>
+</tbody>
+</table>
+<p>最小推进顺序是先核对预测证据的可用性，再完成判断变化的案例核验，最后决定是否值得做独立确认或理论推导。不能先承诺统一机制，再靠扩充 dataset/GU 寻找支持。已有 dataset/GU 扩充计划仍保留在“论文大体完成后再推进”，本轮不启动新实验。</p>
+<p>若只能得到稳定的描述性差异，就按条件性经验发现评估其学术分量；若能预测未参与解释的条件，或通过受控干预区分替代解释，才有理由提高主张强度。理论不是唯一途径，但无论走理论还是经验路线，都需要超过“框架完整、指标齐全、实验很多”的可验证内容。</p>
+<h3>5.5 需要讨论的问题</h3>
 <ol>
 <li>论文中心是否放在“Retrain 影响如何传到 GU”上？还是现有证据更适合先把“IF 为什么只在部分条件下有效”讲透？两条路线都能使用已有实验，但理论投入会不同。</li>
 <li>理论应该先覆盖一个可分析的 GU 家族，还是追求跨六种方法的关系？如果只能对一个家族给出较强结论，其他方法作为边界案例，是否能形成完整贡献？</li>
@@ -1035,7 +1168,7 @@ z
 <li>在“框架加理论解释”这个目标下，最小还缺哪条证据？是一个能预测未参与解释的条件的关系，还是某个具体算法下的误差界与边界案例？确定这一点后，才能决定是否需要少量补充分析或实验。</li>
 </ol>
 <h2 id="section-7">附录 A. Work Plan 中的验收与材料入口</h2>
-<p>状态核对日期：2026-10-06。运行与交付读取 <code>experiments/EXP-NNN.json</code>；分析及科学决定读取 <code>analyses/EXP-NNN.json</code>。下面是本次汇报的状态快照，后续状态以 <a href="../../../self/research/index.html">Work Plan</a> 为准。</p>
+<p>历史状态核对日期：2026-10-06。以下保留初稿当时从 <code>experiments/EXP-NNN.json</code> 与 <code>analyses/EXP-NNN.json</code> 形成的状态快照，不代表 10 月 18 日的实时状态。尤其 EXP-079 当时未启动，如今的十 seed 分析已单列于第 4.4 节；实时状态以 <a href="../../../self/research/index.html">Work Plan</a> 为准。</p>
 <table>
 <thead>
 <tr>
@@ -1092,7 +1225,7 @@ z
 </tbody>
 </table>
 <p>这里确实有实验验收。需要特别注意 EXP-013：交付回执中的 <code>project_acceptance: accepted</code> 指 756 格产物满足项目检查；其科学决定仍为 <code>not_requested</code>。两个状态回答不同问题。</p>
-<p>交付证据：<a href="../../../.syncmate/deliveries/exp011-t2-retry-20260929-183235.json">EXP-011 可信回传回执</a> · <a href="../../../.syncmate/recovery-exp013-full-20260930-r1/summary.json">EXP-013 恢复收集及产物验收</a>。本次生成器另保存了<a href="assets/workplan-status-snapshot.json">状态与来源哈希快照</a>，未改动任何实验状态。</p>
+<p>交付证据：<a href="../../../.syncmate/deliveries/exp011-t2-retry-20260929-183235.json">EXP-011 可信回传回执</a> · <a href="../../../.syncmate/recovery-exp013-full-20260930-r1/summary.json">EXP-013 恢复收集及产物验收</a>。<a href="assets/workplan-status-snapshot.json">状态与来源哈希快照</a>保留 10 月 6 日记录；本轮生成读取该快照，不用实时状态覆盖历史，也不改动任何实验状态。</p>
 <h2 id="section-8">附录 B. 数据、图表与复核口径</h2>
 <h3>B1. 每段讲稿对应的材料</h3>
 <table>
@@ -1209,7 +1342,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.359395</dc:date>
+    <dc:date>2026-10-18T06:35:21.832941</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -1434,7 +1567,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.365160</dc:date>
+    <dc:date>2026-10-18T06:35:21.839323</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -1726,7 +1859,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.376184</dc:date>
+    <dc:date>2026-10-18T06:35:21.852298</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -2022,7 +2155,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.387093</dc:date>
+    <dc:date>2026-10-18T06:35:21.867663</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -2290,7 +2423,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.397913</dc:date>
+    <dc:date>2026-10-18T06:35:21.880933</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -2593,7 +2726,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.407084</dc:date>
+    <dc:date>2026-10-18T06:35:21.890090</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -2961,7 +3094,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.412835</dc:date>
+    <dc:date>2026-10-18T06:35:21.897922</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -3182,7 +3315,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.418583</dc:date>
+    <dc:date>2026-10-18T06:35:21.904448</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -3497,7 +3630,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.425759</dc:date>
+    <dc:date>2026-10-18T06:35:21.911593</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -3734,7 +3867,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-06T01:49:14.433543</dc:date>
+    <dc:date>2026-10-18T06:35:21.922406</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -4046,12 +4179,16 @@ z
 <td>数值验证不等于机制区分。当前损失构造相近、共享求解器及相应参数；需要更新与预测概率层面的检查，准确率相同不足以判定等价。</td>
 </tr>
 <tr>
-<td>三个 seed 能说明什么？</td>
-<td>可以报告这组条件中的均值、波动、正反案例；不能证明普遍迁移或统计等效。EXP-079 已登记但未执行，不把待办当结果。</td>
+<td>三个 seed 与十个 seed 各能说明什么？</td>
+<td>第 2–4.3 节仍是早期三 seed 结果；EXP-079 十 seed 已在第 4.4 节补入，强化配对估计及敏感性判断，但仍是固定 split/预算，不能证明普遍迁移或等效，也不与早期样本相加。</td>
 </tr>
 <tr>
 <td>为什么不直接扩大实验？</td>
 <td>主矩阵已经能提出问题。先决定要区分哪两个解释，再补必要的信息；新增更多组合不一定提供机制证据。</td>
+</tr>
+<tr>
+<td>现在贡献统一了吗？</td>
+<td>三个主问题可以围绕一个候选主张组织：先验证进入 GU 的信号，再研究 GU 的变化，最后检查跨来源边界。叙事关系更清楚，核心贡献仍待判断变化的实质价值、新颖性与独立验证支持。</td>
 </tr>
 <tr>
 <td>实验验收了吗？</td>
@@ -4059,4 +4196,4 @@ z
 </tr>
 </tbody>
 </table>
-</main><footer>Markdown 原稿：REPORT.md · 图表由已核验实验输出生成</footer></body></html>
+</main><footer>Markdown 原稿：REPORT.md · 历史三 seed 图表与新增十 seed 分析分开报告</footer></body></html>

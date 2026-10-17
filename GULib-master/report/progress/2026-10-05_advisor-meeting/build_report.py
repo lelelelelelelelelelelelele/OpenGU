@@ -278,7 +278,7 @@ pd.DataFrame(transfer).to_csv(ASSETS/'transfer-example.csv',index=False,encoding
 source=(HERE/'REPORT.md').read_text(encoding='utf-8-sig')
 assert '\ufffd' not in source
 
-# Bind the dated acceptance table to both authoritative Work Plan layers.
+# The October 6 table is historical. Validate its saved snapshot, not today's state.
 expected_states = {
     'EXP-011': ('completed', 'complete', 'accepted'),
     'EXP-013': ('completed', 'complete', 'not_requested'),
@@ -287,23 +287,16 @@ expected_states = {
     'EXP-062': ('not_required', 'complete', 'accepted'),
     'EXP-079': ('pending', None, None),
 }
-snapshot = {'as_of': '2026-10-06', 'experiments': []}
+snapshot_path = ASSETS / 'workplan-status-snapshot.json'
+snapshot = read(snapshot_path)
+assert snapshot['as_of'] == '2026-10-06'
+snapshot_by_id = {entry['id']: entry for entry in snapshot['experiments']}
+assert set(snapshot_by_id) == set(expected_states)
 for exp, states in expected_states.items():
-    live_path = ROOT / f'self/research/experiments/{exp}.json'
-    analysis_path = ROOT / f'self/research/analyses/{exp}.json'
-    live = read(live_path)
-    analysis = read(analysis_path) if analysis_path.exists() else {}
-    observed = (live.get('execution', {}).get('state'),
-                analysis.get('analysis', {}).get('state'),
-                analysis.get('decision', {}).get('state'))
-    assert observed == states, (exp, 'Refresh the dated report status table', observed)
-    snapshot['experiments'].append(dict(id=exp, execution=live.get('execution'),
-        analysis=analysis.get('analysis'), decision=analysis.get('decision'),
-        live_source=str(live_path.relative_to(ROOT)), live_sha256=sha(live_path),
-        analysis_source=str(analysis_path.relative_to(ROOT)) if analysis else None,
-        analysis_sha256=sha(analysis_path) if analysis else None))
-(ASSETS/'workplan-status-snapshot.json').write_text(
-    json.dumps(snapshot, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+    entry = snapshot_by_id[exp]
+    observed = tuple((entry.get(key) or {}).get('state')
+                     for key in ['execution', 'analysis', 'decision'])
+    assert observed == states, (exp, 'Historical snapshot mismatch', observed)
 
 # Check printed tables against independently reproduced data.
 def signed(value, digits=2):
@@ -359,6 +352,44 @@ for d in DATASETS:
     assert row in source, row
     printed_rows.append(row)
 
+# Bind the October 18 additions to existing analysis CSVs; this does not rerun e79r5.
+e79 = ROOT / 'self/research/analyses/EXP-079/e79r5'
+margin = pd.read_csv(e79 / 'response_consistency_margin.csv')
+interaction = pd.read_csv(e79 / 'response_interaction_preservation.csv')
+atlas = pd.read_csv(e79 / 'diagnostic_atlas_10seeds.csv')
+addition_checks = []
+
+def check_fragment(frame, filters, fields, digits, prefix='', unit=''):
+    selected = frame
+    for key, value in filters.items():
+        selected = selected[selected[key] == value]
+    assert len(selected) == 1, filters
+    r = selected.iloc[0]
+    vals = [f'{r[key]:.{digits}f}'.replace('-', '−') for key in fields]
+    fragment = prefix + vals[0] + unit + ' [' + vals[1] + ', ' + vals[2] + ']'
+    assert fragment in source, fragment
+    addition_checks.append(fragment)
+
+for dataset, coordinates in [('Cora', 'dedup5'), ('CiteSeer', 'dedup5'),
+                             ('PubMed', 'dedup5'), ('Cora', 'drop_GNNDelete')]:
+    check_fragment(margin, dict(dataset=dataset, coordinates=coordinates,
+                               metric='U', mode='centered'),
+                   ['margin_cv2', 'lo', 'hi'], 3)
+for metric, prefix in [('U_vs_random', ''), ('G', '+')]:
+    check_fragment(atlas, dict(dataset='Cora', selector='gt_full', source='GIN',
+                              method='GraphRevoker', metric=metric),
+                   ['mean', 'lo', 'hi'], 2, prefix=prefix, unit=' pp')
+k = interaction[(interaction.dataset == 'PubMed') & (interaction.metric == 'U') &
+                (interaction.selector == 'gt_full') & (interaction.source == 'SGC') &
+                (interaction.GU_A == 'GNNDelete') & (interaction.GU_B == 'GraphRevoker')]
+assert len(k) == 1
+for field in ['GCN_mean', 'source_mean']:
+    fragment = signed(k.iloc[0][field], 3) + ' pp'
+    assert fragment in source, fragment
+    addition_checks.append(fragment)
+e79_state = read(ROOT / 'self/research/analyses/EXP-079.json')
+assert e79_state['decision']['state'] == 'not_requested'
+
 formulas=[]
 def formula(m):
     expression=m.group(1).strip()
@@ -404,7 +435,7 @@ nav{display:flex;gap:8px 20px;flex-wrap:wrap;padding:20px 0;margin-top:14px;bord
 '''
 contents='<details><summary>目录：讲稿、实验验收、数据与理论备稿</summary><nav aria-label="章节导航">'+''.join(toc)+'</nav></details>'
 body=body.replace('<h2 ',contents+'<h2 ',1)
-page='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>从节点影响到图遗忘响应 · 2026-10-05 研究讨论</title><style>'+style+'</style></head><body><header>OPENGU RESEARCH / 研究讨论 / 2026.10.05</header><main>'+body+'</main><footer>Markdown 原稿：REPORT.md · 图表由已核验实验输出生成</footer></body></html>'
+page='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>从节点影响到图遗忘响应 · 10月18日修订</title><style>'+style+'</style></head><body><header>OPENGU RESEARCH / 研究讨论 / 2026.10.05 初稿 · 2026.10.18 修订</header><main>'+body+'</main><footer>Markdown 原稿：REPORT.md · 历史三 seed 图表与新增十 seed 分析分开报告</footer></body></html>'
 (HERE/'REPORT.html').write_text(page,encoding='utf-8')
 
 links=[]
@@ -416,12 +447,19 @@ for target in re.findall(r'\]\(([^)]+)\)',source):
 assert not re.search(r'<(?:script|link)\b',page)
 assert 'src="assets/' not in page
 assert 'FORMULA000TOKEN' not in page
-audit={'date':'2026-10-06','EXP-011':audit11,'EXP-013':audit13,
+audit={'date':'2026-10-18','EXP-011':audit11,'EXP-013':audit13,
        'gap_convention':'G = Retrain - GU; A = Random - selected; E = G_selected - G_random',
        'matching':'full output reference, selection_id, split and training seed checked',
        'summary_csv_reproduced':True,'all_report_local_links_exist':len(links),
        'printed_data_rows_checked':len(printed_rows),
        'workplan_status_records_checked':len(snapshot['experiments']),
+       'workplan_status_as_of':snapshot['as_of'],
+       'workplan_snapshot_sha256':sha(snapshot_path),
+       'EXP-079_addition':{'scope':'existing analysis CSV and prose verification; no raw artifact rehash',
+           'checked_fragments':addition_checks, 'scientific_decision':'not_requested',
+           'source_sha256':{name:sha(e79/name) for name in [
+               'response_consistency_margin.csv','response_interaction_preservation.csv',
+               'diagnostic_atlas_10seeds.csv','RESPONSE_PATTERN_REPORT.md']}},
        'offline_html':True,'formula_count':len(formulas),
        'source_sha256':sha(HERE/'REPORT.md'),
        'figure_sha256':{p.name:sha(p) for p in sorted(ASSETS.glob('[0-9][0-9]-*.png'))}}

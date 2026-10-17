@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-06",
+  "date": "2026-10-18",
   "EXP-011": {
     "commit": "1f5cfec08494ef1a78eda16bd3f69428ac47b0bd",
     "cells": 1449,
@@ -17,12 +17,34 @@
   "gap_convention": "G = Retrain - GU; A = Random - selected; E = G_selected - G_random",
   "matching": "full output reference, selection_id, split and training seed checked",
   "summary_csv_reproduced": true,
-  "all_report_local_links_exist": 74,
+  "all_report_local_links_exist": 82,
   "printed_data_rows_checked": 28,
   "workplan_status_records_checked": 6,
+  "workplan_status_as_of": "2026-10-06",
+  "workplan_snapshot_sha256": "3d00c68df3dd3a16f323da35f0a7c2946b269af7e67b83ca3ed5a6821a858633",
+  "EXP-079_addition": {
+    "scope": "existing analysis CSV and prose verification; no raw artifact rehash",
+    "checked_fragments": [
+      "9.976 [5.122, 14.830]",
+      "−0.003 [−0.041, 0.035]",
+      "0.117 [−0.137, 0.372]",
+      "0.333 [−0.200, 0.865]",
+      "−0.23 pp [−1.12, 0.65]",
+      "+20.37 pp [16.00, 24.74]",
+      "−1.269 pp",
+      "+5.658 pp"
+    ],
+    "scientific_decision": "not_requested",
+    "source_sha256": {
+      "response_consistency_margin.csv": "5e57fe88b759587a99b2564bec0f68850071739baf8fddd741136b432e0dd055",
+      "response_interaction_preservation.csv": "6a086badad831bab5d0174bca9174f9e479612220b3b33c04538b1247c8758c3",
+      "diagnostic_atlas_10seeds.csv": "5516d9ddef9edf87f4306cdc843a71b74a9830f7f6830dd7e4ecaf5fce8df9ec",
+      "RESPONSE_PATTERN_REPORT.md": "445dcbe25ffd580a023ff0e4a9785249f03d3e02517a8324aa422c97db61a6f2"
+    }
+  },
   "offline_html": true,
   "formula_count": 12,
-  "source_sha256": "45e775357314d56cb8c5c19313ba665a35c63a0e88961d54b683097237652a42",
+  "source_sha256": "4774fd42f064dc4bceb01c7def9e2c9341d7c4b4ecf6aa81f96c941f86242257",
   "figure_sha256": {
     "01-selector-response.png": "05b02ba1baf2ddd3a1bf62977c7e36b98fd9dfb158dd4090cf3538dedc4911f9",
     "02-decomposition.png": "e63c7b715e89e6e9985e42ec79c13f971a6f836c2977c3d35c699d40c7d6c03c",
