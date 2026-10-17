@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp080-i-gr-pubmed-high
+runner: experiment
+config_path: experiments/configs/exp080/isolated_gr_pubmed_high.yaml
+config_sha256: 4bcb7427f337a0ecef5ad35d1c42770994ad47fdace197b0e1e384ae078d2593
+configuration_fingerprint: 6ecc6bb737463a2f1b4055bce4d7d800ad946ccc1b28aa9bd16ecb6606542414
+run_identity:
+  experiment_id: exp080-i-gr-pubmed-high
+  run_id: e80r210
+timeout_seconds: 21600
+logical_cells: 42
+stage: unlearning
+expected_datasets:
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

@@ -1,0 +1,27 @@
+schema_version: 1
+id: exp080-i-megu
+runner: experiment
+config_path: experiments/configs/exp080/isolated_megu.yaml
+config_sha256: e05349f2128a0437f8db6c06497a7756c70cce3942ad7c84d6033ed954867016
+configuration_fingerprint: b57820be0ddd569d207aa0213321ad3d288b3781d4e83b3ec97d126c92e1be6e
+run_identity:
+  experiment_id: exp080-i-megu
+  run_id: e80r203
+timeout_seconds: 21600
+logical_cells: 882
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

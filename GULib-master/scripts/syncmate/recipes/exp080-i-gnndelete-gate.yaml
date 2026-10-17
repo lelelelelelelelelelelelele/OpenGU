@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp080-i-gnndelete-gate
+runner: experiment
+config_path: experiments/configs/exp080/isolated_gnndelete_gate.yaml
+config_sha256: f9cb8fca7f5723c5f1e9d54a6284289d942cf34e1bf096ce90b20ab61d16f901
+configuration_fingerprint: dd80b147d12bd0b4221f881eadc277ea95a8fa0f2e77902543de84a55e255f0c
+run_identity:
+  experiment_id: exp080-i-gnndelete-gate
+  run_id: e80g204
+timeout_seconds: 7200
+logical_cells: 20
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

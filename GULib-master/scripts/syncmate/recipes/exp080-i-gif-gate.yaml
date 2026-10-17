@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp080-i-gif-gate
+runner: experiment
+config_path: experiments/configs/exp080/isolated_gif_gate.yaml
+config_sha256: 882a0f3381a2b4fb961852cb94801ccda733f7d870c84828e76e7f7b95d5fdb0
+configuration_fingerprint: 662a5fa205a7d6482996b8a15a7f0a769006a351c33df3b7f5c14bc0f27e0353
+run_identity:
+  experiment_id: exp080-i-gif-gate
+  run_id: e80g201
+timeout_seconds: 7200
+logical_cells: 20
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp080-i-ge-citeseer-high
+runner: experiment
+config_path: experiments/configs/exp080/isolated_ge_citeseer_high.yaml
+config_sha256: ce88b9e314860c3979c8e6a65339bf310afb10767dedff47659f4be74a91970f
+configuration_fingerprint: 913d8d09c67f1e82bf0b3cd8a8e2776b3d436ce06811b3c4a7550927db645b14
+run_identity:
+  experiment_id: exp080-i-ge-citeseer-high
+  run_id: e80r206
+timeout_seconds: 21600
+logical_cells: 42
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

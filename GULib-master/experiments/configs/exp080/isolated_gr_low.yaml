@@ -1,0 +1,39 @@
+# Independent failure scope; original method parameters and cache semantics unchanged.
+kind: experiment
+schema_version: 1
+experiment_id: exp080-i-gr-low
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- random.yaml
+- degree.yaml
+- r_point.yaml
+- gt_full.yaml
+- ../im_group_discussion/rr_65536.yaml
+unlearning_refs:
+- retrain.yaml
+- graphrevoker.yaml
+evaluation_refs:
+- post_method_metrics.yaml
+- post_unlearning_utility_and_retrain_gap.yaml
+- post_unlearning_flip_hop.yaml
+matrix: cartesian_product
+seeds:
+- 42
+- 212
+- 2024
+im_selector_seeds:
+- 11
+- 22
+- 33
+budget_ratios:
+- 0.05
+- 0.075
+- 0.1
+- 0.15
+- 0.22
+- 0.33
+return_scores: false

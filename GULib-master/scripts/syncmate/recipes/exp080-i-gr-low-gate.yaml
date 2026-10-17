@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp080-i-gr-low-gate
+runner: experiment
+config_path: experiments/configs/exp080/isolated_gr_low_gate.yaml
+config_sha256: 4eca60259e71c4b5f3b5d3b8ff140ff4eaad189ad30e90c3331e3fcf1330ae6f
+configuration_fingerprint: f0de4827b26d7cad0aec870a54e35949da325ccf46d96e8b870e192172d17e81
+run_identity:
+  experiment_id: exp080-i-gr-low-gate
+  run_id: e80g208
+timeout_seconds: 7200
+logical_cells: 20
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp080-i-ge-low-gate
+runner: experiment
+config_path: experiments/configs/exp080/isolated_ge_low_gate.yaml
+config_sha256: 036aec2eae2796b7288f29ff8433822905d07ff4dcaefd205114f87258c1d754
+configuration_fingerprint: 6bb38d8c388f4ee045af66e313c47ac460b07fbe87b5f13ce251e5a7622f0f55
+run_identity:
+  experiment_id: exp080-i-ge-low-gate
+  run_id: e80g205
+timeout_seconds: 7200
+logical_cells: 20
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

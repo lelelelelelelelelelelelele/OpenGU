@@ -1,0 +1,27 @@
+schema_version: 1
+id: exp080-i-gr-low
+runner: experiment
+config_path: experiments/configs/exp080/isolated_gr_low.yaml
+config_sha256: ee6dac8994ebf401097b1b2e3d16edbf6e767e8a8a7c6c37380d2d75747a4e05
+configuration_fingerprint: ff5d829a49ebb9565cae5539841ab3d6f8666f1a71a6441e925561581afa5ee2
+run_identity:
+  experiment_id: exp080-i-gr-low
+  run_id: e80r208
+timeout_seconds: 21600
+logical_cells: 756
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
