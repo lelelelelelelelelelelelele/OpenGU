@@ -21,11 +21,34 @@
         },
         {
           "source_fingerprint": "8902822640d7ce40b0fe669ff487b802836430ccf8c72cec88ba269b80f11cb2"
+        },
+        {
+          "source_fingerprint": "630aaddacd35481f3a1e71062de95eef904dea34b74babf0cab83776fee24a74"
         }
       ],
-      "reason": "Reviewed Observer/provenance/query-only changes and unused factory branches; calculation and all non-source Recipe fields remain unchanged.",
+      "reason": "Reviewed Observer/provenance/query-only changes, unused factory branches and AAGU-099 equivalent incident-edge mask optimization; all non-source Recipe fields remain unchanged.",
       "evidence": [
-        "docs/cache-source-identity.md#reviewed-sources"
+        "docs/cache-source-identity.md#reviewed-sources",
+        "docs/cache-source-identity.md#gnndelete-mask-optimization"
+      ]
+    },
+    {
+      "cache_scope": "prediction",
+      "producer": "GNNDelete",
+      "applies_to": {
+        "semantic_version": "opengu-independent-node-output-v1"
+      },
+      "fingerprints": [
+        {
+          "source_fingerprint": "8902822640d7ce40b0fe669ff487b802836430ccf8c72cec88ba269b80f11cb2"
+        },
+        {
+          "source_fingerprint": "630aaddacd35481f3a1e71062de95eef904dea34b74babf0cab83776fee24a74"
+        }
+      ],
+      "reason": "AAGU-099 replaces only the GCN GNNDelete incident-edge mask with an equivalent node-membership table, independently of GCN depth/width. These exact source fingerprints identify the reviewed GCN computation; the complete model, data, Selection, checkpoint and training fields still match exactly. Earlier historical sources retain their original exact-model conditions.",
+      "evidence": [
+        "docs/cache-source-identity.md#gnndelete-mask-optimization"
       ]
     },
     {

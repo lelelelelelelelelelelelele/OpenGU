@@ -26,6 +26,23 @@ from task.edge_prediction import EdgePredictor
 from pipeline.Learning_based_pipeline import Learning_based_pipeline
 from utils.metric_policy import update_detection_auc_enabled
 
+
+def _incident_edge_mask(edge_index, nodes, num_nodes):
+    """Match either endpoint using O(num_nodes + num_edges) temporary space.
+
+    Callers supply the existing one-dimensional NumPy deletion request and
+    validate it before this step. Preserve the old empty-request failure and
+    literal comparison of negative IDs (NumPy indexing must not wrap them).
+    """
+    if len(nodes) == 0:
+        raise RuntimeError("stack expects a non-empty TensorList")
+    selected = torch.zeros(num_nodes, dtype=torch.bool)
+    valid_nodes = nodes[(nodes >= 0) & (nodes < num_nodes)]
+    selected[torch.as_tensor(valid_nodes, dtype=torch.long)] = True
+    selected = selected.to(edge_index.device)
+    return selected[edge_index[0]].logical_or_(selected[edge_index[1]])
+
+
 class gnndelete(Learning_based_pipeline):
     """
     GNNDelete Class, a pipeline for performing unlearning operations on Graph Neural Networks. It extends the `Learning_based_pipeline` and provides methods to delete nodes, edges, or features from the training data, retrain the model accordingly, and evaluate the impact of these deletions. 
@@ -431,9 +448,7 @@ class gnndelete(Learning_based_pipeline):
             self.logger.warning(message + " Continuing...")
         
         # Delete edges associated with deleted nodes from training set
-        res = [torch.eq(self.data.edge_index, aelem).logical_or_(torch.eq(self.data.edge_index, aelem)) for aelem in df_nodes]
-        df_mask_edge = torch.any(torch.stack(res, dim=0), dim=0)
-        df_mask_edge = df_mask_edge.sum(0).bool()
+        df_mask_edge = _incident_edge_mask(self.data.edge_index, df_nodes, self.data.num_nodes)
         dr_mask_edge = ~df_mask_edge
 
         df_edge = self.data.edge_index[:, df_mask_edge]
@@ -797,9 +812,7 @@ class gnndelete(Learning_based_pipeline):
         dr_mask_node = global_node_mask
         df_mask_node = ~global_node_mask
 
-        res = [torch.eq(self.data.edge_index, aelem).logical_or_(torch.eq(self.data.edge_index, aelem)) for aelem in df_nodes]
-        df_mask_edge = torch.any(torch.stack(res, dim=0), dim=0)
-        df_mask_edge = df_mask_edge.sum(0).bool()
+        df_mask_edge = _incident_edge_mask(self.data.edge_index, df_nodes, self.data.num_nodes)
         dr_mask_edge = ~df_mask_edge
 
         df_edge = self.data.edge_index[:, df_mask_edge]
