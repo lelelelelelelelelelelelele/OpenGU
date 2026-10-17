@@ -74,6 +74,35 @@ restore exact identity and query/observation/provenance behavior, not algorithms
 Only those reviewed sources are included; mere presence in an inventory is not
 an equivalence proof. Detailed actual read evidence is in the canonical Report.
 
+## GNNDelete mask optimization
+
+AAGU-099 replaces the per-deleted-node `[2, E]` comparison list and stack with
+one node-membership table. The mask, deleted/retained edges and graph state are
+exactly equal; bounded real node/feature/modular training comparisons also cover
+losses, gradients, updates and predictions. No training or evaluation code changes.
+The reviewed baseline is `bf843abbad2cd40ff83d0ed6c1c90ca663666446`; the mask
+implementation checkpoint is `67840127f2fb1f65c944ead577d4f9490e87b95d`.
+
+The real GCN GNNDelete Output source changes from `89028226...` to `630aadda...`.
+Both fingerprints are explicitly registered, in both query directions. They are
+independent of GCN depth/width; the complete Recipe still binds the exact model
+configuration, dataset/split, Selection, checkpoint, parameters and training.
+The earlier `05197336...` and `b7eecaea...` historical sources remain restricted
+to their previously reviewed two-layer/64-channel GCN configuration. The new
+fingerprint joins that existing group directly as well: lookup does not rely on
+transitive expansion. The JSON file owns the full fingerprints.
+
+Regression tests use temporary stores and the real modular consumer. They check
+old-to-new and new-to-old source requests, forbid the GU and selector producers
+on HIT, compare all cache-file bytes/mtimes including the index, retain original
+generation provenance, and verify current-source priority plus non-source identity
+isolation. These are local cache-contract checks, not an inventory of SSH cache
+coverage. Existing processes must restart to reload the registry.
+
+Evidence: canonical [AAGU-099 acceptance report](../.workblock/items/AAGU-099/REPORT.md)
+and [mask-equivalence evidence](../.workblock/items/AAGU-099/evidence/verification.json).
+The Record and evidence remain in the canonical project, not in linked copies.
+
 ## Read-only audit and retirement
 
 ### Selection prefix reuse
