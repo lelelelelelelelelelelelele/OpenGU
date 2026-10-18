@@ -4,10 +4,10 @@
   "sha256": {
     "before_audit.json": "d63a2978d4447758750c390ed08f6a37ba37af5d7df06f16400164b13ba54912",
     "audit_before_remote.py": "908370a35623148b77ea3716213576c2066fbbad1d9fa7d884caeb387cb4e2f6",
-    "BEFORE_AUDIT.md": "16adcf342a0b9401cadd219794231c09b85d5de3cbd88bd3f2664380ce4ec30c",
-    "BEFORE_AUDIT.html": "99fb7546f311b9bc3fe4f99f12c4919f14a3336c0f85d100a55d9eebbc746d49",
+    "BEFORE_AUDIT.md": "007d7c14f0e49ba9ca08802a4332499d239b0d4ef7170a30063c455f49181019",
+    "BEFORE_AUDIT.html": "2a3975acf7dc4ad4c9f96be59bc2880d546b1ff78bd1076641e456f1cd5181aa",
     "before_checkpoint_audit.png": "abfb18d76f9108ea8400ffec7b245996a34afcd0a88f1cb5946f24de383c97e7",
-    "render_before_audit.py": "1b4c9ea6a700b5ed724f19fd18fcbb9bf6d46fe06acacc00aa753006e880237f",
+    "render_before_audit.py": "9b3a9f7d99bc43e3ee651ba1d4be562e2d8d7d483857afc3a4258e8ede606422",
     "audit_partition_remote.py": "c60673bf364a9499989725ac1763cc695081d770f94c21059ca441b702a7bdce",
     "partition_audit.json": "8e79bd961ecd1386164818cb6e848e83b3ab9b9f789ee980379faf03334cf450",
     "partition_audit_shards.csv": "b27f1b50b872534950f10829b34909884c9da308efb9cb943ce5f5b5a8935a06"

@@ -3,7 +3,7 @@
 <p><strong>建议保留三个主要问题：选点能否影响 Retrain → GU 如何响应同一请求 → 响应能否跨选点模型保留。问题 2 用效用原值、相对 Random 的增量和预测行为三部分展开，附属实验检查预算、选点近似、更多效用指标与空间分布。</strong> 框架让这些发现可以在统一请求和参照下比较；各项 insight 不必服从同一个机制解释。</p>
 <p>当前 OB 结果章采用另一套 Q 编号（响应量、GU 区分、跨来源），与汇报的三个问题不同。此处 Q2 专指汇报的“GU 怎样改变删除的影响”；正式成稿时应统一编号，将 GU 间差异放入这个问题下。</p>
 <p><strong>新增：<a href="STORIES.html">围绕 Retrain 和同一 selector 跨 GU 的三张叙事图</a>。</strong> 该页将完整指标图组织为三条可讨论的发现，并保留反例和配对区间。</p>
-<p><strong>Before 核验：<a href="BEFORE_AUDIT.html">保存预测与初始 ensemble checkpoint 的逐项对照</a>。</strong> 本批 Cora 的两种分片方法没有误取单 shard，但 GraphRevoker 的低初始性能仍需审查配置和初始模型质量。</p>
+<p><strong>方法审计更新：<a href="METHOD_AUDIT.html">GraphRevoker 原论文与执行链核对</a>。当前 GraphRevoker 是 GPA + optimal 配置版，未接入论文的 contrastive 聚合模块；其数值保留为诊断，不用于完整原方法的优劣结论。</strong> <a href="BEFORE_AUDIT.html">Before 来源核验</a>确认本批 Cora 未误取单 shard，但不能替代方法实现审查。</p>
 <h2>1. 哪些指标已有，哪些仍需要补算？</h2>
 <table>
 <thead>

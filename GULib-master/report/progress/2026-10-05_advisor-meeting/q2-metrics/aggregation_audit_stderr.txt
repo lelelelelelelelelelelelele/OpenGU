@@ -1,0 +1,12 @@
+/root/miniconda3/lib/python3.10/site-packages/torch/_utils.py:831: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  return self.fget.__get__(instance, owner)()
+{"seed": 42, "baseline": 75.46125461254613, "attention_ce_only": 77.49077490774908, "attention_contrastive_reconstruction": 78.04428044280442, "seconds": 4.655181638896465}
+{"seed": 212, "baseline": 66.78966789667896, "attention_ce_only": 69.37269372693727, "attention_contrastive_reconstruction": 70.11070110701108, "seconds": 4.709677986800671}
+{"seed": 2024, "baseline": 73.43173431734317, "attention_ce_only": 71.21771217712177, "attention_contrastive_reconstruction": 72.14022140221402, "seconds": 4.502924337983131}
+{"seed": 0, "baseline": 70.11070110701108, "attention_ce_only": 73.98523985239852, "attention_contrastive_reconstruction": 72.50922509225092, "seconds": 4.342501122504473}
+{"seed": 1, "baseline": 61.99261992619927, "attention_ce_only": 69.74169741697416, "attention_contrastive_reconstruction": 70.47970479704797, "seconds": 5.884450186043978}
+{"seed": 2, "baseline": 75.83025830258303, "attention_ce_only": 74.90774907749078, "attention_contrastive_reconstruction": 74.35424354243543, "seconds": 5.208066456019878}
+{"seed": 3, "baseline": 74.90774907749078, "attention_ce_only": 69.55719557195572, "attention_contrastive_reconstruction": 69.37269372693727, "seconds": 4.157182529568672}
+{"seed": 4, "baseline": 73.43173431734317, "attention_ce_only": 74.72324723247232, "attention_contrastive_reconstruction": 73.80073800738008, "seconds": 4.019683290272951}
+{"seed": 5, "baseline": 59.96309963099631, "attention_ce_only": 72.32472324723247, "attention_contrastive_reconstruction": 71.95571955719558, "seconds": 4.6400998942554}
+{"seed": 6, "baseline": 74.90774907749078, "attention_ce_only": 75.46125461254613, "attention_contrastive_reconstruction": 76.56826568265683, "seconds": 3.970229644328356}

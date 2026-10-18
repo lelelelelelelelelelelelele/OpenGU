@@ -1,5 +1,6 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Before ensemble 核验</title><style>body{margin:0;background:#eef3f4;color:#253c49;font:16px/1.85 "Microsoft YaHei",sans-serif}main{max-width:1200px;margin:auto;padding:35px;background:white}img{width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;border-bottom:1px solid #d8e3e8;padding:8px}th{background:#edf5f5}a{color:#167d77}code{overflow-wrap:anywhere}h2{margin-top:40px}@media(max-width:750px){main{padding:18px}table{display:block;overflow:auto}}</style></head><body><main><h1>Before 来源核验：单 shard，还是完整 ensemble？</h1>
 <p>2026-10-18 · EXP-079/e79r5 · 只读核验，未训练或修改缓存</p>
+<p><strong>2026-10-19 方法核查更新：<a href="METHOD_AUDIT.html">原论文与实现对照、冻结 shard 的聚合实验</a>。当前 adapter 固定为 GPA + optimal，没有接入论文的 contrastive 聚合模块。这批数值只能代表当前配置版本，不能作为完整 GraphRevoker 的方法优劣证据。</strong> 下文保留初次来源核验；此前“GPA 本来就鼓励类别集中”的解释仅描述代码行为，不能代表原论文意图，论文文字与公式的方向矛盾见新审计。</p>
 <p><strong>结论：当前 70.68% 能从完整初始 ensemble 复算，但初始模型质量审计仍未完成。旧 Shard Protection 表中的 GraphRevoker 当时实际调用了 GraphEraser，不能与当前真实 GraphRevoker 作前后性能比较。</strong> 当前图保留为诊断，不据此作方法优劣或固有机制结论。新增分区检查发现明显类别偏斜，但尚未证明低精度的根因。</p>
 <h2>1. 本轮实际核验了什么</h2>
 <ol>

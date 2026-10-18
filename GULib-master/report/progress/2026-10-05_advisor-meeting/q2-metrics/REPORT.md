@@ -8,7 +8,7 @@
 
 **新增：[围绕 Retrain 和同一 selector 跨 GU 的三张叙事图](STORIES.html)。** 该页将完整指标图组织为三条可讨论的发现，并保留反例和配对区间。
 
-**Before 核验：[保存预测与初始 ensemble checkpoint 的逐项对照](BEFORE_AUDIT.html)。** 本批 Cora 的两种分片方法没有误取单 shard，但 GraphRevoker 的低初始性能仍需审查配置和初始模型质量。
+**方法审计更新：[GraphRevoker 原论文与执行链核对](METHOD_AUDIT.html)。当前 GraphRevoker 是 GPA + optimal 配置版，未接入论文的 contrastive 聚合模块；其数值保留为诊断，不用于完整原方法的优劣结论。** [Before 来源核验](BEFORE_AUDIT.html)确认本批 Cora 未误取单 shard，但不能替代方法实现审查。
 
 ## 1. 哪些指标已有，哪些仍需要补算？
 

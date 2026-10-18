@@ -6,7 +6,7 @@
 
 ## 图 1：大的 Retrain gap，需要结合初始性能和 Random 来理解
 
-**Before 来源已专项核验：[完整证据](BEFORE_AUDIT.html)。** Cora 两种分片方法的 20 个初始 checkpoint 已重新前向，完整 ensemble 的预测均与图中 before 一致，排除了本批 Cora 误取单 shard 指标。但 GraphRevoker 的低起点原因及配置代表性尚未确认，不能把它当成方法固有性质。该图保留为当前配置的参照诊断。
+**方法审计更新：[原论文与当前实现对照](METHOD_AUDIT.html)。图中 GraphRevoker 实际是 GPA + optimal 配置版，当前 adapter 未接入论文的 contrastive 聚合模块，不能用于完整 GraphRevoker 的方法优劣结论。** [Before 来源核验](BEFORE_AUDIT.html)确认本批 Cora 没有误取单 shard；但数值能复算不代表完整方法实现正确。图和原数值保留为诊断，不以探索性聚合对照替换正式结果。
 
 ![删除前、Random、D-full 与同请求 Retrain 的准确率](story01_retrain_context.png)
 
