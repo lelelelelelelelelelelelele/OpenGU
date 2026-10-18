@@ -2,7 +2,7 @@
 
 2026-10-18 · EXP-079/e79r5 · 只读核验，未训练或修改缓存
 
-**结论：当前图中的 Cora before 来自完整初始 ensemble，未复现“最后一个 shard 被当成 before”的问题。GraphRevoker 的低起点是真实保存在这一批 checkpoint 中的表现，但原因和配置代表性尚未核实。** 不能把“数值可复算”扩大成“实现和实验配置已经合理”。
+**结论：当前 70.68% 能从完整初始 ensemble 复算，但初始模型质量审计仍未完成。旧 Shard Protection 表中的 GraphRevoker 当时实际调用了 GraphEraser，不能与当前真实 GraphRevoker 作前后性能比较。** 当前图保留为诊断，不据此作方法优劣或固有机制结论。新增分区检查发现明显类别偏斜，但尚未证明低精度的根因。
 
 ## 1. 本轮实际核验了什么
 
@@ -38,9 +38,15 @@ GraphRevoker 的 Cora before 均值为 70.68%，seed 范围 59.96%–75.83%；Gr
 
 因此图 1 只能说：**在当前配置和 checkpoint 下，GraphRevoker 的初始 ensemble 性能较低，gap 解释必须考虑这个起点。** 暂不把它写成 GraphRevoker 的固有性质，更不据此宣称它天然不如其他 GU。
 
-## 4. 与历史单 shard 误取问题的关系
+## 4. 用户记得的旧 Shard Protection 表，到底比较了什么
 
-用户指出的历史问题与既有审计记忆一致：旧 Step0 曾将最后一个 shard 的约 71.03% 当成 before，记忆中的完整聚合 before 约 84.69%。这是历史审计记录，本轮没有重新打开那次原始日志，不将其当成当前配置的正确替代值。当前 e79r5 的明确身份、保存预测及 Cora checkpoint 重算是本轮判断依据。
+用户补充记得的是最初研究 Shard Protection、后来发现结论不成立的那轮。本轮找到了[旧发现文档](../../../analysis/废弃/2026-02-22_新发现_Shard保护效应与新指标.md)：其 Step0 表把 GraphEraser 和 GraphRevoker 都记成 before 71.03%、after 84.13%，并解释成“保护效应”。这张表讨论的是删除后相对自身 before 的提升，不是初始 ensemble 高于其他方法 baseline 的有效证据。尚未定位用户记得的另一句“均值略高”的精确原文。
+
+本轮同时检查了 Git 提交 `6045e4736a999cfb7265ba4739190dc01d9299de`（2026-05-05）的真实 diff：`unlearning_manager.py` 将 `"GraphRevoker": grapheraser` 改成 `"GraphRevoker": graphrevoker`。因此旧表里同为 84.13% 的两行实际不是两个独立方法；旧 GraphRevoker 标签不能证明真正的 GraphRevoker 以前达到该水平。
+
+[旧解析器](../../../../scripts/evaluation/runners/run_round2.py)还保留着“取最后一次 Epoch F1 作为 before”的实现。既有审计记忆记录旧 Step0 的正确聚合 before 约 84.69%、after 84.13%，而 71.03% 是最后一个 shard 的训练输出；本轮未取得那份原始日志重新核算，所以该精确校正数值仍标为历史记录。上一版说明未交代旧 GraphRevoker 路由错误，容易让人误以为 84.69% 是当前 GraphRevoker 应恢复到的基准，现予以纠正。
+
+另一个可核对的时间点是[七月 GraphRevoker 修复后 canary](../../../../docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md)：Cora 四策略 before 为 72.14%–72.69%。本轮读取的是当时验收报告，没有重算其原始预测；它是旧 launcher、单 seed、不同预算的结果，不能与当前十 seed 作受控对比。它只说明低 before 在当前画图之前就已被记录。
 
 ## 5. 全部 Cora 逐 seed 核验结果
 
@@ -67,10 +73,29 @@ GraphRevoker 的 Cora before 均值为 70.68%，seed 范围 59.96%–75.83%；Gr
 | GraphEraser | 6 | 85.793 | 85.793 | 69.926 | 76.937 | 72.878 | 85.240 | 0 |
 | GraphRevoker | 6 | 74.908 | 74.908 | 36.162 | 61.624 | 52.952 | 72.509 | 0 |
 
+## 6. 新增排查：分区类别分布与聚合方式
+
+2026-10-18 再次只读加载同一批 Cora 的 20 个初始 checkpoint，逐项匹配 Output、checkpoint 文件与 state 身份，并核对正式聚合的测试 argmax。只增加统计与 CPU 前向，没有训练、优化权重或写回缓存。远端核验 SHA 为 `5bfd9765fa0bedf17b252765e22142b209f06bef`。
+
+| 方法 | 当前聚合准确率 | 同权重概率平均（诊断） | 均匀概率平均（诊断） | 缺类 shard / 100 | shard 最大类别占比均值 % |
+| --- | --- | --- | --- | --- | --- |
+| GraphEraser | 85.775 | 85.498 | 85.535 | 0 | 29.866 |
+| GraphRevoker | 70.683 | 71.107 | 69.077 | 51 | 59.708 |
+
+准确率单位为 %。每种方法为十 seed × 十 shard；100 个 shard 不是 100 次独立实验。最大类别占比先在每个 shard 内计算，再对所有 shard 等权平均。缺类指七个类别中至少一个在该 shard 的训练样本里完全没有出现。
+
+当前实现每个 shard 只用自己分区的训练节点监督，并过滤其他分区训练节点的消息传递边，再组合各 shard 的预测；它不只是将同一完整模型重复做 ensemble。GraphRevoker 的分区表现出更强的类别集中：51/100 个 shard 缺类，最大类别平均占约 59.71%；GraphEraser 为 0/100 和 29.87%。这提供了训练分布差异的线索，但不能单凭缺类判定分区错误：GPA 的现有目标包含最小化 `LabelEntropyLoss`，本身就会鼓励类别集中。
+
+当前正式聚合是加权 log-probability 求和。本轮额外将同一批 shard 的概率加权平均或均匀平均，GraphRevoker 均值分别为 71.11% 和 69.08%，没有恢复到八十多。替代聚合仅作敏感性诊断，权重没有为替代规则重新优化，也没有修改正式结果。它不能证明所有聚合设置都没有问题。
+
+**现在可以确认的是历史方法误标，以及当前分区和子模型质量值得继续检查；不能确认的是 70.68% 已达到合理复现水平，或类别偏斜就是性能差距的原因。** 后续需要对照原方法设置检查分区目标、子模型训练和聚合训练/评估图，并通过受控比较归因。本轮没有启动这些训练对照。
+
+[新增原始诊断 JSON](partition_audit.json) · [全部 200 个 shard 的 CSV](partition_audit_shards.csv) · [只读诊断脚本](audit_partition_remote.py)。
+
 ## 复现与影响范围
 
 原运行 SHA：`e02b5fa40ebce66fb45e57ea23b8d6c8d7856685`。核验时远端 SHA：`5bfd9765fa0bedf17b252765e22142b209f06bef`。用于重算的 ShardEnsemble、GCNNet、create_model，以及原始 before 生成/utility 函数已与原运行版本作 AST 对照，均相同；Output 自己的生成 producer 和初始 checkpoint 身份另在 JSON 中逐项保留，不能用当前 checkout SHA 冒充最初生成版本。
 
-本次只读 SQLite、Output、绑定数据和初始 checkpoint；不修改缓存、训练参数、远端源码或科学接受状态。新增 CPU 重算而非 GPU 训练。已回传的 before 数值无需替换；论文图注需明确“当前配置的初始 ensemble”，并保留初始质量待审阅的限制。
+本次只读 SQLite、Output、绑定数据和初始 checkpoint；不修改缓存、训练参数、远端源码或科学接受状态。新增 CPU 重算而非 GPU 训练。没有证据将已回传 before 直接替换成某个历史数字；当前数值也尚未通过初始质量审阅，论文不得据此作 GraphRevoker 优劣或机制结论。
 
 [逐 seed CSV](before_audit_cora.csv) · [汇总 CSV](before_audit_summary.csv) · [矢量图](before_checkpoint_audit.pdf) · [渲染脚本](render_before_audit.py) · [返回三张叙事图](STORIES.html)。

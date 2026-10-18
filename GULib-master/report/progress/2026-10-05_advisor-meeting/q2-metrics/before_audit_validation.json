@@ -4,8 +4,15 @@
   "sha256": {
     "before_audit.json": "d63a2978d4447758750c390ed08f6a37ba37af5d7df06f16400164b13ba54912",
     "audit_before_remote.py": "908370a35623148b77ea3716213576c2066fbbad1d9fa7d884caeb387cb4e2f6",
-    "BEFORE_AUDIT.md": "e65922f2538df490851c4902c30095247d7b6bfe8f5fd93ea66594f60fb0b481",
-    "BEFORE_AUDIT.html": "a6ab0dae353b9a0426e9b53489eab55357fa537876dd0c99f0121f26ae3a4ebd",
-    "before_checkpoint_audit.png": "abfb18d76f9108ea8400ffec7b245996a34afcd0a88f1cb5946f24de383c97e7"
-  }
+    "BEFORE_AUDIT.md": "16adcf342a0b9401cadd219794231c09b85d5de3cbd88bd3f2664380ce4ec30c",
+    "BEFORE_AUDIT.html": "99fb7546f311b9bc3fe4f99f12c4919f14a3336c0f85d100a55d9eebbc746d49",
+    "before_checkpoint_audit.png": "abfb18d76f9108ea8400ffec7b245996a34afcd0a88f1cb5946f24de383c97e7",
+    "render_before_audit.py": "1b4c9ea6a700b5ed724f19fd18fcbb9bf6d46fe06acacc00aa753006e880237f",
+    "audit_partition_remote.py": "c60673bf364a9499989725ac1763cc695081d770f94c21059ca441b702a7bdce",
+    "partition_audit.json": "8e79bd961ecd1386164818cb6e848e83b3ab9b9f789ee980379faf03334cf450",
+    "partition_audit_shards.csv": "b27f1b50b872534950f10829b34909884c9da308efb9cb943ce5f5b5a8935a06"
+  },
+  "Cora_partition_checks": 20,
+  "partition_quality_causality_established": false,
+  "historical_higher_baseline_exact_quote_located": false
 }

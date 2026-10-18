@@ -1,0 +1,3937 @@
+{
+  "read_only": true,
+  "new_training_runs": 0,
+  "cpu_threads": 2,
+  "current_remote_sha": "5bfd9765fa0bedf17b252765e22142b209f06bef",
+  "original_execution_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",
+  "data_identity": {
+    "num_nodes": 2708,
+    "edge_index_hash": "7d36bb36c70abad8b6cc53609894b82f68ddd9ccb8e4c2360bdda46e123ccf25",
+    "features_hash": "194f37ed7d36e13f47ce537011c8d56d4435fe7da45beba422380cf531c0d16c",
+    "labels_hash": "50cf459e544d43227def1ae6eea21c463ac5f5ceb691709b8d39544a0c08d258",
+    "split_hash": "246ce2ffe94f40b2839ede3440992a705919429ad339e4cb2118a0fe97625c26"
+  },
+  "interpretation": "Alternative pools are diagnostics, not validated replacements for formal metrics.",
+  "records": [
+    {
+      "method": "GraphEraser",
+      "seed": 42,
+      "output": {
+        "artifact_id": "pred_6637d6a9_22724065",
+        "recipe_hash": "6637d6a9387e2effacb0c4a0f34038fd6ccced4ec73635053c783548acf9f741",
+        "content_hash": "22724065d7b24d2ee5cf139df36c92aac4c604e96793aa6d903a42db9b68b567"
+      },
+      "checkpoint_state_hash": "d8cf48163d3e6e4205fdd118ba975d0142ac65217ac6f0f492fc4b710e68e3c9",
+      "checkpoint_file_sha256": "f1b57b3b4ff51c007256319621ea60ac3531febced252c7be319d311b7e14d7a",
+      "formal_before": 86.71586513519287,
+      "diagnostic_weighted_probability": 86.53136491775513,
+      "diagnostic_uniform_probability": 86.53136491775513,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 182,
+          "class_counts": [
+            23,
+            14,
+            25,
+            52,
+            27,
+            27,
+            14
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2857142857142857,
+          "label_entropy": 1.852788379671462,
+          "weight": 0.09886891394853592,
+          "test_accuracy": 71.03320956230164
+        },
+        {
+          "shard": 1,
+          "train_nodes": 183,
+          "class_counts": [
+            27,
+            17,
+            22,
+            57,
+            23,
+            26,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3114754098360656,
+          "label_entropy": 1.827995423730842,
+          "weight": 0.10186972469091415,
+          "test_accuracy": 71.58671617507935
+        },
+        {
+          "shard": 2,
+          "train_nodes": 185,
+          "class_counts": [
+            28,
+            16,
+            32,
+            57,
+            29,
+            13,
+            10
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3081081081081081,
+          "label_entropy": 1.7985050756542653,
+          "weight": 0.09762109071016312,
+          "test_accuracy": 70.11070251464844
+        },
+        {
+          "shard": 3,
+          "train_nodes": 187,
+          "class_counts": [
+            26,
+            13,
+            33,
+            60,
+            28,
+            14,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.32085561497326204,
+          "label_entropy": 1.7942468765134223,
+          "weight": 0.10072852671146393,
+          "test_accuracy": 71.95571660995483
+        },
+        {
+          "shard": 4,
+          "train_nodes": 181,
+          "class_counts": [
+            32,
+            13,
+            31,
+            54,
+            28,
+            16,
+            7
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2983425414364641,
+          "label_entropy": 1.7874962065463174,
+          "weight": 0.10126642882823944,
+          "test_accuracy": 70.66420912742615
+        },
+        {
+          "shard": 5,
+          "train_nodes": 176,
+          "class_counts": [
+            23,
+            18,
+            23,
+            48,
+            30,
+            22,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2727272727272727,
+          "label_entropy": 1.8640362148128438,
+          "weight": 0.1011035218834877,
+          "test_accuracy": 74.53874349594116
+        },
+        {
+          "shard": 6,
+          "train_nodes": 194,
+          "class_counts": [
+            28,
+            12,
+            37,
+            60,
+            27,
+            17,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.30927835051546393,
+          "label_entropy": 1.7993952391581909,
+          "weight": 0.09728416800498962,
+          "test_accuracy": 75.46125650405884
+        },
+        {
+          "shard": 7,
+          "train_nodes": 202,
+          "class_counts": [
+            26,
+            15,
+            34,
+            61,
+            40,
+            15,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.30198019801980197,
+          "label_entropy": 1.7907250947354332,
+          "weight": 0.09797986596822739,
+          "test_accuracy": 70.66420912742615
+        },
+        {
+          "shard": 8,
+          "train_nodes": 201,
+          "class_counts": [
+            19,
+            21,
+            39,
+            49,
+            36,
+            22,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.24378109452736318,
+          "label_entropy": 1.8650572494637163,
+          "weight": 0.10230224579572678,
+          "test_accuracy": 72.14022278785706
+        },
+        {
+          "shard": 9,
+          "train_nodes": 204,
+          "class_counts": [
+            23,
+            20,
+            26,
+            68,
+            23,
+            33,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3333333333333333,
+          "label_entropy": 1.8007375876014204,
+          "weight": 0.10097551345825195,
+          "test_accuracy": 74.35424327850342
+        }
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "seed": 42,
+      "output": {
+        "artifact_id": "pred_8bb5535b_8c1afe88",
+        "recipe_hash": "8bb5535b3ee90b9f54caad8caedfad7ad05602fdda2f85794e1668d2405ed56f",
+        "content_hash": "8c1afe880ba5540407101983cee97d5394cbff0a08604ae29e5a4722636d93ab"
+      },
+      "checkpoint_state_hash": "bee657c9888349a0b3fe7386798083cd0a8d50ba631c7c99e0ab8871b2819dc8",
+      "checkpoint_file_sha256": "c54965def8e2d3674e7427459f262a145720a93ba51f0c19f815bbe85f1c254e",
+      "formal_before": 75.46125650405884,
+      "diagnostic_weighted_probability": 78.22878360748291,
+      "diagnostic_uniform_probability": 72.3247230052948,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 180,
+          "class_counts": [
+            64,
+            18,
+            22,
+            52,
+            21,
+            2,
+            1
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.35555555555555557,
+          "label_entropy": 1.5430452849425496,
+          "weight": 0.12871892750263214,
+          "test_accuracy": 61.25461459159851
+        },
+        {
+          "shard": 1,
+          "train_nodes": 180,
+          "class_counts": [
+            46,
+            2,
+            0,
+            9,
+            6,
+            18,
+            99
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.55,
+          "label_entropy": 1.2208849985764996,
+          "weight": 0.05552656576037407,
+          "test_accuracy": 36.1623615026474
+        },
+        {
+          "shard": 2,
+          "train_nodes": 180,
+          "class_counts": [
+            31,
+            12,
+            21,
+            58,
+            28,
+            16,
+            14
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.32222222222222224,
+          "label_entropy": 1.802272976469457,
+          "weight": 0.1516961008310318,
+          "test_accuracy": 72.87822961807251
+        },
+        {
+          "shard": 3,
+          "train_nodes": 199,
+          "class_counts": [
+            3,
+            1,
+            3,
+            174,
+            18,
+            0,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.8743718592964824,
+          "label_entropy": 0.48780740041560955,
+          "weight": 0.036416180431842804,
+          "test_accuracy": 37.82287836074829
+        },
+        {
+          "shard": 4,
+          "train_nodes": 199,
+          "class_counts": [
+            0,
+            6,
+            139,
+            43,
+            3,
+            8,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.6984924623115578,
+          "label_entropy": 0.8797098111827804,
+          "weight": 0.0710592120885849,
+          "test_accuracy": 45.940959453582764
+        },
+        {
+          "shard": 5,
+          "train_nodes": 199,
+          "class_counts": [
+            3,
+            0,
+            21,
+            42,
+            130,
+            3,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.6532663316582915,
+          "label_entropy": 0.970248304868574,
+          "weight": 0.09215842187404633,
+          "test_accuracy": 53.505533933639526
+        },
+        {
+          "shard": 6,
+          "train_nodes": 180,
+          "class_counts": [
+            17,
+            2,
+            25,
+            41,
+            17,
+            78,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.43333333333333335,
+          "label_entropy": 1.4692502570157602,
+          "weight": 0.11716839671134949,
+          "test_accuracy": 61.07010841369629
+        },
+        {
+          "shard": 7,
+          "train_nodes": 180,
+          "class_counts": [
+            6,
+            0,
+            26,
+            49,
+            20,
+            77,
+            2
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.42777777777777776,
+          "label_entropy": 1.4044334135219827,
+          "weight": 0.12461581826210022,
+          "test_accuracy": 58.85608792304993
+        },
+        {
+          "shard": 8,
+          "train_nodes": 199,
+          "class_counts": [
+            4,
+            102,
+            21,
+            45,
+            24,
+            3,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.5125628140703518,
+          "label_entropy": 1.312921325097927,
+          "weight": 0.1128431186079979,
+          "test_accuracy": 55.71955442428589
+        },
+        {
+          "shard": 9,
+          "train_nodes": 199,
+          "class_counts": [
+            81,
+            16,
+            24,
+            53,
+            24,
+            0,
+            1
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.40703517587939697,
+          "label_entropy": 1.4577075565874678,
+          "weight": 0.10979732871055603,
+          "test_accuracy": 56.088560819625854
+        }
+      ]
+    },
+    {
+      "method": "GraphEraser",
+      "seed": 212,
+      "output": {
+        "artifact_id": "pred_a4963d9e_c6577260",
+        "recipe_hash": "a4963d9e5fa51b78fe6abf4d962cbb1aeab69c1249f60b07fb2b3457c52fe2a8",
+        "content_hash": "c6577260793411166853e9a96ef86e131f5bc5a3d042a15a48a5c8ddae47972e"
+      },
+      "checkpoint_state_hash": "f305d9758dc1b31749fe858d7024ec92ac4656f959e72025395cc29769498e8d",
+      "checkpoint_file_sha256": "33fbc3fa66a692076d4c03969c08238a9841e8d2859302e72d1e3d62156555e2",
+      "formal_before": 86.53136491775513,
+      "diagnostic_weighted_probability": 85.79335808753967,
+      "diagnostic_uniform_probability": 86.16236448287964,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 174,
+          "class_counts": [
+            19,
+            22,
+            27,
+            54,
+            29,
+            13,
+            10
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3103448275862069,
+          "label_entropy": 1.8121485169088898,
+          "weight": 0.08829300850629807,
+          "test_accuracy": 70.11070251464844
+        },
+        {
+          "shard": 1,
+          "train_nodes": 189,
+          "class_counts": [
+            27,
+            11,
+            34,
+            58,
+            28,
+            24,
+            7
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.30687830687830686,
+          "label_entropy": 1.7816264590375028,
+          "weight": 0.09322483092546463,
+          "test_accuracy": 73.247230052948
+        },
+        {
+          "shard": 2,
+          "train_nodes": 187,
+          "class_counts": [
+            21,
+            15,
+            36,
+            56,
+            28,
+            20,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2994652406417112,
+          "label_entropy": 1.8162673311268809,
+          "weight": 0.10643785446882248,
+          "test_accuracy": 67.34317541122437
+        },
+        {
+          "shard": 3,
+          "train_nodes": 190,
+          "class_counts": [
+            23,
+            18,
+            37,
+            53,
+            26,
+            18,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2789473684210526,
+          "label_entropy": 1.84949540141405,
+          "weight": 0.10101421177387238,
+          "test_accuracy": 73.98523688316345
+        },
+        {
+          "shard": 4,
+          "train_nodes": 186,
+          "class_counts": [
+            25,
+            12,
+            24,
+            58,
+            36,
+            21,
+            10
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3118279569892473,
+          "label_entropy": 1.795438792714511,
+          "weight": 0.09249909222126007,
+          "test_accuracy": 71.21770977973938
+        },
+        {
+          "shard": 5,
+          "train_nodes": 182,
+          "class_counts": [
+            22,
+            17,
+            32,
+            50,
+            24,
+            21,
+            16
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.27472527472527475,
+          "label_entropy": 1.8675124966360468,
+          "weight": 0.0979863628745079,
+          "test_accuracy": 71.21770977973938
+        },
+        {
+          "shard": 6,
+          "train_nodes": 191,
+          "class_counts": [
+            30,
+            15,
+            21,
+            57,
+            36,
+            25,
+            7
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.29842931937172773,
+          "label_entropy": 1.796014180011702,
+          "weight": 0.09680218994617462,
+          "test_accuracy": 73.247230052948
+        },
+        {
+          "shard": 7,
+          "train_nodes": 206,
+          "class_counts": [
+            24,
+            20,
+            32,
+            69,
+            27,
+            23,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.33495145631067963,
+          "label_entropy": 1.8000817733745225,
+          "weight": 0.10538172721862793,
+          "test_accuracy": 73.247230052948
+        },
+        {
+          "shard": 8,
+          "train_nodes": 199,
+          "class_counts": [
+            41,
+            12,
+            33,
+            50,
+            31,
+            21,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.25125628140703515,
+          "label_entropy": 1.8268392123418427,
+          "weight": 0.1096460223197937,
+          "test_accuracy": 73.06272983551025
+        },
+        {
+          "shard": 9,
+          "train_nodes": 191,
+          "class_counts": [
+            23,
+            17,
+            26,
+            61,
+            26,
+            19,
+            19
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3193717277486911,
+          "label_entropy": 1.8368074557150074,
+          "weight": 0.1087147518992424,
+          "test_accuracy": 72.14022278785706
+        }
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "seed": 212,
+      "output": {
+        "artifact_id": "pred_d3bb8d78_111f7a98",
+        "recipe_hash": "d3bb8d78a05fbea07481eae9ae65b08674a344b03aa5515210c275e13dc0fc53",
+        "content_hash": "111f7a98192d3b0210fc7f09123ca8117554854def1112ac8689fac9adbb0176"
+      },
+      "checkpoint_state_hash": "ecac9b552550a39a99a32a3de211b2fe9e936dc599dd2cf3ae210872c3e6c636",
+      "checkpoint_file_sha256": "0ddaab75e59652a86a896e1b3ce44de31e8867a043a0da6efbd80fa4d8da32da",
+      "formal_before": 66.78966879844666,
+      "diagnostic_weighted_probability": 67.8966760635376,
+      "diagnostic_uniform_probability": 62.73062825202942,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 190,
+          "class_counts": [
+            0,
+            0,
+            0,
+            0,
+            189,
+            1,
+            0
+          ],
+          "represented_classes": 2,
+          "dominant_class_fraction": 0.9947368421052631,
+          "label_entropy": 0.03286519928536821,
+          "weight": 0.026911374181509018,
+          "test_accuracy": 15.867158770561218
+        },
+        {
+          "shard": 1,
+          "train_nodes": 199,
+          "class_counts": [
+            1,
+            8,
+            185,
+            1,
+            0,
+            4,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.9296482412060302,
+          "label_entropy": 0.32874936031540525,
+          "weight": 0.07287011295557022,
+          "test_accuracy": 17.158672213554382
+        },
+        {
+          "shard": 2,
+          "train_nodes": 185,
+          "class_counts": [
+            60,
+            4,
+            14,
+            61,
+            6,
+            32,
+            8
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.32972972972972975,
+          "label_entropy": 1.5597850275356788,
+          "weight": 0.13961079716682434,
+          "test_accuracy": 50.9225070476532
+        },
+        {
+          "shard": 3,
+          "train_nodes": 199,
+          "class_counts": [
+            23,
+            14,
+            20,
+            95,
+            20,
+            15,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.47738693467336685,
+          "label_entropy": 1.6151621210099987,
+          "weight": 0.18416748940944672,
+          "test_accuracy": 70.66420912742615
+        },
+        {
+          "shard": 4,
+          "train_nodes": 185,
+          "class_counts": [
+            144,
+            5,
+            15,
+            19,
+            1,
+            1,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.7783783783783784,
+          "label_entropy": 0.7864888071225945,
+          "weight": 0.09178801625967026,
+          "test_accuracy": 42.250922322273254
+        },
+        {
+          "shard": 5,
+          "train_nodes": 185,
+          "class_counts": [
+            3,
+            118,
+            14,
+            34,
+            14,
+            2,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.6378378378378379,
+          "label_entropy": 1.1046110684283281,
+          "weight": 0.11619238555431366,
+          "test_accuracy": 52.58302688598633
+        },
+        {
+          "shard": 6,
+          "train_nodes": 185,
+          "class_counts": [
+            13,
+            1,
+            13,
+            100,
+            56,
+            1,
+            1
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.5405405405405406,
+          "label_entropy": 1.1521104381919605,
+          "weight": 0.12849009037017822,
+          "test_accuracy": 51.291513442993164
+        },
+        {
+          "shard": 7,
+          "train_nodes": 184,
+          "class_counts": [
+            1,
+            3,
+            14,
+            26,
+            2,
+            138,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.75,
+          "label_entropy": 0.8328680816199061,
+          "weight": 0.09860975295305252,
+          "test_accuracy": 42.804428935050964
+        },
+        {
+          "shard": 8,
+          "train_nodes": 184,
+          "class_counts": [
+            9,
+            1,
+            15,
+            51,
+            3,
+            10,
+            95
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.5163043478260869,
+          "label_entropy": 1.302659268589986,
+          "weight": 0.10293550789356232,
+          "test_accuracy": 50.9225070476532
+        },
+        {
+          "shard": 9,
+          "train_nodes": 199,
+          "class_counts": [
+            1,
+            5,
+            12,
+            179,
+            0,
+            1,
+            1
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.8994974874371859,
+          "label_entropy": 0.4369825704273986,
+          "weight": 0.03842446580529213,
+          "test_accuracy": 39.667895436286926
+        }
+      ]
+    },
+    {
+      "method": "GraphEraser",
+      "seed": 2024,
+      "output": {
+        "artifact_id": "pred_7d106bc4_d1d787c3",
+        "recipe_hash": "7d106bc44a2e87e21995c8a80b39624b7c619307e0fbe7da01545537f5c6bda8",
+        "content_hash": "d1d787c31e30a71e08b23b66a7b4c14d6bea1b1d8f0961fccb1b90fa4f6573ce"
+      },
+      "checkpoint_state_hash": "9ac21c86bcfa208c06b065b578be8f2a090c4c3d546ee32d97857ca7c03ac7a0",
+      "checkpoint_file_sha256": "bae977e75904513f70e5c21ef2fef568503426562a7712af4a1d88fd18352439",
+      "formal_before": 84.50184464454651,
+      "diagnostic_weighted_probability": 84.68634486198425,
+      "diagnostic_uniform_probability": 84.68634486198425,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 176,
+          "class_counts": [
+            21,
+            15,
+            26,
+            56,
+            30,
+            17,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3181818181818182,
+          "label_entropy": 1.8110332837992067,
+          "weight": 0.09434551000595093,
+          "test_accuracy": 73.43173623085022
+        },
+        {
+          "shard": 1,
+          "train_nodes": 195,
+          "class_counts": [
+            32,
+            13,
+            30,
+            62,
+            32,
+            19,
+            7
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.31794871794871793,
+          "label_entropy": 1.7723051770437859,
+          "weight": 0.09503354877233505,
+          "test_accuracy": 70.66420912742615
+        },
+        {
+          "shard": 2,
+          "train_nodes": 197,
+          "class_counts": [
+            23,
+            15,
+            23,
+            64,
+            35,
+            20,
+            17
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3248730964467005,
+          "label_entropy": 1.8134653594158667,
+          "weight": 0.09807314723730087,
+          "test_accuracy": 66.23616218566895
+        },
+        {
+          "shard": 3,
+          "train_nodes": 182,
+          "class_counts": [
+            17,
+            17,
+            23,
+            55,
+            30,
+            30,
+            10
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3021978021978022,
+          "label_entropy": 1.819684491023293,
+          "weight": 0.103264719247818,
+          "test_accuracy": 71.58671617507935
+        },
+        {
+          "shard": 4,
+          "train_nodes": 184,
+          "class_counts": [
+            22,
+            19,
+            28,
+            55,
+            25,
+            26,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.29891304347826086,
+          "label_entropy": 1.8311871007773202,
+          "weight": 0.10231000185012817,
+          "test_accuracy": 68.81918907165527
+        },
+        {
+          "shard": 5,
+          "train_nodes": 189,
+          "class_counts": [
+            32,
+            16,
+            35,
+            50,
+            23,
+            17,
+            16
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.26455026455026454,
+          "label_entropy": 1.8557908550589692,
+          "weight": 0.1013004258275032,
+          "test_accuracy": 73.98523688316345
+        },
+        {
+          "shard": 6,
+          "train_nodes": 174,
+          "class_counts": [
+            24,
+            12,
+            33,
+            58,
+            22,
+            16,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3333333333333333,
+          "label_entropy": 1.7732967325959181,
+          "weight": 0.09035385400056839,
+          "test_accuracy": 69.74169611930847
+        },
+        {
+          "shard": 7,
+          "train_nodes": 203,
+          "class_counts": [
+            24,
+            18,
+            45,
+            50,
+            34,
+            17,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.24630541871921183,
+          "label_entropy": 1.8458040894654737,
+          "weight": 0.10611099749803543,
+          "test_accuracy": 73.43173623085022
+        },
+        {
+          "shard": 8,
+          "train_nodes": 187,
+          "class_counts": [
+            30,
+            8,
+            27,
+            57,
+            29,
+            24,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3048128342245989,
+          "label_entropy": 1.7987197279379874,
+          "weight": 0.10214439779520035,
+          "test_accuracy": 73.80073666572571
+        },
+        {
+          "shard": 9,
+          "train_nodes": 208,
+          "class_counts": [
+            30,
+            26,
+            32,
+            59,
+            31,
+            19,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.28365384615384615,
+          "label_entropy": 1.8423482649780683,
+          "weight": 0.1070634052157402,
+          "test_accuracy": 73.98523688316345
+        }
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "seed": 2024,
+      "output": {
+        "artifact_id": "pred_7dc2ed2c_988c4802",
+        "recipe_hash": "7dc2ed2c0e67152c3599867b27161a81a6c7d18d3fcde9afa885c60512bd0499",
+        "content_hash": "988c48020170fbb4584bcb7df9c483fda292b8d13f94c4a6ad3f55754409e2dc"
+      },
+      "checkpoint_state_hash": "fac7d5c982f0eba9125d1785745556db00a454629634b52869030109d6657727",
+      "checkpoint_file_sha256": "070ff78074274f5abce858997ff99ca8d17add5de73070b09159a066ad7fb424",
+      "formal_before": 73.43173623085022,
+      "diagnostic_weighted_probability": 69.92619633674622,
+      "diagnostic_uniform_probability": 70.11070251464844,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 199,
+          "class_counts": [
+            2,
+            0,
+            0,
+            2,
+            194,
+            1,
+            0
+          ],
+          "represented_classes": 4,
+          "dominant_class_fraction": 0.9748743718592965,
+          "label_entropy": 0.14387230421933941,
+          "weight": 0.04477359727025032,
+          "test_accuracy": 16.605165600776672
+        },
+        {
+          "shard": 1,
+          "train_nodes": 199,
+          "class_counts": [
+            1,
+            4,
+            186,
+            2,
+            1,
+            5,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.9346733668341709,
+          "label_entropy": 0.33366893186808333,
+          "weight": 0.05920157581567764,
+          "test_accuracy": 19.926199316978455
+        },
+        {
+          "shard": 2,
+          "train_nodes": 176,
+          "class_counts": [
+            67,
+            2,
+            15,
+            36,
+            15,
+            21,
+            20
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3806818181818182,
+          "label_entropy": 1.6636743112820576,
+          "weight": 0.13021469116210938,
+          "test_accuracy": 56.642067432403564
+        },
+        {
+          "shard": 3,
+          "train_nodes": 175,
+          "class_counts": [
+            23,
+            6,
+            14,
+            88,
+            18,
+            22,
+            4
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.5028571428571429,
+          "label_entropy": 1.5111050074610681,
+          "weight": 0.1365649253129959,
+          "test_accuracy": 61.80811524391174
+        },
+        {
+          "shard": 4,
+          "train_nodes": 175,
+          "class_counts": [
+            13,
+            6,
+            15,
+            32,
+            10,
+            14,
+            85
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.4857142857142857,
+          "label_entropy": 1.5464019126965216,
+          "weight": 0.12577734887599945,
+          "test_accuracy": 57.93358087539673
+        },
+        {
+          "shard": 5,
+          "train_nodes": 175,
+          "class_counts": [
+            6,
+            132,
+            12,
+            13,
+            11,
+            1,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.7542857142857143,
+          "label_entropy": 0.9086689451120435,
+          "weight": 0.09731186181306839,
+          "test_accuracy": 42.250922322273254
+        },
+        {
+          "shard": 6,
+          "train_nodes": 199,
+          "class_counts": [
+            3,
+            3,
+            15,
+            175,
+            3,
+            0,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.8793969849246231,
+          "label_entropy": 0.4975972415528285,
+          "weight": 0.046358078718185425,
+          "test_accuracy": 42.43542551994324
+        },
+        {
+          "shard": 7,
+          "train_nodes": 199,
+          "class_counts": [
+            110,
+            2,
+            13,
+            64,
+            8,
+            1,
+            1
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.5527638190954773,
+          "label_entropy": 1.0993976593287973,
+          "weight": 0.09367050230503082,
+          "test_accuracy": 47.601476311683655
+        },
+        {
+          "shard": 8,
+          "train_nodes": 199,
+          "class_counts": [
+            11,
+            0,
+            16,
+            56,
+            3,
+            112,
+            1
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.5628140703517588,
+          "label_entropy": 1.1328743087001614,
+          "weight": 0.11899569630622864,
+          "test_accuracy": 51.66051387786865
+        },
+        {
+          "shard": 9,
+          "train_nodes": 199,
+          "class_counts": [
+            19,
+            4,
+            16,
+            98,
+            28,
+            28,
+            6
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.49246231155778897,
+          "label_entropy": 1.5117381920643205,
+          "weight": 0.14713186025619507,
+          "test_accuracy": 61.992621421813965
+        }
+      ]
+    },
+    {
+      "method": "GraphEraser",
+      "seed": 0,
+      "output": {
+        "artifact_id": "pred_2cf2e204_18d1232a",
+        "recipe_hash": "2cf2e204f5495e8c1201ffe80e3249e0552d7bee9f145aed5e9bd09ba10a38f9",
+        "content_hash": "18d1232a7d1fb1fddf5913904ef5dbe27795c57be891b041ad829565ef0def97"
+      },
+      "checkpoint_state_hash": "97bf7a945bbc6fa76b7668c5fb8f631a9c3e2d38b3bd11c6730bdda25da0f71a",
+      "checkpoint_file_sha256": "8063d4d9079b1f14451b95b4181d9b6dfa8fe1e1389bfcda7f1fede208ab4dbf",
+      "formal_before": 86.53136491775513,
+      "diagnostic_weighted_probability": 86.71586513519287,
+      "diagnostic_uniform_probability": 86.71586513519287,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 187,
+          "class_counts": [
+            24,
+            19,
+            27,
+            48,
+            32,
+            23,
+            14
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.25668449197860965,
+          "label_entropy": 1.8782230825830142,
+          "weight": 0.10258698463439941,
+          "test_accuracy": 75.83025693893433
+        },
+        {
+          "shard": 1,
+          "train_nodes": 180,
+          "class_counts": [
+            32,
+            16,
+            30,
+            47,
+            17,
+            23,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2611111111111111,
+          "label_entropy": 1.864292550848408,
+          "weight": 0.09795670211315155,
+          "test_accuracy": 69.18818950653076
+        },
+        {
+          "shard": 2,
+          "train_nodes": 182,
+          "class_counts": [
+            33,
+            17,
+            28,
+            57,
+            26,
+            15,
+            6
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3131868131868132,
+          "label_entropy": 1.7788042433994073,
+          "weight": 0.09410097450017929,
+          "test_accuracy": 75.64575672149658
+        },
+        {
+          "shard": 3,
+          "train_nodes": 183,
+          "class_counts": [
+            24,
+            9,
+            26,
+            61,
+            24,
+            26,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3333333333333333,
+          "label_entropy": 1.7895393091724787,
+          "weight": 0.09746897220611572,
+          "test_accuracy": 71.03320956230164
+        },
+        {
+          "shard": 4,
+          "train_nodes": 186,
+          "class_counts": [
+            17,
+            13,
+            27,
+            45,
+            46,
+            22,
+            16
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.24731182795698925,
+          "label_entropy": 1.837154019487638,
+          "weight": 0.10324470698833466,
+          "test_accuracy": 73.98523688316345
+        },
+        {
+          "shard": 5,
+          "train_nodes": 191,
+          "class_counts": [
+            25,
+            21,
+            36,
+            57,
+            23,
+            22,
+            7
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.29842931937172773,
+          "label_entropy": 1.8092988581590548,
+          "weight": 0.09778879582881927,
+          "test_accuracy": 74.16974306106567
+        },
+        {
+          "shard": 6,
+          "train_nodes": 185,
+          "class_counts": [
+            19,
+            13,
+            30,
+            53,
+            34,
+            21,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2864864864864865,
+          "label_entropy": 1.8354798404028434,
+          "weight": 0.1081874817609787,
+          "test_accuracy": 78.78229022026062
+        },
+        {
+          "shard": 7,
+          "train_nodes": 193,
+          "class_counts": [
+            21,
+            24,
+            34,
+            63,
+            32,
+            11,
+            8
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.32642487046632124,
+          "label_entropy": 1.7650842928221362,
+          "weight": 0.0924188643693924,
+          "test_accuracy": 68.26568245887756
+        },
+        {
+          "shard": 8,
+          "train_nodes": 204,
+          "class_counts": [
+            26,
+            18,
+            40,
+            64,
+            24,
+            19,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3137254901960784,
+          "label_entropy": 1.8082039580119664,
+          "weight": 0.0988241657614708,
+          "test_accuracy": 74.35424327850342
+        },
+        {
+          "shard": 9,
+          "train_nodes": 204,
+          "class_counts": [
+            34,
+            9,
+            24,
+            71,
+            33,
+            23,
+            10
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3480392156862745,
+          "label_entropy": 1.7439934759228228,
+          "weight": 0.1074223443865776,
+          "test_accuracy": 74.72324967384338
+        }
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "seed": 0,
+      "output": {
+        "artifact_id": "pred_6914d531_13b1104b",
+        "recipe_hash": "6914d53170be44b5b7cbc13828ee21089b81bb1dad91933ebb74f558cc91c15d",
+        "content_hash": "13b1104be423c497c98585103dccb8b9fa43f5f236197d0e2b4e9ab644074b17"
+      },
+      "checkpoint_state_hash": "ba569fffab8c7a718f2a74c617bdf70b5bf713a704df60c53d8940d07230a23b",
+      "checkpoint_file_sha256": "327fdd04397632ab7eac08d11b71f973465287620c861ca4c1a80d560d733ac5",
+      "formal_before": 70.11070251464844,
+      "diagnostic_weighted_probability": 69.92619633674622,
+      "diagnostic_uniform_probability": 69.55719590187073,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 186,
+          "class_counts": [
+            153,
+            17,
+            3,
+            10,
+            3,
+            0,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.8225806451612904,
+          "label_entropy": 0.6696221926167096,
+          "weight": 0.06750902533531189,
+          "test_accuracy": 30.996310710906982
+        },
+        {
+          "shard": 1,
+          "train_nodes": 186,
+          "class_counts": [
+            19,
+            23,
+            25,
+            49,
+            62,
+            5,
+            3
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3333333333333333,
+          "label_entropy": 1.6426436839248733,
+          "weight": 0.13237972557544708,
+          "test_accuracy": 62.17712163925171
+        },
+        {
+          "shard": 2,
+          "train_nodes": 186,
+          "class_counts": [
+            46,
+            17,
+            39,
+            50,
+            18,
+            7,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.26881720430107525,
+          "label_entropy": 1.7408796337160954,
+          "weight": 0.13076311349868774,
+          "test_accuracy": 60.7011079788208
+        },
+        {
+          "shard": 3,
+          "train_nodes": 185,
+          "class_counts": [
+            12,
+            19,
+            36,
+            63,
+            37,
+            15,
+            3
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.34054054054054056,
+          "label_entropy": 1.6889615407589806,
+          "weight": 0.1326010525226593,
+          "test_accuracy": 60.885608196258545
+        },
+        {
+          "shard": 4,
+          "train_nodes": 185,
+          "class_counts": [
+            2,
+            7,
+            6,
+            7,
+            2,
+            159,
+            2
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.8594594594594595,
+          "label_entropy": 0.635988527032275,
+          "weight": 0.06489935517311096,
+          "test_accuracy": 36.1623615026474
+        },
+        {
+          "shard": 5,
+          "train_nodes": 185,
+          "class_counts": [
+            11,
+            23,
+            32,
+            5,
+            7,
+            11,
+            96
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.518918918918919,
+          "label_entropy": 1.4602498853810502,
+          "weight": 0.089572973549366,
+          "test_accuracy": 38.560885190963745
+        },
+        {
+          "shard": 6,
+          "train_nodes": 185,
+          "class_counts": [
+            6,
+            21,
+            36,
+            83,
+            36,
+            2,
+            1
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.4486486486486487,
+          "label_entropy": 1.4319830878640674,
+          "weight": 0.12203069031238556,
+          "test_accuracy": 58.85608792304993
+        },
+        {
+          "shard": 7,
+          "train_nodes": 199,
+          "class_counts": [
+            2,
+            0,
+            0,
+            136,
+            61,
+            0,
+            0
+          ],
+          "represented_classes": 3,
+          "dominant_class_fraction": 0.6834170854271356,
+          "label_entropy": 0.6688291235395931,
+          "weight": 0.049431778490543365,
+          "test_accuracy": 40.95940887928009
+        },
+        {
+          "shard": 8,
+          "train_nodes": 199,
+          "class_counts": [
+            0,
+            5,
+            85,
+            78,
+            31,
+            0,
+            0
+          ],
+          "represented_classes": 4,
+          "dominant_class_fraction": 0.4271356783919598,
+          "label_entropy": 1.1126543815854215,
+          "weight": 0.07972031086683273,
+          "test_accuracy": 54.24354076385498
+        },
+        {
+          "shard": 9,
+          "train_nodes": 199,
+          "class_counts": [
+            4,
+            27,
+            40,
+            85,
+            34,
+            6,
+            3
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.4271356783919598,
+          "label_entropy": 1.5060889487890505,
+          "weight": 0.13109204173088074,
+          "test_accuracy": 63.65313529968262
+        }
+      ]
+    },
+    {
+      "method": "GraphEraser",
+      "seed": 1,
+      "output": {
+        "artifact_id": "pred_883ebe14_240196a1",
+        "recipe_hash": "883ebe14142c79da1e0a830ef77d515fcb2b8b1dcfd7b8c9250d3c59a06144d2",
+        "content_hash": "240196a11c857368fbfa54b4b46389484fbc3da810b140e4db9c97d0d770d528"
+      },
+      "checkpoint_state_hash": "467fe5235ef0d58d84b6235d27d8a34342febf01c1cb3a85da17b5f87db44adf",
+      "checkpoint_file_sha256": "e4557a1b253d7f1d49ddb6fa63988b6adaa16e7241e182b261aca89320ee21c1",
+      "formal_before": 84.50184464454651,
+      "diagnostic_weighted_probability": 84.13284420967102,
+      "diagnostic_uniform_probability": 84.13284420967102,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 179,
+          "class_counts": [
+            24,
+            13,
+            30,
+            63,
+            27,
+            19,
+            3
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.35195530726256985,
+          "label_entropy": 1.718677338577261,
+          "weight": 0.09539471566677094,
+          "test_accuracy": 70.29520273208618
+        },
+        {
+          "shard": 1,
+          "train_nodes": 179,
+          "class_counts": [
+            21,
+            20,
+            22,
+            57,
+            22,
+            21,
+            16
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.31843575418994413,
+          "label_entropy": 1.8432193386584348,
+          "weight": 0.10399807244539261,
+          "test_accuracy": 74.53874349594116
+        },
+        {
+          "shard": 2,
+          "train_nodes": 188,
+          "class_counts": [
+            27,
+            15,
+            28,
+            54,
+            28,
+            20,
+            16
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2872340425531915,
+          "label_entropy": 1.8540323643733079,
+          "weight": 0.0878647193312645,
+          "test_accuracy": 69.55719590187073
+        },
+        {
+          "shard": 3,
+          "train_nodes": 180,
+          "class_counts": [
+            15,
+            14,
+            38,
+            53,
+            30,
+            18,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.29444444444444445,
+          "label_entropy": 1.803496884176524,
+          "weight": 0.09003736823797226,
+          "test_accuracy": 72.69372940063477
+        },
+        {
+          "shard": 4,
+          "train_nodes": 191,
+          "class_counts": [
+            25,
+            13,
+            31,
+            62,
+            27,
+            24,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.32460732984293195,
+          "label_entropy": 1.7905557265438352,
+          "weight": 0.10046079754829407,
+          "test_accuracy": 68.26568245887756
+        },
+        {
+          "shard": 5,
+          "train_nodes": 187,
+          "class_counts": [
+            28,
+            18,
+            33,
+            51,
+            29,
+            17,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2727272727272727,
+          "label_entropy": 1.8437860037865834,
+          "weight": 0.11018960177898407,
+          "test_accuracy": 72.87822961807251
+        },
+        {
+          "shard": 6,
+          "train_nodes": 195,
+          "class_counts": [
+            39,
+            15,
+            22,
+            62,
+            24,
+            24,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.31794871794871793,
+          "label_entropy": 1.7873250554099245,
+          "weight": 0.1001967117190361,
+          "test_accuracy": 69.92619633674622
+        },
+        {
+          "shard": 7,
+          "train_nodes": 201,
+          "class_counts": [
+            20,
+            19,
+            28,
+            59,
+            37,
+            23,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2935323383084577,
+          "label_entropy": 1.840237722480343,
+          "weight": 0.09923116862773895,
+          "test_accuracy": 73.61623644828796
+        },
+        {
+          "shard": 8,
+          "train_nodes": 196,
+          "class_counts": [
+            27,
+            17,
+            31,
+            59,
+            36,
+            17,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3010204081632653,
+          "label_entropy": 1.8029775949960725,
+          "weight": 0.10853059589862823,
+          "test_accuracy": 72.3247230052948
+        },
+        {
+          "shard": 9,
+          "train_nodes": 199,
+          "class_counts": [
+            29,
+            15,
+            39,
+            46,
+            31,
+            22,
+            17
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.23115577889447236,
+          "label_entropy": 1.876772640374876,
+          "weight": 0.10409609228372574,
+          "test_accuracy": 73.06272983551025
+        }
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "seed": 1,
+      "output": {
+        "artifact_id": "pred_a3f4d6f0_5a9b10bc",
+        "recipe_hash": "a3f4d6f0c6fc8ee3ab96d28c83862660b7a96da4ec67b416c85eabf81d53a25b",
+        "content_hash": "5a9b10bcf3ff84135474a59cfc6e7a5386c1a17b9ca8930e0ba80ef3be8354ee"
+      },
+      "checkpoint_state_hash": "d54357e657d4bdfa4cabb471d8f97d5a879e599f24dbd158da8f4475c72542ac",
+      "checkpoint_file_sha256": "b64fb97c445ad3fb220cddf9a21d9cb2cd5d5e392d3911b1aea677e4340b6a3e",
+      "formal_before": 61.992621421813965,
+      "diagnostic_weighted_probability": 63.09962868690491,
+      "diagnostic_uniform_probability": 62.73062825202942,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 199,
+          "class_counts": [
+            4,
+            0,
+            0,
+            47,
+            148,
+            0,
+            0
+          ],
+          "represented_classes": 3,
+          "dominant_class_fraction": 0.7437185929648241,
+          "label_entropy": 0.6395885873278022,
+          "weight": 0.062464166432619095,
+          "test_accuracy": 36.71586811542511
+        },
+        {
+          "shard": 1,
+          "train_nodes": 184,
+          "class_counts": [
+            15,
+            2,
+            0,
+            90,
+            74,
+            2,
+            1
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.4891304347826087,
+          "label_entropy": 1.0471258175785216,
+          "weight": 0.07188811153173447,
+          "test_accuracy": 41.697415709495544
+        },
+        {
+          "shard": 2,
+          "train_nodes": 199,
+          "class_counts": [
+            160,
+            2,
+            0,
+            13,
+            10,
+            3,
+            11
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.8040201005025126,
+          "label_entropy": 0.7734204918488187,
+          "weight": 0.057471778243780136,
+          "test_accuracy": 37.26937174797058
+        },
+        {
+          "shard": 3,
+          "train_nodes": 183,
+          "class_counts": [
+            7,
+            123,
+            1,
+            40,
+            12,
+            0,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.6721311475409836,
+          "label_entropy": 0.9313762910042187,
+          "weight": 0.07329583913087845,
+          "test_accuracy": 41.697415709495544
+        },
+        {
+          "shard": 4,
+          "train_nodes": 183,
+          "class_counts": [
+            19,
+            11,
+            1,
+            93,
+            30,
+            16,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.5081967213114754,
+          "label_entropy": 1.4739964035468942,
+          "weight": 0.1447138637304306,
+          "test_accuracy": 63.09962868690491
+        },
+        {
+          "shard": 5,
+          "train_nodes": 183,
+          "class_counts": [
+            29,
+            0,
+            1,
+            56,
+            5,
+            6,
+            86
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.46994535519125685,
+          "label_entropy": 1.2480496085457018,
+          "weight": 0.04943334683775902,
+          "test_accuracy": 39.85239863395691
+        },
+        {
+          "shard": 6,
+          "train_nodes": 199,
+          "class_counts": [
+            2,
+            8,
+            178,
+            2,
+            2,
+            6,
+            1
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.8944723618090452,
+          "label_entropy": 0.49982520570862377,
+          "weight": 0.11429837346076965,
+          "test_accuracy": 23.800738155841827
+        },
+        {
+          "shard": 7,
+          "train_nodes": 183,
+          "class_counts": [
+            12,
+            4,
+            42,
+            76,
+            3,
+            41,
+            5
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.41530054644808745,
+          "label_entropy": 1.4658719657668327,
+          "weight": 0.1822218894958496,
+          "test_accuracy": 47.047969698905945
+        },
+        {
+          "shard": 8,
+          "train_nodes": 183,
+          "class_counts": [
+            3,
+            3,
+            37,
+            7,
+            4,
+            129,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.7049180327868853,
+          "label_entropy": 0.9128851410907793,
+          "weight": 0.12165270000696182,
+          "test_accuracy": 38.560885190963745
+        },
+        {
+          "shard": 9,
+          "train_nodes": 199,
+          "class_counts": [
+            4,
+            6,
+            42,
+            142,
+            3,
+            2,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.7135678391959799,
+          "label_entropy": 0.8627147160096551,
+          "weight": 0.12255997210741043,
+          "test_accuracy": 43.72693598270416
+        }
+      ]
+    },
+    {
+      "method": "GraphEraser",
+      "seed": 2,
+      "output": {
+        "artifact_id": "pred_33c82a31_f69392ec",
+        "recipe_hash": "33c82a3149c1cf43ba6dcbfaacf49d858fc448aa28ce27e31aeea822d203b938",
+        "content_hash": "f69392ec1ac39cfd5dca66b43811ee5b789af9ac8c625c8d13ece7bb0e0e6c78"
+      },
+      "checkpoint_state_hash": "6f7212f013bb97dc30a50940e3425284d24dd67ad0875ec997cae0a81fb8605e",
+      "checkpoint_file_sha256": "d1f088bed219c34a70550f558a841c5f6ec2783b4054eba39cf173d87fce40c8",
+      "formal_before": 85.60885787010193,
+      "diagnostic_weighted_probability": 85.05535125732422,
+      "diagnostic_uniform_probability": 85.05535125732422,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 180,
+          "class_counts": [
+            24,
+            10,
+            31,
+            52,
+            28,
+            25,
+            10
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.28888888888888886,
+          "label_entropy": 1.815085226445121,
+          "weight": 0.0874936580657959,
+          "test_accuracy": 69.37269568443298
+        },
+        {
+          "shard": 1,
+          "train_nodes": 184,
+          "class_counts": [
+            21,
+            20,
+            35,
+            52,
+            28,
+            14,
+            14
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2826086956521739,
+          "label_entropy": 1.8402248679580706,
+          "weight": 0.10097905248403549,
+          "test_accuracy": 74.53874349594116
+        },
+        {
+          "shard": 2,
+          "train_nodes": 182,
+          "class_counts": [
+            20,
+            12,
+            28,
+            63,
+            26,
+            21,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.34615384615384615,
+          "label_entropy": 1.783583059086056,
+          "weight": 0.10195253044366837,
+          "test_accuracy": 70.47970294952393
+        },
+        {
+          "shard": 3,
+          "train_nodes": 198,
+          "class_counts": [
+            25,
+            12,
+            39,
+            66,
+            28,
+            17,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3333333333333333,
+          "label_entropy": 1.7653877694490563,
+          "weight": 0.10056940466165543,
+          "test_accuracy": 71.4022159576416
+        },
+        {
+          "shard": 4,
+          "train_nodes": 184,
+          "class_counts": [
+            24,
+            14,
+            30,
+            54,
+            33,
+            18,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.29347826086956524,
+          "label_entropy": 1.821188781094819,
+          "weight": 0.10490205138921738,
+          "test_accuracy": 74.35424327850342
+        },
+        {
+          "shard": 5,
+          "train_nodes": 179,
+          "class_counts": [
+            29,
+            14,
+            25,
+            47,
+            30,
+            24,
+            10
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.26256983240223464,
+          "label_entropy": 1.8501663706762022,
+          "weight": 0.09858863055706024,
+          "test_accuracy": 69.37269568443298
+        },
+        {
+          "shard": 6,
+          "train_nodes": 185,
+          "class_counts": [
+            21,
+            20,
+            30,
+            48,
+            34,
+            20,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2594594594594595,
+          "label_entropy": 1.8617992318772412,
+          "weight": 0.10005836933851242,
+          "test_accuracy": 69.74169611930847
+        },
+        {
+          "shard": 7,
+          "train_nodes": 199,
+          "class_counts": [
+            29,
+            23,
+            26,
+            64,
+            35,
+            15,
+            7
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.32160804020100503,
+          "label_entropy": 1.7791024148169268,
+          "weight": 0.09974716603755951,
+          "test_accuracy": 71.77121639251709
+        },
+        {
+          "shard": 8,
+          "train_nodes": 201,
+          "class_counts": [
+            37,
+            13,
+            28,
+            53,
+            23,
+            32,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.263681592039801,
+          "label_entropy": 1.8489955996486314,
+          "weight": 0.1094023734331131,
+          "test_accuracy": 76.56826376914978
+        },
+        {
+          "shard": 9,
+          "train_nodes": 203,
+          "class_counts": [
+            25,
+            21,
+            30,
+            67,
+            26,
+            19,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.33004926108374383,
+          "label_entropy": 1.818463134843707,
+          "weight": 0.09630679339170456,
+          "test_accuracy": 71.95571660995483
+        }
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "seed": 2,
+      "output": {
+        "artifact_id": "pred_d530893d_3bc8b3d4",
+        "recipe_hash": "d530893dadd33a09c65ca27a065df9f230e8c25b4f88e63f2c2a1acf00ef83d4",
+        "content_hash": "3bc8b3d4c7a2f564b97f3d005fd962045d83283d84740b64aa614ee2c98bec83"
+      },
+      "checkpoint_state_hash": "85ccb38afa26c0b150c614d32169b4b89332f362672a846924841a499c600445",
+      "checkpoint_file_sha256": "29f28706d3f8fece0419131abfb2fb540d7dd17e08b9ff9f6239f93b4bfabe6c",
+      "formal_before": 75.83025693893433,
+      "diagnostic_weighted_probability": 76.38376355171204,
+      "diagnostic_uniform_probability": 73.247230052948,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 199,
+          "class_counts": [
+            1,
+            4,
+            188,
+            1,
+            0,
+            5,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.9447236180904522,
+          "label_entropy": 0.2780110758869019,
+          "weight": 0.05264078080654144,
+          "test_accuracy": 17.712177336215973
+        },
+        {
+          "shard": 1,
+          "train_nodes": 171,
+          "class_counts": [
+            137,
+            4,
+            12,
+            16,
+            0,
+            1,
+            1
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.8011695906432749,
+          "label_entropy": 0.7336935937177173,
+          "weight": 0.053592462092638016,
+          "test_accuracy": 37.82287836074829
+        },
+        {
+          "shard": 2,
+          "train_nodes": 199,
+          "class_counts": [
+            4,
+            46,
+            19,
+            128,
+            1,
+            1,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.6432160804020101,
+          "label_entropy": 0.9783957992528778,
+          "weight": 0.05357123166322708,
+          "test_accuracy": 47.601476311683655
+        },
+        {
+          "shard": 3,
+          "train_nodes": 199,
+          "class_counts": [
+            69,
+            14,
+            13,
+            43,
+            9,
+            28,
+            23
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.34673366834170855,
+          "label_entropy": 1.7286354151719807,
+          "weight": 0.13410773873329163,
+          "test_accuracy": 58.11808109283447
+        },
+        {
+          "shard": 4,
+          "train_nodes": 199,
+          "class_counts": [
+            3,
+            15,
+            8,
+            48,
+            0,
+            124,
+            1
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.6231155778894473,
+          "label_entropy": 1.0516732424401731,
+          "weight": 0.07846745103597641,
+          "test_accuracy": 50.184500217437744
+        },
+        {
+          "shard": 5,
+          "train_nodes": 166,
+          "class_counts": [
+            3,
+            10,
+            15,
+            39,
+            12,
+            11,
+            76
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.4578313253012048,
+          "label_entropy": 1.5267299168412818,
+          "weight": 0.11052245646715164,
+          "test_accuracy": 60.332101583480835
+        },
+        {
+          "shard": 6,
+          "train_nodes": 199,
+          "class_counts": [
+            14,
+            20,
+            13,
+            101,
+            45,
+            5,
+            1
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.507537688442211,
+          "label_entropy": 1.3954155607270275,
+          "weight": 0.12796220183372498,
+          "test_accuracy": 61.439114809036255
+        },
+        {
+          "shard": 7,
+          "train_nodes": 199,
+          "class_counts": [
+            19,
+            19,
+            11,
+            85,
+            30,
+            22,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.4271356783919598,
+          "label_entropy": 1.6788621961740837,
+          "weight": 0.15441320836544037,
+          "test_accuracy": 72.3247230052948
+        },
+        {
+          "shard": 8,
+          "train_nodes": 199,
+          "class_counts": [
+            2,
+            13,
+            11,
+            53,
+            115,
+            4,
+            1
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.5778894472361809,
+          "label_entropy": 1.1589061934007852,
+          "weight": 0.11492513865232468,
+          "test_accuracy": 52.58302688598633
+        },
+        {
+          "shard": 9,
+          "train_nodes": 165,
+          "class_counts": [
+            3,
+            14,
+            12,
+            52,
+            79,
+            4,
+            1
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.47878787878787876,
+          "label_entropy": 1.310443956120687,
+          "weight": 0.11979738622903824,
+          "test_accuracy": 59.04058814048767
+        }
+      ]
+    },
+    {
+      "method": "GraphEraser",
+      "seed": 3,
+      "output": {
+        "artifact_id": "pred_f49f34b6_ebc8ffcb",
+        "recipe_hash": "f49f34b6ad24d670229a3bff96b5bc50d79bc72f40995ff165b6e2c734b094c9",
+        "content_hash": "ebc8ffcbe0f4669ba3fb36357a1890863999c7236bdbf58eac8acdbc6a3512c0"
+      },
+      "checkpoint_state_hash": "b5817f887dda1d75764f3a0d6a67b616093ce8d52ea35d38804fb3d2d05f5a2d",
+      "checkpoint_file_sha256": "3171a0e1cbc76ea2df221674d2ec8b77b7ad275ff4cdaf50658289d4e42dfee6",
+      "formal_before": 84.68634486198425,
+      "diagnostic_weighted_probability": 84.68634486198425,
+      "diagnostic_uniform_probability": 84.68634486198425,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 177,
+          "class_counts": [
+            21,
+            11,
+            33,
+            55,
+            25,
+            17,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3107344632768362,
+          "label_entropy": 1.8125499054758203,
+          "weight": 0.1031481996178627,
+          "test_accuracy": 74.72324967384338
+        },
+        {
+          "shard": 1,
+          "train_nodes": 183,
+          "class_counts": [
+            19,
+            12,
+            25,
+            66,
+            27,
+            21,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.36065573770491804,
+          "label_entropy": 1.7722225614841738,
+          "weight": 0.10780856013298035,
+          "test_accuracy": 73.61623644828796
+        },
+        {
+          "shard": 2,
+          "train_nodes": 178,
+          "class_counts": [
+            29,
+            15,
+            26,
+            46,
+            27,
+            17,
+            18
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.25842696629213485,
+          "label_entropy": 1.8768438863235384,
+          "weight": 0.10103753209114075,
+          "test_accuracy": 72.3247230052948
+        },
+        {
+          "shard": 3,
+          "train_nodes": 189,
+          "class_counts": [
+            37,
+            14,
+            35,
+            48,
+            24,
+            16,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.25396825396825395,
+          "label_entropy": 1.8445985464941475,
+          "weight": 0.09651914983987808,
+          "test_accuracy": 70.29520273208618
+        },
+        {
+          "shard": 4,
+          "train_nodes": 182,
+          "class_counts": [
+            27,
+            12,
+            21,
+            57,
+            38,
+            18,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3131868131868132,
+          "label_entropy": 1.779691546713643,
+          "weight": 0.09581127017736435,
+          "test_accuracy": 71.58671617507935
+        },
+        {
+          "shard": 5,
+          "train_nodes": 186,
+          "class_counts": [
+            24,
+            20,
+            31,
+            59,
+            24,
+            14,
+            14
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3172043010752688,
+          "label_entropy": 1.8204609366890856,
+          "weight": 0.10122856497764587,
+          "test_accuracy": 74.53874349594116
+        },
+        {
+          "shard": 6,
+          "train_nodes": 198,
+          "class_counts": [
+            22,
+            16,
+            32,
+            66,
+            34,
+            23,
+            5
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3333333333333333,
+          "label_entropy": 1.7536966783786503,
+          "weight": 0.10289165377616882,
+          "test_accuracy": 69.37269568443298
+        },
+        {
+          "shard": 7,
+          "train_nodes": 193,
+          "class_counts": [
+            26,
+            17,
+            20,
+            45,
+            37,
+            34,
+            14
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.23316062176165803,
+          "label_entropy": 1.8713087507304926,
+          "weight": 0.09911186248064041,
+          "test_accuracy": 73.43173623085022
+        },
+        {
+          "shard": 8,
+          "train_nodes": 191,
+          "class_counts": [
+            19,
+            23,
+            38,
+            56,
+            31,
+            18,
+            6
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2931937172774869,
+          "label_entropy": 1.7918570504663018,
+          "weight": 0.09284769743680954,
+          "test_accuracy": 68.63468885421753
+        },
+        {
+          "shard": 9,
+          "train_nodes": 218,
+          "class_counts": [
+            31,
+            19,
+            41,
+            68,
+            24,
+            27,
+            8
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3119266055045872,
+          "label_entropy": 1.7905623000645017,
+          "weight": 0.09959547221660614,
+          "test_accuracy": 66.60516858100891
+        }
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "seed": 3,
+      "output": {
+        "artifact_id": "pred_6aebc5fd_d4c71495",
+        "recipe_hash": "6aebc5fd3eb31c7cef75652e344517d35077f0f60bd079c70cf4fa4b645b5113",
+        "content_hash": "d4c7149532caf60f048ba81c30faf7accb032d52c70d4e27624352bce9650aee"
+      },
+      "checkpoint_state_hash": "ded1c498175282203ebf3bd78ea4dbabeccf67dab59df67c3398b10cdc9a684a",
+      "checkpoint_file_sha256": "483f6708aa707815b0ec41b06605c09a74801827858530aed6d8476131add150",
+      "formal_before": 74.90774989128113,
+      "diagnostic_weighted_probability": 72.14022278785706,
+      "diagnostic_uniform_probability": 74.53874349594116,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 174,
+          "class_counts": [
+            36,
+            26,
+            0,
+            48,
+            43,
+            2,
+            19
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.27586206896551724,
+          "label_entropy": 1.6038996656704905,
+          "weight": 0.11166346073150635,
+          "test_accuracy": 54.981547594070435
+        },
+        {
+          "shard": 1,
+          "train_nodes": 173,
+          "class_counts": [
+            38,
+            31,
+            1,
+            51,
+            2,
+            26,
+            24
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2947976878612717,
+          "label_entropy": 1.6412969068930854,
+          "weight": 0.07775577157735825,
+          "test_accuracy": 50.738006830215454
+        },
+        {
+          "shard": 2,
+          "train_nodes": 181,
+          "class_counts": [
+            1,
+            1,
+            3,
+            1,
+            6,
+            160,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.8839779005524862,
+          "label_entropy": 0.5252968914049918,
+          "weight": 0.03932536393404007,
+          "test_accuracy": 19.188192486763
+        },
+        {
+          "shard": 3,
+          "train_nodes": 199,
+          "class_counts": [
+            21,
+            11,
+            2,
+            117,
+            35,
+            2,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.5879396984924623,
+          "label_entropy": 1.2678134255312121,
+          "weight": 0.12042846530675888,
+          "test_accuracy": 55.71955442428589
+        },
+        {
+          "shard": 4,
+          "train_nodes": 199,
+          "class_counts": [
+            1,
+            5,
+            187,
+            1,
+            2,
+            3,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.9396984924623115,
+          "label_entropy": 0.3136735074325204,
+          "weight": 0.06315957754850388,
+          "test_accuracy": 17.343173921108246
+        },
+        {
+          "shard": 5,
+          "train_nodes": 199,
+          "class_counts": [
+            1,
+            3,
+            21,
+            2,
+            172,
+            0,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.864321608040201,
+          "label_entropy": 0.49940456125097465,
+          "weight": 0.08460382372140884,
+          "test_accuracy": 28.22878360748291
+        },
+        {
+          "shard": 6,
+          "train_nodes": 199,
+          "class_counts": [
+            0,
+            1,
+            23,
+            169,
+            6,
+            0,
+            0
+          ],
+          "represented_classes": 4,
+          "dominant_class_fraction": 0.8492462311557789,
+          "label_entropy": 0.5203409724444009,
+          "weight": 0.07950840145349503,
+          "test_accuracy": 41.697415709495544
+        },
+        {
+          "shard": 7,
+          "train_nodes": 173,
+          "class_counts": [
+            41,
+            29,
+            19,
+            47,
+            9,
+            7,
+            21
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.27167630057803466,
+          "label_entropy": 1.7767559001589088,
+          "weight": 0.14822407066822052,
+          "test_accuracy": 62.546128034591675
+        },
+        {
+          "shard": 8,
+          "train_nodes": 199,
+          "class_counts": [
+            72,
+            15,
+            25,
+            76,
+            7,
+            2,
+            2
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.38190954773869346,
+          "label_entropy": 1.4011324486703098,
+          "weight": 0.13761553168296814,
+          "test_accuracy": 52.76752710342407
+        },
+        {
+          "shard": 9,
+          "train_nodes": 199,
+          "class_counts": [
+            44,
+            37,
+            21,
+            54,
+            9,
+            3,
+            31
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.271356783919598,
+          "label_entropy": 1.7306270469959881,
+          "weight": 0.13771547377109528,
+          "test_accuracy": 59.22509431838989
+        }
+      ]
+    },
+    {
+      "method": "GraphEraser",
+      "seed": 4,
+      "output": {
+        "artifact_id": "pred_2495f377_1a7d24da",
+        "recipe_hash": "2495f3774750182b01b859bef85bb6fc9fb7769c52ce8b533ca6251f99eb8932",
+        "content_hash": "1a7d24da15b53e60a9442144cb3d8f4574b8c1519a2573878607026ec98a7686"
+      },
+      "checkpoint_state_hash": "602b99839fc0e05ca68a4e9e4dd8b479ce807341529c69a01671cb6dc654eeb7",
+      "checkpoint_file_sha256": "7e9416e7715d159192ee9a93ad3dc63858841ec885df84f36e39673b17f80c94",
+      "formal_before": 86.71586513519287,
+      "diagnostic_weighted_probability": 85.60885787010193,
+      "diagnostic_uniform_probability": 85.60885787010193,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 175,
+          "class_counts": [
+            23,
+            15,
+            35,
+            40,
+            30,
+            20,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.22857142857142856,
+          "label_entropy": 1.8705063909635653,
+          "weight": 0.09471019357442856,
+          "test_accuracy": 73.80073666572571
+        },
+        {
+          "shard": 1,
+          "train_nodes": 178,
+          "class_counts": [
+            18,
+            12,
+            32,
+            50,
+            38,
+            20,
+            8
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2808988764044944,
+          "label_entropy": 1.7934199408836207,
+          "weight": 0.09280139207839966,
+          "test_accuracy": 69.92619633674622
+        },
+        {
+          "shard": 2,
+          "train_nodes": 189,
+          "class_counts": [
+            24,
+            14,
+            29,
+            66,
+            27,
+            19,
+            10
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3492063492063492,
+          "label_entropy": 1.7743042981150081,
+          "weight": 0.09171745181083679,
+          "test_accuracy": 70.11070251464844
+        },
+        {
+          "shard": 3,
+          "train_nodes": 187,
+          "class_counts": [
+            21,
+            21,
+            42,
+            59,
+            13,
+            18,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3155080213903743,
+          "label_entropy": 1.7864981864863854,
+          "weight": 0.10081585496664047,
+          "test_accuracy": 69.55719590187073
+        },
+        {
+          "shard": 4,
+          "train_nodes": 183,
+          "class_counts": [
+            22,
+            18,
+            27,
+            55,
+            26,
+            22,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3005464480874317,
+          "label_entropy": 1.8462165801891903,
+          "weight": 0.1051478236913681,
+          "test_accuracy": 73.98523688316345
+        },
+        {
+          "shard": 5,
+          "train_nodes": 183,
+          "class_counts": [
+            24,
+            12,
+            30,
+            59,
+            27,
+            21,
+            10
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3224043715846995,
+          "label_entropy": 1.7960915087411038,
+          "weight": 0.09679640829563141,
+          "test_accuracy": 73.06272983551025
+        },
+        {
+          "shard": 6,
+          "train_nodes": 196,
+          "class_counts": [
+            25,
+            14,
+            20,
+            68,
+            31,
+            24,
+            14
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3469387755102041,
+          "label_entropy": 1.7886576921826725,
+          "weight": 0.10274919122457504,
+          "test_accuracy": 72.14022278785706
+        },
+        {
+          "shard": 7,
+          "train_nodes": 196,
+          "class_counts": [
+            35,
+            24,
+            25,
+            57,
+            33,
+            14,
+            8
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.29081632653061223,
+          "label_entropy": 1.8056484528774521,
+          "weight": 0.09587665647268295,
+          "test_accuracy": 71.4022159576416
+        },
+        {
+          "shard": 8,
+          "train_nodes": 199,
+          "class_counts": [
+            34,
+            15,
+            31,
+            51,
+            30,
+            22,
+            16
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2562814070351759,
+          "label_entropy": 1.8667018275333016,
+          "weight": 0.11363151669502258,
+          "test_accuracy": 73.98523688316345
+        },
+        {
+          "shard": 9,
+          "train_nodes": 209,
+          "class_counts": [
+            29,
+            14,
+            31,
+            61,
+            36,
+            25,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.291866028708134,
+          "label_entropy": 1.8273188941133376,
+          "weight": 0.10575346648693085,
+          "test_accuracy": 76.19926333427429
+        }
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "seed": 4,
+      "output": {
+        "artifact_id": "pred_f9e04e3a_d3b3cf83",
+        "recipe_hash": "f9e04e3aa8e932c3abf1da86784fda6d2e0ebf47d84da4a5ec191b250ef65f9a",
+        "content_hash": "d3b3cf83ecebaff14c19d9b96643ca07547e952a38b6d428833be70980ede6e1"
+      },
+      "checkpoint_state_hash": "823a721e35f971219eed87c9c5848af4145a4e81b878e5813fedbd851b8b4acb",
+      "checkpoint_file_sha256": "83290415561cd443193c3a628902ca70723e753e2d681e0ed4fa9ea44b38ca43",
+      "formal_before": 73.43173623085022,
+      "diagnostic_weighted_probability": 75.09225010871887,
+      "diagnostic_uniform_probability": 69.92619633674622,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 199,
+          "class_counts": [
+            1,
+            0,
+            0,
+            1,
+            196,
+            1,
+            0
+          ],
+          "represented_classes": 4,
+          "dominant_class_fraction": 0.9849246231155779,
+          "label_entropy": 0.09475973322106834,
+          "weight": 0.03077573888003826,
+          "test_accuracy": 15.867158770561218
+        },
+        {
+          "shard": 1,
+          "train_nodes": 176,
+          "class_counts": [
+            5,
+            112,
+            0,
+            50,
+            9,
+            0,
+            0
+          ],
+          "represented_classes": 4,
+          "dominant_class_fraction": 0.6363636363636364,
+          "label_entropy": 0.898351980182161,
+          "weight": 0.03882508724927902,
+          "test_accuracy": 37.26937174797058
+        },
+        {
+          "shard": 2,
+          "train_nodes": 176,
+          "class_counts": [
+            20,
+            19,
+            9,
+            119,
+            4,
+            4,
+            1
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.6761363636363636,
+          "label_entropy": 1.1054836663989513,
+          "weight": 0.08848884701728821,
+          "test_accuracy": 47.601476311683655
+        },
+        {
+          "shard": 3,
+          "train_nodes": 199,
+          "class_counts": [
+            12,
+            2,
+            2,
+            2,
+            3,
+            111,
+            67
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.5577889447236181,
+          "label_entropy": 1.063426143359247,
+          "weight": 0.07563979178667068,
+          "test_accuracy": 23.4317347407341
+        },
+        {
+          "shard": 4,
+          "train_nodes": 176,
+          "class_counts": [
+            19,
+            3,
+            24,
+            112,
+            3,
+            9,
+            6
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.6363636363636364,
+          "label_entropy": 1.2056728708281141,
+          "weight": 0.09512824565172195,
+          "test_accuracy": 51.66051387786865
+        },
+        {
+          "shard": 5,
+          "train_nodes": 199,
+          "class_counts": [
+            1,
+            6,
+            170,
+            1,
+            1,
+            13,
+            7
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.8542713567839196,
+          "label_entropy": 0.6159078206827837,
+          "weight": 0.0995350107550621,
+          "test_accuracy": 31.734317541122437
+        },
+        {
+          "shard": 6,
+          "train_nodes": 186,
+          "class_counts": [
+            18,
+            13,
+            23,
+            64,
+            25,
+            28,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.34408602150537637,
+          "label_entropy": 1.7953687569730707,
+          "weight": 0.190863698720932,
+          "test_accuracy": 75.09225010871887
+        },
+        {
+          "shard": 7,
+          "train_nodes": 199,
+          "class_counts": [
+            126,
+            2,
+            24,
+            12,
+            9,
+            17,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.6331658291457286,
+          "label_entropy": 1.2502663543535353,
+          "weight": 0.11107353866100311,
+          "test_accuracy": 42.06642210483551
+        },
+        {
+          "shard": 8,
+          "train_nodes": 186,
+          "class_counts": [
+            32,
+            0,
+            25,
+            73,
+            39,
+            9,
+            8
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.3924731182795699,
+          "label_entropy": 1.5490346229408911,
+          "weight": 0.15488682687282562,
+          "test_accuracy": 61.07010841369629
+        },
+        {
+          "shard": 9,
+          "train_nodes": 199,
+          "class_counts": [
+            21,
+            2,
+            25,
+            132,
+            2,
+            13,
+            4
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.6633165829145728,
+          "label_entropy": 1.1194413653826976,
+          "weight": 0.11478324979543686,
+          "test_accuracy": 52.952027320861816
+        }
+      ]
+    },
+    {
+      "method": "GraphEraser",
+      "seed": 5,
+      "output": {
+        "artifact_id": "pred_63faf6b7_4cef1b1c",
+        "recipe_hash": "63faf6b7b81f44a24f4f47c942202d09f49c7e01c7fc1d85e7c24d420eb3f900",
+        "content_hash": "4cef1b1c3b8a79ede16ee14c41449065577a6858005122bbff78b82eb6281fcc"
+      },
+      "checkpoint_state_hash": "3b5ba46d2afba562e1d732fe01edf78b8416c7cbc24e6e47421677d6164da865",
+      "checkpoint_file_sha256": "c08fc8d8fdc72d25b53d917bfbdb0ef10de861a652246b81d61b0b91a1b882a2",
+      "formal_before": 86.16236448287964,
+      "diagnostic_weighted_probability": 85.97785830497742,
+      "diagnostic_uniform_probability": 85.79335808753967,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 177,
+          "class_counts": [
+            23,
+            20,
+            17,
+            52,
+            29,
+            22,
+            14
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2937853107344633,
+          "label_entropy": 1.8526377082193408,
+          "weight": 0.09259846806526184,
+          "test_accuracy": 73.43173623085022
+        },
+        {
+          "shard": 1,
+          "train_nodes": 189,
+          "class_counts": [
+            29,
+            14,
+            35,
+            51,
+            30,
+            19,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2698412698412698,
+          "label_entropy": 1.8347852099797453,
+          "weight": 0.09975898265838623,
+          "test_accuracy": 73.43173623085022
+        },
+        {
+          "shard": 2,
+          "train_nodes": 188,
+          "class_counts": [
+            21,
+            15,
+            27,
+            57,
+            31,
+            28,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.30319148936170215,
+          "label_entropy": 1.813422852843872,
+          "weight": 0.10896187275648117,
+          "test_accuracy": 72.50922322273254
+        },
+        {
+          "shard": 3,
+          "train_nodes": 187,
+          "class_counts": [
+            25,
+            13,
+            26,
+            60,
+            25,
+            22,
+            16
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.32085561497326204,
+          "label_entropy": 1.824564926255581,
+          "weight": 0.0950581431388855,
+          "test_accuracy": 69.74169611930847
+        },
+        {
+          "shard": 4,
+          "train_nodes": 191,
+          "class_counts": [
+            35,
+            13,
+            24,
+            58,
+            28,
+            21,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3036649214659686,
+          "label_entropy": 1.8144928646239804,
+          "weight": 0.09793218970298767,
+          "test_accuracy": 70.29520273208618
+        },
+        {
+          "shard": 5,
+          "train_nodes": 185,
+          "class_counts": [
+            23,
+            10,
+            37,
+            46,
+            31,
+            27,
+            11
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.24864864864864866,
+          "label_entropy": 1.8328870054859785,
+          "weight": 0.09902401268482208,
+          "test_accuracy": 74.53874349594116
+        },
+        {
+          "shard": 6,
+          "train_nodes": 194,
+          "class_counts": [
+            32,
+            21,
+            27,
+            60,
+            30,
+            11,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.30927835051546393,
+          "label_entropy": 1.8078380544505819,
+          "weight": 0.10178489983081818,
+          "test_accuracy": 71.4022159576416
+        },
+        {
+          "shard": 7,
+          "train_nodes": 191,
+          "class_counts": [
+            24,
+            11,
+            34,
+            51,
+            36,
+            21,
+            14
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2670157068062827,
+          "label_entropy": 1.8336453619406174,
+          "weight": 0.10657147318124771,
+          "test_accuracy": 74.72324967384338
+        },
+        {
+          "shard": 8,
+          "train_nodes": 192,
+          "class_counts": [
+            19,
+            16,
+            30,
+            73,
+            32,
+            14,
+            8
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3802083333333333,
+          "label_entropy": 1.7156667019687208,
+          "weight": 0.09609810262918472,
+          "test_accuracy": 73.80073666572571
+        },
+        {
+          "shard": 9,
+          "train_nodes": 201,
+          "class_counts": [
+            24,
+            26,
+            45,
+            58,
+            19,
+            20,
+            9
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2885572139303483,
+          "label_entropy": 1.8036864212952242,
+          "weight": 0.10221190005540848,
+          "test_accuracy": 73.61623644828796
+        }
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "seed": 5,
+      "output": {
+        "artifact_id": "pred_ea22a9e6_825da156",
+        "recipe_hash": "ea22a9e6436f9cc84585cb021fa58371a58832d9c120c6c8fb27465cc974611e",
+        "content_hash": "825da156239ba1151b08b20ad904e50f2885fa1281b3140e5642b78442df0c36"
+      },
+      "checkpoint_state_hash": "eebc9cfcf0f8af8548e083c9ba9322c8764cadd38cc641347ed7a8759f60c1d0",
+      "checkpoint_file_sha256": "29e567d249a0fbd4439beaece027c6227e04646f8e12965381e50d69caa06106",
+      "formal_before": 59.96310114860535,
+      "diagnostic_weighted_probability": 63.46863508224487,
+      "diagnostic_uniform_probability": 62.36162185668945,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 184,
+          "class_counts": [
+            13,
+            112,
+            0,
+            48,
+            11,
+            0,
+            0
+          ],
+          "represented_classes": 4,
+          "dominant_class_fraction": 0.6086956521739131,
+          "label_entropy": 1.0083558024110975,
+          "weight": 0.07355938106775284,
+          "test_accuracy": 42.06642210483551
+        },
+        {
+          "shard": 1,
+          "train_nodes": 184,
+          "class_counts": [
+            143,
+            3,
+            0,
+            24,
+            11,
+            1,
+            2
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.7771739130434783,
+          "label_entropy": 0.7746148158512479,
+          "weight": 0.06600958108901978,
+          "test_accuracy": 35.60885488986969
+        },
+        {
+          "shard": 2,
+          "train_nodes": 196,
+          "class_counts": [
+            0,
+            0,
+            0,
+            0,
+            195,
+            1,
+            0
+          ],
+          "represented_classes": 2,
+          "dominant_class_fraction": 0.9948979591836735,
+          "label_entropy": 0.032018159639034385,
+          "weight": 0.0212059635668993,
+          "test_accuracy": 15.867158770561218
+        },
+        {
+          "shard": 3,
+          "train_nodes": 184,
+          "class_counts": [
+            27,
+            13,
+            1,
+            80,
+            34,
+            16,
+            13
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.43478260869565216,
+          "label_entropy": 1.570935285637174,
+          "weight": 0.1620195209980011,
+          "test_accuracy": 63.46863508224487
+        },
+        {
+          "shard": 4,
+          "train_nodes": 184,
+          "class_counts": [
+            7,
+            7,
+            1,
+            36,
+            3,
+            130,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.7065217391304348,
+          "label_entropy": 0.9088230440414617,
+          "weight": 0.0757913887500763,
+          "test_accuracy": 39.48339521884918
+        },
+        {
+          "shard": 5,
+          "train_nodes": 199,
+          "class_counts": [
+            1,
+            6,
+            182,
+            2,
+            0,
+            8,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.914572864321608,
+          "label_entropy": 0.38927668121743886,
+          "weight": 0.09632812440395355,
+          "test_accuracy": 22.140221297740936
+        },
+        {
+          "shard": 6,
+          "train_nodes": 183,
+          "class_counts": [
+            22,
+            1,
+            30,
+            42,
+            3,
+            7,
+            78
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.4262295081967213,
+          "label_entropy": 1.4730846458314277,
+          "weight": 0.12044164538383484,
+          "test_accuracy": 50.369006395339966
+        },
+        {
+          "shard": 7,
+          "train_nodes": 183,
+          "class_counts": [
+            20,
+            5,
+            27,
+            59,
+            7,
+            41,
+            24
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3224043715846995,
+          "label_entropy": 1.7139929434839394,
+          "weight": 0.1704784482717514,
+          "test_accuracy": 54.612547159194946
+        },
+        {
+          "shard": 8,
+          "train_nodes": 199,
+          "class_counts": [
+            3,
+            1,
+            33,
+            142,
+            19,
+            1,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.7135678391959799,
+          "label_entropy": 0.8794738238303237,
+          "weight": 0.1061767116189003,
+          "test_accuracy": 47.047969698905945
+        },
+        {
+          "shard": 9,
+          "train_nodes": 199,
+          "class_counts": [
+            19,
+            11,
+            28,
+            133,
+            8,
+            0,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.6683417085427136,
+          "label_entropy": 1.05875768263011,
+          "weight": 0.10798916965723038,
+          "test_accuracy": 43.911439180374146
+        }
+      ]
+    },
+    {
+      "method": "GraphEraser",
+      "seed": 6,
+      "output": {
+        "artifact_id": "pred_cdc982c1_860f54af",
+        "recipe_hash": "cdc982c1de367b7b22adb78ce4b25947277a40661ee0b097b83a78c739355b6b",
+        "content_hash": "860f54afe755ea5bf5f9445ccb1a406f51fe6878d01d40bd5b149777608981ca"
+      },
+      "checkpoint_state_hash": "741497b55a5febb54f9cc30dc97dd861f975ddc3fe5dd311d6e8fc41f0c4d3e3",
+      "checkpoint_file_sha256": "bcfda1bebf73e4f5d5ad5488762227b93475ffeafc4ee8a67189495f39ea9d59",
+      "formal_before": 85.79335808753967,
+      "diagnostic_weighted_probability": 85.79335808753967,
+      "diagnostic_uniform_probability": 85.97785830497742,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 180,
+          "class_counts": [
+            34,
+            13,
+            20,
+            52,
+            32,
+            17,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.28888888888888886,
+          "label_entropy": 1.8179181072387303,
+          "weight": 0.09617836773395538,
+          "test_accuracy": 70.29520273208618
+        },
+        {
+          "shard": 1,
+          "train_nodes": 176,
+          "class_counts": [
+            18,
+            21,
+            28,
+            57,
+            29,
+            20,
+            3
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.32386363636363635,
+          "label_entropy": 1.758101195080823,
+          "weight": 0.09532955288887024,
+          "test_accuracy": 71.21770977973938
+        },
+        {
+          "shard": 2,
+          "train_nodes": 181,
+          "class_counts": [
+            23,
+            14,
+            18,
+            58,
+            30,
+            24,
+            14
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.32044198895027626,
+          "label_entropy": 1.8181016068037466,
+          "weight": 0.09394007921218872,
+          "test_accuracy": 70.66420912742615
+        },
+        {
+          "shard": 3,
+          "train_nodes": 181,
+          "class_counts": [
+            24,
+            16,
+            30,
+            44,
+            25,
+            25,
+            17
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2430939226519337,
+          "label_entropy": 1.8930639101673667,
+          "weight": 0.1068483516573906,
+          "test_accuracy": 73.61623644828796
+        },
+        {
+          "shard": 4,
+          "train_nodes": 187,
+          "class_counts": [
+            23,
+            8,
+            37,
+            52,
+            35,
+            17,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.27807486631016043,
+          "label_entropy": 1.8030706625685011,
+          "weight": 0.09396183490753174,
+          "test_accuracy": 76.93727016448975
+        },
+        {
+          "shard": 5,
+          "train_nodes": 192,
+          "class_counts": [
+            31,
+            20,
+            31,
+            60,
+            30,
+            15,
+            5
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3125,
+          "label_entropy": 1.7721495912410459,
+          "weight": 0.10263984650373459,
+          "test_accuracy": 69.92619633674622
+        },
+        {
+          "shard": 6,
+          "train_nodes": 186,
+          "class_counts": [
+            27,
+            22,
+            31,
+            54,
+            19,
+            21,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2903225806451613,
+          "label_entropy": 1.8464592392867467,
+          "weight": 0.09512224793434143,
+          "test_accuracy": 73.43173623085022
+        },
+        {
+          "shard": 7,
+          "train_nodes": 206,
+          "class_counts": [
+            31,
+            17,
+            32,
+            66,
+            26,
+            22,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.32038834951456313,
+          "label_entropy": 1.8105396842690566,
+          "weight": 0.10383560508489609,
+          "test_accuracy": 76.19926333427429
+        },
+        {
+          "shard": 8,
+          "train_nodes": 195,
+          "class_counts": [
+            19,
+            10,
+            31,
+            66,
+            38,
+            19,
+            12
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.3384615384615385,
+          "label_entropy": 1.7553969825734521,
+          "weight": 0.10252785682678223,
+          "test_accuracy": 71.4022159576416
+        },
+        {
+          "shard": 9,
+          "train_nodes": 211,
+          "class_counts": [
+            25,
+            18,
+            44,
+            57,
+            27,
+            25,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.27014218009478674,
+          "label_entropy": 1.8469429797169958,
+          "weight": 0.10961619764566422,
+          "test_accuracy": 72.87822961807251
+        }
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "seed": 6,
+      "output": {
+        "artifact_id": "pred_2c922c4b_d9f0dde0",
+        "recipe_hash": "2c922c4b4b2b7e5cfb71b652281f7fb61e1d6f436c25ebd9ffc3d163c42d7cc1",
+        "content_hash": "d9f0dde0eef6372a44b70395c9e595202263b22c4843d5f8e682b835ea35e4e9"
+      },
+      "checkpoint_state_hash": "0a1931717d0b948d71e3de463bebfcbf882f62cf0fd49563ffeedde5808473c4",
+      "checkpoint_file_sha256": "389165799192a58f79e780a34e79d3af5bdf33d508f4c9b6fa6cf46f408f374a",
+      "formal_before": 74.90774989128113,
+      "diagnostic_weighted_probability": 74.90774989128113,
+      "diagnostic_uniform_probability": 73.247230052948,
+      "shards": [
+        {
+          "shard": 0,
+          "train_nodes": 199,
+          "class_counts": [
+            6,
+            10,
+            6,
+            131,
+            29,
+            11,
+            6
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.6582914572864321,
+          "label_entropy": 1.1829691574592354,
+          "weight": 0.10493221879005432,
+          "test_accuracy": 58.67158770561218
+        },
+        {
+          "shard": 1,
+          "train_nodes": 199,
+          "class_counts": [
+            144,
+            3,
+            0,
+            47,
+            4,
+            0,
+            1
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.7236180904522613,
+          "label_entropy": 0.7432994642732323,
+          "weight": 0.05676257610321045,
+          "test_accuracy": 36.1623615026474
+        },
+        {
+          "shard": 2,
+          "train_nodes": 183,
+          "class_counts": [
+            45,
+            26,
+            41,
+            35,
+            14,
+            7,
+            15
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2459016393442623,
+          "label_entropy": 1.8002354119137542,
+          "weight": 0.1408279985189438,
+          "test_accuracy": 57.74907469749451
+        },
+        {
+          "shard": 3,
+          "train_nodes": 199,
+          "class_counts": [
+            3,
+            1,
+            0,
+            66,
+            128,
+            1,
+            0
+          ],
+          "represented_classes": 5,
+          "dominant_class_fraction": 0.6432160804020101,
+          "label_entropy": 0.7663052085362541,
+          "weight": 0.05837063118815422,
+          "test_accuracy": 38.74538838863373
+        },
+        {
+          "shard": 4,
+          "train_nodes": 183,
+          "class_counts": [
+            33,
+            9,
+            13,
+            94,
+            33,
+            1,
+            0
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.5136612021857924,
+          "label_entropy": 1.3244666368130382,
+          "weight": 0.11260522902011871,
+          "test_accuracy": 59.04058814048767
+        },
+        {
+          "shard": 5,
+          "train_nodes": 182,
+          "class_counts": [
+            8,
+            3,
+            7,
+            45,
+            13,
+            18,
+            88
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.4835164835164835,
+          "label_entropy": 1.4445054494630167,
+          "weight": 0.08571092039346695,
+          "test_accuracy": 48.52398633956909
+        },
+        {
+          "shard": 6,
+          "train_nodes": 187,
+          "class_counts": [
+            3,
+            0,
+            2,
+            41,
+            14,
+            126,
+            1
+          ],
+          "represented_classes": 6,
+          "dominant_class_fraction": 0.6737967914438503,
+          "label_entropy": 0.9356171256647433,
+          "weight": 0.08295489847660065,
+          "test_accuracy": 47.047969698905945
+        },
+        {
+          "shard": 7,
+          "train_nodes": 182,
+          "class_counts": [
+            8,
+            28,
+            54,
+            38,
+            14,
+            37,
+            3
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.2967032967032967,
+          "label_entropy": 1.701713975808267,
+          "weight": 0.1386508196592331,
+          "test_accuracy": 61.623615026474
+        },
+        {
+          "shard": 8,
+          "train_nodes": 199,
+          "class_counts": [
+            3,
+            43,
+            93,
+            34,
+            22,
+            2,
+            2
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.46733668341708545,
+          "label_entropy": 1.3876215320754843,
+          "weight": 0.11095263063907623,
+          "test_accuracy": 59.04058814048767
+        },
+        {
+          "shard": 9,
+          "train_nodes": 182,
+          "class_counts": [
+            2,
+            36,
+            86,
+            35,
+            20,
+            2,
+            1
+          ],
+          "represented_classes": 7,
+          "dominant_class_fraction": 0.4725274725274725,
+          "label_entropy": 1.3622211617599234,
+          "weight": 0.10823215544223785,
+          "test_accuracy": 52.952027320861816
+        }
+      ]
+    }
+  ]
+}
