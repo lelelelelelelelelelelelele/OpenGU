@@ -1,0 +1,11 @@
+{
+  "plotted_before_matches_60_audited_outputs": true,
+  "Cora_20_initial_checkpoint_test_labels_match": true,
+  "sha256": {
+    "before_audit.json": "d63a2978d4447758750c390ed08f6a37ba37af5d7df06f16400164b13ba54912",
+    "audit_before_remote.py": "908370a35623148b77ea3716213576c2066fbbad1d9fa7d884caeb387cb4e2f6",
+    "BEFORE_AUDIT.md": "e65922f2538df490851c4902c30095247d7b6bfe8f5fd93ea66594f60fb0b481",
+    "BEFORE_AUDIT.html": "a6ab0dae353b9a0426e9b53489eab55357fa537876dd0c99f0121f26ae3a4ebd",
+    "before_checkpoint_audit.png": "abfb18d76f9108ea8400ffec7b245996a34afcd0a88f1cb5946f24de383c97e7"
+  }
+}

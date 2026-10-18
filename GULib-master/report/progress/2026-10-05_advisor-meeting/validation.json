@@ -17,8 +17,8 @@
   "gap_convention": "G = Retrain - GU; A = Random - selected; E = G_selected - G_random",
   "matching": "full output reference, selection_id, split and training seed checked",
   "summary_csv_reproduced": true,
-  "all_report_local_links_exist": 82,
-  "printed_data_rows_checked": 28,
+  "all_report_local_links_exist": 83,
+  "printed_data_rows_checked": 27,
   "workplan_status_records_checked": 6,
   "workplan_status_as_of": "2026-10-06",
   "workplan_snapshot_sha256": "3d00c68df3dd3a16f323da35f0a7c2946b269af7e67b83ca3ed5a6821a858633",
@@ -39,12 +39,21 @@
       "response_consistency_margin.csv": "5e57fe88b759587a99b2564bec0f68850071739baf8fddd741136b432e0dd055",
       "response_interaction_preservation.csv": "6a086badad831bab5d0174bca9174f9e479612220b3b33c04538b1247c8758c3",
       "diagnostic_atlas_10seeds.csv": "5516d9ddef9edf87f4306cdc843a71b74a9830f7f6830dd7e4ecaf5fce8df9ec",
-      "RESPONSE_PATTERN_REPORT.md": "445dcbe25ffd580a023ff0e4a9785249f03d3e02517a8324aa422c97db61a6f2"
+      "paired_seed_values.csv": "70cbfcdee534ce9d12cfccd8c267494371637c6821f6bed08c51b657dfe17f82",
+      "RESPONSE_PATTERN_REPORT.md": "445dcbe25ffd580a023ff0e4a9785249f03d3e02517a8324aa422c97db61a6f2",
+      "transfer_focus_10seeds.png": "c3b2d8caeb6a6e91d9b513e2994a68e2d8be37211d03edfb27bb0dfdb141d5be",
+      "response_disagreement_10seeds.png": "9493b1f2f0bdfa49e98839e735dbfc374c7a519c769cda4d97458fd10461cdff",
+      "response_margin_sensitivity_10seeds.png": "6e795052ffb585ccf513ce21cce323e65a9541c90f56b7cd02edbe13a6279377"
     }
   },
   "offline_html": true,
   "formula_count": 12,
-  "source_sha256": "4774fd42f064dc4bceb01c7def9e2c9341d7c4b4ecf6aa81f96c941f86242257",
+  "source_sha256": "48ed27ec400344b05730aa50131ce5cd30cbd39a803998cde1f1921224b4ed60",
+  "Q2_metrics_prototype": {
+    "validation_sha256": "b7769e92f8c83bd4be105d91190b19f32d45fa1cf0da0efc8632ba49a8f10a35",
+    "source_sha256": "b4efbbde659e9d3be292c2963ff81384d9a2309d16515facaef5df57b65f09da",
+    "embedded_figure_sha256": "1701db4376190aef123137f602f8f7309aa333c2ce0c3b7f9372eff1c8c5131f"
+  },
   "figure_sha256": {
     "01-selector-response.png": "05b02ba1baf2ddd3a1bf62977c7e36b98fd9dfb158dd4090cf3538dedc4911f9",
     "02-decomposition.png": "e63c7b715e89e6e9985e42ec79c13f971a6f836c2977c3d35c699d40c7d6c03c",

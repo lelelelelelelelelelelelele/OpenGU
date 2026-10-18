@@ -53,7 +53,7 @@
   ],
   "analysis": {
     "state": "complete",
-    "note": "条件性迁移结论已记录；新增GIN→GCN三数据集×六GU的gt_full/r_point完整比较图及中英文Discussion草稿，展示GCN direct/GIN/Random/Degree的三seed均值±SD。seed只作重复，保留不支持与基线更强的条件；EXP-079多seed验证待执行。",
+    "note": "条件性迁移结论已记录；新增GIN→GCN三数据集×六GU的gt_full/r_point完整比较图及中英文Discussion草稿，展示GCN direct/GIN/Random/Degree的三seed均值±SD。seed只作重复，保留不支持与基线更强的条件；本记录保留原三seed分析范围；后续十seed验证的当前证据与决定见EXP-079。",
     "evidence": [
       {
         "label": "GIN多GU比较图与Discussion HTML",

@@ -27,6 +27,8 @@ Work Plan 与 Block 平行。这里拥有实验创建、定义修订、运行尝
 
 ## Agent 维护
 
+维护运行元数据时，将起止时间写入 `attempts[].runtime.started_at` / `finished_at`，页面不读取 attempt 顶层同名字段。提交时间使用同一 job 的 Runner receipt `submitted_at`，或新版 job-status 的 `created_at`；不要混用本地 dispatch 开始时间或 Handoff 创建时间。先核对 job_id、run_id、执行 SHA（有 execution_digest 时一并核对），再关联 Controller/Handoff；终态回执比旧 running 快照完整时，保留并引用终态来源。历史诊断没有匹配回执时保留缺项，不能用 manifest 生成时间倒推。实验主说明写研究问题、范围与当前结果覆盖；重绑、恢复、回传和旧证据排除原因放到运行详情中的证据说明。
+
 实验创建及日常运行状态更新只维护被忽略的 experiments/，不提交、不为每次更新创建 Block、Claim、分支或候选。通过既有接口新增、修改、校验或退役科学 YAML、公共参数小表与提交 Recipe，也由 Work Plan 管理，不创建开发 Block；这些 Git 跟踪文件仍须审阅并一起提交，正式运行前完成版本同步与 preflight。分析草稿留在 experiments/drafts/ 子目录，完成分析后才显式维护 analyses/ 中对应记录并独立提交。需要改变程序行为或接口契约（如解析器、算法、执行器、指标实现、缓存或结果格式）时，使用开发 Block，并在实验记录引用其交付。新实验采用独立的 EXP-NNN 编号，读取现有实验编号后分配下一个未占用编号；不调用 Block allocator。新建实验配置目录使用 expNNN，既有 aaguNNN 目录继续按 configs 引用使用。WorkBlock 编号及 blocks 引用继续使用 AAGU-NNN；两套编号独立分配。 创建新实验时同时写入时间估算、完整计划范围和可复算依据。
 
 更新 JSON 后运行校验与重建；不编辑 HTML。状态记录不得包含 analysis/decision，生成器从 analyses/ 读取它们；尚无分析文件时显示尚未分析/尚未提交决定。分析中等工作进度记录在状态的 next_step，不为进度改动已保存分析。新增实验按已有记录字段形成独立文件；没有证据的运行用 unknown/not_recorded，不把缺失当成0或已完成。维护接口是文件与生成器，当前前端为只读视图，不是在线编辑器或实时调度台。

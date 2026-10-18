@@ -2,7 +2,7 @@
 
 研究讨论稿 · 刘丞毓 · 2026 年 10 月 5 日初稿，10 月 18 日补充十 seed 分析与贡献讨论
 
-本稿尚未用于汇报，继续在原稿上推进。正文按约 22–25 分钟安排；表格、图注、材料链接和附录供展示与讨论时查阅，不逐项朗读。第 2–4.3 节保留早期三 seed 证据，第 4.4 节补充 EXP-079 十 seed 分析，第 5 节讨论贡献是否成立及下一步如何检验；不同批次不合并计数。
+本稿尚未用于汇报，继续在原稿上推进。正文按约 22–25 分钟安排；表格、图注、材料链接和附录供展示与讨论时查阅，不逐项朗读。第 2–3 节使用各自原实验的证据，第 4 节统一采用 EXP-079 十 seed 正文与图表，第 5 节讨论贡献是否成立及下一步如何检验；不同批次不合并计数。
 
 > IF 在部分 Retrain 条件下有明确效果，但这种效果没有稳定传递到不同 GU。十 seed 分析进一步区分了局部策略差异、共同 GU 敏感性与 surrogate 引起的反转。结果的组织已有推进，核心贡献仍未闭合。这次希望讨论：能否围绕“删除请求怎样改变对 GU 方法的评价”形成一个可验证的主张，以及它还缺哪条决定性证据。
 
@@ -15,10 +15,10 @@
 | 1 | 怎样从节点重要性走到图遗忘攻击？ | 交代研究预期与当前解释缺口 | 1.5 分钟 |
 | 2 | 选点依据能否预测 Retrain 的变化？ | IF 有效性已经依赖数据集与配置，不能直接推到 GU | 4 分钟 |
 | 3 | GU 怎样改变删除的影响？ | 效用损伤会被放大或削弱；准确率变化较小时，行为偏离仍可能增加 | 6 分钟 |
-| 4 | 换模型选点后，哪些响应还能保留？ | 早期迁移案例与十 seed 响应分析，保留局部支持、反转和不确定结果 | 6 分钟 |
+| 4 | 换模型选点后，哪些响应还能保留？ | 十 seed 的效用、行为及跨 GU 响应分析，保留局部支持、反转和不确定结果 | 6 分钟 |
 | 5 | 哪个关系最值得形成核心贡献？ | 区分叙事统一与贡献成立，核验一个候选主张及其最小证据缺口 | 6 分钟 |
 
-快速入口：[Work Plan 总表](../../../self/research/index.html) · [EXP-011 完整主表](../../../self/research/analyses/EXP-011/table02-v2-tables.html) · [EXP-013 全量图表](../../../self/research/analyses/EXP-013/REPORT.html) · [EXP-079 十 seed 响应分析](../../../self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html)。附录 A 保留 10 月 6 日状态快照，EXP-079 的新增证据见第 4.4 节。
+快速入口：[Work Plan 总表](../../../self/research/index.html) · [EXP-011 完整主表](../../../self/research/analyses/EXP-011/table02-v2-tables.html) · [EXP-013 全量图表](../../../self/research/analyses/EXP-013/REPORT.html) · [EXP-079 十 seed 响应分析](../../../self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html)。附录 A 保留 10 月 6 日状态快照，EXP-079 的十 seed 证据见第 4 节。
 
 ## 1. 研究问题与实验安排
 
@@ -30,15 +30,15 @@
 
 | 主要研究问题 | 比较设计 | 主要实验 |
 |---|---|---|
-| 选点依据能否预测删除后的重训变化？ | 对比 IF、IM、结构指标与 Random 在 Retrain 上的效果；进一步比较 IF 近似与删除预算 | EXP-032：360 个 Retrain 条件；EXP-011 的 Retrain 对照 |
-| 同一删除影响经过 GU 后，怎样表现为效用变化和重训行为偏离？ | 固定删除请求，比较六种 GU 与同请求 Retrain；观察相对 Random 的效用损伤、gap 和预测分歧 | EXP-011：1,449 个输出条件、1,242 条 GU–Retrain 配对 |
-| 这些效用与行为响应能否跨选点模型保留？ | 固定 GCN 目标侧，用 GCN、SGC、GAT、GIN 分别选点，比较响应幅度、方向及基线 | EXP-013：756 个输出条件、648 条 GU–Retrain 配对 |
+| 选点依据能否预测删除后的重训变化？ | 对比 IF、IM、结构指标与 Random 在 Retrain 上的效果；进一步比较 IF 近似与删除预算 | [EXP-032](../../../self/research/experiments/EXP-032.html#analysis)：360 个 Retrain 条件；[EXP-011](../../../self/research/experiments/EXP-011.html#group-1) 的 Retrain 对照 |
+| 同一删除影响经过 GU 后，怎样表现为效用变化和重训行为偏离？ | 固定删除请求，比较六种 GU 与同请求 Retrain；观察相对 Random 的效用损伤、gap 和预测分歧 | [EXP-011](../../../self/research/experiments/EXP-011.html#group-1)：1,449 个输出条件、1,242 条 GU–Retrain 配对 |
+| 这些效用与行为响应能否跨选点模型保留？ | 固定 GCN 目标侧，用 GCN、SGC、GAT、GIN 分别选点，比较响应幅度、方向及基线 | [EXP-079](../../../self/research/experiments/EXP-079.html#group-1)：十训练 seed、2,520 个输出条件、2,160 条 GU–Retrain 配对 |
 
-主表和迁移实验都覆盖 Cora、CiteSeer、PubMed，使用三个训练 seed，删除训练候选节点的 10%。这些输出共享图、划分和部分选集，数量不能当作独立重复次数。
+主表 EXP-011 使用三个训练 seed；当前跨模型选点分析 EXP-079 使用十个训练 seed。两者都覆盖 Cora、CiteSeer、PubMed，删除训练候选节点的 10%。这些输出共享图、划分和部分选集，数量不能当作独立重复次数。
 
 我希望最后形成的是稳定的研究框架，加上能解释结果的理论关系。现在的框架已经能回答“差异出现在哪里”；如果只把这些不同的表现列出来，贡献仍会偏向 benchmark。
 
-材料：[上次汇报](../2026-08-26_advisor-meeting/REPORT.md) · [上次会议纪要](../2026-08-26_advisor-meeting/MEETING_NOTES.md) · [主表配置](../../../experiments/configs/aagu011/table02_v2.yaml) · [迁移配置](../../../experiments/configs/exp013/surrogate_to_gcn.yaml)。
+材料：[上次汇报](../2026-08-26_advisor-meeting/REPORT.md) · [上次会议纪要](../2026-08-26_advisor-meeting/MEETING_NOTES.md) · [主表配置](../../../experiments/configs/aagu011/table02_v2.yaml) · [十种子迁移配置](../../../experiments/configs/exp079/surrogate_multiseed.yaml)。
 
 ## 2. 选点依据能否预测 Retrain 的变化？
 
@@ -158,87 +158,93 @@ IF 与 IM 优化的目标不同，但仅凭目标不同还不能解释这些差�
 
 这个现象目前是在直接选点条件下看到的。下一步要问，换一个模型选点，是否仍然能产生类似的效用与行为响应。[主表分析](../../../self/research/analyses/EXP-011/table02-v2-analysis.md)
 
+### 3.3 图表补充：把实际效用、Random 参照与行为偏离放在一起
+
+**新增：[三张图讲清 Retrain 参照、同一 selector 跨 GU 的响应，以及效用与行为的分离](q2-metrics/STORIES.html)。** 每张图均配发现句、实际数值、反例和适用范围；建议以同 selector 跨 GU 的响应图作为本问题主图。
+
+**Before 复核：** 用户指出历史单 shard 误取风险后，已核对当前保存预测，并重新前向计算 Cora 的 20 个初始分片 ensemble checkpoint，均复现图中 before。GraphRevoker 的低起点原因和配置代表性仍待核查，不能视为方法固有性质。见[专项核验](q2-metrics/BEFORE_AUDIT.html)。
+
+2026-10-18 讨论后，实验正文继续采用“选点对 Retrain 的影响 → GU 的效用与行为响应 → 跨选点模型保留”三个主要问题。问题 2 同时展示实际性能水平、相对 Random 的增量和同请求 Retrain 的行为参照；各项发现可由同一框架组织，不要求先归结为一个统一机制。
+
+已用 EXP-079/e79r5 的十训练 seed 制作[指标清单与组合图候选](q2-metrics/REPORT.html)，覆盖三数据集和六 GU。这批图固定 GCN 选点，展示 Random、Degree、R-point、D-full；前面 EXP-011 的 IM、PageRank 等更广策略比较仍按原批次保留，不能混成同一重复数。
+
+![Cora：删除前与删除后准确率、相对 Random 的额外损失、GU–Retrain 预测分歧](q2-metrics/cora_q2_overview.png)
+
+图表候选（尚未编入论文图号）。左侧实心点为 GU、空心菱形为同请求 Retrain、短虚线为各方法删除前均值；中间给出相对 Random 的配对准确率损伤；右侧直接比较各请求下的预测分歧。误差线为十训练 seed 的探索性点态 95% t 区间，Random 在每个训练 seed 内先平均三个请求。
+
+已有交叉熵、分类 AUC 和按 hop 的分歧数据可以继续支撑问题 2。[配套报告](q2-metrics/REPORT.html)已给出 CE/AUC 对照图、hop 分母和完整 CSV。当前 f1 字段与 accuracy 相同，不能重复算成两个指标；update-detection AUC 单独作为受限诊断，不写成通用隐私结论。原模型到 GU／Retrain 的预测变化则需另查持久化预测后补算，现有汇总分歧不能反推。
+
 ## 4. 换模型选点后，哪些响应还能保留？
 
-代理迁移实验进一步检查，这些结果有多少依赖选点模型。目标侧保持 GCN，分别使用 GCN direct、SGC、GAT、GIN 生成请求。代理不查询目标模型的权重、梯度或预测，但共享图、划分和指定验证标签，因此这里是共享数据条件下的灰盒迁移。
+**十种子结果支持局部响应保留，也出现明确反转；没有建立跨选点模型普遍不变的多 GU 响应模式。** 本节全部采用 EXP-079/e79r5：三数据集、十个训练 seed、12 个请求实例、六种 GU 与同请求 Retrain，共 2,520 个输出条件、2,160 条 GU–Retrain 配对。目标侧保持 GCN 架构，选点来源为 GCN、SGC、GAT、GIN；分片方法使用 GCN ensemble。共享图、划分及指定验证标签的访问条件不变。
+
+Random 在每个训练 seed 内先平均三次请求；十个 seed 为配对重复单位，不把 2,520 格当作独立样本，也不把早期 EXP-013 的三个 seed 再加进来。[十种子完整响应分析](../../../self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html)
 
 ### 4.1 效用损伤能否迁移？
 
-![GNNDelete 上四种选点来源与两个基线](assets/04-transfer.png)
+![十个训练 seed：GNNDelete 上两种 IF 相对 Random 的效用增量](../../../self/research/analyses/EXP-079/e79r5/transfer_focus_10seeds.png)
 
-图 3. EXP-013，GNNDelete / D-full 的总准确率下降。柱为三个训练 seed 均值，点为训练重复；Random 每个训练 seed 先平均三次请求。六种 GU、两种 IF 的完整结果见[全量报告](../../../self/research/analyses/EXP-013/REPORT.html)。
+图 3. EXP-079，目标为 GNNDelete / GCN。纵轴是相对同 seed Random 的额外效用损失，单位 pp；柱为十 seed 配对均值，误差线为点态 95% t 区间，Degree 虚线仅为均值参照。正值表示比 Random 更有破坏力。图中同时保留两种 IF、三个数据集和失败条件；是否超过 Degree 要读取对应配对比较，不能仅看柱是否高过虚线。
 
-| 数据集 / 方法 / 选点 | GCN direct | GIN | SGC | Random | Degree |
-|---|---:|---:|---:|---:|---:|
-| Cora / GNNDelete / D-full | 20.48 | 20.23 | 15.87 | 11.50 | 19.00 |
-| PubMed / GNNDelete / D-full | 1.41 | 1.43 | 10.31 | 2.10 | 1.36 |
+| Cora / GNNDelete / D-full 的选点来源 | 相对 Random 的额外损失 / pp [点态 95% 区间] |
+|---|---|
+| GCN | +7.51 [4.80, 10.21] |
+| SGC | +2.42 [1.01, 3.82] |
+| GAT | +4.26 [0.82, 7.71] |
+| GIN | +9.46 [6.91, 12.02] |
 
-表 4. 总下降，单位 pp。完整六来源均值和 SD 已附在[数据文件](assets/transfer-example.csv)，表中只突出要讲解的比较。
+表 4. 十种子的配对估计，直接读取 `diagnostic_atlas_10seeds.csv` 的 `U_vs_random`；区间未经全矩阵多重比较调整。
 
-Cora 上，GIN 的效果接近 direct，而且都超过 Random，是一个明确的迁移案例。但 Degree 也能造成 19.00 pp 的下降，不能把这个案例讲成代理 IF 已经稳定优于简单基线。
+Cora 中，D-full 的正向增益在三个 surrogate 上均保留，但幅度不同；SGC、GAT 相对 Degree 并没有一致优势。R-point 的 GCN 增益本身尚未确立，因此不能把其他来源的负值称为“一个已有效攻击的迁移失败”。PubMed 中，SGC 请求更强，而 GCN direct 并非强度上界；CiteSeer 中，两种 IF、四种来源相对 Random 的区间均跨零，没有建立清晰增益。这三种情况应一起呈现。
 
-PubMed 则提出了另一种问题：SGC 的请求造成 10.31 pp 的下降，direct 只有 1.41 pp。直接使用目标模型选点，并不构成攻击强度上界；这也符合前面的问题，IF 评分目标与实际 GU 响应之间还有距离。
-
-反例也存在。Cora / GNNDelete / GAT / R-point 的总下降为 6.46 pp，低于 Random 的 11.50 pp。有些配置的代理与 direct 很接近，但两者本来都比 Random 弱，例如刚才 PubMed 的 direct 与 GIN。所以“接近 direct”和“有较强的攻击效果”必须分别看。
-
-另外，Cora / D-full 中，GIN 与 direct 跨 GU 的损伤排序相关达到 1.000；但 Random 与 direct 也有 0.975。高相关中可能包含 GU 方法本身的共同响应。仅凭相关性，不能判断代理保留了多少有用的攻击信号。
+这里仍是 GNNDelete 的局部案例。六 GU 的总损失与同请求 Retrain 差距见[完整 U/G 图谱](../../../self/research/analyses/EXP-079/e79r5/response_atlas_U_G_10seeds.png)，不能用本图代表所有方法。
 
 ### 4.2 效用与行为分离的现象能否迁移？
 
-如果把刚才 GIF 的现象作为核心候选，surrogate 实验就应该直接检查它，而不能只讲总准确率下降。下面仍固定 GIF 和 R-point，改变选点模型，比较预测分歧相对 Random 的增量。
+预测分歧仍定义为 GU 与同请求 Retrain 的预测不一致率，不是遗忘前后的预测翻转。先看六种 GU、两种 IF、四种选点来源及 Random、Degree 的完整十种子图，再检查此前 GIF / R-point 现象是否保留。
 
-| 选点模型 | Cora | CiteSeer | PubMed |
+![十种子完整矩阵：GU 与同请求 Retrain 的预测不一致率](../../../self/research/analyses/EXP-079/e79r5/response_disagreement_10seeds.png)
+
+图 4. 各格为十 seed 的平均预测不一致率（%），展示绝对行为差距；下表才是相对 Random 的增量。GIF/IDEA 的重合响应不作为两份独立支持证据。
+
+| GIF / R-point 选点来源 | Cora ΔFlip / pp | CiteSeer ΔFlip / pp | PubMed ΔFlip / pp |
 |---|---:|---:|---:|
-| GCN direct | +4.20 ± 1.00 | +3.09 ± 0.59 | +1.84 ± 0.71 |
-| SGC | +2.73 ± 1.23 | −0.32 ± 0.80 | −0.02 ± 0.44 |
-| GAT | +3.90 ± 0.36 | +3.84 ± 0.83 | +2.81 ± 2.33 |
-| GIN | +3.53 ± 0.81 | +1.63 ± 0.93 | +1.30 ± 0.54 |
+| GCN | +3.65 ± 0.85 | +2.42 ± 1.68 | +1.90 ± 0.85 |
+| SGC | +2.26 ± 1.03 | −0.54 ± 0.63 | +0.23 ± 0.48 |
+| GAT | +3.78 ± 0.96 | +3.69 ± 0.95 | +2.95 ± 1.18 |
+| GIN | +3.06 ± 1.16 | +1.73 ± 0.86 | +1.68 ± 1.00 |
 
-表 4b. EXP-013，GIF / R-point 的 ΔFlip = Flip(selected)−mean Flip(Random)，单位 pp，均值 ± 三个训练重复的差值 SD。配对在同一训练条件内完成，再汇总重复；比较轴是选点模型。这里 Random 每个训练重复只有三次抽样，不能与表 3b 的十次 Random 基线混算。[全部模型、方法及两种 IF 的数据](assets/behavior-transfer-summary.csv)
+表 4b. EXP-079，ΔFlip = Flip(selected)−mean Flip(Random)，在同一训练 seed 配对后汇总，均值 ± 十个训练重复的样本 SD；SD 不是置信区间。数值从该批次自己的 `paired_seed_values.csv` 计算，不沿用第 3 节 EXP-011 的 Random 参照。
 
-![代理选点下的行为偏离与效用变化](assets/06-surrogate-behavior.png)
+十种子下仍可观察到效用与行为的分离：CiteSeer / GIF / GAT / R-point 相对 Random 的额外效用损失为 -0.65 pp，预测分歧增量为 +3.69 pp。准确率没有更差，并不意味着预测更接近重训。其他来源的幅度和方向要按表逐项判断，不能沿用旧三种子段落中的概括。
 
-图 4. 上排是预测分歧增量 ΔFlip，下排是效用额外损伤 Aₘ；正值分别表示分歧更多、准确率损伤更大。误差线是训练重复 SD，不是置信区间。横轴比较四种选点模型及 Degree 基线。
+跨 GU 的结论同样有限。完整图中分片方法的绝对分歧较大，不代表选点相对 Random 的增量也大；GIF、IDEA 的重合也不能充当跨机制复现。效用保持、相对 Random 的增量和接近 Retrain 是三个分别检验的问题。[全部十种子配对数据](../../../self/research/analyses/EXP-079/e79r5/paired_seed_values.csv)
 
-GAT 和 GIN 在三个数据集上都保留了分歧增加的方向；GAT 在 PubMed 上的幅度波动较大。SGC 则在 Cora 有增量，在 CiteSeer 和 PubMed 上接近 Random。这里已经有可以区分解释的正反情况，不能只说所有 surrogate 都有效。
+### 4.3 不同策略的多 GU 相对响应能否跨来源保留？
 
-效用与行为分离的例子也随代理选点保留下来了。CiteSeer 上，GAT 请求让 GIF 的准确率比 Random 高约 0.83 pp，同时预测分歧增加约 3.84 pp。这个现象不依赖直接读取目标模型的信息，但目前只是在共享图和指定验证标签的条件下观察到。
+将同策略跨来源的响应距离，与异策略跨来源的距离比较，才能进一步区分策略差异和 GU 本身的共同敏感性。下面使用去中心化后的五个独特 GU 坐标；GIF/IDEA 的重合 F1 响应只计一次。去中心化仍保留相对幅度，并不等于把每个向量归一化。
 
-### 4.3 换 GU 方法后，关系是否仍然成立？
+![十种子响应保持的敏感性：完整六 GU、五个独特 GU 与逐 GU 删除](../../../self/research/analyses/EXP-079/e79r5/response_margin_sensitivity_10seeds.png)
 
-GIF 与 IDEA 的对应分歧数值相同，不能只靠它们来支撑跨机制解释。已有结果中，MEGU 也出现了值得比较的情况：
+图 5. 上排是效用 U，下排是预测不一致率；点为同/异策略跨来源的距离裕量 M，线为十 seed 簇 jackknife 的近似 95% 区间。M 为正表示同策略跨来源平均更接近。每列保留完整坐标、去重和逐 GU 删除结果，检查判断是否由单一 GU 主导。
 
-| MEGU / GAT / R-point | 效用额外损伤 Aₘ | 预测分歧增量 ΔFlip |
-|---|---:|---:|
-| Cora | −0.12 pp | +1.95 pp |
-| CiteSeer | −0.27 pp | +2.87 pp |
-| PubMed | +0.21 pp | +2.94 pp |
-
-表 4c. EXP-013，三个训练重复的均值，使用本实验自己的 Random 基线。其他模型与 GU 的正反结果均保留在[完整比较数据](assets/behavior-transfer-summary.csv)。
-
-这说明效用变化较小、行为偏离增加并不只出现在 GIF/IDEA。另一方面，GraphEraser、GraphRevoker 的部分代理条件中，分歧增量为负；现有结果不支持所有 GU 都出现同一种响应。
-
-因此，surrogate 层次可以直接检验核心现象的边界：哪些选点模型保留了行为偏离，哪些模型没有；换一个 GU 方法后，这个关系是否改变。训练 seed 用来估计重复波动，选点模型、选点策略和 GU 方法才是这里要讨论的对象。
-
-材料：[当前迁移结论](../../../self/research/analyses/EXP-013/transfer_conclusion_REPORT.html) · [GIN 跨六 GU 比较与 Discussion](../../../self/research/analyses/EXP-013/gin_transfer_discussion_REPORT.html) · [选集重叠分析](../../../self/research/analyses/EXP-013/post_REPORT.html)。
-
-### 4.4 十 seed 分析增加了什么判断？
-
-EXP-079/e79r5 已完成三数据集、十个训练 seed、12 个请求实例、六 GU 与同请求 Retrain 的 2,520 格分析。固定 split seed 2024、训练候选池 10% 节点删除，目标为 GCN 设置；分片方法为 GCN ensemble。Random 每个训练 seed 内先平均三次。评估使用原图，不能直接解释成 retained graph 部署结果。下面采用该批次自己的配对数据，不给前面的三 seed 表补上新的样本量；也不把 EXP-013 与 EXP-079 当作独立复现。本次核对分析文件与 CSV，未重新执行 e79r5 全量原始文件哈希核验；科学接受状态仍为 `not_requested`。
-
-这次分析先看全部 GU 的原始效应，再扣除共同响应、比较策略差异及其跨来源保留。GIF/IDEA 的重合 F1 响应只算一个独特坐标；完整图仍保留六方法。结果让主张的范围更清楚，但没有把局部现象变成普遍规律。
-
-| 十 seed 结果 | 相比只看效果均值，多获得什么判断？ | 必须同时保留的边界 |
+| 十 seed 结果 | 对响应保留的判断 | 必须保留的边界 |
 |---|---|---|
-| Cora 的同策略跨来源相对响应更接近，效用距离裕量 M = 9.976 [5.122, 14.830] pp² | gt_full/r_point 的差异方向具有跨来源重复的线索 | 去掉 GNNDelete 后 M = 0.333 [−0.200, 0.865]，不能称稳健的多 GU 指纹 |
-| CiteSeer 的效用 M = −0.003 [−0.041, 0.035] pp² | 没有建立稳定的整体效用区分 | 不等于策略完全相同，也不是等效检验 |
-| PubMed 的效用 M = 0.117 [−0.137, 0.372] pp² | 应分析局部关系而非宣布统一迁移 | gt_full 对 GNNDelete 与 GraphRevoker 的相对影响 K，从 GCN 的 −1.269 pp 变成 SGC 的 +5.658 pp，方向反转 |
+| Cora 效用 M = 9.976 [5.122, 14.830] pp² | 同策略跨来源的相对响应平均更接近 | 去掉 GNNDelete 后 M = 0.333 [−0.200, 0.865]，不能称稳健的多 GU 指纹 |
+| CiteSeer 效用 M = −0.003 [−0.041, 0.035] pp² | 没有建立稳定的整体效用区分 | 区间跨零不等于策略相同，也不是等效检验 |
+| PubMed 效用 M = 0.117 [−0.137, 0.372] pp² | 应报告局部保留与反转 | gt_full 的 GNNDelete–GraphRevoker 对比 K，从 GCN 的 −1.269 pp 变为 SGC 的 +5.658 pp |
 
-表 5. M 为异策略跨来源平方距离减同策略跨来源平方距离，采用去中心化、五个独特 GU 坐标和不同训练 seed 交叉乘积；区间为十 seed 簇 jackknife 的近似 95% 区间，单位 pp²。去中心化仍保留相对幅度，M 不表示每个策略的完整响应不变。K 为两 GU 相对 Random 的额外损失之差，单位 pp。不能把共享 profile 的架构对当独立样本。[M 及敏感性数据](../../../self/research/analyses/EXP-079/e79r5/response_consistency_margin.csv) · [K 的跨来源配对变化](../../../self/research/analyses/EXP-079/e79r5/response_interaction_preservation.csv)。
+表 5. M 为异策略跨来源平方距离减同策略跨来源平方距离，使用不同训练 seed 的交叉乘积，单位 pp²。K 为两 GU 相对 Random 的额外损失之差，单位 pp。来源：[M 与全部敏感性数据](../../../self/research/analyses/EXP-079/e79r5/response_consistency_margin.csv)、[K 的跨来源配对变化](../../../self/research/analyses/EXP-079/e79r5/response_interaction_preservation.csv)。
 
-局部响应也不只发生在 GNNDelete：Cora/r_point/SGC 的 GraphEraser、PubMed/r_point/GAT 的 GraphRevoker、PubMed/Degree 的 MEGU，都有相对其余 GU 更集中的变化。但它们的绝对损失与相对集中程度不同，不能据此拼成共同机制。预测不一致率还提供了效用之外的区分，不过跨来源裕量对 GU 坐标选择敏感；U/G 的去中心化几何在当前设计下代数相同，也不能算两份独立验证。
+预测不一致率在三个数据集上有正的探索性裕量，但 Cora、PubMed 对删除 GNNDelete 坐标敏感，CiteSeer 对删除 GIF 等坐标敏感。它提供了效用之外的信息，却仍不足以确立普遍稳定的跨模型响应。U/G 的去中心化几何在当前设计下代数相同，也不能当成两份独立验证。
 
-展示时先打开[全 GU 的 U/G 图谱](../../../self/research/analyses/EXP-079/e79r5/response_atlas_U_G_10seeds.png)，再看[逐 GU 删除敏感性](../../../self/research/analyses/EXP-079/e79r5/response_margin_sensitivity_10seeds.png)与[预测不一致率](../../../self/research/analyses/EXP-079/e79r5/response_disagreement_10seeds.png)。[完整分析](../../../self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md)保留多重比较、非 GNNDelete 案例及所有反例；上述选例属于探索性分析。
+### 4.4 这组证据能支持到哪里？
+
+本节支持的是：在固定目标架构、数据划分与删除预算下，部分策略效应和 GU 相对关系能够跨选点来源保留，同时存在来源反转和无法区分的条件。它没有证明任意 surrogate 都有效，也没有证明完整响应的幅度等效。
+
+适用范围为固定 split seed 2024、训练候选池 10% 节点删除、原图评价。Random 的三份节点集合跨训练 seed 重用，Degree 及部分 SGC 请求也重复；十训练 seed 不等于十份独立选点样本。独立 split、其他预算、目标架构及 retained graph 评价仍需分别验证。
+
+本次核对既有十种子分析 CSV、图表与正文，不重新执行 GPU 实验；科学接受状态仍为 `not_requested`。早期三种子结果仅保留为[EXP-013 历史材料](../../../self/research/analyses/EXP-013/REPORT.html)，不承担本节当前结论，也不与十种子相加。
 
 ## 5. 哪个关系最值得形成核心贡献？
 
@@ -318,7 +324,7 @@ GraphRevoker 案例来源为 [diagnostic_atlas_10seeds.csv](../../../self/resear
 
 ## 附录 A. Work Plan 中的验收与材料入口
 
-历史状态核对日期：2026-10-06。以下保留初稿当时从 `experiments/EXP-NNN.json` 与 `analyses/EXP-NNN.json` 形成的状态快照，不代表 10 月 18 日的实时状态。尤其 EXP-079 当时未启动，如今的十 seed 分析已单列于第 4.4 节；实时状态以 [Work Plan](../../../self/research/index.html) 为准。
+历史状态核对日期：2026-10-06。以下保留初稿当时从 `experiments/EXP-NNN.json` 与 `analyses/EXP-NNN.json` 形成的状态快照，不代表 10 月 18 日的实时状态。尤其 EXP-079 当时未启动，如今的十 seed 分析已用于第 4 节全文；实时状态以 [Work Plan](../../../self/research/index.html) 为准。
 
 | 实验 | 运行 / 交付 | 分析 | 科学决定 | 已确认范围及入口 |
 |---|---|---|---|---|
@@ -342,16 +348,16 @@ GraphRevoker 案例来源为 [diagnostic_atlas_10seeds.csv](../../../self/resear
 | 第 2 节：IF → Retrain | [Retrain 均值、SD 与基线差](assets/retrain-reference.csv)；图 1 | [EXP-011 汇总](../../../self/research/analyses/EXP-011/table02-v2-summary.csv)；[EXP-032 逐条件](../../../self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/AAGU-032-all-conditions.csv) |
 | 第 3.1 节：Retrain → GU | [统一符号的完整表](assets/table02-unified-signs.csv)；[两案例分解](assets/decomposition-cases.csv)；图 2 | [六 GU 全表](../../../self/research/analyses/EXP-011/table02-v2-tables.html)；[原始 manifest](../../../results/runs/gpu4090/exp011-t2/0925-v1/run.json) |
 | 第 3.2 节：IF、IM 与行为偏离 | 表 3、3b；[全部策略与 GU 的均值及 SD](assets/behavior-selector-summary.csv) | [主表分析](../../../self/research/analyses/EXP-011/table02-v2-analysis.html)；[校准证据](../../../self/research/analyses/EXP-062/closeout-20260924.md) |
-| 第 4 节：效用与行为的迁移 | [效用案例](assets/transfer-example.csv)；[全部模型、方法、两种 IF 的均值及 SD](assets/behavior-transfer-summary.csv)；[训练重复数据](assets/behavior-transfer-seeds.csv)；图 3、4 | [756 格原始分析数据](../../../self/research/analyses/EXP-013/cells.csv)；[跨方法相关](../../../self/research/analyses/EXP-013/transfer_method_correlations.csv)；[原始 manifest](../../../results/runs/gpu4090/exp013-surrogate-to-gcn/r1/run.json) |
+| 第 4 节：十种子的跨模型响应 | 图 3–5；[十种子配对数据](../../../self/research/analyses/EXP-079/e79r5/paired_seed_values.csv)；[响应区间](../../../self/research/analyses/EXP-079/e79r5/response_profile_summary.csv) | [完整响应分析](../../../self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html)；[原始 manifest](../../../results/runs/gpu4090/exp079-surrogate-multiseed/e79r5/run.json) |
 | 第 5 节：理论与讨论 | 本稿附录 C、D | [论文叙事与章节入口](../../../../../OpenGU-DocMap/40_论文写作/40_论文写作.md)；[攻击与参照定义](../../../../../OpenGU-DocMap/40_论文写作/04_攻击与审计框架.md) |
 
 ### B2. 数值读法
 
 - “效用”指测试准确率。原字段名 `f1` 实际计算 argmax accuracy，单标签多分类下与 micro-F1 数值相等，不能当作 macro-F1。
 - A = Random−selected；G = Retrain−GU；E = G(selected)−mean G(Random)。差值单位为百分点 pp，预测分歧单位为百分比。EXP-011 原汇总的 `gap` 与本稿 G 符号相反，`relative_random` 与本稿 A 符号相反。
-- 先在每个训练 seed 内平均选择重复，再对 42、212、2024 三个训练 seed 等权平均。SD 为三个训练重复的样本标准差，不是置信区间。
+- 第 2–3 节按各自实验口径报告；EXP-011 对 42、212、2024 三个训练 seed 等权平均。第 4 节 EXP-079 使用 42、212、2024、0–6 共十个训练 seed；SD、点态 t 区间与 seed 簇 jackknife 区间分别标注，不互相替代。
 - “同训练 seed 配对”固定模型训练条件，不表示 selector 使用相同选点 seed，也不表示不同模型的训练结果相同。汇报以策略、选点模型和 GU 方法为比较轴；训练 seed 只作重复。方向一致、幅度接近与波动较小分别判断，不用逐 seed 胜负计数替代稳定性分析。
-- EXP-011 每训练 seed 有十次 Random，EXP-013 有三次。即使 direct 输出复用，相对 Random 的值也可能不同；两组不能当成独立复现。
+- EXP-011 每训练 seed 有十次 Random；EXP-079 与历史 EXP-013 各有三次。即使 direct 输出复用，相对 Random 的值也可能不同；两组不能当成独立复现。
 - 分片方法有自己的集成模型起点。跨方法绝对效用及总下降还受模型与训练设置影响；GU 与全图 Retrain 的差距也包含模型、聚合差异。
 - 10% 指训练候选池中的删除比例。主表有 207 个请求条件、81 个不同 Selection Artifact；总输出数不表示独立样本数。
 
@@ -471,7 +477,7 @@ IM 作为选点策略，与 IF、Degree 和 Random 一起进入主问题的效�
 | 为什么 IF 没有普遍更强？ | 文献保证、实现近似、有限删除和准确率端点之间有距离。现有数据定位了条件差异，但尚未识别主要原因。 |
 | 既然 Degree 很强，为什么还研究 IF？ | IF 提供损失敏感性的解释对象，但必须证明它带来什么额外理解或效果。Degree 会始终保留；没有额外价值的复杂部分可以舍弃。 |
 | GIF/IDEA 已经修好，为什么仍然接近？ | 数值验证不等于机制区分。当前损失构造相近、共享求解器及相应参数；需要更新与预测概率层面的检查，准确率相同不足以判定等价。 |
-| 三个 seed 与十个 seed 各能说明什么？ | 第 2–4.3 节仍是早期三 seed 结果；EXP-079 十 seed 已在第 4.4 节补入，强化配对估计及敏感性判断，但仍是固定 split/预算，不能证明普遍迁移或等效，也不与早期样本相加。 |
+| 三个 seed 与十个 seed 各能说明什么？ | 第 2–3 节保留各自原实验重复数；第 4 节全文和图表使用 EXP-079 十 seed，提供配对估计及敏感性判断，但仍是固定 split/预算，不能证明普遍迁移或等效，也不与早期样本相加。 |
 | 为什么不直接扩大实验？ | 主矩阵已经能提出问题。先决定要区分哪两个解释，再补必要的信息；新增更多组合不一定提供机制证据。 |
 | 现在贡献统一了吗？ | 三个主问题可以围绕一个候选主张组织：先验证进入 GU 的信号，再研究 GU 的变化，最后检查跨来源边界。叙事关系更清楚，核心贡献仍待判断变化的实质价值、新颖性与独立验证支持。 |
 | 实验验收了吗？ | EXP-011 的限定描述性结论、EXP-062 四组数值验证、EXP-053 配置诊断收口已接受。EXP-013 已完成产物验收与分析，科学决定未正式请求；EXP-032 仍待科学审阅。 |

@@ -1,11 +1,11 @@
 {
   "id": "EXP-032",
   "title": "D-full 近似对照与 Retrain 效果",
-  "question": "extension-v2三数据集、十Selector、三seed、四预算，共360条件。",
+  "question": "D-full 及其近似选出的删除请求，是否比 Degree、Random 更损害完整重训后的测试准确率？这种差异是否随数据集和预算改变？",
   "scope": "extension-v2三数据集、十Selector、三seed、四预算，共360条件。",
   "configs": [
     {
-      "label": "experiment.yaml",
+      "label": "D-full 与近似选点的 Retrain 对照",
       "path": "experiments/configs/aagu032_extend_v2/experiment.yaml",
       "role": "current"
     },
@@ -58,8 +58,12 @@
   ],
   "analysis": {
     "state": "review",
-    "note": "2026-09-23 完成 100→3000 训练轮数描述性对照；360 个条件坐标可配对，但仅 Degree/Random 的 72 格 selection_id 相同，科学结论待审阅。",
+    "note": "当前 3000 轮结果已有分析草稿，科学结论待审阅。以下先展示当前参数下的 Retrain 对照；100→3000 轮历史比较作为补充材料，不能混合为同一参数设置的结果。",
     "evidence": [
+      {
+        "label": "3000轮参数下论文结果分析草稿",
+        "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
+      },
       {
         "label": "历史033报告；恢复后适用性待复核",
         "path": ".workblock/items/AAGU-033/REPORT.md"
@@ -77,8 +81,52 @@
         "path": "results/runs/gpu4090/aagu032-extended-v2-multi-gcn-retrain/aagu032-recovery-full-20260920/run.json"
       },
       {
-        "label": "3000轮参数下论文结果分析草稿",
-        "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
+        "label": "cora 当前参数完整结果表",
+        "path": "self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/cora-3000-only-tables.md"
+      },
+      {
+        "label": "citeseer 当前参数完整结果表",
+        "path": "self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/citeseer-3000-only-tables.md"
+      },
+      {
+        "label": "pubmed 当前参数完整结果表",
+        "path": "self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/pubmed-3000-only-tables.md"
+      }
+    ],
+    "highlights": [
+      "D-full 相对 Degree 的方向随数据集变化：Cora、PubMed 的平均测试准确率更低，CiteSeer 更高；不支持普遍优于简单结构基线。",
+      "这里测量完整 Retrain 的测试准确率，不是近似 GU 的误差或遗忘质量。归档字段名虽含 f1，实际计算为 test accuracy。",
+      "每个配置与预算内有 3 个配对训练 seed；表中每数据集汇总 12 个配置×预算组，这些组不独立，不作显著性或等效性声明。"
+    ],
+    "tables": [
+      {
+        "caption": "当前 3000 轮：三个 GCN D-full 配置 × 四预算的描述性对照（负值表示 Retrain 准确率更低）",
+        "columns": [
+          "数据集",
+          "相对 Degree 的准确率差",
+          "低于 / 持平 / 高于 Degree（12 组）",
+          "相对 Random 的准确率差"
+        ],
+        "rows": [
+          [
+            "Cora",
+            "−0.277 pp",
+            "8 / 2 / 2",
+            "−0.062 pp"
+          ],
+          [
+            "CiteSeer",
+            "+0.188 pp",
+            "4 / 0 / 8",
+            "+0.526 pp"
+          ],
+          [
+            "PubMed",
+            "−0.922 pp",
+            "10 / 0 / 2",
+            "−0.949 pp"
+          ]
+        ]
       }
     ]
   },

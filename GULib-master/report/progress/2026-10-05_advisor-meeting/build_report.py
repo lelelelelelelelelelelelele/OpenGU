@@ -312,12 +312,6 @@ for d, m, sel in chosen:
     r = avg11.loc[(d, m, sel)]
     printed_rows.append(f'| {d} / {m} / D-full | ' + ' | '.join(
         signed(r[k]) for k in ['U', 'D', 'G', 'A', 'A_R', 'E']) + ' |')
-for d in ['Cora', 'PubMed']:
-    vals = []
-    for src, sel in [('GCN','gt_full'), ('GIN','gt_full'), ('SGC','gt_full'), ('GCN','random'), ('GCN','degree')]:
-        vals.append(seed13[(seed13.dataset == d) & (seed13.method == 'GNNDelete') &
-                          (seed13.source == src) & (seed13.selector == sel)].U.mean())
-    printed_rows.append(f'| {d} / GNNDelete / D-full | ' + ' | '.join(f'{v:.2f}' for v in vals) + ' |')
 for row in printed_rows:
     assert row in source, ('Printed report row does not match evidence', row)
 
@@ -328,18 +322,6 @@ for sel, label in [('random', 'Random'), ('degree', 'Degree'), ('pagerank', 'Pag
     row = '| '+label+' | '+' | '.join(cells)+' |'
     assert row in source, row
     printed_rows.append(row)
-for src in ['GCN', 'SGC', 'GAT', 'GIN']:
-    label = 'GCN direct' if src == 'GCN' else src
-    cells = [f'{signed(b13.loc[(d,"GIF","r_point",src)].delta_flip_mean)} ± {b13.loc[(d,"GIF","r_point",src)].delta_flip_std:.2f}' for d in DATASETS]
-    row = '| '+label+' | '+' | '.join(cells)+' |'
-    assert row in source, row
-    printed_rows.append(row)
-for d in DATASETS:
-    r = b13.loc[(d, 'MEGU', 'r_point', 'GAT')]
-    row = f'| {d} | {signed(r.A_mean)} pp | {signed(r.delta_flip_mean)} pp |'
-    assert row in source, row
-    printed_rows.append(row)
-
 contrast32 = pd.read_csv(ROOT / 'self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/AAGU-032-paired-baseline-contrasts.csv')
 selected32 = contrast32[contrast32.selector.isin(['gt_full', 'gt_full_all_trainable', 'gt_full_all_trainable_hops3'])]
 assert len(selected32) == 72
@@ -358,6 +340,34 @@ margin = pd.read_csv(e79 / 'response_consistency_margin.csv')
 interaction = pd.read_csv(e79 / 'response_interaction_preservation.csv')
 atlas = pd.read_csv(e79 / 'diagnostic_atlas_10seeds.csv')
 addition_checks = []
+paired79 = pd.read_csv(e79 / 'paired_seed_values.csv')
+for src in ['GCN', 'SGC', 'GAT', 'GIN']:
+    selected = atlas[(atlas.dataset == 'Cora') & (atlas.method == 'GNNDelete') &
+                     (atlas.selector == 'gt_full') & (atlas.source == src) &
+                     (atlas.metric == 'U_vs_random')]
+    assert len(selected) == 1 and selected.iloc[0]['n'] == 10
+    r = selected.iloc[0]
+    row = f'| {src} | {r["mean"]:+.2f} [{r.lo:.2f}, {r.hi:.2f}] |'
+    assert row in source, row
+    printed_rows.append(row)
+    values = []
+    for dataset in DATASETS:
+        x = paired79[(paired79.dataset == dataset) & (paired79.method == 'GIF') &
+                     (paired79.selector == 'r_point') & (paired79.source == src)]
+        assert len(x) == x.seed.nunique() == 10
+        values.append(f'{signed(x.flip_vs_random.mean())} ± {x.flip_vs_random.std(ddof=1):.2f}')
+    row = '| ' + src + ' | ' + ' | '.join(values) + ' |'
+    assert row in source, row
+    printed_rows.append(row)
+case79 = paired79[(paired79.dataset == 'CiteSeer') & (paired79.method == 'GIF') &
+                  (paired79.selector == 'r_point') & (paired79.source == 'GAT')]
+for column in ['U_vs_random', 'flip_vs_random']:
+    assert f'{case79[column].mean():+.2f} pp' in source
+section4 = source.split('## 4. 换模型选点后')[1].split('## 5. 哪个关系')[0]
+assert 'assets/04-transfer.png' not in section4 and 'assets/06-surrogate-behavior.png' not in section4
+for image in ['transfer_focus_10seeds.png', 'response_disagreement_10seeds.png',
+              'response_margin_sensitivity_10seeds.png']:
+    assert f'](../../../self/research/analyses/EXP-079/e79r5/{image})' in section4
 
 def check_fragment(frame, filters, fields, digits, prefix='', unit=''):
     selected = frame
@@ -411,7 +421,7 @@ def embed(m):
     assert path.is_file(),path
     data=base64.b64encode(path.read_bytes()).decode('ascii')
     return 'src="data:image/png;base64,'+data+'"'
-body=re.sub(r'src="(assets/[^\"]+\.png)"',embed,body)
+body=re.sub(r'src="([^\"]+\.png)"',embed,body)
 toc=[]
 counter=[0]
 def heading(m):
@@ -435,7 +445,7 @@ nav{display:flex;gap:8px 20px;flex-wrap:wrap;padding:20px 0;margin-top:14px;bord
 '''
 contents='<details><summary>目录：讲稿、实验验收、数据与理论备稿</summary><nav aria-label="章节导航">'+''.join(toc)+'</nav></details>'
 body=body.replace('<h2 ',contents+'<h2 ',1)
-page='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>从节点影响到图遗忘响应 · 10月18日修订</title><style>'+style+'</style></head><body><header>OPENGU RESEARCH / 研究讨论 / 2026.10.05 初稿 · 2026.10.18 修订</header><main>'+body+'</main><footer>Markdown 原稿：REPORT.md · 历史三 seed 图表与新增十 seed 分析分开报告</footer></body></html>'
+page='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>从节点影响到图遗忘响应 · 10月18日修订</title><style>'+style+'</style></head><body><header>OPENGU RESEARCH / 研究讨论 / 2026.10.05 初稿 · 2026.10.18 修订</header><main>'+body+'</main><footer>Markdown 原稿：REPORT.md · 第 2–3 节保留原实验口径 · 第 4 节正文与图表统一使用十 seed</footer></body></html>'
 (HERE/'REPORT.html').write_text(page,encoding='utf-8')
 
 links=[]
@@ -459,9 +469,14 @@ audit={'date':'2026-10-18','EXP-011':audit11,'EXP-013':audit13,
            'checked_fragments':addition_checks, 'scientific_decision':'not_requested',
            'source_sha256':{name:sha(e79/name) for name in [
                'response_consistency_margin.csv','response_interaction_preservation.csv',
-               'diagnostic_atlas_10seeds.csv','RESPONSE_PATTERN_REPORT.md']}},
+               'diagnostic_atlas_10seeds.csv','paired_seed_values.csv','RESPONSE_PATTERN_REPORT.md',
+               'transfer_focus_10seeds.png','response_disagreement_10seeds.png',
+               'response_margin_sensitivity_10seeds.png']}},
        'offline_html':True,'formula_count':len(formulas),
        'source_sha256':sha(HERE/'REPORT.md'),
+       'Q2_metrics_prototype':{'validation_sha256':sha(HERE/'q2-metrics/validation.json'),
+           'source_sha256':sha(HERE/'q2-metrics/REPORT.md'),
+           'embedded_figure_sha256':sha(HERE/'q2-metrics/cora_q2_overview.png')},
        'figure_sha256':{p.name:sha(p) for p in sorted(ASSETS.glob('[0-9][0-9]-*.png'))}}
 (HERE/'validation.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 print(json.dumps(audit,ensure_ascii=False,indent=2))

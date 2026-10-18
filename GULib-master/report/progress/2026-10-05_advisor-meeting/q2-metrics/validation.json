@@ -1,0 +1,31 @@
+{
+  "execution_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",
+  "run_sha256": "115ebaa86a7fa95dd65ca64fc34d5fcc0d6033a2a9ee912ad54d947dbda38f56",
+  "verified_metrics": 2520,
+  "paired_GU_cells": 2160,
+  "training_seeds": 10,
+  "figure_count": 6,
+  "raw_csv_endpoint_agreement": true,
+  "method_specific_before_constant": true,
+  "matched_retrain_output_verified": true,
+  "scientific_acceptance": "not_requested",
+  "new_gpu_runs": 0,
+  "metric_implementation_sha256": "200ad1a771c81c088b93d41297acd3c76c4be9ef9b31f177dd8320144e030701",
+  "input_csv_sha256": "099265b44e8862e1478bbd1507791a5c1202009ccd0e80411a43f503f404fc84",
+  "source_sha256": "b4efbbde659e9d3be292c2963ff81384d9a2309d16515facaef5df57b65f09da",
+  "figures": {
+    "cora_q2_overview": "1701db4376190aef123137f602f8f7309aa333c2ce0c3b7f9372eff1c8c5131f",
+    "cora_q2_metrics": "54d3a7e2095499e7eb0988306be09e652d60f288d1648e772bcec5aed47ab65e",
+    "citeseer_q2_overview": "f79c1427a49f3ce07e120dec3689d3865f121e2f00af88ba190c763b46b25e4e",
+    "citeseer_q2_metrics": "a4f331c08c4cc2df598cebecae856c2d30a4756fec7f6ee0b7a7344b4125bd83",
+    "pubmed_q2_overview": "e2e154ca72ec6a3d947451103027e19d9fb5c9c2a88592a06a8b0c0a219071c5",
+    "pubmed_q2_metrics": "7b2e48cc68c324972cf3f37358ecebfe959d2f11af982e616a25ef0906eb7b64"
+  },
+  "output_csv_sha256": {
+    "metrics_cells.csv": "caefea8d35dd3cfeeccae767b68d61c8b6beb4d46de529c541bdc9b6a53cd888",
+    "metrics_seed.csv": "950e94ae6e8e22bf860038d91719bc93937e494e76e7720a7fb0b3d455f30e3a",
+    "metrics_summary.csv": "7b0a49b21dccc378e84f3997cf64f736e6ab7d2bfce7a4ea03c4c691de3dc98d",
+    "hop_summary.csv": "395bb428544d26b9bfdad51bdbadb1603143201bc3a4b23ec89544349f928757",
+    "metric_coverage.csv": "d429ac9c80a658aaf5c25ca8da81e3ec2d8bb0ff4651a1a1503044b6c3fef2d0"
+  }
+}
