@@ -1,0 +1,25 @@
+schema_version: 1
+id: exp080-cc-base-retry1
+runner: experiment
+config_path: experiments/configs/exp080/cc_base.yaml
+config_sha256: 7cd4df80d0a613d6f194301ea57651c7e6539c4e74a86c979b06866423ac4e61
+configuration_fingerprint: 430f2bb2d580019aa04bfdeb2c19e72b59a31c72c2e8cdeacf55cd56a1f50783
+run_identity:
+  experiment_id: exp080-cc-base
+  run_id: e80r304
+timeout_seconds: 21600
+logical_cells: 1764
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
