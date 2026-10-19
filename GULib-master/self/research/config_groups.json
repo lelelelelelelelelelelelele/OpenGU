@@ -118,5 +118,10 @@
     "owner": "EXP-080",
     "kind": "experiment",
     "note": "删除比例与多GU效用响应；现有指标初步分析，正式范围和运行状态由EXP-080拥有。"
+  },
+  "graphrevoker_random5": {
+    "owner": "EXP-081",
+    "kind": "experiment",
+    "note": "复用已审阅Random5草稿目录；当前GraphRevoker三seed小样本诊断，执行状态由EXP-081拥有。"
   }
 }

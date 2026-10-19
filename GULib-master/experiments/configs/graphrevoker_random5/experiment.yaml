@@ -1,0 +1,17 @@
+# Review draft: three existing training seeds, one fixed random five-node set.
+# Uses the current GraphRevoker implementation without method changes.
+kind: experiment
+schema_version: 1
+experiment_id: graphrevoker-cora-random5
+stage: unlearning
+dataset_refs:
+  - cora.yaml
+selector_refs:
+  - ../graphrevoker_random5/random5.yaml
+unlearning_refs:
+  - graphrevoker.yaml
+evaluation_refs: []
+matrix: cartesian_product
+seeds: [42, 212, 2024]
+random_selector_seeds: [42]
+return_scores: false

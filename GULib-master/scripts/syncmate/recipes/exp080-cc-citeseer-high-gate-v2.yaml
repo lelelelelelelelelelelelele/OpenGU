@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp080-cc-citeseer-high-gate-v2
+runner: experiment
+config_path: experiments/configs/exp080/cc_citeseer_high_gate.yaml
+config_sha256: 9db2cb3d00b6cd53525aa502c321dd1d94d335cebb691cb58acbc344bddce2e4
+configuration_fingerprint: 9c19e4da35344985aaa3dce6d10687d390232b1cefdec8a34b5827566895a6ac
+run_identity:
+  experiment_id: exp080-cc-citeseer-high-gate
+  run_id: e80g304
+timeout_seconds: 7200
+logical_cells: 7
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
