@@ -128,9 +128,34 @@ def main():
 
 2026-10-18 · 三张叙事图候选 · EXP-079/e79r5 · GCN 选点 · 十训练 seed
 
-**问题 2 同时问两件事：同一 selector 对实际效用造成什么变化；这些变化与同请求 Retrain 的效用和预测行为有什么关系。** 下面按“先看端点 → 再比较 GU 响应 → 最后看效用与行为是否一致”组织。三张图共用同一批请求，不是三个独立实验。
+**问题 2 同时问两件事：同一 selector 对实际效用造成什么变化；这些变化与同请求 Retrain 的效用和预测行为有什么关系。** 2026-10-19 更新：先看所有四类请求的原始效用，再读相对 Random 与 Retrain 的差值。各图共用同一批请求，不是独立实验。
 
-## 图 1：大的 Retrain gap，需要结合初始性能和 Random 来理解
+## 图 1：先看四种请求后模型本身的准确率
+
+![PubMed：Random、Degree、R-point、D-full 的原始准确率](primary_pubmed_accuracy.png)
+
+**横轴是四类独立请求，纵轴是准确率原值，没有减 Random，也没有减 Retrain。** 实心圆是 GU，空心菱形是同 selector 的 Retrain，按 Random 对 Random、Degree 对 Degree、R-point 对 R-point、D-full 对 D-full 叠加。同色短线连接两个均值，不表示时间轨迹。GU 的灰色虚线是自己的删除前平均准确率（Before）。浅色点为十个训练 seed，大点及误差线为均值和点态 95% t 区间。前五面板共享纵轴，灰色 GraphRevoker 诊断面板使用独立纵轴；重复画出的 Retrain 仍是同一份参照。
+
+PubMed 的原值说明，不能把“比 Retrain 的变化小”说成“selector 对 GU 都无效”：GIF/IDEA 的 Random 为 88.58%，D-full 为 87.65%；GraphEraser 的 Random 为 87.17%，R-point 为 86.18%。MEGU 变化更小，GNNDelete 则出现方向不同的响应。是否有明确方向仍需同 seed 配对区间；区间跨零不代表等效。运行稳定性要另外看 seed 变异，不能由 selector 均值变化小推断。
+
+**[完整一级指标图页：三数据集 × 准确率、交叉熵、分类 AUC](PRIMARY.html)。** 同时提供原值、seed SD 和不依赖 Retrain 的 Selected − Random 配对表。GIF/IDEA 以 GIF 代表（准确率相同，CE 差小于 1e-8，AUC 差小于 0.001 pp），完整原值均保留。
+
+这批十 seed 实验包含上述四类请求，不能代表所有选点算法。Selector 可用于检查 GU 是否保留同请求 Retrain 的效用响应；仅凭响应不同不能认定 GU 没有反映真实变化或遗忘失败。
+
+### 同一张图的两个分析角度：scale 与 pattern
+
+**保留原来的三个主问题。** Scale 与 pattern 加入问题 2 的实验分析，不替换研究主线，也不单独宣布为新的核心问题；当前按 selector 对齐的 GU/Retrain 原值图同时承载这两个角度。
+
+- **Scale（变化幅度）：** 在各方法实际性能水平和自身 Before 的背景下，看删除后下降多少、不同请求之间相差多少，以及同请求 GU 与 Retrain 相差多少。幅度较小不能单独推出方法更好。
+- **Pattern（响应关系）：** 固定数据集和选点来源，看同一个 GU 对不同 selector 的分组、排序和变化方向，再与 Retrain 对照。重点是哪些请求表现相近、哪些引起不同响应，以及这些关系是否在其他条件下保留；不只看最大 drop 或平均性能。
+
+以当前 PubMed 均值图为例，Retrain 呈现 Random、Degree 接近且高于两个 IF 请求的关系；GraphEraser 保留了这一分组及两种 IF 的顺序；GIF/IDEA 保留了大体分组，但两种 IF 的均值顺序相反；MEGU 的请求间变化较小，GNNDelete 则是 Random 最低。这些是同一张图的描述性读法，不能用整体下降大小替代，也不能直接推广为整个算法类别的性质。
+
+跨数据集、选点来源和 seed 的检验属于这些分析的证据要求。均值接近时排序容易翻转，因此应结合配对不确定性，优先讨论可重复的分组与方向；当前均值图并未单独验证完整排序或稳定性。
+
+**IM 并非没做。** EXP-011 已有三档 IM（RR-4096、RR-16384、RR-65536），覆盖三数据集、六 GU 和 Retrain，但只有三个训练 seed，每个 seed 有三次 IM 选点重复。当前图来自未纳入 IM 的 EXP-079 十 seed 矩阵，所以不能直接把 IM 当作十 seed 数据拼进来。[原汇报](../REPORT.html)第 3 节保留了 IM 与 IF、Degree、PageRank、Random 的比较。
+
+### 原图留作参照诊断：大的 gap 还需结合初始水平理解
 
 **方法审计更新：[原论文与当前实现对照](METHOD_AUDIT.html)。图中 GraphRevoker 实际是 GPA + optimal 配置版，当前 adapter 未接入论文的 contrastive 聚合模块，不能用于完整 GraphRevoker 的方法优劣结论。** [Before 来源核验](BEFORE_AUDIT.html)确认本批 Cora 没有误取单 shard；但数值能复算不代表完整方法实现正确。图和原数值保留为诊断，不以探索性聚合对照替换正式结果。
 
@@ -174,7 +199,16 @@ CiteSeer 的 GIF / R-point 是清楚的例子：ΔU={interval('CiteSeer','r_poin
 
 ## 怎样放进论文
 
-图 2 最适合作为问题 2 的主图：直接回答“一个 selector 对不同 GU 怎么样”。图 1 用来解释参照和方法起点，可压成前置概览或两个案例；图 3 支撑“效用与行为不总一致”的发现。三张候选先完整保留，成稿时再按版面选择，不要求全用双栏。
+### 待补充的两个方向（2026-10-19）
+
+- **大数据集：ogbn-arxiv。** 本次口述“Archive”按既有候选记录；检验当前请求响应现象能否在更大数据条件下保留，并沿用按 selector 对齐的 GU/Retrain 原值展示。
+- **新增 GU 方法。** 补充现有方法之外的覆盖，检验观察是否依赖少数实现；具体新增方法名单待定。
+
+已并入 [dataset 与 GU 扩充计划](../../../../../../OpenGU-DocMap/30_评审与汇报/2026-10-15_dataset与GU扩充计划_REPORT.html)及 TODO R5。沿用“论文大体完成后再推进”；本次只记录，不启动实验，也不作为已完成的覆盖或结论。
+
+### 图表顺序
+
+先用图 1 的原始效用比较回答“各 selector 之后模型实际怎样”，再用图 2 的差值总结同请求在不同 GU 上的响应；图 3 支撑“效用与行为不总一致”的发现。旧四端点图仅作为参照诊断保留，不能凭它解释 gap 的因果来源。完整一级指标和差值都保留，成稿时再按版面选择。
 
 这三条经验发现可以由同一 framework 串起来：它固定请求、提供 Random 和 Retrain 参照，让不同 GU 的响应及其差异可比较。无需把三个观察强行解释成同一个机制。
 
@@ -192,6 +226,8 @@ CiteSeer 的 GIF / R-point 是清楚的例子：ΔU={interval('CiteSeer','r_poin
     style='body{margin:0;background:#eef3f4;color:#253c49;font:16px/1.85 "Microsoft YaHei",sans-serif}main{max-width:1220px;margin:auto;background:white;padding:40px}h1{font-size:29px}h2{margin-top:42px;padding-top:18px;border-top:1px solid #d8e4e8}img{width:100%;height:auto}a{color:#177e78}table{font-size:12px;border-collapse:collapse;width:100%}td,th{padding:10px 8px;border-bottom:1px solid #dbe5e8;text-align:left}th{background:#edf5f5}@media(max-width:750px){main{padding:20px}table{display:block;overflow:auto}}'
     (OUT/'STORIES.html').write_text('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Q2：三张图讲清 GU 响应</title><style>'+style+'</style></head><body><main>'+body+'</main></body></html>',encoding='utf-8')
     validation=dict(execution_sha=provenance['execution_sha'],upstream_csv_sha256={n:sha(OUT/n) for n in ['metrics_seed.csv','metrics_cells.csv']},selected_gu_cells=len(d),same_selection_across_six_gu=True,same_retrain_across_six_gu=True,shared_retrain_reference=True,paired_E_identity_checked=True,gif_idea_coordinates_identical=True,figures={n:sha(OUT/(n+'.png')) for n in figures},markdown_sha256=sha(OUT/'STORIES.md'),scientific_acceptance='not_requested',new_gpu_runs=0)
+    validation['primary_figure_sha256'] = sha(OUT/'primary_pubmed_accuracy.png')
+    validation['primary_report_sha256'] = sha(OUT/'PRIMARY.md')
     (OUT/'story_validation.json').write_text(json.dumps(validation,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     for target in re.findall(r'\]\(([^)]+)\)',md):assert (OUT/target).exists(),target
     print(table(pd.DataFrame(cases)))

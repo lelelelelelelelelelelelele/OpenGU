@@ -1,0 +1,50 @@
+{
+  "execution_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",
+  "input_sha256": "950e94ae6e8e22bf860038d91719bc93937e494e76e7720a7fb0b3d455f30e3a",
+  "conditions": 840,
+  "shared_retrain_verified": true,
+  "gif_idea_max_differences": {
+    "after": 0.0,
+    "CE": 8.148733687818321e-09,
+    "AUC": 0.0007093525769334974
+  },
+  "missing_before_preserved": true,
+  "figures": [
+    "primary_cora_accuracy",
+    "primary_cora_ce",
+    "primary_cora_auc",
+    "primary_citeseer_accuracy",
+    "primary_citeseer_ce",
+    "primary_citeseer_auc",
+    "primary_pubmed_accuracy",
+    "primary_pubmed_ce",
+    "primary_pubmed_auc"
+  ],
+  "new_gpu_runs": 0,
+  "scientific_acceptance": "not_requested",
+  "sha256": {
+    "PRIMARY.md": "0fcb2d8047b36c5c8fa0ff2a31959e3ee3140b2435e24375dcc4f4cfd73be288",
+    "PRIMARY.html": "acf5f530350ec4d13ce6b41f4261f42853ca359558d8dc9816fa4677bfb5c972",
+    "primary_seed.csv": "f9a43135aa4c2ce2d00447017d8383fc430272fa2ca96c7c02b7bef116681cf5",
+    "primary_summary.csv": "c4be3fc1f10dfec8a62094f5bdf0214244dfc1c5a5316ed163769b2145286fdf",
+    "primary_paired_vs_random.csv": "e89aaeb92cdbdbbc955c187a3c50c09087b0436f357e1534f5d8bb711be725b5",
+    "primary_cora_accuracy.png": "9400521ec1f757b420a4aea1bf877a0dd004b3a7be23d6a52b69cf0ada1981bd",
+    "primary_cora_accuracy.pdf": "5c42b4a3d2213c1f8b52de33c97b710f89348919a01a500cb002daee4710527e",
+    "primary_cora_ce.png": "42a91d7302af14e17f2d5997828c8c395418a92d5641ded339d9c20e9a6aba46",
+    "primary_cora_ce.pdf": "71e03cf7eeb57e1d4315dfe188f9a706df5b6fdd955587dc9ef3e6831f43d9b8",
+    "primary_cora_auc.png": "0424b9451c56d38cef6a1c7945369a1d9474f5234d3fb539534716465dd9918b",
+    "primary_cora_auc.pdf": "ffc8dad16735e332b376bbee53d4794ff624711e34c8100e41f8d8fae77ef94b",
+    "primary_citeseer_accuracy.png": "abbde57eeaa4ec795c093c2cabc83e192b80868e38dcf3a67b0552660f692c07",
+    "primary_citeseer_accuracy.pdf": "84900a875002aefe1f188dbdc17e2635b2c8bfebba59076cd815220a22758f28",
+    "primary_citeseer_ce.png": "4a73ad9a684ae00324f4db8955cf775d6e8c271cd0060449f412be9843d46422",
+    "primary_citeseer_ce.pdf": "287bfd7742358a8a730833146c666bb94796c6fd74756206c68def241cceac9c",
+    "primary_citeseer_auc.png": "16584c8614f774319b86c28ae8fb7b6c58a4c4675e037cc17c7d5cbef0bb62ad",
+    "primary_citeseer_auc.pdf": "9764ea0ce77f590b40ae749783cfa582811c5b6d19f6c7cb1f93779d66dc979a",
+    "primary_pubmed_accuracy.png": "553b369653374e301e2e0ba7db22596789cdcd588c2be130ff82bb1cd520aa3e",
+    "primary_pubmed_accuracy.pdf": "1e800fde81c8e326650cefdeca75af7f25f87f5d5d52ba8940910a58065c4bd3",
+    "primary_pubmed_ce.png": "d6090838e774670cac0ffb786c7e95e756db0b74802985dad30e337e64ba3fc4",
+    "primary_pubmed_ce.pdf": "3af65dd0ed240709a42fafa8e9059ba0d8edab01b4bea57615f37813785dab5f",
+    "primary_pubmed_auc.png": "050d37f643b68e699d93c762ca1b0b8502b5d5ca12d2bbb6c22baa5576b9b1d9",
+    "primary_pubmed_auc.pdf": "cb997fa4afe60e0788f65032995e15fe217728bcee45a1d5dfcaee1ba7e2b1fe"
+  }
+}

@@ -15,7 +15,9 @@
     "story02_selector_across_gu": "96e0f7bb1ef584907a3c9c450e0c76fb061a59237114ba41e34a06c4df23415f",
     "story03_utility_behavior": "e15fe1e3e0cb90c6874d84eb0607e0eddb9ebd3621c23b27466c80511f0cb3a0"
   },
-  "markdown_sha256": "2c6bff4331ee0f6ff8810bedf57a60bde4fb60f170c57834bae477b69a53b76e",
+  "markdown_sha256": "f48f43d43814a556bb82464f87154582e040eccdfc465984e254e377c7d2add7",
   "scientific_acceptance": "not_requested",
-  "new_gpu_runs": 0
+  "new_gpu_runs": 0,
+  "primary_figure_sha256": "553b369653374e301e2e0ba7db22596789cdcd588c2be130ff82bb1cd520aa3e",
+  "primary_report_sha256": "0fcb2d8047b36c5c8fa0ff2a31959e3ee3140b2435e24375dcc4f4cfd73be288"
 }
