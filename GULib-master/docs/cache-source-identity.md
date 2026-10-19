@@ -10,6 +10,9 @@ candidates; each storage layer retains its full identity and integrity checks.
 - Each group declares a stable `cache_scope`, `producer`, optional `applies_to`
   conditions, ordered `fingerprints`, a reason and evidence references. A scope is
   a cache purpose, never a disk path, function name, run or individual cache file.
+- `applies_to.query_source` may bind the exact current source-field mapping for a
+  directional read. It is supplied by `source_candidates`, not by caller context;
+  it does not change the stored Recipe or bypass any other condition.
 - Artifact scopes use existing type names (`prediction`, `score`, `selection`,
   etc.). Producers are the GU method, Selector name, or the existing semantic
   version for other formal Artifacts. Conditions retain semantic version and,
@@ -104,6 +107,47 @@ and [mask-equivalence evidence](../.workblock/items/AAGU-099/evidence/verificati
 The Record and evidence remain in the canonical project, not in linked copies.
 
 ## Read-only audit and retirement
+
+### Aggregation sample cap
+
+AAGU-102 changes the modular GraphEraser and GraphRevoker `num_opt_samples=1000`
+setting to use `min(1000, retained training nodes)`. Both initial aggregation and
+post-deletion aggregation use this rule. Nonempty pools below 1000 use all their
+training nodes; held-out and deleted nodes are excluded. Empty training pools and
+empty supervised shards still fail explicitly. Other existing sample settings
+are unchanged. The aggregation logger records configured, retained and actual
+counts when computation executes; a cache HIT does not claim new computation.
+
+The same `np.random.choice(..., replace=False)` call and sorting are retained,
+including when every retained node is selected. For previously feasible requests,
+sample IDs, RNG advancement, induced graph, labels, posteriors and learned weights
+are unchanged. The change extends the successful domain; it is not a symmetric
+equivalence with a reader that still rejects small pools.
+
+The registry therefore permits only the new measured sources to consume reviewed
+old sources, for both ensemble checkpoints and Prediction Outputs. Current source
+still has first priority. The immediately preceding sources are registered for
+their measured computations; older reviewed groups retain their exact model and
+semantic-version conditions. No transitive expansion is used. A valid artifact
+from the old implementation necessarily passed its sample-count guard; there is
+no old successful artifact for a newly feasible request. Older sources cannot
+consume the new small-pool results through these groups. All dataset/split,
+Selection, parameters, training and actual ensemble/checkpoint state still match
+exactly. No old artifact, metadata or failure record is rewritten.
+
+The baseline is `8fb8169475b015ac4cc6dd1a61c6d26ee5ff7670`. Regression tests load
+its committed sampler functions and verify their real source fingerprints, then
+generate disposable old checkpoints and Outputs through the real CPU lane. The
+new reader must HIT these objects without model preparation or GU execution and
+without changing cache bytes or mtimes. Separate checks run real aggregation at
+1100, 1000, 948 and 1 retained training nodes and compare the unchanged domain
+bit for bit, including random state. This is local verification, not an inventory
+or execution of the live SSH cache or formal Cora 50% matrix. EXP-080's original
+42 `not_run_parameter_infeasible` conditions remain historical evidence; any new
+formal experiment belongs to Work Plan.
+
+Evidence: [regression tests](../tests/test_aagu102_aggregation_cap.py) and canonical
+[AAGU-102 report](../.workblock/items/AAGU-102/REPORT.md).
 
 ### Selection prefix reuse
 
