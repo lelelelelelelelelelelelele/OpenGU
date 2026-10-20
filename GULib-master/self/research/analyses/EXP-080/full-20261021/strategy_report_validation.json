@@ -1,12 +1,36 @@
 {
-  "markdown_sha256": "f59f22c8d8d4a10a269a27110a4cf827c9fbb7334066d360a50943c850aa4dcf",
-  "html_sha256": "f435c67ab0f08eedc7231625f6648dd81fc07c5166d6f65b94812a729143b4d5",
+  "markdown_sha256": "46925fe72dcdd56bf9a9f3525e19957a9f3fb2bec0bc72094920cf7226e4608e",
+  "html_sha256": "52602028b2b44ad13cf6ed9204785cb9ff863322db24ef537acd3f71d5af61a7",
   "body_text_agreement": true,
-  "local_link_count": 18,
+  "local_link_count": 25,
   "local_links": [
     {
       "link": "REPORT.html",
       "source_sha256": "a59c29394be79778a6a3670c15ca9e2a043cf6efa315020a12e8b56f4108b7b9"
+    },
+    {
+      "link": "selector_gu_accuracy.png",
+      "sha256": "ae83ca537157646a713c96e61c7afe2de78951d65e8f7c6f1ef441120d070817"
+    },
+    {
+      "link": "selector_gu_accuracy.png",
+      "sha256": "ae83ca537157646a713c96e61c7afe2de78951d65e8f7c6f1ef441120d070817"
+    },
+    {
+      "link": "selector_gu_extra_loss.png",
+      "sha256": "667c7eb121a865ef534d881d74c35f5679ab9851e478903c162bcb470de72497"
+    },
+    {
+      "link": "selector_gu_extra_loss.png",
+      "sha256": "667c7eb121a865ef534d881d74c35f5679ab9851e478903c162bcb470de72497"
+    },
+    {
+      "link": "selector_gu_disagreement.png",
+      "sha256": "3142980e5d55632d9da38d03ab79996380483a2b87468653f4d6f333554c6cd7"
+    },
+    {
+      "link": "selector_gu_disagreement.png",
+      "sha256": "3142980e5d55632d9da38d03ab79996380483a2b87468653f4d6f333554c6cd7"
     },
     {
       "link": "strategy_loss_atlas.png",
@@ -41,6 +65,10 @@
       "sha256": "772cd9976a212080df755f1ba08c3db5bcde5a6870d1f86d75bb42324b8b175f"
     },
     {
+      "link": "selector_gu_curve_values.csv",
+      "sha256": "802e38500a484a59b61c6ca0dc76db3388b6df947cc14fed9e398e869a31029d"
+    },
+    {
       "link": "im_draw_contrasts.csv",
       "sha256": "50495a276234efba4b6fc537a44e58c50052d1ece898c985e93a2945a01206dc"
     },
@@ -70,14 +98,14 @@
     },
     {
       "link": "strategy_statistics_validation.json",
-      "sha256": "ab9fc468a177fe1d61bca4012f75e52e1c50b4487688aafe75ef0e30bf9aa965"
+      "sha256": "8846ae744538018cc9abfcbb8ef3b36ddafca046eb212f56bba73c9d0ac57693"
     },
     {
       "link": "strategy_patterns.py",
-      "sha256": "ca55e1f5b5f2b533bc21fe49bf60cfd63b8df2532c33cb75e156f38268d4312f"
+      "sha256": "f77a5a3119908f44f66d192471f310eb924f40a2c747ea050b4af472c5ea8ff4"
     }
   ],
-  "embedded_figures": 3,
+  "embedded_figures": 6,
   "sections": 7,
   "unfilled_markers": false,
   "new_gpu_experiments": 0,

@@ -17,6 +17,26 @@
 
 ## 2. 五种策略的作用对象和预算响应不同
 
+### 同一selector内，直接比较所有GU
+
+下面每张折线图的**每行是一种selector，两列分别为Cora与CiteSeer；每个面板内的颜色表示不同GU方法或Retrain**。沿横轴看同一方法的预算响应，在同一面板内看哪些方法一起变化、哪些方法分离。GIF与IDEA在这些指标上完全重合，合并标为GIF/IDEA；六种GU均被覆盖，没有只画GNNDelete。
+
+每行的两个数据集使用相同纵轴范围，便于跨数据集比较；不同行允许不同纵轴范围，以看清较弱的响应，**跨selector比较幅度必须读数值，不能比较线条的视觉陡峭程度**。阴影是三个训练seed的±1样本SD，不是置信区间。图表可点击放大。
+
+**准确率图：** 看绝对效用。IM行中，GIF/IDEA与MEGU较平稳，GNNDelete和分片方法的预算响应不同；这比只展示GNNDelete更完整。Retrain黑线提供同请求重训练参照。
+
+[![同selector跨GU：准确率预算曲线](selector_gu_accuracy.png)](selector_gu_accuracy.png)
+
+**相对Random图：** 去掉同GU、同预算的Random参照后，看额外影响集中在哪里。正值为更多损失，负值为比Random表现更好。IM行的Cora/GNNDelete转向与分片方法损失出现在不同预算，不能用一条“IM强度”曲线概括。Random行所有方法定义上均为零。
+
+[![同selector跨GU：相对Random额外损失](selector_gu_extra_loss.png)](selector_gu_extra_loss.png)
+
+**预测不一致率图：** 看各GU是否随预算远离对应Retrain。准确率平稳的方法也可能出现上升的D。黑色点线是Retrain与自身比较的0%定义参照，不是两次独立Retrain实验；纵轴20表示20%的评估节点预测类别不同。
+
+[![同selector跨GU：与Retrain预测不一致率](selector_gu_disagreement.png)](selector_gu_disagreement.png)
+
+### 统一色标复核策略间的幅度
+
 [![全策略全预算额外准确率损失](strategy_loss_atlas.png)](strategy_loss_atlas.png)
 
 统一色标：红色为比Random更差，蓝色为更好，灰色为未运行的Cora50%分片端点。颜色是均值，不是显著性。先看同一列中不同策略，再看同一行跨GU的变化；不要仅按整图平均值给策略排名。
@@ -48,7 +68,9 @@
 
 ## 3. IM有局部pattern，但三条证据限制了“稳定指纹”的说法
 
-[![五策略GNNDelete绝对表现与Random增量](strategy_gnndelete.png)](strategy_gnndelete.png)
+以下GNNDelete图只用于解释局部转向，所有GU的主比较已经在上一节展示。
+
+[![局部案例：五策略GNNDelete绝对表现与Random增量](strategy_gnndelete.png)](strategy_gnndelete.png)
 
 **第一，Cora/GNNDelete的小预算损伤在本次抽样网格上反复出现。** IM的H在5%、7.5%、10%分别为+10.21、+6.93、+4.94pp；每个比例的三个训练seed×三个IM抽样组合均比对应Random更差。22%时9个组合全部反向，IM更好；到50%时平均H又回到+1.95pp。33%只有1/9组合更差，但该组合的幅度较大，不能只看平均或方向计数。
 
@@ -121,6 +143,7 @@ five_GU包含GIF、MEGU、GNNDelete、GraphEraser、GraphRevoker，IDEA不重复
 ## 7. 数据和复现
 
 - [全部逐seed对照与交互差](strategy_seed_contrasts.csv)、[均值和SD](strategy_summary.csv)。
+- [同selector跨GU三组折线图的数值与SD](selector_gu_curve_values.csv)；每张图均可点击放大，并有同名PDF。
 - [IM未平均的三抽样对照](im_draw_contrasts.csv)、[固定训练seed内抽样极差](im_draw_ranges.csv)。
 - [各预算独立节点集合数](strategy_request_counts.csv)、[逐seed/预算的profile距离](im_profile_distances.csv)、[距离描述性汇总](im_profile_distance_summary.csv)。
 - [输入核验](statistics_validation.json)、[原始回传核验](verification.json)、[增量与形状的独立复算](strategy_statistics_validation.json)、[生成脚本](strategy_patterns.py)。

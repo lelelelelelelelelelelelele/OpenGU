@@ -450,6 +450,22 @@
       {
         "label": "全条件统计",
         "path": "self/research/analyses/EXP-080/full-20261021/condition_summary.csv"
+      },
+      {
+        "label": "同selector跨GU：准确率",
+        "path": "self/research/analyses/EXP-080/full-20261021/selector_gu_accuracy.png"
+      },
+      {
+        "label": "同selector跨GU：相对Random额外损失",
+        "path": "self/research/analyses/EXP-080/full-20261021/selector_gu_extra_loss.png"
+      },
+      {
+        "label": "同selector跨GU：与Retrain预测不一致率",
+        "path": "self/research/analyses/EXP-080/full-20261021/selector_gu_disagreement.png"
+      },
+      {
+        "label": "同selector跨GU：全部曲线点及SD",
+        "path": "self/research/analyses/EXP-080/full-20261021/selector_gu_curve_values.csv"
       }
     ],
     "highlights": [

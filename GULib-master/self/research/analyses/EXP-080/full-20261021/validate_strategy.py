@@ -62,6 +62,19 @@ for row in read('im_profile_distances.csv'):
     check(row['raw_rms_pp'], math.sqrt(statistics.mean((x-y)**2 for x, y in zip(a, b))))
     am, bm = statistics.mean(a), statistics.mean(b)
     check(row['centered_rms_pp'], math.sqrt(statistics.mean(((x-am)-(y-bm))**2 for x, y in zip(a, b))))
-receipt = {'passed': True, 'checks': checks, 'method': 'csv/statistics independent H, interaction, D_extra, means, SD and profile-distance recomputation.'}
+curve_rows = read('selector_gu_curve_values.csv')
+for row in curve_rows:
+    ds, method, selector, ratio = (row[k] for k in FIELDS[:-1])
+    if row['metric'] == 'H':
+        values = [loss(ds, method, selector, ratio, s) for s in ['42', '212', '2024']]
+    else:
+        values = [float(seeds[(ds, method, selector, ratio, s)][row['metric']]) for s in ['42', '212', '2024']]
+    check(row['mean'], statistics.mean(values))
+    check(row['std'], statistics.stdev(values))
+    check(row['count'], len(values))
+assert {r['selector'] for r in curve_rows} == {'random','degree','r_point','gt_full','im_rr_greedy'}
+assert {r['method'] for r in curve_rows} == {'Retrain'} | set(METHODS)
+receipt = {'passed': True, 'checks': checks, 'curve_points': len(curve_rows),
+           'method': 'csv/statistics independent H, interaction, D_extra, means, SD, profile-distance and all within-selector curve-point recomputation.'}
 (OUT / 'strategy_statistics_validation.json').write_text(json.dumps(receipt, indent=2)+'\n', encoding='utf-8')
 print(json.dumps(receipt))
