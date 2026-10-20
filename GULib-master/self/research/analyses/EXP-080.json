@@ -1,0 +1,507 @@
+{
+  "id": "EXP-080",
+  "title": "删除比例与多GU响应：Cora及CiteSeer完整2016条件分析",
+  "question": "随删除比例增加，六种GU与显式Retrain的准确率、相对原模型衰减及预测差异如何变化？",
+  "scope": "Cora+CiteSeer; 2016 unique main outputs across3 tables, 40 gate outputs; defer1029 PubMed outputs; omit42 infeasible Cora50% sharded outputs.",
+  "recorded_at": "2026-10-21",
+  "configs": [
+    {
+      "label": "Q2 预算扩展 · Cora/CiteSeer 常规比例（兼 Q1）",
+      "path": "experiments/configs/exp080/cc_base.yaml",
+      "role": "current"
+    },
+    {
+      "label": "Q2 预算扩展 · Cora 高比例（兼 Q1）",
+      "path": "experiments/configs/exp080/cc_cora_high.yaml",
+      "role": "current"
+    },
+    {
+      "label": "Q2 预算扩展 · CiteSeer 高比例（兼 Q1）",
+      "path": "experiments/configs/exp080/cc_citeseer_high.yaml",
+      "role": "current"
+    }
+  ],
+  "attempts": [
+    {
+      "run_id": "e80r305",
+      "job_id": "exp080-20261018-e80r305",
+      "recipe": "exp080-cc-base-retry2",
+      "config_path": "experiments/configs/exp080/cc_base.yaml",
+      "git_sha": "a217daf5c67b485afed63c393b5e8bb23820b237",
+      "commit": "a217daf5c67b485afed63c393b5e8bb23820b237",
+      "scope": "Cora、CiteSeer base 主表 1764 行；显式 Retrain 对照，科学配置不变。",
+      "submitted_at": "2026-10-18T23:55:39",
+      "started_at": "2026-10-18T23:56:52",
+      "state": "completed",
+      "retry_of": "exp080-20261018-e80r304",
+      "execution_digest": "d4104ee753789d3be974ec6f025e217f7fad709d7dc26fd212d6d33c4e24f06e",
+      "reason": "2026-10-18 用户要求保留缓存，确认数据库可恢复后继续跑；每2小时检查，超时未完成允许同矩阵新身份续跑。",
+      "evidence": [
+        {
+          "label": "Handoff",
+          "path": ".syncmate/runs/exp080-20261018-e80r305.json"
+        },
+        {
+          "label": "Controller",
+          "path": ".syncmate/controller/exp080-20261018-e80r305.json"
+        },
+        {
+          "label": "Frozen runtime",
+          "path": ".syncmate/exp080-retry2-20261018/e80r305.frozen.json"
+        },
+        {
+          "label": "Registered installation",
+          "path": ".syncmate/exp080-retry2-20261018/install-receipt.json"
+        },
+        {
+          "label": "Fresh startup observation",
+          "path": ".syncmate/exp080-retry2-20261018/startup-status.json"
+        },
+        {
+          "label": "Storage recovery",
+          "path": ".syncmate/exp080-recovery-20261018/recovery-verification.json"
+        },
+        {
+          "label": "Base 主表可信回传与项目核验",
+          "path": ".syncmate/deliveries/exp080-20261018-e80r305.json"
+        }
+      ],
+      "runtime": {
+        "estimate_status": "recorded_before_start",
+        "estimated_seconds": 165768,
+        "estimate_scope": "base main 1764 rows, all-MISS serial",
+        "estimate_basis": "Low-confidence all-MISS serial planning assumption, not measured total or an upper bound. Per output producer units: Retrain12/GIF1/IDEA1/MEGU10/GNNDelete3/GraphEraser100/GraphRevoker100 seconds, times2. MEGU unit10s uses the observed small-dataset high-ratio scale; sharded estimates remain unmeasured assumptions. Each distinct nontrivial selector preparation excluding budget:300s times2; four model preparation slots per dataset-training group:120s each; evaluation and IO:20s/output; fixed work:400s/group. Every declared gate/main counted serially without HIT discounts. Queue/return excluded. Main21600s and gate7200s caps are not completion forecasts. Reassess before actual submission.",
+        "job_started": true,
+        "actual_status": "recorded",
+        "actual_seconds": 9240.0,
+        "actual_basis": "Identity-bound terminal receipt start/finish; full runner wall, excluding queue and return",
+        "actual_scope": "Whole runner job, excluding queue/return",
+        "queue_seconds": 59.0,
+        "return_seconds": null,
+        "evidence": [
+          {
+            "label": "Handoff",
+            "path": ".syncmate/runs/exp080-20261018-e80r305.json"
+          },
+          {
+            "label": "Controller",
+            "path": ".syncmate/controller/exp080-20261018-e80r305.json"
+          },
+          {
+            "label": "Frozen runtime",
+            "path": ".syncmate/exp080-retry2-20261018/e80r305.frozen.json"
+          },
+          {
+            "label": "Registered installation",
+            "path": ".syncmate/exp080-retry2-20261018/install-receipt.json"
+          },
+          {
+            "label": "Fresh startup observation",
+            "path": ".syncmate/exp080-retry2-20261018/startup-status.json"
+          },
+          {
+            "label": "Storage recovery",
+            "path": ".syncmate/exp080-recovery-20261018/recovery-verification.json"
+          },
+          {
+            "label": "Base 主表可信回传与项目核验",
+            "path": ".syncmate/deliveries/exp080-20261018-e80r305.json"
+          }
+        ],
+        "cache": {
+          "status": "observed",
+          "summary": "1764 trusted returned cells; Output 1621 HIT/143 MISS, Selection 1764 HIT. Counts describe accesses, not zero-cost HIT or scientific acceptance.",
+          "counts": {
+            "score": {
+              "hit": 1008,
+              "not_applicable": 756
+            },
+            "selection": {
+              "hit": 1764
+            },
+            "method": {
+              "hit": 1621,
+              "miss": 143
+            },
+            "selector_checkpoint": {
+              "not_applicable": 1260,
+              "hit": 504
+            },
+            "method_checkpoint": {
+              "not_applicable": 252,
+              "hit": 1512
+            },
+            "evaluation": {
+              "hit": 1621,
+              "miss": 143
+            },
+            "post_method_metrics": {
+              "hit": 1621,
+              "miss": 143
+            },
+            "post_unlearning_utility_and_retrain_gap": {
+              "not_applicable": 252,
+              "hit": 1369,
+              "miss": 143
+            },
+            "post_unlearning_flip_hop": {
+              "not_applicable": 252,
+              "hit": 1368,
+              "miss": 144
+            }
+          },
+          "evidence": [
+            {
+              "label": "Verified run",
+              "path": "results/runs/gpu4090/exp080-cc-base/e80r305/run.json"
+            }
+          ]
+        }
+      },
+      "finished_at": "2026-10-19T02:30:52"
+    },
+    {
+      "job_id": "exp080-20261018-e80r302",
+      "run_id": "e80r302",
+      "recipe": "exp080-cc-cora-high",
+      "config_path": "experiments/configs/exp080/cc_cora_high.yaml",
+      "git_sha": "9d24b46ff14156685c62d8cdb59df1840d9e2c22",
+      "commit": "9d24b46ff14156685c62d8cdb59df1840d9e2c22",
+      "scope": "cora-high main 105 rows",
+      "reason": "2026-10-19 user requested new session execute remaining two EXP080 high tables; separately approved syncing current main 9d24b46f.",
+      "state": "completed",
+      "execution_digest": "8b425f545ed4e551b4ecf2f956a7fab057014035e27ae4f80aeee20d5a93f869",
+      "evidence": [
+        {
+          "label": "Handoff",
+          "path": ".syncmate/runs/exp080-20261018-e80r302.json"
+        },
+        {
+          "label": "Controller",
+          "path": ".syncmate/controller/exp080-20261018-e80r302.json"
+        },
+        {
+          "label": "Frozen estimate",
+          "path": ".syncmate/exp080-high-20261019/e80r302.frozen.json"
+        },
+        {
+          "label": "Installed version",
+          "path": ".syncmate/exp080-high-20261019/install-receipt.json"
+        },
+        {
+          "label": "Trusted return and project gate",
+          "path": ".syncmate/deliveries/exp080-20261018-e80r302.json"
+        }
+      ],
+      "runtime": {
+        "estimate_status": "recorded_before_start",
+        "estimated_seconds": 11274,
+        "estimate_scope": "cora-high main 105 rows all-MISS serial",
+        "estimate_basis": "Low-confidence all-MISS serial planning assumption, not measured total or an upper bound. Per output producer units: Retrain12/GIF1/IDEA1/MEGU10/GNNDelete3/GraphEraser100/GraphRevoker100 seconds, times2. MEGU unit10s uses the observed small-dataset high-ratio scale; sharded estimates remain unmeasured assumptions. Each distinct nontrivial selector preparation excluding budget:300s times2; four model preparation slots per dataset-training group:120s each; evaluation and IO:20s/output; fixed work:400s/group. Every declared gate/main counted serially without HIT discounts. Queue/return excluded. Main21600s and gate7200s caps are not completion forecasts. Reassess before actual submission.",
+        "job_started": true,
+        "actual_status": "recorded",
+        "actual_seconds": 420.0,
+        "actual_basis": "Identity-bound Core receipt; awaiting terminal if absent",
+        "actual_scope": "Runner wall excluding queue/return",
+        "queue_seconds": 22.0,
+        "return_seconds": null,
+        "evidence": [
+          {
+            "label": "Handoff",
+            "path": ".syncmate/runs/exp080-20261018-e80r302.json"
+          },
+          {
+            "label": "Controller",
+            "path": ".syncmate/controller/exp080-20261018-e80r302.json"
+          },
+          {
+            "label": "Frozen estimate",
+            "path": ".syncmate/exp080-high-20261019/e80r302.frozen.json"
+          },
+          {
+            "label": "Installed version",
+            "path": ".syncmate/exp080-high-20261019/install-receipt.json"
+          }
+        ],
+        "cache": {
+          "status": "observed",
+          "summary": "Trusted per-cell cache access counts; scientific acceptance separate",
+          "counts": {
+            "score": {
+              "hit": 60,
+              "not_applicable": 45
+            },
+            "selection": {
+              "hit": 105
+            },
+            "method": {
+              "hit": 86,
+              "miss": 19
+            },
+            "selector_checkpoint": {
+              "not_applicable": 75,
+              "hit": 30
+            },
+            "method_checkpoint": {
+              "not_applicable": 21,
+              "hit": 84
+            },
+            "evaluation": {
+              "hit": 86,
+              "miss": 19
+            },
+            "post_method_metrics": {
+              "hit": 86,
+              "miss": 19
+            },
+            "post_unlearning_utility_and_retrain_gap": {
+              "not_applicable": 21,
+              "hit": 65,
+              "miss": 19
+            },
+            "post_unlearning_flip_hop": {
+              "not_applicable": 21,
+              "hit": 65,
+              "miss": 19
+            }
+          },
+          "evidence": [
+            {
+              "label": "Verified run",
+              "path": "results/runs/gpu4090/exp080-cc-cora-high/e80r302/run.json"
+            }
+          ]
+        },
+        "started_at": "2026-10-19T03:46:16",
+        "finished_at": "2026-10-19T03:53:16"
+      },
+      "submitted_at": "2026-10-19T03:45:54",
+      "started_at": "2026-10-19T03:46:16",
+      "finished_at": "2026-10-19T03:53:16"
+    },
+    {
+      "job_id": "exp080-20261019-e80r306",
+      "run_id": "e80r306",
+      "recipe": "exp080-cc-citeseer-high-v2",
+      "config_path": "experiments/configs/exp080/cc_citeseer_high.yaml",
+      "git_sha": "8fb8169475b015ac4cc6dd1a61c6d26ee5ff7670",
+      "commit": "8fb8169475b015ac4cc6dd1a61c6d26ee5ff7670",
+      "scope": "citeseer-high main 147 outputs",
+      "reason": "2026-10-19 user: end old continuation, commit paper and K5 Recipe, synchronize and submit CiteSeer high plus K5 at new SHA. Scope confirmed in this chat.",
+      "state": "completed",
+      "evidence": [
+        {
+          "label": "Handoff",
+          "path": ".syncmate/runs/exp080-20261019-e80r306.json"
+        },
+        {
+          "label": "Delivery / SHA256 / project checks",
+          "path": ".syncmate/deliveries/exp080-20261019-e80r306.json"
+        },
+        {
+          "label": "Trusted index",
+          "path": ".syncmate/artifact_index.json"
+        },
+        {
+          "label": "Verified run",
+          "path": "results/runs/gpu4090/exp080-cc-citeseer-high/e80r306/run.json"
+        }
+      ],
+      "execution_digest": "f9a384b75158039b1f1d6d24e61cc544d772c1d6ddd8e47efd69085ab12826a1",
+      "submitted_at": "2026-10-19T20:03:11",
+      "runtime": {
+        "estimate_status": "recorded_before_start",
+        "estimated_seconds": 20514,
+        "estimate_scope": "citeseer-high main 147 outputs; all-MISS serial",
+        "estimate_basis": "Low-confidence all-MISS serial planning assumption, not measured total or an upper bound. Per output producer units: Retrain12/GIF1/IDEA1/MEGU10/GNNDelete3/GraphEraser100/GraphRevoker100 seconds, times2. MEGU unit10s uses the observed small-dataset high-ratio scale; sharded estimates remain unmeasured assumptions. Each distinct nontrivial selector preparation excluding budget:300s times2; four model preparation slots per dataset-training group:120s each; evaluation and IO:20s/output; fixed work:400s/group. Every declared gate/main counted serially without HIT discounts. Queue/return excluded. Main21600s and gate7200s caps are not completion forecasts. Reassess before actual submission.",
+        "job_started": true,
+        "actual_status": "recorded",
+        "actual_seconds": 4011.0,
+        "actual_basis": "Original identity-bound terminal receipt start/finish",
+        "actual_scope": "Job wall excluding queue and return",
+        "queue_seconds": 54.0,
+        "return_seconds": null,
+        "evidence": [
+          {
+            "label": "Handoff",
+            "path": ".syncmate/runs/exp080-20261019-e80r306.json"
+          },
+          {
+            "label": "Delivery / SHA256 / project checks",
+            "path": ".syncmate/deliveries/exp080-20261019-e80r306.json"
+          },
+          {
+            "label": "Trusted index",
+            "path": ".syncmate/artifact_index.json"
+          },
+          {
+            "label": "Verified run",
+            "path": "results/runs/gpu4090/exp080-cc-citeseer-high/e80r306/run.json"
+          }
+        ],
+        "cache": {
+          "status": "observed",
+          "summary": "Verified per-cell cache access counts.",
+          "counts": {
+            "score": {
+              "hit": 84,
+              "not_applicable": 63
+            },
+            "selection": {
+              "hit": 147
+            },
+            "method": {
+              "hit": 87,
+              "miss": 60
+            },
+            "selector_checkpoint": {
+              "not_applicable": 105,
+              "hit": 42
+            },
+            "method_checkpoint": {
+              "not_applicable": 21,
+              "hit": 126
+            },
+            "evaluation": {
+              "hit": 87,
+              "miss": 60
+            },
+            "post_method_metrics": {
+              "hit": 87,
+              "miss": 60
+            },
+            "post_unlearning_utility_and_retrain_gap": {
+              "not_applicable": 21,
+              "hit": 66,
+              "miss": 60
+            },
+            "post_unlearning_flip_hop": {
+              "not_applicable": 21,
+              "hit": 66,
+              "miss": 60
+            }
+          },
+          "evidence": [
+            {
+              "label": "Verified run",
+              "path": "results/runs/gpu4090/exp080-cc-citeseer-high/e80r306/run.json"
+            }
+          ]
+        },
+        "started_at": "2026-10-19T20:04:05",
+        "finished_at": "2026-10-19T21:10:56"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "label": "完整2016条件分析 HTML",
+      "path": "self/research/analyses/EXP-080/full-20261021/REPORT.html"
+    },
+    {
+      "label": "完整2016条件分析 Markdown",
+      "path": "self/research/analyses/EXP-080/full-20261021/REPORT.md"
+    },
+    {
+      "label": "原始文件与配对核验",
+      "path": "self/research/analyses/EXP-080/full-20261021/verification.json"
+    },
+    {
+      "label": "独立统计核验",
+      "path": "self/research/analyses/EXP-080/full-20261021/statistics_validation.json"
+    },
+    {
+      "label": "全条件统计",
+      "path": "self/research/analyses/EXP-080/full-20261021/condition_summary.csv"
+    }
+  ],
+  "analysis": {
+    "state": "complete",
+    "note": "汇总base1764、Cora high105、CiteSeer high147，4035文件、1722同请求GU/Retrain配对及252前缀关系核验通过。覆盖五种选点策略、六GU和Retrain；IM先在训练seed内平均。描述性三训练seed结果，科学接受另行决定。",
+    "evidence": [
+      {
+        "label": "完整2016条件分析 HTML",
+        "path": "self/research/analyses/EXP-080/full-20261021/REPORT.html"
+      },
+      {
+        "label": "完整2016条件分析 Markdown",
+        "path": "self/research/analyses/EXP-080/full-20261021/REPORT.md"
+      },
+      {
+        "label": "原始文件与配对核验",
+        "path": "self/research/analyses/EXP-080/full-20261021/verification.json"
+      },
+      {
+        "label": "独立统计核验",
+        "path": "self/research/analyses/EXP-080/full-20261021/statistics_validation.json"
+      },
+      {
+        "label": "全条件统计",
+        "path": "self/research/analyses/EXP-080/full-20261021/condition_summary.csv"
+      }
+    ],
+    "highlights": [
+      "CiteSeer50%主表已完整纳入，全部七方法有端点；本轮2016/2016，PubMed及42条不可行Cora分片端点不在分母。",
+      "CiteSeer r_point 50%：Retrain accuracy50.90%，GIF/IDEA74.42%，MEGU74.22%；GIF和MEGU的GU–Retrain不一致率40.19%/40.94%。效用稳定不代表预测对齐。",
+      "CiteSeer r_point 50%：GraphEraser46.30%、GraphRevoker（GPA+optimal）42.69%；两者5%→50%下降28.83/30.43pp，不能泛称分片方法受保护。",
+      "同预算50% Retrain相对Random：r_point−21.17pp、Degree+2.80pp、IM+0.65pp、gt_full−0.90pp；强响应依赖选点策略。",
+      "GIF/IDEA全部294对accuracy/drop/gap/D相同，按近重复证据解释；固定split和三训练seed不能支持普适机制或显著性结论。"
+    ],
+    "tables": [
+      {
+        "caption": "CiteSeer r_point 50%端点均值",
+        "columns": [
+          "方法",
+          "Accuracy (%)",
+          "与Retrain不一致率 (%)"
+        ],
+        "rows": [
+          [
+            "Retrain",
+            "50.90",
+            "不适用"
+          ],
+          [
+            "GIF / IDEA",
+            "74.42",
+            "40.19"
+          ],
+          [
+            "MEGU",
+            "74.22",
+            "40.94"
+          ],
+          [
+            "GNNDelete",
+            "64.36",
+            "30.98"
+          ],
+          [
+            "GraphEraser",
+            "46.30",
+            "24.67"
+          ],
+          [
+            "GraphRevoker (GPA+optimal)",
+            "42.69",
+            "30.08"
+          ]
+        ]
+      }
+    ]
+  },
+  "decision": {
+    "state": "not_requested",
+    "note": "用户授权分析并提交main，未确认科学接受。原运行版本、失败尝试和范围边界保留；不把报告提交当作算法修复、完整论文实现验证或新GPU实验。",
+    "evidence": [
+      {
+        "label": "完整2016条件分析 HTML",
+        "path": "self/research/analyses/EXP-080/full-20261021/REPORT.html"
+      },
+      {
+        "label": "完整2016条件分析 Markdown",
+        "path": "self/research/analyses/EXP-080/full-20261021/REPORT.md"
+      }
+    ]
+  }
+}

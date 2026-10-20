@@ -1,0 +1,130 @@
+{
+  "markdown_sha256": "20050a5da2154e54c831134cf5d9fe54a1a78fc298ff8b0af792ef974c37dc61",
+  "html_sha256": "4247e24786bc1f2dab2d12f9b0d57e769d38ab0549cad1dcb115bebdddd9d22b",
+  "body_text_agreement": true,
+  "local_link_count": 29,
+  "local_links": [
+    {
+      "link": "accuracy.png",
+      "sha256": "5b00a2c60a45784ab25df3068688a99082855d71ed09258b9e64a074c2fc0713"
+    },
+    {
+      "link": "accuracy.png",
+      "sha256": "5b00a2c60a45784ab25df3068688a99082855d71ed09258b9e64a074c2fc0713"
+    },
+    {
+      "link": "disagreement.png",
+      "sha256": "88153a5d7a3cce3099a1c90c293ecff68a8a92e6c5da960f4f3244b4e5692835"
+    },
+    {
+      "link": "disagreement.png",
+      "sha256": "88153a5d7a3cce3099a1c90c293ecff68a8a92e6c5da960f4f3244b4e5692835"
+    },
+    {
+      "link": "paired_vs_random_summary.csv",
+      "sha256": "fdb951339074d4ab866d3f29c7d40fbc49515617259ebdb74258c1fd5074512e"
+    },
+    {
+      "link": "r_point_focus.png",
+      "sha256": "2604a9d871d4bcd03dde2bfacc7175de3b6607ff1bb972f688c004cc38bf1a95"
+    },
+    {
+      "link": "r_point_focus.png",
+      "sha256": "2604a9d871d4bcd03dde2bfacc7175de3b6607ff1bb972f688c004cc38bf1a95"
+    },
+    {
+      "link": "../../../../../report/progress/2026-10-05_advisor-meeting/q2-metrics/METHOD_AUDIT.md",
+      "sha256": "7a2b1c437bdeccf474abb085bc67b3422e830beaf7e05ecb9cbb4ab48c88b9b5"
+    },
+    {
+      "link": "classification_auc.png",
+      "sha256": "92f45ecfd39a8fa616b18f56b18a621339485599357412a067021a9b56f32452"
+    },
+    {
+      "link": "classification_auc.png",
+      "sha256": "92f45ecfd39a8fa616b18f56b18a621339485599357412a067021a9b56f32452"
+    },
+    {
+      "link": "cross_entropy.png",
+      "sha256": "57081affdc1b08387c11b5efec630867fd7ca45bba2cbfe4814cafa4b3e554bb"
+    },
+    {
+      "link": "cross_entropy.png",
+      "sha256": "57081affdc1b08387c11b5efec630867fd7ca45bba2cbfe4814cafa4b3e554bb"
+    },
+    {
+      "link": "drop.png",
+      "sha256": "f0d3c2b1fd305d0d9692dc9ca0f16b526e09e220ca7eb0d9196c5f8ac6ea0c2a"
+    },
+    {
+      "link": "drop.png",
+      "sha256": "f0d3c2b1fd305d0d9692dc9ca0f16b526e09e220ca7eb0d9196c5f8ac6ea0c2a"
+    },
+    {
+      "link": "cells.csv",
+      "sha256": "150a9d1e1580f44fb4b7c0c937df8ec8621a12ee138dbafa05eca0153136f2b7"
+    },
+    {
+      "link": "hop_summary.csv",
+      "sha256": "c27a132da4fbb494f3e3e06c245e3f717b5a5a530120f5c58c3eab25585da009"
+    },
+    {
+      "link": "hop_counts.csv",
+      "sha256": "c9691bab99cbb6de0d8e8a7e222cbe5c5ea23d1cfa0a8195911cf6fbd2960ecb"
+    },
+    {
+      "link": "../../../../../reports/forgetting_response_audit/REPORT.md",
+      "sha256": "779c53b1fc8a1ac8babf858234ca253c61c751b88806909875c98af66cf9fac4"
+    },
+    {
+      "link": "verification.json",
+      "sha256": "3715d2ca63dc0448a0dc3c616c10f5634cf87621118d837760799f8ba5dcf0ff"
+    },
+    {
+      "link": "execution_version_audit.json",
+      "sha256": "83ee74a4368a5cd9d16fbe8dc777e8cc5ce5ca2fe1eb221d1b662232f2ff9dcc"
+    },
+    {
+      "link": "cells.csv",
+      "sha256": "150a9d1e1580f44fb4b7c0c937df8ec8621a12ee138dbafa05eca0153136f2b7"
+    },
+    {
+      "link": "seed_values.csv",
+      "sha256": "be58ebf12caf315f022abd718b8614dff9b562845120b14f0204b74cf332af2d"
+    },
+    {
+      "link": "condition_summary.csv",
+      "sha256": "f0300bf0ff8ca8c3e7e2833d153e7db58c2c13e1e47ed881e788fecf5b908b52"
+    },
+    {
+      "link": "endpoint_changes.csv",
+      "sha256": "8c299b557f7896a6de0693873043269dbeeda143be3303111d8dc27a60ec3ccb"
+    },
+    {
+      "link": "paired_vs_random.csv",
+      "sha256": "25b12cf10a0de850c6ec330697dc17b50b10a47fa413f37fb7d507a422741652"
+    },
+    {
+      "link": "analyze.py",
+      "sha256": "a531422a9a1f0a3c3056439a1fdbae0988050188a0ffdd79e478a09ef3c66e0e"
+    },
+    {
+      "link": "build_report.py",
+      "sha256": "6e0fe3fa121b8e5a549dc810f3dfadd3d861cd042b048372dae0cdb92aac8391"
+    },
+    {
+      "link": "validate_statistics.py",
+      "sha256": "7786e76141552432249cfd6c08e6efd68df4da582db00bc1b4d1d89a44e8267f"
+    },
+    {
+      "link": "statistics_validation.json",
+      "sha256": "127f2fc2016216ea12f103200d4152545cdc54c8a55ab52f636f48887bab3384"
+    }
+  ],
+  "embedded_figures": 6,
+  "sections": 7,
+  "unfilled_markers": false,
+  "new_gpu_experiments": 0,
+  "scientific_acceptance_changed": false,
+  "browser_render": "NOT OBSERVED"
+}
