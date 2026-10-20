@@ -104,18 +104,41 @@ def test_corrupt_output_is_not_recomputed_when_actually_consumed(tables, monkeyp
     from cache_v2 import CacheIndex
     from cache_v2.store import ArtifactIntegrityError
     import experiments.modular_run as runner
+    import experiments.evaluation_cache as evaluation
+    import experiments.unlearning_outputs as outputs
     options = setup(tables, 'GNNDelete')
     first = legacy_output(tables, monkeypatch, options)
     root = tables[0] / 'results/cache_v2'
     record = CacheIndex(root / 'index.sqlite').get_artifact(first['artifact_id'])
     (root / record['semantic_path']).write_bytes(b'corrupt output')
     forbid(monkeypatch, runner, 'prepare_model')
-    warm = run(tables, 'cached_metrics_with_unused_output', **options)['unlearning'][0]
-    assert warm['hit'] and warm['evaluation_cache']['hit'] and not warm['producer_called']
     write_yaml(tables[0] / 'new-metrics.yaml', {
         'kind': 'evaluation', 'schema_version': 1, 'case': 'post_method_metrics', 'metrics': ['f1']})
+
+    # F1 is already present in the cached method measurements. Selecting that
+    # subset must not load unused prediction arrays, even for a new report.
+    with monkeypatch.context() as patch:
+        forbid(patch, outputs, 'load_metric_output')
+        warm = run(tables, 'cached_metrics_with_unused_output', **options)['unlearning'][0]
+        subset_run = run(tables, 'cached_f1_subset', **options,
+                         evaluation_refs=['new-metrics.yaml'])
+    subset = subset_run['unlearning'][0]
+    assert subset_run['evaluations'][0]['rows'][0]['metrics'] == {
+        'f1': first['evaluation']['metrics']['f1']}
+    for row in (warm, subset):
+        assert row['hit'] and row['evaluation_cache']['hit'] and not row['producer_called']
+        assert row['evaluation'] == first['evaluation']
+
+    # A different metric-library identity requires fresh measurements from the
+    # existing Output. Corrupt bytes must fail closed without retraining GU.
+    environment = evaluation.metric_environment
+    def changed_environment(case):
+        versions = environment(case)
+        return {**versions, 'numpy': versions['numpy'] + '-test-changed-environment'}
+    monkeypatch.setattr(evaluation, 'metric_environment', changed_environment)
     with pytest.raises(ArtifactIntegrityError, match='hash|payload|digest'):
         run(tables, 'bad_output', **options, evaluation_refs=['new-metrics.yaml'])
+    assert (root / record['semantic_path']).read_bytes() == b'corrupt output'
 
 
 @pytest.mark.parametrize('architecture', ['GCN','SGC','GAT','GIN'])
