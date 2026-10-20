@@ -35,6 +35,7 @@ def source_candidates(cache_scope, producer, context, current):
     """Current first; directly applicable groups in file order, without transitive expansion."""
     yield dict(current)
     seen = {tuple(sorted(current.items()))}
+    context = {**context, 'query_source': current}
     for group in registry():
         if group["cache_scope"] != cache_scope or group["producer"] != producer:
             continue

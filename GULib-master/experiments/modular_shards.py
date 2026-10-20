@@ -106,13 +106,19 @@ def aggregate_weights(ensemble, data, parameters):
     from types import SimpleNamespace
     from unlearning.unlearning_methods.GraphEraser.aggregation.optimal_aggregator import OptimalAggregator
     nodes = data.train_mask.nonzero().flatten()
+    if not len(nodes):
+        raise ConfigurationError('aggregation requires retained training nodes')
     count = parameters['num_opt_samples']
-    if count == 10000:
+    if count == 1000:
+        count = min(count, len(nodes))
+    elif count == 10000:
         count = max(1, int(len(nodes) * 0.1))
     elif count == 1:
         count = len(nodes)
     if count > len(nodes):
         raise ConfigurationError('aggregation sample count exceeds retained training nodes')
+    logging.getLogger('modular.GraphEraser').info(
+        'Aggregation samples: configured=%s retained=%s actual=%s', parameters['num_opt_samples'], len(nodes), count)
     nodes = nodes[torch.as_tensor(np.random.choice(len(nodes), count, replace=False), device=nodes.device)].sort().values
     # The original optimal aggregator evaluates its sampled induced graph.
     edge_index, _ = subgraph(nodes, data.edge_index, relabel_nodes=True, num_nodes=data.num_nodes)
