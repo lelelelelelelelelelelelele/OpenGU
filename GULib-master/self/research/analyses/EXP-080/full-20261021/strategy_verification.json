@@ -1,0 +1,24 @@
+{
+  "source_cells_sha256": "150a9d1e1580f44fb4b7c0c937df8ec8621a12ee138dbafa05eca0153136f2b7",
+  "training_seeds": 3,
+  "IM_draws_per_training_seed": 3,
+  "distinct_random_sets_per_dataset_ratio": 1,
+  "distinct_IM_sets_per_dataset_ratio": 3,
+  "deduplicated_GU_coordinates": [
+    "GIF",
+    "MEGU",
+    "GNNDelete",
+    "GraphEraser",
+    "GraphRevoker"
+  ],
+  "profile_common_ratios": [
+    0.05,
+    0.075,
+    0.1,
+    0.15,
+    0.22,
+    0.33
+  ],
+  "new_gpu_jobs": 0,
+  "scope": "Descriptive patterns only; no independent family validation or hypothesis tests."
+}

@@ -26,6 +26,7 @@
     @media print{body{background:white}.shell{display:block;padding:0}aside{display:none}main{border:0;box-shadow:none;padding:0}h2{break-after:avoid}img,tr{break-inside:avoid}a{color:inherit}}
     </style></head><body><div class="shell"><aside><div class="eyebrow">OpenGU · Research note</div><strong>CiteSeer 50%已补齐<br>GU是否跟随重训练</strong><nav><a href="#section-1">1. 本次采用了什么数据</a><a href="#section-2">2. 删除请求先在 Retrain 上产生了什么变化</a><a href="#section-3">3. GU 的效用响应与预测对齐并不相同</a><a href="#section-4">4. 其他方法和反例必须一起保留</a><a href="#section-5">5. 不只看 accuracy：AUC、交叉熵和 update detection</a><a href="#section-6">6. 现阶段能写什么，缺什么</a><a href="#section-7">7. 核验、来源与复现</a></nav><small>EXP-080 · 2,016个可信条件<br>既有结果重分析 · 2026-10-21</small></aside><main><h1>EXP-080 完整矩阵分析：CiteSeer 50% 已补齐</h1>
 <p>2026-10-21 · 可信主表 2,016 / 2,016 条件 · 三个训练 seed · 既有结果重分析</p>
+<p><strong>五种策略一起看：</strong> 新增<a href="STRATEGY_REPORT.html">全策略响应与IM模式分析</a>，覆盖全部预算、相对Random增量、IM抽样波动及去均值GU响应形状。结论是条件性的“策略×方法×预算”响应；IM在Cora低预算GNNDelete上有额外损伤，但随预算转向、跨数据集减弱，与Degree也有相似性，尚不能称为稳定IM族指纹。</p>
 <p><strong>CiteSeer 已完成：50% 档的147条条件已纳入，七种方法的曲线均延伸到50%。</strong> 本次重新核验4,035个回传文件。r_point下，CiteSeer Retrain准确率由5%时的75.28%降到50%时的50.90%；GIF/IDEA仍为74.42%，但与Retrain的预测不一致率达到40.19%。MEGU的对应不一致率为40.94%。这一端点支持“效用稳定与重训练预测对齐分离”，不能单凭它判定未遗忘。</p>
 <p><strong>本报告覆盖完整的五类选点策略与所有已完成GU条件，没有只运行r_point。</strong> 五类selector为Random、Degree、r_point、gt_full、IM-RR；GU方法为GIF、IDEA、MEGU、GNNDelete、GraphEraser、GraphRevoker，另有Retrain参照。<code>r_point</code>属于“删哪些节点”的策略轴，不是“怎样遗忘”的方法轴。先看下面全矩阵总览，再看后文r_point案例及其他策略的反例。</p>
 <div class="table-scroll" tabindex="0"><table>
@@ -102,7 +103,7 @@
 </table></div>
 <p>这是本轮限定计划 2,016 个主表条件的 <strong>100%</strong>，不是所有未来数据集与方法扩展完成。294 个请求有显式 Retrain，1,722 个 GU 输出逐一匹配其真实删除节点和 baseline Output 身份。gate、失败尝试、早期孤立方法运行不重复计入；PubMed不在本轮范围。Cora50%的两个分片方法42行按既有可行性边界排除，不能视为算法失败得分。EXP-081的Random5是独立的五节点诊断，未并入本矩阵。</p>
 <p>CiteSeer high原作业于2026-10-19 20:04:05–21:10:56执行，耗时4,011秒（66分51秒），不含排队与回传；方法缓存87 HIT、60 MISS。Cora high的420秒是105条件含86次方法HIT的缓存续跑墙钟时间，并非105次从头计算。两批方法覆盖和缓存状态不同，不能仅按耗时比较数据集成本。</p>
-<p>三训练 seed 为42、212、2024；同一个固定数据划分 seed=2024，测试集没有独立重采样，因此不代表跨split泛化。五类selector为 Random、Degree、r_point、gt_full、IM-RR。IM每个训练seed含11/22/33三次抽样，先在seed内平均，再以三个训练seed计算均值和SD；Random每个训练seed仅一份请求。不能把IM的9行当9个独立训练重复，也不能称当前Random为K5。</p>
+<p>三训练 seed 为42、212、2024；同一个固定数据划分 seed=2024，测试集没有独立重采样，因此不代表跨split泛化。五类selector为 Random、Degree、r_point、gt_full、IM-RR。IM每个训练seed含11/22/33三次抽样，先在seed内平均，再以三个训练seed计算均值和SD。节点集合复核表明：每数据集/预算的Random和Degree各只有一份节点集合，跨训练seed重用；IM有三份集合。不能把IM的9行当9个独立训练重复，也不能称当前Random为K5。</p>
 <p><strong>该批只是GCN目标及当前selector配置，不含跨surrogate迁移实验。</strong> 早期EXP-032或EXP-079结果没有拼进本矩阵。三个实际执行SHA间的Git差异涉及报告、新提交Recipe、独立Random5配置与配置目录登记，没有修改本矩阵使用的算法程序和EXP-080科学配置；输入仍分别以原handoff核验，实际执行SHA不替换为报告生成时的HEAD。</p>
 <h2 id="section-2">2. 删除请求先在 Retrain 上产生了什么变化</h2>
 <p>下面在同一训练seed内计算 accuracy(33%) − accuracy(5%)，再汇总mean ± sample SD；单位pp。</p>
@@ -654,5 +655,5 @@
 </tbody>
 </table></div>
 <p>本报告覆盖已完成的三份主表，作为版本化分析保存；此前1,869行草稿保留为历史快照。本次未修改原结果、AutoReport、Cache、算法程序、队列或执行SHA，没有新增GPU作业。提交报告不等于科学接受，也不触发SSH部署。HTML由同一Markdown生成，所有图嵌入；PNG/SVG/PDF同目录保留供导出。</p>
-<p>复现：在仓库根目录依次运行本目录的<code>analyze.py</code>、<code>build_report.py</code>、<code>validate_statistics.py</code>、<code>render_report.py</code>；前两步需要pandas、numpy、matplotlib，渲染需要markdown-it-py及beautifulsoup4。原始回传与SyncMate核验记录必须仍在本机；缺少或哈希不符时分析会停止，不下载或补造结果。<a href="statistics_validation.json">独立统计复核</a>使用标准库从cells.csv重算，核对汇总、端点差及Random配对结果。</p>
+<p>复现：在仓库根目录依次运行本目录的<code>analyze.py</code>、<code>validate_statistics.py</code>、<code>strategy_patterns.py</code>、<code>validate_strategy.py</code>、<code>build_report.py</code>、<code>render_report.py</code>；分析及绘图需要pandas、numpy、matplotlib，渲染需要markdown-it-py及beautifulsoup4。原始回传与SyncMate核验记录必须仍在本机；缺少或哈希不符时分析会停止，不下载或补造结果。<a href="statistics_validation.json">独立统计复核</a>使用标准库从cells.csv重算，核对汇总、端点差及Random配对结果。</p>
 <footer>由同目录 REPORT.md 生成。实验事实、解释和拟议实验分别标注；图像已嵌入，阅读不依赖外部资源。</footer></main></div></body></html>

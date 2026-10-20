@@ -1,0 +1,86 @@
+{
+  "markdown_sha256": "f59f22c8d8d4a10a269a27110a4cf827c9fbb7334066d360a50943c850aa4dcf",
+  "html_sha256": "f435c67ab0f08eedc7231625f6648dd81fc07c5166d6f65b94812a729143b4d5",
+  "body_text_agreement": true,
+  "local_link_count": 18,
+  "local_links": [
+    {
+      "link": "REPORT.html",
+      "source_sha256": "a59c29394be79778a6a3670c15ca9e2a043cf6efa315020a12e8b56f4108b7b9"
+    },
+    {
+      "link": "strategy_loss_atlas.png",
+      "sha256": "521133e2dfb33cc3ea5331e6fa37b27eb46fcd36065c714a7e93a6deb0d1458e"
+    },
+    {
+      "link": "strategy_loss_atlas.png",
+      "sha256": "521133e2dfb33cc3ea5331e6fa37b27eb46fcd36065c714a7e93a6deb0d1458e"
+    },
+    {
+      "link": "strategy_gnndelete.png",
+      "sha256": "688e756a7f384d8155420fa5643e653d7936853ad27af28300883d877d4a2b77"
+    },
+    {
+      "link": "strategy_gnndelete.png",
+      "sha256": "688e756a7f384d8155420fa5643e653d7936853ad27af28300883d877d4a2b77"
+    },
+    {
+      "link": "strategy_disagreement_atlas.png",
+      "sha256": "02af8a56003ded395506bc9bb2a57e9f5fa5eaa6dc1eacac023c11896ac1ca30"
+    },
+    {
+      "link": "strategy_disagreement_atlas.png",
+      "sha256": "02af8a56003ded395506bc9bb2a57e9f5fa5eaa6dc1eacac023c11896ac1ca30"
+    },
+    {
+      "link": "strategy_seed_contrasts.csv",
+      "sha256": "d8d61082e3827bcef010101c0c4b2f613179fb91faeff86223c766fc2f5ff9ad"
+    },
+    {
+      "link": "strategy_summary.csv",
+      "sha256": "772cd9976a212080df755f1ba08c3db5bcde5a6870d1f86d75bb42324b8b175f"
+    },
+    {
+      "link": "im_draw_contrasts.csv",
+      "sha256": "50495a276234efba4b6fc537a44e58c50052d1ece898c985e93a2945a01206dc"
+    },
+    {
+      "link": "im_draw_ranges.csv",
+      "sha256": "731331c50399c9e173008d1461ef51012175f9fb1c3d3a4360c6a3e706454b82"
+    },
+    {
+      "link": "strategy_request_counts.csv",
+      "sha256": "1ac319415f92f091885396fd1abb3e23959aeaf166b7a2974823235a9d9a4e64"
+    },
+    {
+      "link": "im_profile_distances.csv",
+      "sha256": "1cee15104b1cb6222434116803cb6edb80e9f473209f518355409e5402f90d89"
+    },
+    {
+      "link": "im_profile_distance_summary.csv",
+      "sha256": "2b59e6c7cb6ab732fd2174c5c473def22dd961dcb65328b320276b89606257d2"
+    },
+    {
+      "link": "statistics_validation.json",
+      "sha256": "127f2fc2016216ea12f103200d4152545cdc54c8a55ab52f636f48887bab3384"
+    },
+    {
+      "link": "verification.json",
+      "sha256": "3715d2ca63dc0448a0dc3c616c10f5634cf87621118d837760799f8ba5dcf0ff"
+    },
+    {
+      "link": "strategy_statistics_validation.json",
+      "sha256": "ab9fc468a177fe1d61bca4012f75e52e1c50b4487688aafe75ef0e30bf9aa965"
+    },
+    {
+      "link": "strategy_patterns.py",
+      "sha256": "ca55e1f5b5f2b533bc21fe49bf60cfd63b8df2532c33cb75e156f38268d4312f"
+    }
+  ],
+  "embedded_figures": 3,
+  "sections": 7,
+  "unfilled_markers": false,
+  "new_gpu_experiments": 0,
+  "scientific_acceptance_changed": false,
+  "browser_render": "NOT OBSERVED"
+}

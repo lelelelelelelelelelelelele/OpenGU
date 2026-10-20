@@ -82,6 +82,8 @@ md=f'''# EXP-080 完整矩阵分析：CiteSeer 50% 已补齐
 
 2026-10-21 · 可信主表 2,016 / 2,016 条件 · 三个训练 seed · 既有结果重分析
 
+**五种策略一起看：** 新增[全策略响应与IM模式分析](STRATEGY_REPORT.html)，覆盖全部预算、相对Random增量、IM抽样波动及去均值GU响应形状。结论是条件性的“策略×方法×预算”响应；IM在Cora低预算GNNDelete上有额外损伤，但随预算转向、跨数据集减弱，与Degree也有相似性，尚不能称为稳定IM族指纹。
+
 **CiteSeer 已完成：50% 档的147条条件已纳入，七种方法的曲线均延伸到50%。** 本次重新核验4,035个回传文件。r_point下，CiteSeer Retrain准确率由5%时的75.28%降到50%时的50.90%；GIF/IDEA仍为74.42%，但与Retrain的预测不一致率达到40.19%。MEGU的对应不一致率为40.94%。这一端点支持“效用稳定与重训练预测对齐分离”，不能单凭它判定未遗忘。
 
 **本报告覆盖完整的五类选点策略与所有已完成GU条件，没有只运行r_point。** 五类selector为Random、Degree、r_point、gt_full、IM-RR；GU方法为GIF、IDEA、MEGU、GNNDelete、GraphEraser、GraphRevoker，另有Retrain参照。`r_point`属于“删哪些节点”的策略轴，不是“怎样遗忘”的方法轴。先看下面全矩阵总览，再看后文r_point案例及其他策略的反例。
@@ -114,7 +116,7 @@ IM-RR有三次选点抽样，所以原始行数是其他策略的三倍；统计
 
 CiteSeer high原作业于2026-10-19 20:04:05–21:10:56执行，耗时4,011秒（66分51秒），不含排队与回传；方法缓存87 HIT、60 MISS。Cora high的420秒是105条件含86次方法HIT的缓存续跑墙钟时间，并非105次从头计算。两批方法覆盖和缓存状态不同，不能仅按耗时比较数据集成本。
 
-三训练 seed 为42、212、2024；同一个固定数据划分 seed=2024，测试集没有独立重采样，因此不代表跨split泛化。五类selector为 Random、Degree、r_point、gt_full、IM-RR。IM每个训练seed含11/22/33三次抽样，先在seed内平均，再以三个训练seed计算均值和SD；Random每个训练seed仅一份请求。不能把IM的9行当9个独立训练重复，也不能称当前Random为K5。
+三训练 seed 为42、212、2024；同一个固定数据划分 seed=2024，测试集没有独立重采样，因此不代表跨split泛化。五类selector为 Random、Degree、r_point、gt_full、IM-RR。IM每个训练seed含11/22/33三次抽样，先在seed内平均，再以三个训练seed计算均值和SD。节点集合复核表明：每数据集/预算的Random和Degree各只有一份节点集合，跨训练seed重用；IM有三份集合。不能把IM的9行当9个独立训练重复，也不能称当前Random为K5。
 
 **该批只是GCN目标及当前selector配置，不含跨surrogate迁移实验。** 早期EXP-032或EXP-079结果没有拼进本矩阵。三个实际执行SHA间的Git差异涉及报告、新提交Recipe、独立Random5配置与配置目录登记，没有修改本矩阵使用的算法程序和EXP-080科学配置；输入仍分别以原handoff核验，实际执行SHA不替换为报告生成时的HEAD。
 
@@ -240,7 +242,7 @@ r_point下，比较5%→33%时，CiteSeer GIF的分类AUROC约0.92739→0.92755�
 
 本报告覆盖已完成的三份主表，作为版本化分析保存；此前1,869行草稿保留为历史快照。本次未修改原结果、AutoReport、Cache、算法程序、队列或执行SHA，没有新增GPU作业。提交报告不等于科学接受，也不触发SSH部署。HTML由同一Markdown生成，所有图嵌入；PNG/SVG/PDF同目录保留供导出。
 
-复现：在仓库根目录依次运行本目录的`analyze.py`、`build_report.py`、`validate_statistics.py`、`render_report.py`；前两步需要pandas、numpy、matplotlib，渲染需要markdown-it-py及beautifulsoup4。原始回传与SyncMate核验记录必须仍在本机；缺少或哈希不符时分析会停止，不下载或补造结果。[独立统计复核](statistics_validation.json)使用标准库从cells.csv重算，核对汇总、端点差及Random配对结果。
+复现：在仓库根目录依次运行本目录的`analyze.py`、`validate_statistics.py`、`strategy_patterns.py`、`validate_strategy.py`、`build_report.py`、`render_report.py`；分析及绘图需要pandas、numpy、matplotlib，渲染需要markdown-it-py及beautifulsoup4。原始回传与SyncMate核验记录必须仍在本机；缺少或哈希不符时分析会停止，不下载或补造结果。[独立统计复核](statistics_validation.json)使用标准库从cells.csv重算，核对汇总、端点差及Random配对结果。
 '''
 md=re.sub(r'!\[([^\]]*)\]\(([^)]+\.png)\)',r'[![\1](\2)](\2)',md)
 (OUT/'REPORT.md').write_text(md,encoding='utf-8')

@@ -1,9 +1,13 @@
 {
-  "markdown_sha256": "20050a5da2154e54c831134cf5d9fe54a1a78fc298ff8b0af792ef974c37dc61",
-  "html_sha256": "4247e24786bc1f2dab2d12f9b0d57e769d38ab0549cad1dcb115bebdddd9d22b",
+  "markdown_sha256": "a59c29394be79778a6a3670c15ca9e2a043cf6efa315020a12e8b56f4108b7b9",
+  "html_sha256": "9bc12c3c5ca00bf3677ce04e4a4bb17504349a630b94b1b4defaf92643320229",
   "body_text_agreement": true,
-  "local_link_count": 29,
+  "local_link_count": 30,
   "local_links": [
+    {
+      "link": "STRATEGY_REPORT.html",
+      "sha256": "f435c67ab0f08eedc7231625f6648dd81fc07c5166d6f65b94812a729143b4d5"
+    },
     {
       "link": "accuracy.png",
       "sha256": "5b00a2c60a45784ab25df3068688a99082855d71ed09258b9e64a074c2fc0713"
@@ -110,7 +114,7 @@
     },
     {
       "link": "build_report.py",
-      "sha256": "6e0fe3fa121b8e5a549dc810f3dfadd3d861cd042b048372dae0cdb92aac8391"
+      "sha256": "868f6ae1823c6c49db00981d26807157dca74d90fed2b90830af5aa752ce2052"
     },
     {
       "link": "validate_statistics.py",

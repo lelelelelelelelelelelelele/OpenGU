@@ -1,0 +1,5 @@
+{
+  "passed": true,
+  "checks": 7426,
+  "method": "csv/statistics independent H, interaction, D_extra, means, SD and profile-distance recomputation."
+}
