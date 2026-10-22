@@ -119,6 +119,11 @@
     "kind": "experiment",
     "note": "删除比例与多GU效用响应；现有指标初步分析，正式范围和运行状态由EXP-080拥有。"
   },
+  "exp083": {
+    "owner": "EXP-083",
+    "kind": "experiment",
+    "note": "AAGU-105 分片300轮与聚合损失修正的正式最小 Gate；运行状态由EXP-083维护。"
+  },
   "graphrevoker_random5": {
     "owner": "EXP-081",
     "kind": "experiment",
