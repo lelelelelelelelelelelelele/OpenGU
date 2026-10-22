@@ -14,7 +14,7 @@ from experiments.effective_config import ConfigurationError
 def graphrevoker_defaults(defaults):
     value = {key: defaults[key] for key in (
         'num_shards', 'shard_size_delta', 'aggregator', 'opt_lr', 'opt_num_epochs', 'num_opt_samples')}
-    value.update(partition_method='gpa', gpa_epochs=10, gpa_hidden_channels=256,
+    value.update(shard_epochs=300, partition_method='gpa', gpa_epochs=10, gpa_hidden_channels=256,
                  gpa_batch_size=512, gpa_lr=.001, gpa_weight_decay=.00001)
     return value
 
@@ -22,7 +22,7 @@ def graphrevoker_defaults(defaults):
 def validate_graphrevoker(parameters):
     if parameters['partition_method'] != 'gpa' or parameters['aggregator'] != 'optimal':
         raise ConfigurationError('GraphRevoker node lane requires gpa / optimal')
-    for key in ('num_shards', 'opt_num_epochs', 'num_opt_samples', 'gpa_epochs', 'gpa_hidden_channels', 'gpa_batch_size'):
+    for key in ('num_shards', 'shard_epochs', 'opt_num_epochs', 'num_opt_samples', 'gpa_epochs', 'gpa_hidden_channels', 'gpa_batch_size'):
         if type(parameters[key]) is not int or parameters[key] <= 0:
             raise ConfigurationError('invalid GraphRevoker ' + key)
     if parameters['num_shards'] < 2:
@@ -86,17 +86,26 @@ def graphrevoker_weights(ensemble, data, parameters):
 def initial_graphrevoker_ensemble(instance, data):
     from experiments.modular_shards import ShardEnsemble, train_shard
     from experiments.node_deletion import retained_graph
+    started = time.perf_counter()
     assignment, encoder, partitioner = graphrevoker_partition(instance, data)
+    partition_seconds = time.perf_counter() - started
+    started = time.perf_counter()
     models = [train_shard(instance, data, assignment, i) for i in range(instance['parameters']['num_shards'])]
+    shard_seconds = time.perf_counter() - started
     ensemble = ShardEnsemble(models, assignment, torch.ones(len(models), device=data.x.device) / len(models)).eval()
     # Include the actual encoder/partitioner states in the persisted state_dict.
     ensemble.partition_encoder = encoder
     ensemble.partitioner = partitioner
+    started = time.perf_counter()
     ensemble.weights.copy_(graphrevoker_weights(ensemble, data, instance['parameters']))
+    ensemble.preparation_timing = {'partition_seconds': partition_seconds,
+        'shard_training_seconds': shard_seconds, 'aggregation_seconds': time.perf_counter() - started}
     return ensemble.eval()
 
 
 def prepare_graphrevoker_ensemble(instance, data, checkpoint_root):
+    preparation_started = time.perf_counter()
+    preparation_timing = {}
     from cache_v2 import canonical_sha256
     from utils.target_checkpoint import data_identity, load_cached_weights, save_cached_weights, capture_state
     from experiments.modular_model import create_model, train_supervised, numerical_environment
@@ -118,6 +127,7 @@ def prepare_graphrevoker_ensemble(instance, data, checkpoint_root):
     if not hit:
         with seeded_execution(instance['training']['seed']):
             ensemble = initial_graphrevoker_ensemble(instance, data)
+        preparation_timing = ensemble.preparation_timing
         state = capture_state(ensemble)
         save_cached_weights(path, state, metadata)
     loaded = load_cached_weights(path, metadata)
@@ -129,7 +139,8 @@ def prepare_graphrevoker_ensemble(instance, data, checkpoint_root):
         instance['parameters']['gpa_hidden_channels'], instance['parameters']['num_shards']).to(data.x.device)
     ensemble.load_state_dict(state, strict=True)
     return ensemble.eval(), {'state_hash': loaded['state_hash'], 'file_sha256': loaded['file_sha256'], 'hit': hit,
-        'generation_metadata': loaded['generation_metadata'], 'consumption_metadata': metadata}
+        'generation_metadata': loaded['generation_metadata'], 'consumption_metadata': metadata,
+        'timing': {**preparation_timing, 'total_seconds': time.perf_counter() - preparation_started}}
 
 
 def run_graphrevoker(instance, data, nodes, ensemble):
@@ -144,7 +155,12 @@ def run_graphrevoker(instance, data, nodes, ensemble):
     started = time.perf_counter()
     for shard in affected:
         ensemble.shard_models[shard] = train_shard(instance, retained, assignment, shard)
+    shard_seconds = time.perf_counter() - started
+    aggregation_started = time.perf_counter()
     ensemble.weights.copy_(graphrevoker_weights(ensemble, retained, instance['parameters']))
+    ensemble.execution_timing = {'shard_training_seconds': shard_seconds,
+        'aggregation_seconds': time.perf_counter() - aggregation_started,
+        'affected_shards': len(affected), 'shard_epochs': instance['parameters']['shard_epochs']}
     return ensemble.eval(), method_before, time.perf_counter() - started
 
 
@@ -204,7 +220,8 @@ def run_graphrevoker_unlearning(instance, *, selection, model, data, dataset_nam
     return {**reference, 'output': reference, 'hit': hit, 'producer_called': not hit,
         'generation_producer': stored.generation_producer, 'consumption_producer': producer.to_dict(),
             'compute_seconds': seconds, 'result': utility(verified), 'target': target, 'ensemble_preparation': preparation,
-            'evaluation': evaluate_method(reference, verified)}
+            'evaluation': evaluate_method(reference, verified),
+            'training_timing': ensemble.execution_timing if not hit else {}}
 
 
 

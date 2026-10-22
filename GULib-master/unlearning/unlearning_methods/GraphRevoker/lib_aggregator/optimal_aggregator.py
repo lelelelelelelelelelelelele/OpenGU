@@ -146,7 +146,9 @@ class OptimalAggregator:
         for shard in range(self.num_shards):
             aggregate_posteriors += weight_para[shard] * posteriors[shard]
 
-        aggregate_posteriors = F.softmax(aggregate_posteriors, dim=1)
+        # The ensemble returns weighted log posteriors as logits. Cross entropy
+        # applies log-softmax itself; passing probabilities here scores a second
+        # softmax distribution and changes both the objective and its gradient.
         loss_1 = F.cross_entropy(aggregate_posteriors, labels)
         loss_2 = torch.linalg.vector_norm(weight_para)
 

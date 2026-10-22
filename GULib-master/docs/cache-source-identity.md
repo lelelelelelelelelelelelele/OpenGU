@@ -108,6 +108,26 @@ The Record and evidence remain in the canonical project, not in linked copies.
 
 ## Read-only audit and retirement
 
+### Independent shard budget and corrected aggregation
+
+AAGU-105 sets `parameters.shard_epochs=300` for both GraphEraser and GraphRevoker.
+Only initial and affected-shard training consume it. `training.epochs` continues
+to describe the base/Selector model and GraphRevoker partition encoder; GPA has
+its own `gpa_epochs`. Both optimal aggregators feed weighted log posteriors
+directly to cross entropy. Ensemble metadata and Output target parameters bind
+the shard budget, and computation fingerprints bind the corrected loss.
+
+These sources are intentionally not registered as equivalent to the previous
+loss/training protocol. Existing ensemble checkpoints and Outputs remain intact,
+but new requests cannot reuse them. Unchanged base models, Scores and Selections
+retain their exact identities. The older cap-only compatibility evidence below
+applies to its recorded sources, not to the new aggregation objective.
+
+Initial preparation records partition, shard training and aggregation wall time;
+delete execution records affected-shard training and aggregation wall time. These
+are nested in the existing preparation/execution spans and must not be added to
+them twice. Cache and evaluation phases retain the executor's exclusive timing.
+
 ### Aggregation sample cap
 
 AAGU-102 changes the modular GraphEraser and GraphRevoker `num_opt_samples=1000`

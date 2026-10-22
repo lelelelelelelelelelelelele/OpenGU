@@ -26,7 +26,7 @@
     "syncmate_core/constants.py": "5e36e37dc0a4d4d525143bafcb93132be7a7c43da5ed0cb5c186e0439a461120",
     "syncmate_core/context.py": "cf79e909b12358d37b7e45339b11e715f85558eea1e9f6cb91c8e2df94ee8ee0",
     "syncmate_core/contracts.py": "730c0ad2fb78bbea69b95bf63fc4f25d6422540a38c9d05da08ff3437273bf29",
-    "syncmate_core/controller.py": "0f82fef46bcd02ccc16e63c71f51528a67875af0554fc1811211fccec4759a39",
+    "syncmate_core/controller.py": "dc28265722f9c525f093bdd4b40e86be7ee027c95cac5a497d01ac5411b033e9",
     "syncmate_core/dashboard.py": "49d34ac0a5ba0dc2ba53b5bbd89947702c2f3207369d89cda81093cff69aa7f0",
     "syncmate_core/devices.py": "78feb3e1bd4d2c32d05fe500265c68b3c0ce10b60ebf1b582533317b9dbe84c1",
     "syncmate_core/diagnostics.py": "4323567528a0cc64563f630f03817c9bdf82d0708fb4811d56e55edb2023e305",
@@ -68,15 +68,15 @@
     "syncmate_core/storage.py": "8539905f6b25f3d35bcb6cb55759afa46ade30062f211da818ff1b115c933a51",
     "syncmate_core/trace.py": "9ad1cc9e154123b90e9d829a33ab0ecf88c8b156dadbf9dbd261f92b2c5df3ea",
     "syncmate_core/transport.py": "c4848e6636ad4088fc2b027da4f1df63792a7eb22d90b2c1bdb34580b00c51cd",
-    "syncmate_core/web/app.js": "fbac9648905615a5376ea65bb937b91658bc24fbb78302c33ce6b76226da0cce",
+    "syncmate_core/web/app.js": "a9153decfa70f04ce61203419fb022ec3d904b6f093a07a7dd2f02159b3bf5e2",
     "syncmate_core/web/index.html": "752192893e061edbbd9333c8945fdbccaadf133c4c59856b61f11e612893b238",
     "syncmate_core/web/style.css": "6bc10523ce41f651ad0057ec37b7490fa74d540e94aa47a9359ce0c229250e6a",
     "syncmate_core/worker.py": "c69e4f2b0d6bc809287a67ed530e0b0a8b83dc6dd806444c46e78d0ab104c533",
     "syncmate_core/workflow.py": "cc270d7778e7510bc50ae87f47d61d7e9e2edc2431a8948b3ad6260167afedc9"
   },
   "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
-  "source_commit": "2ccd13d3403cf9e27962e563e006d2b9820b565c",
+  "source_commit": "463faf84049b41352505da33b9391fd60dc68315",
   "version": "0.5.1",
   "wheel": "syncmate-0.5.1-py3-none-any.whl",
-  "wheel_sha256": "18c1134fe6ca5f7f0462ebe50b0a473f7e9f29a9717c2d0c6a6a168655ea7be5"
+  "wheel_sha256": "6dddad0f1fca2bfb550a178ef2fdf6e0c12709106717fd80cf6d0b66fcca7139"
 }

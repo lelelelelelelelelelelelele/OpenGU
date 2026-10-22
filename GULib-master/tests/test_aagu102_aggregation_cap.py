@@ -161,7 +161,7 @@ def large_tables(tables, method):
     dataset=yaml.safe_load((root/'dataset.yaml').read_text(encoding='utf-8'))
     dataset['artifacts'].update(manifest_sha256=sha256_file(root/'dataset.json'),split_hash=data_identity(data)['split_hash'])
     write_yaml(root/'dataset.yaml',dataset)
-    parameters=dict(num_shards=2,opt_num_epochs=1,num_opt_samples=1000)
+    parameters=dict(shard_epochs=2,num_shards=2,opt_num_epochs=1,num_opt_samples=1000)
     if method=='GraphRevoker':
         parameters.update(gpa_epochs=1,gpa_hidden_channels=8,gpa_batch_size=256)
     value=dict(kind='unlearning',schema_version=1,method=method,
@@ -186,67 +186,24 @@ def cache_files(root):
 
 
 @pytest.mark.parametrize('method', OLD)
-def test_actual_old_checkpoint_and_output_hit_unchanged(tables, method, monkeypatch, record_property):
-    import experiments.modular_run as runner
-    import experiments.modular_model as models
+def test_old_cap_sources_do_not_alias_new_training_semantics(tables, method):
     from cache_v2.source_compatibility import source_candidates, checkpoint_candidates
-    root=tables[0]
-    data,instance,options=large_tables(tables,method)
-    module,_,prepare,initial=lane(method)
-    with baseline_sampler(method,monkeypatch):
-        assert gu_producer(method,instance['model']).source_fingerprint==OLD[method][0]
-        old_metadata=ensemble_identity(instance,data)
-        assert old_metadata['implementation']==OLD[method][1]
-        old=run(tables,'old_source',**options)['unlearning'][0]
-        assert old['producer_called'] and not old['ensemble_preparation']['hit']
-    snapshot=cache_files(root)
-    # Exercise actual checkpoint loading, separately from the metadata-only Output HIT.
-    with monkeypatch.context() as patch:
-        forbid(patch,module,initial)
-        _, loaded=getattr(module,prepare)(instance,data,root/'results/runtime/modular/checkpoints')
-        assert loaded['hit'] and loaded['state_hash']==old['ensemble_preparation']['state_hash']
-        assert loaded['generation_metadata']==old_metadata
-        assert loaded['consumption_metadata']['implementation']!=old_metadata['implementation']
-    with monkeypatch.context() as patch:
-        for mod,name in ((runner,'prepare_model'),(models,'create_model'),(module,prepare)):
-            forbid(patch,mod,name)
-        warm=run(tables,'new_reader',**options)['unlearning'][0]
-    assert warm['hit'] and not warm['producer_called']
-    assert warm['output']==old['output'] and warm['evaluation']==old['evaluation']
-    assert warm['generation_producer']==old['generation_producer']
-    assert warm['consumption_producer']!=old['generation_producer']
-    assert warm['target']==old['target']
-    assert cache_files(root)==snapshot
-    # A source candidate cannot substitute any scientific input in the old Recipe.
-    from cache_v2 import ArtifactRecipe, ArtifactType, ArtifactResolver, CacheIndex
-    from cache_v2.source_compatibility import stored_recipe
-    index=CacheIndex(root/'results/cache_v2/index.sqlite')
-    fields=stored_recipe(index.get_artifact(old['artifact_id'])).fields
-    for section,key,value in [('target','ensemble_state_hash','0'*64),
-                              ('target','checkpoint_state_hash','0'*64),
-                              ('selection','artifact_id','sel_other')]:
-        changed=copy.deepcopy(fields)
-        changed['producer_version']=warm['consumption_producer']
-        changed[section][key]=value
-        assert not ArtifactResolver(index).explain_compatible(ArtifactType.PREDICTION,ArtifactRecipe(changed)).hit
-    assert cache_files(root)==snapshot
-    current=gu_producer(method,instance['model'])
-    old_candidates=list(source_candidates('prediction',method,
-        {'model':instance['model'],'semantic_version':current.semantic_version},
-        {'source_fingerprint':OLD[method][0]}))
-    assert {'source_fingerprint':current.source_fingerprint} not in old_candidates
-    assert ensemble_identity(instance,data) not in list(checkpoint_candidates(old_metadata,'ensemble_checkpoint'))
-    record_property('cache_evidence',json.dumps(dict(method=method,old_output=old['output'],
-        generation=warm['generation_producer'],consumption=warm['consumption_producer'],
-        checkpoint_state_hash=loaded['state_hash'],producer_called=warm['producer_called'],
-        unchanged_cache_files=len(snapshot))))
+    data, instance, _ = large_tables(tables, method)
+    current = gu_producer(method, instance['model'])
+    candidates = list(source_candidates('prediction', method,
+        {'model': instance['model'], 'semantic_version': current.semantic_version},
+        {'source_fingerprint': current.source_fingerprint}))
+    assert {'source_fingerprint': OLD[method][0]} not in candidates
+    metadata = ensemble_identity(instance, data)
+    assert all(c['implementation'] != OLD[method][1]
+               for c in checkpoint_candidates(metadata, 'ensemble_checkpoint'))
 
 
 @pytest.mark.parametrize('method', OLD)
 def test_new_small_pool_full_lane_cold_warm_and_changed_inputs(tables, method, monkeypatch):
     # Small real graph, all phases including partition, shard retraining and persistence.
     root=tables[0]
-    parameters=dict(num_shards=2,opt_num_epochs=1,num_opt_samples=1000)
+    parameters=dict(shard_epochs=2,num_shards=2,opt_num_epochs=1,num_opt_samples=1000)
     if method=='GraphRevoker':
         parameters.update(gpa_epochs=1,gpa_hidden_channels=8,gpa_batch_size=64)
     value=dict(kind='unlearning',schema_version=1,method=method,model={'hidden_channels':4},
@@ -266,15 +223,14 @@ def test_new_small_pool_full_lane_cold_warm_and_changed_inputs(tables, method, m
 
 @pytest.mark.parametrize('method', OLD)
 @pytest.mark.parametrize('fault', ['invalid', 'conflict', 'corrupt_payload'])
-def test_historical_output_errors_are_not_normal_misses(tables, method, fault, monkeypatch):
+def test_current_output_errors_are_not_normal_misses(tables, method, fault, monkeypatch):
     from cache_v2 import CacheIndex, ArtifactConflictRecord, ArtifactType
     from cache_v2.store import ArtifactIntegrityError
     from experiments.unlearning_outputs import load_output
     import experiments.modular_run as runner
     root=tables[0]
     _,_,options=large_tables(tables,method)
-    with baseline_sampler(method,monkeypatch):
-        old=run(tables,'old_for_fault',**options)['unlearning'][0]
+    old=run(tables,'current_for_fault',**options)['unlearning'][0]
     store=root/'results/cache_v2'
     index=CacheIndex(store/'index.sqlite')
     record=index.get_artifact(old['artifact_id'])
@@ -308,7 +264,7 @@ def test_half_deletion_retrains_shards_and_aggregates_948_nodes(method, caplog):
     edges=torch.stack([ids,(ids+1)%n])
     data=Data(x=torch.randn(n,3),y=ids%2,edge_index=torch.cat([edges,edges.flip(0)],1),
               train_mask=ids<1895,val_mask=(ids>=1895)&(ids<1900),test_mask=ids>=1900)
-    parameters=dict(num_shards=2,opt_num_epochs=1,num_opt_samples=1000)
+    parameters=dict(shard_epochs=2,num_shards=2,opt_num_epochs=1,num_opt_samples=1000)
     if method=='GraphRevoker':
         parameters.update(gpa_epochs=1,gpa_hidden_channels=8,gpa_batch_size=256)
     instance=unlearning(dict(kind='unlearning',schema_version=1,method=method,

@@ -19,15 +19,15 @@ from experiments.effective_config import ConfigurationError
 
 
 def grapheraser_defaults(defaults):
-    return {name: defaults[name] for name in (
+    return {'shard_epochs': 300, **{name: defaults[name] for name in (
         'num_shards', 'partition_method', 'shard_size_delta', 'terminate_delta',
-        'aggregator', 'opt_lr', 'opt_num_epochs', 'num_opt_samples')}
+        'aggregator', 'opt_lr', 'opt_num_epochs', 'num_opt_samples')}}
 
 
 def validate_grapheraser(parameters):
     if parameters['partition_method'] != 'lpa_base' or parameters['aggregator'] != 'optimal':
         raise ConfigurationError('GraphEraser node lane requires lpa_base / optimal')
-    for key in ('num_shards', 'opt_num_epochs', 'num_opt_samples'):
+    for key in ('num_shards', 'shard_epochs', 'opt_num_epochs', 'num_opt_samples'):
         if type(parameters[key]) is not int or parameters[key] <= 0:
             raise ConfigurationError('invalid GraphEraser ' + key)
     if parameters['num_shards'] < 2 or parameters['opt_lr'] <= 0 or parameters['shard_size_delta'] < 0:
@@ -89,6 +89,7 @@ def train_shard(instance, data, assignment, shard):
     from experiments.modular_model import create_model, train_supervised, numerical_environment
     from attack.cache_identity import seeded_execution
     training = copy.deepcopy(instance['training'])
+    training['epochs'] = instance['parameters']['shard_epochs']
     shard_data = data.clone()
     shard_data.train_mask = data.train_mask & (assignment == shard)
     if not shard_data.train_mask.any():
@@ -135,14 +136,23 @@ def aggregate_weights(ensemble, data, parameters):
 
 
 def initial_ensemble(instance, data):
+    started = time.perf_counter()
     assignment = partition_nodes(data, instance['parameters'])
+    partition_seconds = time.perf_counter() - started
+    started = time.perf_counter()
     models = [train_shard(instance, data, assignment, shard) for shard in range(instance['parameters']['num_shards'])]
+    shard_seconds = time.perf_counter() - started
     ensemble = ShardEnsemble(models, assignment, torch.ones(len(models), device=data.x.device) / len(models)).eval()
+    started = time.perf_counter()
     ensemble.weights.copy_(aggregate_weights(ensemble, data, instance['parameters']))
+    ensemble.preparation_timing = {'partition_seconds': partition_seconds,
+        'shard_training_seconds': shard_seconds, 'aggregation_seconds': time.perf_counter() - started}
     return ensemble
 
 
 def prepare_ensemble(instance, data, checkpoint_root):
+    preparation_started = time.perf_counter()
+    preparation_timing = {}
     from cache_v2 import canonical_sha256
     from utils.target_checkpoint import data_identity, load_cached_weights, save_cached_weights, capture_state
     from experiments.modular_model import create_model, train_supervised
@@ -162,6 +172,7 @@ def prepare_ensemble(instance, data, checkpoint_root):
     if not hit:
         with seeded_execution(instance['training']['seed']):
             ensemble = initial_ensemble(instance, data)
+        preparation_timing = ensemble.preparation_timing
         state = capture_state(ensemble)
         save_cached_weights(path, state, metadata)
     loaded = load_cached_weights(path, metadata)
@@ -170,7 +181,8 @@ def prepare_ensemble(instance, data, checkpoint_root):
     ensemble = ShardEnsemble(models, state['assignment'].to(data.x.device), state['weights'].to(data.x.device))
     ensemble.load_state_dict(state, strict=True)
     return ensemble.eval(), {'state_hash': loaded['state_hash'], 'file_sha256': loaded['file_sha256'], 'hit': hit,
-        'generation_metadata': loaded['generation_metadata'], 'consumption_metadata': metadata}
+        'generation_metadata': loaded['generation_metadata'], 'consumption_metadata': metadata,
+        'timing': {**preparation_timing, 'total_seconds': time.perf_counter() - preparation_started}}
 
 
 def run_grapheraser(instance, data, nodes, ensemble):
@@ -184,7 +196,12 @@ def run_grapheraser(instance, data, nodes, ensemble):
     start = time.perf_counter()
     for shard in affected:
         ensemble.shard_models[shard] = train_shard(instance, retained, assignment, shard)
+    shard_seconds = time.perf_counter() - start
+    aggregation_started = time.perf_counter()
     ensemble.weights.copy_(aggregate_weights(ensemble, retained, instance['parameters']))
+    ensemble.execution_timing = {'shard_training_seconds': shard_seconds,
+        'aggregation_seconds': time.perf_counter() - aggregation_started,
+        'affected_shards': len(affected), 'shard_epochs': instance['parameters']['shard_epochs']}
     return ensemble.eval(), method_before, time.perf_counter() - start
 
 
@@ -251,4 +268,5 @@ def run_shard_unlearning(instance, *, selection, model, data, dataset_name, chec
     return {**reference, 'output': reference, 'hit': hit, 'producer_called': not hit,
         'generation_producer': stored.generation_producer, 'consumption_producer': producer.to_dict(),
             'compute_seconds': seconds, 'result': utility(verified), 'target': target, 'ensemble_preparation': preparation,
-            'evaluation': evaluate_method(reference, verified)}
+            'evaluation': evaluate_method(reference, verified),
+            'training_timing': ensemble.execution_timing if not hit else {}}

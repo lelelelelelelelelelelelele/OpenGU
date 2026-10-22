@@ -1,0 +1,22 @@
+# AAGU-105 formal execution-chain gate; no full matrix.
+kind: experiment
+schema_version: 1
+experiment_id: exp083-shard300-gate
+stage: unlearning
+dataset_refs:
+- cora.yaml
+selector_refs:
+- gt_full.yaml
+- random.yaml
+unlearning_refs:
+- grapheraser.yaml
+- graphrevoker.yaml
+- retrain.yaml
+evaluation_refs:
+- post_unlearning_utility_and_retrain_gap.yaml
+- post_unlearning_flip_hop.yaml
+matrix: cartesian_product
+seeds: [42]
+random_selector_seeds: [11]
+budget_ratios: [0.1]
+return_scores: false
