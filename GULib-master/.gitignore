@@ -20,9 +20,8 @@ Thumbs.db
 # until their owners retire them; ignoring this directory does not delete files.
 /results/
 
-# Local paper previews and reference-image collections are not deployment inputs.
+# Local paper previews are not deployment inputs.
 /output/pdf/
-/reports/teaser-reference-*/
 
 # Runtime logs (timestamped, large, regenerable)
 log/

@@ -8,7 +8,7 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 import time
-from types import SimpleNamespace
+from types import SimpleNamespace, MethodType
 
 import numpy as np
 import pytest
@@ -46,7 +46,7 @@ def diagnostic(tmp_path, method, train_count):
                training=dict(seed=42, epochs=2, optimizer='Adam', lr=.05, weight_decay=.0001),
                parameters=dict(num_shards=2, num_opt_samples=1000, opt_lr=.001, opt_num_epochs=2),
                dataset_input={}, data_identity=data_identity(data), assignment=assignment.tolist())
-    study = dict(source_sha='unit-test', archive_sha256='unit-test', seed=42, epochs=2,
+    study = dict(source_sha='unit-test', device='cpu', data_root=str(tmp_path), seed=42, epochs=2,
                  evaluation_epochs=[1, 2], methods={method: cfg},
                  requests={'IF': {'selected_nodes': [0]}, 'Random': {'selected_nodes': [1]}})
     (tmp_path / 'verification').mkdir()
@@ -85,7 +85,12 @@ def test_partial_deletions_match_fresh_production_aggregation(tmp_path, method, 
     for group in result['groups']:
         # The runner compares weights and predictions to a fresh real adapter.
         assert group['terminal_production_adapter_exact'] is True
-        assert len(group['rows']) == 2
+        assert len(group['rows']) == 8
+        assert {r['aggregation_arm'] for r in group['rows']} == {'original', 'corrected', 'equal', 'fixed_before_final'}
+        assert len(group['sample_nodes']) == min(1000, group['retained_train_nodes'])
+        assert len(group['shard_metrics']) == 2 * len(group['affected_shards'])
+    fixed = [r['weights'] for g in result['groups'] for r in g['rows'] if r['aggregation_arm'] == 'fixed_before_final']
+    assert all(w == fixed[0] for w in fixed)
     assert len(list(out.glob('*epoch_loss.csv'))) == 3
 
 
@@ -96,3 +101,19 @@ def test_empty_sampling_pool_rejected(tmp_path):
     cfg = ns['STUDY']['methods']['GraphEraser']
     with pytest.raises(ValueError, match='retained training nodes'):
         ns['sample'](data, cfg)
+
+
+def test_corrected_objective_uses_logits_and_original_regularizer(tmp_path):
+    ns, _ = diagnostic(tmp_path, 'GraphEraser', 8)
+    posts = {0: torch.tensor([[-.1, -2.3], [-.3, -1.4]]),
+             1: torch.tensor([[-.2, -1.7], [-1.7, -.2]])}
+    labels = torch.tensor([0, 1])
+    weights = torch.tensor([.3, .7], requires_grad=True)
+    loss = ns['corrected_loss'](SimpleNamespace(num_shards=2), posts, labels, weights)
+    logits = sum(weights[i] * posts[i] for i in range(2))
+    expected = F.cross_entropy(logits, labels) + torch.linalg.vector_norm(weights)
+    torch.testing.assert_close(loss, expected, rtol=0, atol=0)
+    old = F.cross_entropy(F.softmax(logits, dim=1), labels) + torch.linalg.vector_norm(weights)
+    assert not torch.allclose(loss, old)
+    torch.testing.assert_close(torch.autograd.grad(loss, weights, retain_graph=True)[0],
+                               torch.autograd.grad(expected, weights)[0], rtol=0, atol=0)
