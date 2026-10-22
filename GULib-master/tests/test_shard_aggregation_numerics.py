@@ -82,3 +82,22 @@ def test_nondegenerate_weights_preserve_original_optimization(method):
     torch.testing.assert_close(new, old, rtol=1e-6, atol=1e-7)
     torch.testing.assert_close(new.sum(), torch.tensor(1.))
     assert torch.equal(new, fixture(method, normal=True).optimization().detach())
+
+
+@pytest.mark.parametrize('method', ['GraphEraser', 'GraphRevoker'])
+def test_cross_entropy_matches_ensemble_predictive_distribution(method):
+    """CE must score the normalized geometric pool, without softmaxing twice."""
+    instance = fixture(method, normal=True)
+    posteriors = {0: torch.tensor([[.9, .1], [.2, .8]]).log(),
+                  1: torch.tensor([[.6, .4], [.7, .3]]).log()}
+    labels = torch.tensor([0, 1])
+    weights = torch.tensor([.3, .7], requires_grad=True)
+    actual = instance._loss_fn(posteriors, labels, weights)
+    # Independent probability-domain oracle for ShardEnsemble's log pool.
+    pooled = posteriors[0].exp().pow(weights[0]) * posteriors[1].exp().pow(weights[1])
+    normalized = pooled / pooled.sum(dim=1, keepdim=True)
+    expected = -normalized[torch.arange(2), labels].log().mean() + weights.norm()
+    torch.testing.assert_close(actual, expected)
+    actual_gradient, = torch.autograd.grad(actual, weights, retain_graph=True)
+    expected_gradient, = torch.autograd.grad(expected, weights)
+    torch.testing.assert_close(actual_gradient, expected_gradient)

@@ -1,3 +1,5 @@
 kind: unlearning
 schema_version: 1
 method: GraphEraser
+parameters:
+  shard_epochs: 300

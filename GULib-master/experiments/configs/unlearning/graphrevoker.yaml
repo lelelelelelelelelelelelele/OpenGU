@@ -4,3 +4,4 @@ method: GraphRevoker
 parameters:
   partition_method: gpa
   aggregator: optimal
+  shard_epochs: 300

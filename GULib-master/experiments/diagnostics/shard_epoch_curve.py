@@ -123,6 +123,11 @@ def corrected_loss(self, posteriors, labels, weights):
         z += weights[i] * posteriors[i]
     return F.cross_entropy(z, labels) + torch.linalg.vector_norm(weights)
 
+def original_loss(self, posteriors, labels, weights):
+    # Preserve the historical control after the production objective is fixed.
+    z = sum(weights[i] * posteriors[i] for i in range(self.num_shards))
+    return F.cross_entropy(F.softmax(z, dim=1), labels) + torch.linalg.vector_norm(weights)
+
 def fit_from_posts(name, cfg, data, posts, arm='original'):
     cls = Eraser if name == 'GraphEraser' else Revoker
     with seeded_execution(cfg['training']['seed']):
@@ -136,6 +141,7 @@ def fit_from_posts(name, cfg, data, posts, arm='original'):
             opt._loss_fn = MethodType(corrected_loss, opt)
         else:
             assert arm == 'original'
+            opt._loss_fn = MethodType(original_loss, opt)
         weights = opt.optimization().detach().to(data.x.device)
         assert torch.isfinite(weights).all() and (weights >= 0).all() and weights.sum() > 0
         return weights
@@ -149,6 +155,7 @@ def verify(out):
         assignment = torch.tensor(cfg['assignment'], dtype=torch.long, device=data.x.device)
         small = copy.deepcopy(cfg)
         small['training']['epochs'] = 30
+        small['parameters']['shard_epochs'] = 30
         observed = []
         m, training_seconds = trajectory(small, data, assignment, 0, 30, [10, 20, 30],
                          lambda epoch, model, sec: observed.append(float(model(data.x, data.edge_index).sum())))
@@ -162,7 +169,7 @@ def verify(out):
         edges, _ = subgraph(nodes, data.edge_index, relabel_nodes=True, num_nodes=data.num_nodes)
         with torch.no_grad():
             posts = [F.log_softmax(model(data.x[nodes], edges), dim=-1) for model in models]
-        weights = fit_from_posts(name, cfg, data, posts)
+        weights = fit_from_posts(name, cfg, data, posts, 'corrected')
         adapter = aggregate_weights if name == 'GraphEraser' else graphrevoker_weights
         with seeded_execution(cfg['training']['seed']):
             expected = adapter(ensemble, data, cfg['parameters'])
@@ -305,21 +312,21 @@ def run(out):
                         curve_handle.flush()
                         group['rows'].append({**row, 'weights': weights.tolist()})
                         event(out, event='ensemble_point', **row)
-                        if arm == 'original':
-                            original_weights, original_z = weights, z
+                        if arm == 'corrected':
+                            corrected_weights, corrected_z = weights, z
                 # Compare all terminal models, including reused unaffected shards,
                 # with a fresh production aggregation on the retained input.
                 ensemble = ShardEnsemble(final_models, assignment, torch.ones(count, device=data.x.device) / count).eval()
                 adapter = aggregate_weights if name == 'GraphEraser' else graphrevoker_weights
                 with seeded_execution(cfg['training']['seed']):
                     actual_weights = adapter(ensemble, training_data, cfg['parameters'])
-                torch.testing.assert_close(actual_weights.cpu(), original_weights.cpu(), rtol=1e-4, atol=1e-5)
+                torch.testing.assert_close(actual_weights.cpu(), corrected_weights.cpu(), rtol=1e-4, atol=1e-5)
                 ensemble.weights.copy_(actual_weights)
                 with torch.no_grad():
                     actual_z = ensemble(data.x, data.edge_index)
-                torch.testing.assert_close(actual_z, original_z, rtol=1e-4, atol=1e-5)
+                torch.testing.assert_close(actual_z, corrected_z, rtol=1e-4, atol=1e-5)
                 group['terminal_production_adapter_close'] = True
-                group['terminal_production_adapter_exact'] = bool(torch.equal(actual_z, original_z))
+                group['terminal_production_adapter_exact'] = bool(torch.equal(actual_z, corrected_z))
                 if phase == 'before':
                     base_posts, base_models = posts, final_models
                 record['groups'].append(group)

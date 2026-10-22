@@ -185,6 +185,11 @@ def export_outputs(summary, *, config, context, run):
                     checkpoint and checkpoint.get('source') != 'external_state_dict') else 'not_applicable'
             cell['cache_provenance'] = {key: row.get(key) for key in
                 ('generation_producer', 'consumption_producer') if row.get(key) is not None}
+            if 'ensemble_preparation' in row:
+                preparation = row['ensemble_preparation']
+                cell['cache_provenance']['ensemble'] = preparation
+                cell['timing']['ensemble_preparation'] = preparation.get('timing')
+                cell['timing']['shard_training'] = row.get('training_timing')
             cell['producer_called'] = {'score': selected['score']['producer_called'],
                 'selection': selection['cache']['producer_called'], 'method': row.get('producer_called')}
             if config['stage'] == 'unlearning':
