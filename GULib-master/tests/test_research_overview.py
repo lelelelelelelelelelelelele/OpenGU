@@ -26,10 +26,9 @@ def records():
                  time_budget=dict(estimate_status='estimated', estimated_seconds=120,
                                  calculation='cache_miss_serial', scope='Frozen scope',
                                  basis='3 serial cache-miss jobs at 40 seconds each'),
-                 dependencies=[], blocks=[], attempts=[],
-                 history=[dict(id='observed', at='2026-09-22', stage='analysis', note='Observed', evidence=evidence)])
+                 dependencies=[], blocks=[], attempts=[])
         r['published_analysis'] = {k:copy.deepcopy(r[k]) for k in
-                                  ('id','title','question','scope','configs','sources','attempts','analysis','decision','history')}
+                                  ('id','title','question','scope','configs','sources','attempts','analysis','decision')}
         r['published_analysis']['recorded_at'] = r['reviewed_at']
         rows.append(r)
     rows[0]['blocks'] = [dict(id='AAGU-072',stage='execution',reason='software',
@@ -42,7 +41,7 @@ def frame():
     return model.read_json(view.SOURCE / 'framework.json')
 
 
-@pytest.mark.parametrize('defect', ['id','old_experiment_id','experiment_as_block','state','evidence','analysis','decision','cycle','unknown_dependency','block','event','config'])
+@pytest.mark.parametrize('defect', ['id','old_experiment_id','experiment_as_block','state','evidence','analysis','decision','cycle','unknown_dependency','block','duplicate_id','config'])
 def test_invalid_records_fail_closed(defect):
     rows = copy.deepcopy(records()); r = rows[0]
     if defect == 'id': r['id'] = '../oops'
@@ -55,7 +54,7 @@ def test_invalid_records_fail_closed(defect):
     if defect == 'cycle': r['dependencies'] = [dict(experiment=r['id'],stage='analysis',reason='x',requirement='evidence')]
     if defect == 'unknown_dependency': r['dependencies'] = [dict(experiment='EXP-999',stage='analysis',reason='x',requirement='evidence')]
     if defect == 'block': r['blocks'] = [dict(id='bad',stage='execution',reason='x')]
-    if defect == 'event': r['history'].append(copy.deepcopy(r['history'][0]))
+    if defect == 'duplicate_id': rows.append(copy.deepcopy(r))
     if defect == 'config': r['configs'][0]['path'] = 'script.py'
     with pytest.raises(ValueError): model.validate(rows)
 
@@ -295,13 +294,18 @@ def test_legacy_attempts_without_runtime_are_shown_as_unrecorded(tmp_path):
     assert summary['unstructured_attempts']==1
     assert summary['missing_actual_attempts']==1
     assert summary['match_status']=='estimate_not_recorded'
+    assert summary['actual_seconds'] is None
+    assert summary['deviation_seconds'] is None
 
     page=tmp_path/'EXP-001.html'
     sources=view.Sources(view.ROOT,tmp_path)
     text=view.time_budget_section(rows[0],sources,page)
-    assert '历史尝试未保存 runtime 元数据' in text
-    assert 'Cache 状态' in text
+    assert '1 次历史尝试未记录 runtime' in text
+    assert '实耗 未记录' in text
     assert '估时未记录' in text
+    details=view.attempt_rows(rows[0],sources,page)
+    assert 'Cache：未记录' in details
+    assert '此运行未登记作业起止耗时。' in details
 
 
 def test_legacy_run_without_cache_metadata_stays_unmeasured():
@@ -360,7 +364,9 @@ def test_time_budget_view_shows_estimate_actual_deviation_and_cache_counts(tmp_p
     assert '120.00 秒' in text
     assert '+0.00 秒（+0.0%）' in text
     assert '完整' in text
-    assert 'selection：hit 3 / miss 0' in text
+    details=view.attempt_rows(r,sources,page)
+    assert details.count('selection：hit 3 / miss 0') == 1
+    assert 'selection：hit 3 / miss 0' not in text
 
 
 def write_split(root, rows):
