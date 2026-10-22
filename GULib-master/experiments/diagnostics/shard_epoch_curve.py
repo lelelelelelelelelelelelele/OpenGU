@@ -341,6 +341,8 @@ def main():
     args = parser.parse_args()
     ROOT = args.study.resolve().parent
     STUDY = yaml.safe_load(args.study.read_text(encoding='utf-8'))
+    # OpenGU model property files resolve relative to the source checkout.
+    os.chdir(Path(__file__).resolve().parents[2])
     torch.set_num_threads(STUDY['threads'])
     if STUDY['device'].startswith('cuda') and not torch.cuda.is_available():
         raise RuntimeError('Requested CUDA device unavailable; no CPU fallback')
