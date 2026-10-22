@@ -250,9 +250,11 @@ def gu_defaults(method):
         return {**{k: defaults[k] for k in ('unlearning_epochs', 'kappa', 'alpha1', 'alpha2', 'GNN_layer')},
                 'unlearn_lr': float(props['lr']), 'unlearn_weight_decay': float(props['decay'])}
 
+    if method == 'ETR':
+        return {'etr_erase_ratio': 0.01, 'etr_l': 0.3}
     if method == 'IDEA':
         return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'gaussian_mean', 'gaussian_std')}
-    raise ConfigurationError('supported GU methods: GNNDelete, GIF, MEGU, IDEA, GraphEraser, GraphRevoker, Retrain')
+    raise ConfigurationError('supported GU methods: ETR, GNNDelete, GIF, MEGU, IDEA, GraphEraser, GraphRevoker, Retrain')
 
 
 def unlearning(value, *, parameter_profile_parameters=None):
@@ -298,9 +300,13 @@ def unlearning(value, *, parameter_profile_parameters=None):
     if value['method'] == 'MEGU' and (not math.isfinite(params['unlearn_lr']) or params['unlearn_lr'] <= 0
             or not math.isfinite(params['unlearn_weight_decay']) or params['unlearn_weight_decay'] < 0):
         raise ConfigurationError('invalid MEGU unlearning optimizer settings')
+    if value['method'] == 'ETR':
+        if any(type(v) not in (int, float) or not math.isfinite(v) for v in params.values()) or not (
+                0 < params['etr_erase_ratio'] <= 1 and params['etr_l'] > 0):
+            raise ConfigurationError('invalid ETR parameters')
     checkpoint = value.get('checkpoint')
     if checkpoint is not None:
-        if value['method'] not in ('GIF', 'IDEA', 'MEGU', 'GNNDelete'):
+        if value['method'] not in ('ETR', 'GIF', 'IDEA', 'MEGU', 'GNNDelete'):
             raise ConfigurationError('external checkpoint requires a supported single-model GU method')
         if not isinstance(checkpoint, str) or not checkpoint.strip():
             raise ConfigurationError('checkpoint must be a nonempty pure state_dict file path')
@@ -314,6 +320,8 @@ def unlearning(value, *, parameter_profile_parameters=None):
         raise ConfigurationError('GNNDelete modular node consumer currently supports GCN')
     if value['method'] == 'IDEA' and model['architecture'] != 'OpenGU.GCNNet':
         raise ConfigurationError('IDEA modular node consumer currently supports GCN')
+    if value['method'] == 'ETR' and model['architecture'] != 'OpenGU.GCNNet':
+        raise ConfigurationError('ETR modular node consumer currently supports GCN')
     if value['method'] == 'Retrain' and 'checkpoint' in value:
         raise ConfigurationError('Retrain starts from scratch and cannot consume a checkpoint')
     from experiments.node_deletion import resolve_deletion

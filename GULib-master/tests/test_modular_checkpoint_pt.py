@@ -193,13 +193,13 @@ def test_external_pt_reaches_real_solver_and_output_identity(tables, monkeypatch
     assert not replaced['hit'] and replaced['recipe_hash'] != changed['recipe_hash']
     assert replaced['checkpoint']['state_hash'] == state_hash(weights)
 
-@pytest.mark.parametrize('method', ['MEGU', 'GNNDelete'])
+@pytest.mark.parametrize('method', ['MEGU', 'GNNDelete', 'ETR'])
 def test_external_pt_real_non_solver_consumers(tables, monkeypatch, method):
     root, _, base = tables
     data, _, _, weights = external(tables)
     item = copy.deepcopy(base)
     item.update(method=method, checkpoint='weights.pt', training={'seed': 17},
-                parameters={'unlearning_epochs': 2})
+                parameters={} if method == 'ETR' else {'unlearning_epochs': 2})
     if method == 'MEGU':
         item['parameters'].update(unlearn_lr=.015, unlearn_weight_decay=.001)
     write_yaml(root / 'external.yaml', item)

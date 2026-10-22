@@ -1,0 +1,6 @@
+kind: unlearning
+schema_version: 1
+method: ETR
+parameters:
+  etr_erase_ratio: 0.01
+  etr_l: 0.3
