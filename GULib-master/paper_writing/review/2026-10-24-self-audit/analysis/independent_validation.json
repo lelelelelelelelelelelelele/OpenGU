@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "checks": 6424,
+  "retrain_missing_diagnostic_values_preserved": 420,
+  "method": "csv/statistics cross-check against independently validated existing 080 contrasts and direct seed/raw rows; no scientific acceptance"
+}

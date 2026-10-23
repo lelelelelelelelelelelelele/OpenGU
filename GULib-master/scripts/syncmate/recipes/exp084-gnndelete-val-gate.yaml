@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp084-gnndelete-val-gate
+runner: experiment
+config_path: experiments/configs/exp084/gate.yaml
+config_sha256: be7c1b3e42bf9eedfd53a076f380962ab656d25231ad24e01145b1260b0b38af
+configuration_fingerprint: d8dc69ac97a750d170716025023cd965c3fb70c56cc872f87b10e9f8e733ce42
+run_identity:
+  experiment_id: exp084-gnndelete-checkpoint-audit
+  run_id: e84g1
+timeout_seconds: 7200
+logical_cells: 12
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

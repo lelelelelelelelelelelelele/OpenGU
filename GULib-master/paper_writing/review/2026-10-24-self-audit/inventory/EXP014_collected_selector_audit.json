@@ -1,0 +1,105 @@
+[
+  {
+    "selector": "degree",
+    "node_count": 169343,
+    "candidate_count_from_receipt": 118540,
+    "requested_k": 5927,
+    "nodes_unique_and_in_id_range": true,
+    "candidate_membership": "project acceptance recorded PASS; this audit did not load the remote Dataset candidate mask",
+    "selection_id": "sel_fe421235_1c28cdcb",
+    "selection_file": "results/runs/gpu4090/exp014-selector-baselines/e14b1/cells/ogbn-arxiv_selector_r0.05/degree_7d1042b076af978eab27/seed0/selection.json",
+    "selection_sha256": "d6f95a8bee7fd39d630ee1b7b599ada000ba9fce7fb73427cfce34230cf1e64f",
+    "job_wall_seconds": 54.0,
+    "job_wall_shared": true,
+    "access_wall_seconds": 4.641996216028929,
+    "exclusive_phases": {
+      "dataset_prepare": 0.0,
+      "selector_access": 4.641981266438961
+    },
+    "selection_seconds": 2.3824435211718082,
+    "score_access_seconds": 1.9775677435100079,
+    "cache": {
+      "score": "miss",
+      "selection": "miss",
+      "method": "not_applicable",
+      "selector_checkpoint": "not_applicable",
+      "method_checkpoint": "not_applicable"
+    },
+    "producer_called": {
+      "score": true,
+      "selection": true,
+      "method": null
+    },
+    "delivery_status": "accepted",
+    "scientific_acceptance": "not_evaluated"
+  },
+  {
+    "selector": "random",
+    "node_count": 169343,
+    "candidate_count_from_receipt": 118540,
+    "requested_k": 5927,
+    "nodes_unique_and_in_id_range": true,
+    "candidate_membership": "project acceptance recorded PASS; this audit did not load the remote Dataset candidate mask",
+    "selection_id": "sel_208533fa_a8d02a7e",
+    "selection_file": "results/runs/gpu4090/exp014-selector-baselines/e14b1/cells/ogbn-arxiv_selector_r0.05/random_600c8ff020abefb16ed4/seed11/selection.json",
+    "selection_sha256": "0233cb37b36414aa99afdc72e3c0ae4abb7c8724315144bc9333578edacadc54",
+    "job_wall_seconds": 54.0,
+    "job_wall_shared": true,
+    "access_wall_seconds": 2.6013012379407883,
+    "exclusive_phases": {
+      "dataset_prepare": 0.0,
+      "selector_access": 2.601282712072134
+    },
+    "selection_seconds": 1.1421617902815342,
+    "score_access_seconds": 1.3598967045545578,
+    "cache": {
+      "score": "miss",
+      "selection": "miss",
+      "method": "not_applicable",
+      "selector_checkpoint": "not_applicable",
+      "method_checkpoint": "not_applicable"
+    },
+    "producer_called": {
+      "score": true,
+      "selection": true,
+      "method": null
+    },
+    "delivery_status": "accepted",
+    "scientific_acceptance": "not_evaluated"
+  },
+  {
+    "selector": "r_point",
+    "node_count": 169343,
+    "candidate_count_from_receipt": 118540,
+    "requested_k": 5927,
+    "nodes_unique_and_in_id_range": true,
+    "candidate_membership": "project acceptance recorded PASS; this audit did not load the remote Dataset candidate mask",
+    "selection_id": "sel_0fc61af9_3f7ddd06",
+    "selection_file": "results/runs/gpu4090/exp014-selector-r-point/e14r3/cells/ogbn-arxiv_GCN_r0.05/r_point_b64e7774152e9865bf47/seed42/selection.json",
+    "selection_sha256": "0fb9e0ce152ee778f243e24471dd3aa5813a126f93878ca1fa3d0bee262c9244",
+    "job_wall_seconds": 364.0,
+    "job_wall_shared": false,
+    "access_wall_seconds": 324.5116659142077,
+    "exclusive_phases": {
+      "dataset_prepare": 0.0,
+      "model_prepare": 48.05986559018493,
+      "selector_access": 276.451772402972
+    },
+    "selection_seconds": 1.1445595510303974,
+    "score_access_seconds": 275.2440485544503,
+    "cache": {
+      "score": "miss",
+      "selection": "miss",
+      "method": "not_applicable",
+      "selector_checkpoint": "miss",
+      "method_checkpoint": "not_applicable"
+    },
+    "producer_called": {
+      "score": true,
+      "selection": true,
+      "method": null
+    },
+    "delivery_status": "accepted",
+    "scientific_acceptance": "not_evaluated"
+  }
+]

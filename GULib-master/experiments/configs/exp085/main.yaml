@@ -1,0 +1,68 @@
+# EXP-085 layer 1: existing Outputs only; no training, graph forward, or two-graph/C&S stage.
+kind: experiment
+schema_version: 1
+experiment_id: exp085-response-diagnostics
+stage: metrics
+dataset_refs:
+- citeseer.yaml
+output_inputs:
+- run: ../../../results/runs/exp080-cc-base/e80r305/run.json
+  sha256: c3749e44045e0b770c95ceea066c68d1892c9a99d57377dd286f61c863ab7582
+  cell_ids:
+  - 53b91669ebec01f91ec9
+  - 2df4c0c8551683e24778
+  - 8a229a757be83e78a9cb
+  - e8368348f4b616e47b09
+  - b53532a2fac25ee6e27b
+  - 3f50faaf2d520d90d772
+  - f528264d15d647922a2b
+  - 510f1ab6c9e2305392ba
+  - ee8e6789229b92d33d39
+  - 75f233089c59f824a6f8
+  - 97526b2fbc3d9cdcd548
+  - b1a39ba3565cff37b320
+  - dbaf439d796804db26ad
+  - bf4c5601037de44ecf72
+  - 9fe1cab7ba5159802ffc
+  - 366a8f4203fd4fd8429c
+  - e8a43b55924f545b02e3
+  - 49c5d98ee0cb56980a98
+  - 123de7c423fd34b3db81
+  - bd6137ab022731edd9bc
+  - 5afa64277650576ca183
+  - 16791545334e3d83c2c2
+  - 35fbeb7264debf61161f
+  - 39a0e224e9e5e9f1e00f
+  - 5322dbbcf84a2dbee300
+  - fea448a71416b5657316
+  - f38d011a1825d37c3693
+  - 522e010d9c272ed9e523
+  - 4f9ee797e24efbb5ff29
+  - 917ed6e49df69d14d477
+  - 18eaf06fd55a0b8a641b
+  - e57c1cabf18a1f8c643e
+  - e0f53eeb7796756e46d1
+  - 81e5e8cb3bd0fb988dbe
+  - 33902a06d7ce09005e58
+  - f42fe00e2ff64881ad2d
+  - 7bf980727ab1d4044e5c
+  - ac7a72e0aa31078d78a1
+  - 55c2b1f562c00ea3c04e
+  - b5fb04576bd611bc9ff4
+  - 4cffb53db63aafe571f4
+  - 0abf1aa15b7e9765744a
+  - c0557400d0347d68b5e3
+  - 5a6a260975d69965f9fe
+  - c64b5eac8aa16bd25f73
+  - 265acfe7212440d325c7
+  - d1d6c5c805fa80b4b45a
+  - 6bd99a88154fa077e390
+  - 1cd2bbb36563d72b5f30
+  - 96148a2bd63ef48bdee4
+  - 13894ab893248801268d
+  - f1d75a3b2d144882e65b
+  - a9f0fd19d19bd5ac1eec
+  - 1283305208a5ab91c188
+evaluation_refs:
+- post_unlearning_response_diagnostics.yaml
+matrix: cartesian_product

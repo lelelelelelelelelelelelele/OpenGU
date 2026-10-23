@@ -1,0 +1,8 @@
+method,matched_cells,same_output_id,max_accuracy_difference,datasets
+GIF,18,18,0.0,"['CiteSeer', 'Cora']"
+GNNDelete,18,18,0.0,"['CiteSeer', 'Cora']"
+GraphEraser,18,0,1.8450184501845115,"['CiteSeer', 'Cora']"
+GraphRevoker,18,0,12.91512915129151,"['CiteSeer', 'Cora']"
+IDEA,18,18,0.0,"['CiteSeer', 'Cora']"
+MEGU,18,18,0.0,"['CiteSeer', 'Cora']"
+Retrain,18,18,0.0,"['CiteSeer', 'Cora']"

@@ -1,0 +1,96 @@
+{
+  "passed": true,
+  "input_sha256": {
+    "self\\research\\analyses\\EXP-011_EXP-079\\seed_values.csv": "14f6ef95f41bc8fa4c20941a0f9c60f7620937c1fdd4be6fad30746c06640118",
+    "self\\research\\analyses\\EXP-011_EXP-079\\cells.csv": "10326a8fa4a040607c76eb249f3bb6af72b51860bc05cfe8ecbebcec4dfddc93",
+    "self\\research\\analyses\\EXP-011_EXP-079\\paired_seed_values.csv": "28b0e3ba5ed28e154ae69268fb71c50f2e916461e1c8f886fd16d65774b6a32c",
+    "self\\research\\analyses\\EXP-080\\full-20261021\\cells.csv": "150a9d1e1580f44fb4b7c0c937df8ec8621a12ee138dbafa05eca0153136f2b7"
+  },
+  "fixed_run": "e79r6",
+  "budget_runs": [
+    "e80r302",
+    "e80r305",
+    "e80r306"
+  ],
+  "source_contrasts": 504,
+  "source_interactions": 216,
+  "budget_contrasts": 2400,
+  "budget_interactions": 650,
+  "common_condition_identity": [
+    {
+      "method": "GIF",
+      "matched_cells": 18,
+      "same_output_id": 18,
+      "max_accuracy_difference": 0.0,
+      "datasets": [
+        "CiteSeer",
+        "Cora"
+      ]
+    },
+    {
+      "method": "GNNDelete",
+      "matched_cells": 18,
+      "same_output_id": 18,
+      "max_accuracy_difference": 0.0,
+      "datasets": [
+        "CiteSeer",
+        "Cora"
+      ]
+    },
+    {
+      "method": "GraphEraser",
+      "matched_cells": 18,
+      "same_output_id": 0,
+      "max_accuracy_difference": 1.8450184501845115,
+      "datasets": [
+        "CiteSeer",
+        "Cora"
+      ]
+    },
+    {
+      "method": "GraphRevoker",
+      "matched_cells": 18,
+      "same_output_id": 0,
+      "max_accuracy_difference": 12.91512915129151,
+      "datasets": [
+        "CiteSeer",
+        "Cora"
+      ]
+    },
+    {
+      "method": "IDEA",
+      "matched_cells": 18,
+      "same_output_id": 18,
+      "max_accuracy_difference": 0.0,
+      "datasets": [
+        "CiteSeer",
+        "Cora"
+      ]
+    },
+    {
+      "method": "MEGU",
+      "matched_cells": 18,
+      "same_output_id": 18,
+      "max_accuracy_difference": 0.0,
+      "datasets": [
+        "CiteSeer",
+        "Cora"
+      ]
+    },
+    {
+      "method": "Retrain",
+      "matched_cells": 18,
+      "same_output_id": 18,
+      "max_accuracy_difference": 0.0,
+      "datasets": [
+        "CiteSeer",
+        "Cora"
+      ]
+    }
+  ],
+  "statistical_scope": "Exploratory paired training-seed summaries. Pointwise t intervals, no multiplicity correction or equivalence test. Fixed splits. IM draws averaged within seed. Budget conditions and GU coordinates are not independent samples.",
+  "source_t_intervals": "n=10 df=9",
+  "budget_t_intervals": "n=3 df=2, very uncertain; retain SD and per-seed values",
+  "no_new_gpu_runs": true,
+  "scientific_acceptance": "not_requested"
+}

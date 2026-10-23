@@ -1,0 +1,248 @@
+{
+  "rows": 384,
+  "axes": {
+    "dataset": [
+      "CiteSeer",
+      "PubMed"
+    ],
+    "method": [
+      "GraphEraser",
+      "GraphRevoker"
+    ],
+    "phase": [
+      "IF",
+      "Random",
+      "before"
+    ],
+    "epoch": [
+      "50",
+      "100",
+      "200",
+      "300",
+      "500",
+      "1000",
+      "2000",
+      "3000"
+    ],
+    "aggregation_arm": [
+      "corrected",
+      "equal",
+      "fixed_before_final",
+      "original"
+    ]
+  },
+  "complete_factorial_grid": true,
+  "training_trajectory_count": 12,
+  "interpretation": "384 = 2 datasets x 2 methods x 3 phases x 8 epochs x 4 aggregation arms; repeated measurements of 12 training trajectories, not 384 independent experiments.",
+  "min_validation_gain_pp": -0.9009009009008935,
+  "max_validation_gain_pp": 0.9009009009009077,
+  "archive_hash_checks": [
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/status.json",
+      "expected_sha256": "d8e1230af19b7e47731766e1529865313a6aa23c9ac452d783bd07819a874ee1",
+      "observed_sha256": "d8e1230af19b7e47731766e1529865313a6aa23c9ac452d783bd07819a874ee1",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/collection_validation.json",
+      "expected_sha256": "2329328aa6b31c2f3c849eae09378b311d3bb568352c0cff7a6d0cf80a605bbd",
+      "observed_sha256": "2329328aa6b31c2f3c849eae09378b311d3bb568352c0cff7a6d0cf80a605bbd",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/protected-after.json",
+      "expected_sha256": "3752b7b4570266032eff7fc02c9c6ce32bb6686dfa9a5913677de7f82fc67d65",
+      "observed_sha256": "3752b7b4570266032eff7fc02c9c6ce32bb6686dfa9a5913677de7f82fc67d65",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/all_curve_metrics.csv",
+      "expected_sha256": "5223b40ffb147b01b64f61b922061a460a8547ea68fa21f43677108cb29b135d",
+      "observed_sha256": "5223b40ffb147b01b64f61b922061a460a8547ea68fa21f43677108cb29b135d",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/epoch_comparison.csv",
+      "expected_sha256": "a33d1653567bd4b44ff7e3c895f1bd6453b6501322257af00510ec4b35d82e2e",
+      "observed_sha256": "a33d1653567bd4b44ff7e3c895f1bd6453b6501322257af00510ec4b35d82e2e",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/training_loss_summary.csv",
+      "expected_sha256": "dfaa3384dca92fae368f3fea6812f085c6cb1e8133d3e6a54558b663f12bc4d8",
+      "observed_sha256": "dfaa3384dca92fae368f3fea6812f085c6cb1e8133d3e6a54558b663f12bc4d8",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/training_objective.csv",
+      "expected_sha256": "784199aaa2106332e12acbbec9c3e80086b2b4b100fef8371a67afa3a7da0b64",
+      "observed_sha256": "784199aaa2106332e12acbbec9c3e80086b2b4b100fef8371a67afa3a7da0b64",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/training_objective.png",
+      "expected_sha256": "686ba2d119c4c644fcc328610e0b617a76009c39387e2f6fe2a433c032466fcf",
+      "observed_sha256": "686ba2d119c4c644fcc328610e0b617a76009c39387e2f6fe2a433c032466fcf",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/training_objective.svg",
+      "expected_sha256": "90ca9900826261b51aebc6d240b7caebab13bf1a8c254b12653520d80772b1bd",
+      "observed_sha256": "90ca9900826261b51aebc6d240b7caebab13bf1a8c254b12653520d80772b1bd",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/validation_curves.png",
+      "expected_sha256": "2272067111df52db8a2b8acd415d4c11e5ad2e210906255b13a0f95f5b28cf88",
+      "observed_sha256": "2272067111df52db8a2b8acd415d4c11e5ad2e210906255b13a0f95f5b28cf88",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/validation_curves.svg",
+      "expected_sha256": "3bf60356e7f73e837d435abdc9ec03c0af08747457d53c9c98740951b88bb743",
+      "observed_sha256": "3bf60356e7f73e837d435abdc9ec03c0af08747457d53c9c98740951b88bb743",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/before_after.png",
+      "expected_sha256": "2185f95e71d5af40d3e3b2f8176a2326e729368cb9bf179942b0e2b9571f9715",
+      "observed_sha256": "2185f95e71d5af40d3e3b2f8176a2326e729368cb9bf179942b0e2b9571f9715",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/before_after.svg",
+      "expected_sha256": "cb1d6cb00483f0d0913cfb7c50aaa96c87b585694f94b118786637baec7ff063",
+      "observed_sha256": "cb1d6cb00483f0d0913cfb7c50aaa96c87b585694f94b118786637baec7ff063",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/validation_nll.png",
+      "expected_sha256": "4278ad3a9bfe0f6b9d75a6707f5af81e8902cb0ebf4e4e0b9335031193d31194",
+      "observed_sha256": "4278ad3a9bfe0f6b9d75a6707f5af81e8902cb0ebf4e4e0b9335031193d31194",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/validation_nll.svg",
+      "expected_sha256": "90805ad2f8774cbdd991d97fc43aa78ea1688eaa580f35079bf641f9c08d71c4",
+      "observed_sha256": "90805ad2f8774cbdd991d97fc43aa78ea1688eaa580f35079bf641f9c08d71c4",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/CiteSeer/gpu1/run.json",
+      "expected_sha256": "52826307c64b959e4f0b5c495b4f3e62faf6b16c72327dd79cd72765c2b17185",
+      "observed_sha256": "52826307c64b959e4f0b5c495b4f3e62faf6b16c72327dd79cd72765c2b17185",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/PubMed/gpu1/run.json",
+      "expected_sha256": "3ac7a3f377a2fdf5456596c9b702618308708b8e093c15ce6e308a3e152674dd",
+      "observed_sha256": "3ac7a3f377a2fdf5456596c9b702618308708b8e093c15ce6e308a3e152674dd",
+      "matches": true
+    },
+    {
+      "path": ".workblock/items/AAGU-104/evidence/ssh-gpu2/build_report.py",
+      "expected_sha256": "261124e4f2aa7c860c8dbd23970488eb4d652a92cabfb89f118ad64367da6702",
+      "observed_sha256": "261124e4f2aa7c860c8dbd23970488eb4d652a92cabfb89f118ad64367da6702",
+      "matches": true
+    }
+  ],
+  "changes": [
+    {
+      "dataset": "CiteSeer",
+      "method": "GraphEraser",
+      "phase": "IF",
+      "validation_accuracy_at_300_pct": 72.37237237237237,
+      "validation_accuracy_at_3000_pct": 73.27327327327328,
+      "validation_gain_3000_minus_300_pp": 0.9009009009009077
+    },
+    {
+      "dataset": "CiteSeer",
+      "method": "GraphEraser",
+      "phase": "Random",
+      "validation_accuracy_at_300_pct": 73.87387387387388,
+      "validation_accuracy_at_3000_pct": 73.87387387387388,
+      "validation_gain_3000_minus_300_pp": 0.0
+    },
+    {
+      "dataset": "CiteSeer",
+      "method": "GraphEraser",
+      "phase": "before",
+      "validation_accuracy_at_300_pct": 73.87387387387388,
+      "validation_accuracy_at_3000_pct": 74.47447447447448,
+      "validation_gain_3000_minus_300_pp": 0.6006006006006004
+    },
+    {
+      "dataset": "CiteSeer",
+      "method": "GraphRevoker",
+      "phase": "IF",
+      "validation_accuracy_at_300_pct": 74.17417417417418,
+      "validation_accuracy_at_3000_pct": 73.87387387387388,
+      "validation_gain_3000_minus_300_pp": -0.3003003003003073
+    },
+    {
+      "dataset": "CiteSeer",
+      "method": "GraphRevoker",
+      "phase": "Random",
+      "validation_accuracy_at_300_pct": 73.57357357357357,
+      "validation_accuracy_at_3000_pct": 73.87387387387388,
+      "validation_gain_3000_minus_300_pp": 0.3003003003003073
+    },
+    {
+      "dataset": "CiteSeer",
+      "method": "GraphRevoker",
+      "phase": "before",
+      "validation_accuracy_at_300_pct": 75.37537537537537,
+      "validation_accuracy_at_3000_pct": 74.47447447447448,
+      "validation_gain_3000_minus_300_pp": -0.9009009009008935
+    },
+    {
+      "dataset": "PubMed",
+      "method": "GraphEraser",
+      "phase": "IF",
+      "validation_accuracy_at_300_pct": 87.88032454361054,
+      "validation_accuracy_at_3000_pct": 87.72819472616634,
+      "validation_gain_3000_minus_300_pp": -0.15212981744420517
+    },
+    {
+      "dataset": "PubMed",
+      "method": "GraphEraser",
+      "phase": "Random",
+      "validation_accuracy_at_300_pct": 88.3367139959432,
+      "validation_accuracy_at_3000_pct": 88.64097363083164,
+      "validation_gain_3000_minus_300_pp": 0.30425963488843877
+    },
+    {
+      "dataset": "PubMed",
+      "method": "GraphEraser",
+      "phase": "before",
+      "validation_accuracy_at_300_pct": 87.62677484787018,
+      "validation_accuracy_at_3000_pct": 87.72819472616634,
+      "validation_gain_3000_minus_300_pp": 0.10141987829615573
+    },
+    {
+      "dataset": "PubMed",
+      "method": "GraphRevoker",
+      "phase": "IF",
+      "validation_accuracy_at_300_pct": 86.35902636916836,
+      "validation_accuracy_at_3000_pct": 86.6632860040568,
+      "validation_gain_3000_minus_300_pp": 0.30425963488843877
+    },
+    {
+      "dataset": "PubMed",
+      "method": "GraphRevoker",
+      "phase": "Random",
+      "validation_accuracy_at_300_pct": 86.815415821501,
+      "validation_accuracy_at_3000_pct": 87.5760649087221,
+      "validation_gain_3000_minus_300_pp": 0.7606490872210969
+    },
+    {
+      "dataset": "PubMed",
+      "method": "GraphRevoker",
+      "phase": "before",
+      "validation_accuracy_at_300_pct": 87.32251521298174,
+      "validation_accuracy_at_3000_pct": 87.67748478701826,
+      "validation_gain_3000_minus_300_pp": 0.35496957403651663
+    }
+  ],
+  "live_record_drift": "EXP-082.json still says CiteSeer/PubMed SSH not started; explicitly referenced AAGU-104 current report and GPU archive establish completed and accepted 300-epoch schedule diagnostics. No live state was edited."
+}

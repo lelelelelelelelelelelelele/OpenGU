@@ -1,0 +1,37 @@
+dataset,method,seed,difference_5pct_pp,difference_33pct_pp,change_pp,scope_note
+CiteSeer,GIF,42,1.2012012012012017,20.870870870870874,19.669669669669673,nonshard; IDEA outputs are near duplicates in this profile
+CiteSeer,GIF,212,1.9519519519519521,12.612612612612612,10.66066066066066,nonshard; IDEA outputs are near duplicates in this profile
+CiteSeer,GIF,2024,1.2012012012012017,16.06606606606607,14.86486486486487,nonshard; IDEA outputs are near duplicates in this profile
+CiteSeer,GNNDelete,42,-2.1021021021021014,20.72072072072072,22.822822822822822,quarantined from current claims; main-case test-mask selection traced separately; remaining scope under audit
+CiteSeer,GNNDelete,212,-3.303303303303303,13.813813813813816,17.117117117117118,quarantined from current claims; main-case test-mask selection traced separately; remaining scope under audit
+CiteSeer,GNNDelete,2024,-8.708708708708707,4.654654654654655,13.363363363363362,quarantined from current claims; main-case test-mask selection traced separately; remaining scope under audit
+CiteSeer,GraphEraser,42,1.3513513513513509,7.507507507507508,6.1561561561561575,historical EXP080 shard protocol
+CiteSeer,GraphEraser,212,-0.4504504504504503,6.306306306306304,6.756756756756754,historical EXP080 shard protocol
+CiteSeer,GraphEraser,2024,-0.1501501501501501,-1.0510510510510507,-0.9009009009009006,historical EXP080 shard protocol
+CiteSeer,GraphRevoker,42,-0.4504504504504503,2.2522522522522586,2.702702702702709,historical EXP080 shard variant
+CiteSeer,GraphRevoker,212,-0.4504504504504503,15.465465465465467,15.915915915915917,historical EXP080 shard variant
+CiteSeer,GraphRevoker,2024,0.15015015015014654,1.2012012012012008,1.0510510510510542,historical EXP080 shard variant
+CiteSeer,IDEA,42,1.2012012012012017,20.870870870870874,19.669669669669673,"nonshard; near-duplicate GIF coordinate, not independent confirmation"
+CiteSeer,IDEA,212,1.9519519519519521,12.612612612612612,10.66066066066066,"nonshard; near-duplicate GIF coordinate, not independent confirmation"
+CiteSeer,IDEA,2024,1.2012012012012017,16.06606606606607,14.86486486486487,"nonshard; near-duplicate GIF coordinate, not independent confirmation"
+CiteSeer,MEGU,42,2.5525525525525534,21.32132132132132,18.768768768768766,nonshard; evaluated pipeline includes C&S
+CiteSeer,MEGU,212,-0.9009009009009006,12.762762762762762,13.663663663663662,nonshard; evaluated pipeline includes C&S
+CiteSeer,MEGU,2024,1.0510510510510516,17.267267267267265,16.216216216216214,nonshard; evaluated pipeline includes C&S
+Cora,GIF,42,1.2915129151291516,6.088560885608855,4.797047970479703,nonshard; IDEA outputs are near duplicates in this profile
+Cora,GIF,212,1.8450184501845017,9.59409594095941,7.749077490774908,nonshard; IDEA outputs are near duplicates in this profile
+Cora,GIF,2024,1.2915129151291507,8.85608856088561,7.5645756457564595,nonshard; IDEA outputs are near duplicates in this profile
+Cora,GNNDelete,42,-5.719557195571962,-0.18450184501845257,5.53505535055351,quarantined from current claims; main-case test-mask selection traced separately; remaining scope under audit
+Cora,GNNDelete,212,-13.284132841328411,1.1070110701107048,14.391143911439116,quarantined from current claims; main-case test-mask selection traced separately; remaining scope under audit
+Cora,GNNDelete,2024,-9.040590405904059,-2.952029520295202,6.088560885608857,quarantined from current claims; main-case test-mask selection traced separately; remaining scope under audit
+Cora,GraphEraser,42,0.9225092250922522,-3.874538745387456,-4.797047970479708,historical EXP080 shard protocol
+Cora,GraphEraser,212,0.0,0.5535055350553506,0.5535055350553506,historical EXP080 shard protocol
+Cora,GraphEraser,2024,0.3690036900369016,0.0,-0.3690036900369016,historical EXP080 shard protocol
+Cora,GraphRevoker,42,1.2915129151291502,0.553505535055347,-0.7380073800738032,historical EXP080 shard variant
+Cora,GraphRevoker,212,5.535055350553506,-4.797047970479703,-10.332103321033209,historical EXP080 shard variant
+Cora,GraphRevoker,2024,-0.9225092250922486,-9.225092250922515,-8.302583025830266,historical EXP080 shard variant
+Cora,IDEA,42,1.2915129151291516,6.088560885608855,4.797047970479703,"nonshard; near-duplicate GIF coordinate, not independent confirmation"
+Cora,IDEA,212,1.8450184501845017,9.59409594095941,7.749077490774908,"nonshard; near-duplicate GIF coordinate, not independent confirmation"
+Cora,IDEA,2024,1.2915129151291507,8.85608856088561,7.5645756457564595,"nonshard; near-duplicate GIF coordinate, not independent confirmation"
+Cora,MEGU,42,0.9225092250922513,4.797047970479705,3.8745387453874534,nonshard; evaluated pipeline includes C&S
+Cora,MEGU,212,0.3690036900369007,5.719557195571955,5.350553505535054,nonshard; evaluated pipeline includes C&S
+Cora,MEGU,2024,0.7380073800738005,6.457564575645755,5.719557195571954,nonshard; evaluated pipeline includes C&S

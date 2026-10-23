@@ -1,0 +1,80 @@
+\documentclass[sigconf,anonymous,review]{acmart}
+
+% Preserved from the Overleaf source synchronized on 2026-10-24.
+\setcopyright{none}
+\settopmatter{printacmref=false}
+\acmConference[WWW '27]{The ACM Web Conference 2027}{May 10--14, 2027}{Dublin, Ireland}
+\acmYear{2027}
+\copyrightyear{2027}
+\acmDOI{}
+\acmISBN{}
+\input{math_commands.tex}
+
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{xcolor}
+
+\title{Auditing Strategic Deletion Requests in Graph Unlearning}
+\subtitle{Local template validation; manuscript drafting awaits outline review}
+\author{Anonymous Authors}
+
+\begin{document}
+\begin{abstract}
+This document checks the local ACM template. It validates equations,
+references, figures, tables, and BibTeX. It contains no scientific results
+or manuscript draft.
+\end{abstract}
+\keywords{template validation}
+\maketitle
+
+\section{Environment Validation}\label{sec:validation}
+The class options, conference metadata, mathematical macros, and bibliography
+are taken from the synchronized Overleaf project.
+The bibliography example \cite{chen2022graph} checks citation resolution.
+Equation~\ref{eq:validation}, Figure~\ref{fig:validation}, and
+Table~\ref{tab:validation} check cross-reference resolution.
+The numerical expression below is a typesetting test only:
+\begin{equation}
+  \E_{x \sim p}[x] = \sum_x p(x)x .
+  \label{eq:validation}
+\end{equation}
+
+\begin{figure}[ht]
+  \centering
+  \setlength{\unitlength}{1mm}
+  \begin{picture}(76,16)
+    \put(0,1){\framebox(23,13){Source}}
+    \put(23,7.5){\vector(1,0){7}}
+    \put(30,1){\framebox(23,13){Compile}}
+    \put(53,7.5){\vector(1,0){7}}
+    \put(60,1){\framebox(16,13){PDF}}
+  \end{picture}
+  \caption{Template validation graphic; not a proposed research figure.}
+  \label{fig:validation}
+  \Description{Three boxes connect source, compilation, and the resulting PDF.}
+\end{figure}
+
+\begin{table}[ht]
+  \caption{Validation scope; this table contains no experimental measurements.}
+  \label{tab:validation}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    Component & Check \\
+    \midrule
+    Mathematics & AMS and bold math macros \\
+    References & Labels and BibTeX citation \\
+    Layout & ACM two-column review format \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Drafting Status}
+The first scientific manuscript will be prepared only after the outline is
+reviewed. No conclusions, experimental values, or draft chapters are introduced
+by this environment check.
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+\end{document}

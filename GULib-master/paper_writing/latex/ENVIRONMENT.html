@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="source-sha256" content="c67092e4c54dba9ce44a7b05520513fbd29f7b038681b15f7c1273ff462810de"><title>本地 LaTeX 环境与模板验证</title><style>:root{color-scheme:light;--ink:#24313e;--muted:#667382;--line:#d7e0e7;--accent:#175b80}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f2f5f7;color:var(--ink);font:16px/1.85 system-ui,'Microsoft YaHei',sans-serif}.layout{max-width:1440px;margin:auto;padding:34px 28px 90px;display:grid;grid-template-columns:235px minmax(0,1fr);gap:34px}nav{position:sticky;top:30px;align-self:start;font-size:13px}nav strong{display:block;font-size:17px;line-height:1.5;margin-bottom:14px}nav a{display:block;padding:8px 0;border-bottom:1px solid var(--line);color:var(--muted);text-decoration:none}.meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}main{min-width:0;padding:40px 46px;background:white;border:1px solid var(--line)}h1{font-size:29px;line-height:1.4;margin:0 0 24px}h2{font-size:22px;line-height:1.5;margin:42px 0 18px;padding-top:16px;border-top:2px solid #b5cbd7;scroll-margin-top:20px}h3{font-size:18px;margin:27px 0 12px}h4{font-size:16px;color:var(--accent);margin:22px 0 10px}p{margin:13px 0}li{margin:8px 0}a{color:var(--accent);text-underline-offset:3px}code{font-size:.87em;background:#edf2f6;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{padding:16px;background:#edf2f6;overflow:auto}pre code{padding:0;background:none;overflow-wrap:normal}blockquote{border-left:4px solid #b5cbd7;margin:20px 0;padding:1px 20px;color:#3b5263;background:#f5f8fa}.table-scroll{overflow:auto;margin:22px 0}table{border-collapse:collapse;min-width:610px;width:100%;font-size:14px;line-height:1.75}th,td{border:1px solid var(--line);padding:11px 13px;text-align:left;vertical-align:top}th{background:#eaf1f6}tr:nth-child(even) td{background:#f8fafb}img{max-width:100%;height:auto}footer{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}@media(max-width:960px){.layout{display:block;padding:16px}nav{position:static;margin:0 0 20px}nav a{display:inline-block;margin-right:14px}main{padding:25px 20px}h1{font-size:25px}}@media print{body{background:white}.layout{display:block;padding:0}nav{display:none}main{border:0;padding:0}h2,h3,h4{break-after:avoid}table{font-size:10px;min-width:0}a{color:inherit}}</style></head>
+<body><div class="layout"><nav><strong>OpenGU · Paper Writing</strong><p class="meta">2026-10-24<br>由 Markdown 源文件生成</p><a href="#pw-doc-section-1">1. 已使用的环境</a>
+<a href="#pw-doc-section-2">2. 模板来源与保留范围</a>
+<a href="#pw-doc-section-3">3. 一条命令构建</a>
+<a href="#pw-doc-section-4">4. 验证结果</a>
+<a href="#pw-doc-section-5">5. 已知警告与写稿前处理项</a><p><a href="ENVIRONMENT.md">编辑用源文件</a></p></nav><main><h1 id="latex">本地 LaTeX 环境与模板验证</h1>
+<p>日期：2026-10-24（Asia/Shanghai）。状态：<strong>本地命令行编译通过，可以在提纲审查后开始第一版论文写作。</strong> 当前 <code>main.tex</code> 仅包含环境验证内容，未撰写新的科研正文。</p>
+<h2 id="pw-doc-section-1">1. 已使用的环境</h2>
+<p>本机已有 TeX Live 2026，位于 <code>E:\Programs\texlive\2026\bin\windows</code>，这些命令已在当前终端的 PATH 中。没有重复安装发行版，也没有修改系统环境变量。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>核验结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pdfLaTeX</td>
+<td>pdfTeX 3.141592653-2.6-1.40.29，TeX Live 2026</td>
+</tr>
+<tr>
+<td>BibTeX</td>
+<td>0.99e，TeX Live 2026</td>
+</tr>
+<tr>
+<td>latexmk</td>
+<td>4.87，2025-06-15</td>
+</tr>
+<tr>
+<td>XeLaTeX</td>
+<td>XeTeX 3.141592653-2.6-0.999998，可用；本轮构建使用 pdfLaTeX</td>
+</tr>
+<tr>
+<td>LuaLaTeX</td>
+<td>LuaHBTeX 1.24.0，可用；本轮构建使用 pdfLaTeX</td>
+</tr>
+<tr>
+<td>ACM 文档类</td>
+<td><code>acmart.cls</code>，2025-08-27 v2.16</td>
+</tr>
+<tr>
+<td>ACM 参考文献样式</td>
+<td><code>ACM-Reference-Format.bst</code>，已通过 <code>kpsewhich</code> 定位</td>
+</tr>
+<tr>
+<td>模板依赖</td>
+<td><code>amsmath</code>、<code>amsfonts</code>、<code>bm</code>、<code>booktabs</code>、<code>graphicx</code>、<code>microtype</code>、<code>xcolor</code> 均由实际编译加载成功</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="pw-doc-section-2">2. 模板来源与保留范围</h2>
+<p>来源是此前已经从 Overleaf 同步的 <a href="../../report/paper/overleaf/main.tex">main.tex</a>。本轮没有再次访问 Overleaf，也没有修改这个来源目录。沿用的设置如下：</p>
+<pre><code class="language-tex">\documentclass[sigconf,anonymous,review]{acmart}
+\setcopyright{none}
+\settopmatter{printacmref=false}
+\acmConference[WWW '27]{The ACM Web Conference 2027}{May 10--14, 2027}{Dublin, Ireland}
+\acmYear{2027}
+\copyrightyear{2027}
+\acmDOI{}
+\acmISBN{}
+\bibliographystyle{ACM-Reference-Format}
+</code></pre>
+<p><code>math_commands.tex</code> 和 <code>references.bib</code> 按原文件字节复制。<code>main.tex</code> 仅保留模板设置并加入显式标识的环境验证内容，避免把旧稿视为已审查的新正文。</p>
+<p>来源目录当前含未提交修改，因此观察时的仓库 HEAD <code>57c5f21c0403d9d6f34dc27b82051c624b62e161</code> 只用于说明仓库上下文，不能代表这些来源文件的精确内容。精确来源以 <a href="template-source.json">template-source.json</a> 中的 17 个文件 SHA-256 为准。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>来源文件</th>
+<th>SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>main.tex</code></td>
+<td><code>44b4099f5d79c8db3e6574bef346afbbc02d1b0fdd8217df6e0dd139379f2d27</code></td>
+</tr>
+<tr>
+<td><code>math_commands.tex</code></td>
+<td><code>ab6c49175eeb9cd4d4d8c02405785f8b18c82aa81f25490b0708c902106bba3d</code></td>
+</tr>
+<tr>
+<td><code>references.bib</code></td>
+<td><code>3e7d9e5958113b89264cb758baaa721369f081807e24bd8ea6e964665a4f0e97</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="pw-doc-section-3">3. 一条命令构建</h2>
+<p>在仓库根目录运行：</p>
+<pre><code class="language-powershell">.\paper_writing\tools\build-paper.ps1
+</code></pre>
+<p>构建脚本通过 <code>latexmk</code> 调用 pdfLaTeX 和 BibTeX，直到引用稳定；本轮首次构建实际执行了三遍 pdfLaTeX 和 BibTeX。所有输出进入 Git 忽略的 <code>paper_writing/latex/build/</code>。默认关闭 shell escape。脚本遇到编译失败、缺失 PDF、未解析的引用或交叉引用会返回失败。</p>
+<p>可选：同时用当前 Overleaf 完整稿核验模板依赖：</p>
+<pre><code class="language-powershell">.\paper_writing\tools\build-paper.ps1 -ValidateOverleaf
+</code></pre>
+<p>完整稿的输入仍来自 <code>report/paper/overleaf/</code>，输出独立进入 <code>paper_writing/latex/build/overleaf-validation/</code>；此操作不会把旧稿内容复制到新写作项目。脚本只为当前子进程设置 Perl 可识别的 <code>LC_ALL=C</code>，结束后恢复原值。</p>
+<h2 id="pw-doc-section-4">4. 验证结果</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>验证对象</th>
+<th>结果</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>新写作项目 <code>main.tex</code></td>
+<td>通过，1 页</td>
+<td>0 编译错误；0 未定义引用；0 overfull/underfull 警告</td>
+</tr>
+<tr>
+<td>数学宏与公式</td>
+<td>通过</td>
+<td>AMS、粗体数学宏、带编号公式正常</td>
+</tr>
+<tr>
+<td>图、表、交叉引用</td>
+<td>通过</td>
+<td>图表编号和三个交叉引用正常；单页 PNG 已查看，无截断或重叠</td>
+</tr>
+<tr>
+<td>BibTeX</td>
+<td>通过</td>
+<td>示例引用解析为 <code>[1]</code>，参考文献正常输出</td>
+</tr>
+<tr>
+<td>当前完整 Overleaf 稿</td>
+<td>通过，12 页</td>
+<td>0 编译错误；0 未定义引用；实际 PDF 图像依赖加载成功</td>
+</tr>
+<tr>
+<td>输出隔离</td>
+<td>通过</td>
+<td><code>git check-ignore</code> 确认生成的 PDF 被 <code>paper_writing/.gitignore</code> 排除</td>
+</tr>
+</tbody>
+</table></div>
+<p>查看产物：</p>
+<ul>
+<li><a href="build/main.pdf">环境验证 PDF</a></li>
+<li><a href="build/preview.png">环境验证截图</a></li>
+<li><a href="build/main.log">环境验证最终日志</a></li>
+<li><a href="build/overleaf-validation/main.pdf">完整 Overleaf 本地编译 PDF</a></li>
+<li><a href="build/overleaf-validation/main.log">完整 Overleaf 最终日志</a></li>
+</ul>
+<h2 id="pw-doc-section-5">5. 已知警告与写稿前处理项</h2>
+<p>环境已具备完整的本地构建能力。以下警告来自现有模板或文献数据，需要在论文收口时处理：</p>
+<ul>
+<li>环境验证引用的 <code>chen2022graph</code> 缺 publisher、address、页码三个 BibTeX 字段；完整原稿共 57 条同类 BibTeX 警告。没有擅自补写未核实的文献元数据。</li>
+<li><code>epstopdf</code> 提醒 shell escape 已关闭。本轮输入的图为 PDF，无需启用；这不影响构建。</li>
+<li>完整原稿保留了 Overleaf 当前的 <code>printacmref=false</code> 和未提供 CCS 的状态，触发 2 条 ACM 类警告。投稿最终设置需在正式正文收口时统一核对。</li>
+<li>完整原稿存在 7 处 overfull hbox 和 6 处 underfull vbox。它们属于原稿排版问题，与环境缺依赖无关。</li>
+<li>本机 ACM 类由现有 TeX Live 提供。云端的 TeX Live 或 ACM 类版本尚未在本轮查询，不能承诺本地和云端分页逐字一致。</li>
+</ul>
+<p>用户审查提纲后，再将通过审查的章节内容与图表接入此项目。本轮没有生成第一版研究正文，也没有提交 Git、覆盖云端稿或安装额外软件。</p>
+<footer>Source: ENVIRONMENT.md<br>SHA-256: c67092e4c54dba9ce44a7b05520513fbd29f7b038681b15f7c1273ff462810de<br>使用 paper_writing/tools/render-docs.ps1 重建此页面。</footer></main></div></body></html>

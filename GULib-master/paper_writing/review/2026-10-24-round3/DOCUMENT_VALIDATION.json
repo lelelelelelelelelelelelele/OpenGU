@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "sources": [
+    {
+      "source": "outline\\OUTLINE.md",
+      "sha256": "3c30343bf2c0f4a316f80f3c58867b7fc5f0c3b0784696ad2ebbe661ad907077"
+    },
+    {
+      "source": "outline\\OUTLINE.v4.md",
+      "sha256": "e903aec312cf4bc50bd608b6483dbf7d3a63c81fe2e157c89c3414fecd71d4fe"
+    },
+    {
+      "source": "protocol\\ROUND3_EXECUTION_PROTOCOL.md",
+      "sha256": "d329095471847cb720d64c721df27e0f9363f2e0af3065dbefe30d0947124d40"
+    },
+    {
+      "source": "README.md",
+      "sha256": "602971d60cf0f6b8a858a363d3087347ea8536d5657688a49bf54f9b407642aa"
+    },
+    {
+      "source": "review\\2026-10-24-round3\\REPORT.md",
+      "sha256": "2bf7335a4f4ec12f8cd7d72c3006783131eaef1aa78cf939952aef5c9acc8014"
+    }
+  ],
+  "local_links_checked": 131,
+  "outline_writing_units": {
+    "**核心目标（要说什么）：**": 101,
+    "**准备怎么说：**": 101,
+    "**注意点／强调：**": 101
+  },
+  "errors": [],
+  "visual_check": "not performed; structural checks only"
+}
