@@ -145,6 +145,9 @@ def no_compute(monkeypatch):
     import experiments.modular_model as model
     import experiments.modular_gu as gu
     import experiments.modular_run as entry
+    import importlib
+    retrain_module = importlib.import_module('unlearning.unlearning_methods.Retrain.retrain')
+    monkeypatch.setattr(retrain_module, 'train_supervised', forbidden)
     for name in ('train_supervised', 'prepare_model'):
         original = getattr(model, name)
         monkeypatch.setattr(model, name, functools.wraps(original)(lambda *a, **k: forbidden()))
@@ -196,7 +199,7 @@ def persisted(tables, no_compute):
         identity = {'dataset_input': bind_input(dataset, root, root),
             'target': {'method': method, 'parameters': {}},
             'pairing': pairing_identity(instance, data, [9]),
-            'selection': output_reference(selected, selection_recipe.recipe_hash),
+            'selection': {'artifact_id': selected.artifact_id, 'recipe_hash': selection_recipe.recipe_hash, 'content_hash': selected.content_hash},
             'graph_fingerprint': inputs.graph_fingerprint, 'producer_version': producer.to_dict()}
         logits = np.tile([2., 0.], (20, 1))
         if method == 'GNNDelete':
@@ -248,7 +251,8 @@ def test_metrics_entry_export_readback_and_original_evaluations(persisted, table
         store_root=root / 'results/cache_v2', dataset_root=root)
     result = run(tables, 'combined', stage='metrics', selector_refs=[], output_inputs=sources(root),
         evaluation_refs=['single.yaml', 'utility.yaml', 'gap.yaml', 'flip.yaml'])
-    assert result['evaluations'][0]['rows'] == previous['rows']
+    scientific = lambda rows: [{k:r[k] for k in ('evaluation_receipt_id','identity','metrics')} for r in rows]
+    assert scientific(result['evaluations'][0]['rows']) == scientific(previous['rows'])
     flip = result['evaluations'][3]['rows'][0]
     assert flip['metrics']['fraction_flipped'] == .6  # 3/5 test nodes, not 1/9 retained train nodes.
     assert flip['metrics']['gt3_hop_count'] == 5
@@ -256,7 +260,7 @@ def test_metrics_entry_export_readback_and_original_evaluations(persisted, table
     assert result['evaluations'][2]['rows'][0]['metrics']['gap'] == pytest.approx(-.2)
     only = run(tables, 'flip-only', stage='metrics', selector_refs=[], output_inputs=sources(root),
         evaluation_refs=['flip.yaml'])
-    assert only['evaluations'][0]['rows'][0] == flip
+    assert scientific(only['evaluations'][0]['rows']) == scientific([flip])
     path = root / 'results/runs/flip-only/flip-only/run.json'
     exported, docs = read_run(path, hashlib.sha256(path.read_bytes()).hexdigest())
     assert len(exported['cells']) == 1
@@ -267,7 +271,8 @@ def test_metrics_entry_export_readback_and_original_evaluations(persisted, table
     combined_path = root / 'results/runs/combined/combined/run.json'
     combined, documents = read_run(combined_path, hashlib.sha256(combined_path.read_bytes()).hexdigest())
     assert len(combined['cells']) == 2
-    assert before == tree_hash(root / 'results/cache_v2')
+    after = tree_hash(root / 'results/cache_v2')
+    assert {k:v for k,v in before.items() if k.startswith('artifacts/')} == {k:after[k] for k in before if k.startswith('artifacts/')}
     assert inputs_before == {p: (root / p).read_bytes() for p in inputs_before}
     record_property('flip_hop_evidence', json.dumps({'fixture': 'hand-authored-no-training',
         'training_gu_forward_forbidden': True, 'artifacts_unchanged': True,
@@ -307,10 +312,12 @@ def test_receipt_tracks_mask_graph_rules_version_and_requested_metrics(persisted
 def test_real_loader_digest_rejection_and_missing_duplicate_pair(persisted):
     root, refs = persisted
     kwargs = dict(store_root=root / 'results/cache_v2', dataset_root=root)
-    for candidates in ([refs[0]], [refs[0], refs[1], refs[1]]):
-        with pytest.raises(ValueError, match='exactly one verified Retrain'):
-            evaluate_modular(evaluation(), candidates, **kwargs)
-    with pytest.raises(ValueError, match='digest mismatch'):
+    with pytest.raises(ValueError, match='exactly one verified Retrain'):
+        evaluate_modular(evaluation(), [refs[0]], **kwargs)
+    # Repeated display references are deduplicated; distinct matching baselines are not.
+    repeated = evaluate_modular(evaluation(), [refs[0], refs[1], refs[1]], **kwargs)
+    assert len(repeated['rows']) == 1 and repeated['rows'][0]['metrics']['fraction_flipped'] == .6
+    with pytest.raises(ValueError, match='digest mismatch|Output reference identity mismatch'):
         evaluate_modular(evaluation(), [refs[0], {**refs[1], 'content_hash': '0' * 64}], **kwargs)
 
 

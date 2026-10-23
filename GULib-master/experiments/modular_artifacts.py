@@ -33,6 +33,28 @@ def _slug(value):
     return re.sub(r'[^A-Za-z0-9_.-]+', '-', str(value)).strip('.-')[:60] or 'none'
 
 
+def metric_source_cells(run, source, documents=None):
+    """Exact optional subset, preserving the verified source's coordinate order."""
+    from experiments.effective_config import ConfigurationError
+    wanted = source.get('cell_ids')
+    if wanted is not None:
+        if (not isinstance(wanted, list) or not wanted
+                or any(not isinstance(v, str) or not v for v in wanted)
+                or len(set(wanted)) != len(wanted)):
+            raise ConfigurationError('metrics input cell_ids must be a nonempty unique list of strings')
+        cells = {c['cell_id']: c for c in run['cells']}
+        missing = set(wanted) - set(cells)
+        if missing:
+            raise ConfigurationError('metrics input has unknown cell_ids: ' + ', '.join(sorted(missing)))
+        if any(not cells[v].get('output') for v in wanted):
+            raise ConfigurationError('metrics input cell_ids must identify persisted Outputs')
+        wanted = set(wanted)
+    if documents is not None and len(documents) != len(run['cells']):
+        raise ConfigurationError('metrics source documents do not align with source cells')
+    selected = [(i, c) for i,c in enumerate(run['cells']) if wanted is None or c['cell_id'] in wanted]
+    return [c for _,c in selected] if documents is None else [(c,documents[i]) for i,c in selected]
+
+
 def planned_cells(config):
     """Shared matrix expansion for execution, declaration and validation."""
     from experiments.modular_config import experiment_batches, selector_entries, unlearning_entries
@@ -41,7 +63,7 @@ def planned_cells(config):
     if config['stage'] == 'metrics':
         for source in config['output_inputs']:
             run, _ = read_run(Path(config['source_directory']) / source['run'], source['sha256'])
-            for cell in run['cells']:
+            for cell in metric_source_cells(run, source):
                 if cell.get('output') and (cell['conditions']['method'] != 'Retrain' or any(
                         not is_paired_evaluation(e) for e in config['evaluations'])):
                     cells.append({key: cell[key] for key in ('cell_id', 'path', 'conditions')})
@@ -223,7 +245,7 @@ def export_outputs(summary, *, config, context, run):
                             cell['timing'][label + '_access_seconds'] = cache['access_seconds']
                             cell['producer_called'][label] = cache['producer_called']
                         item = {'stage': evaluation['effective_config']['case'], 'values': measured['metrics']}
-                        if evaluation['effective_config']['case'] == 'post_unlearning_flip_hop':
+                        if evaluation['effective_config']['case'] in ('post_unlearning_flip_hop', 'post_unlearning_response_diagnostics'):
                             item.update(evaluation_receipt_id=measured['evaluation_receipt_id'],
                                         identity=measured['identity'])
                         if 'retrain_output' in measured['identity']:
@@ -343,7 +365,7 @@ def read_run(path, expected_sha256):
                 raise ValueError('invalid metrics document')
             for row in values['metrics.json']['rows']:
                 allowed = {'stage', 'values', 'baseline_output'}
-                if row.get('stage') == 'post_unlearning_flip_hop':
+                if row.get('stage') in ('post_unlearning_flip_hop', 'post_unlearning_response_diagnostics'):
                     from cache_v2 import canonical_sha256
                     allowed |= {'evaluation_receipt_id', 'identity'}
                     identity = row.get('identity', {})
@@ -354,7 +376,7 @@ def read_run(path, expected_sha256):
                             or identity.get('metrics') != sorted(row['values'])
                             or not identity.get('protocol')
                             or row.get('evaluation_receipt_id') != 'evalr_' + canonical_sha256(identity)[:32]):
-                        raise ValueError('flip-hop metric identity mismatch')
+                        raise ValueError(('flip-hop' if row['stage']=='post_unlearning_flip_hop' else 'response') + ' metric identity mismatch')
                 if (set(row) - allowed or not row['values']
                         or any(isinstance(v, (dict, list, bool)) or (isinstance(v, float) and not math.isfinite(v))
                                for v in row['values'].values())):
