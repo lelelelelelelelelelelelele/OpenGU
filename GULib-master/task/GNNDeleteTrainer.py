@@ -352,7 +352,10 @@ class GNNDeleteTrainer(BaseTrainer):
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
 
-        best_metric = 0
+        if self.args["unlearning_epochs"] <= 0 or self.args["test_freq"] <= 0:
+            raise ValueError("GNNDelete requires positive unlearning_epochs and test_freq")
+        self._node_evaluation_mask('val')
+        best_metric = float('-inf')
         
         # MI Attack before unlearning
         if attack_model_all is not None:
@@ -442,7 +445,8 @@ class GNNDeleteTrainer(BaseTrainer):
             msg = [f'{i}: {j:>4d}' if isinstance(j, int) else f'{i}: {j:.4f}' for i, j in step_log.items()]
             tqdm.write(' | '.join(msg))
             self.logger.info("time:{}".format(epoch_time/self.args["unlearning_epochs"]))
-            if (epoch + 1) % self.args["test_freq"] == 0:
+            if ((epoch + 1) % self.args["test_freq"] == 0
+                    or epoch + 1 == self.args["unlearning_epochs"]):
                 valid_loss, dt_acc,recall, dt_f1, valid_log = self.eval_node_fullbatch_del('val')
                 valid_log['epoch'] = epoch
 
@@ -461,11 +465,16 @@ class GNNDeleteTrainer(BaseTrainer):
 
                 if dt_acc + dt_f1 > best_metric:
                     best_metric = dt_acc + dt_f1
-                    best_epoch = epoch
+                    self.trainer_log['best_epoch'] = epoch
+                    self.trainer_log['best_validation_metric'] = best_metric
 
                     print(f'Save best checkpoint at epoch {epoch:04d}. Valid loss = {valid_loss:.4f}')
                     ckpt = {
                         'model_state': self.model.state_dict(),
+                        'epoch': epoch,
+                        'selection_stage': 'val',
+                        'selection_metric': 'accuracy+micro_f1',
+                        'selection_score': best_metric,
                         # 'optimizer_state': [optimizer[0].state_dict(), optimizer[1].state_dict()],
                     }
                     torch.save(ckpt, os.path.join(self.args["checkpoint_dir"],'model_best.pt'))
@@ -495,7 +504,7 @@ class GNNDeleteTrainer(BaseTrainer):
             attack_model_sub (torch.nn.Module, optional): Model used for member inference attacks on a subset of data.
                                                         Defaults to None.
             
-            ckpt (str, optional): Specifies which checkpoint to load ('best' or other). Defaults to 'best'.
+            ckpt (str, optional): Checkpoint to load ('best' or 'final'). Defaults to 'best'.
 
         Returns:
             tuple:
@@ -509,9 +518,11 @@ class GNNDeleteTrainer(BaseTrainer):
 
                 test_log (dict): A dictionary containing additional test metrics.
         """
-        if ckpt == 'best':  # Load best ckpt
-            ckpt = torch.load(os.path.join(self.args["checkpoint_dir"], 'model_best.pt'))
-            self.model.load_state_dict(ckpt['model_state'])
+        if ckpt not in ('best', 'final'):
+            raise ValueError("GNNDelete checkpoint must be 'best' or 'final'")
+        checkpoint = torch.load(os.path.join(self.args["checkpoint_dir"], f'model_{ckpt}.pt'),
+                                map_location=self.device)
+        self.model.load_state_dict(checkpoint['model_state'])
 
         if 'ogbl' in self.args["dataset_name"]:
             pred_all = False
@@ -595,6 +606,21 @@ class GNNDeleteTrainer(BaseTrainer):
             loss, f1,acc,dt_auc, dt_aup, df_auc, df_aup, df_logit, logit_all_pair, test_log = self.eval_edge(stage, pred_all)
             return loss,acc,dt_auc,df_auc,test_log
 
+    def _node_evaluation_mask(self, stage):
+        if stage not in ('val', 'test'):
+            raise ValueError("GNNDelete evaluation stage must be 'val' or 'test'")
+        mask = getattr(self.data, stage + '_mask', None)
+        if (not isinstance(mask, torch.Tensor) or mask.dtype != torch.bool
+                or mask.ndim != 1 or mask.numel() != self.data.num_nodes
+                or not mask.any().item()):
+            raise ValueError(f"GNNDelete requires a nonempty boolean {stage}_mask of length num_nodes")
+        if stage == 'val':
+            test_mask = getattr(self.data, 'test_mask', None)
+            if (isinstance(test_mask, torch.Tensor) and test_mask.shape == mask.shape
+                    and torch.any(mask & test_mask).item()):
+                raise ValueError("GNNDelete validation and test masks must be disjoint")
+        return mask
+
     @torch.no_grad()
     def eval_node_fullbatch_del(self,stage='val', pred_all=False):
         """
@@ -620,6 +646,7 @@ class GNNDeleteTrainer(BaseTrainer):
 
                 log (dict): A dictionary containing evaluation metrics.
         """
+        mask = self._node_evaluation_mask(stage)
         self.model.eval()
 
         # DT AUC AUP
@@ -627,12 +654,11 @@ class GNNDeleteTrainer(BaseTrainer):
             z = self.model(self.data.features_pre)
         else:
             z = self.model(self.data.x, self.data.edge_index)
-        loss = F.cross_entropy(z[self.data.test_mask], self.data.y[self.data.test_mask]).cpu().item()
-        pred = torch.argmax(z[self.data.test_mask], dim=1).cpu()
-        true_lable = self.data.y[self.data.test_mask]
-        dt_acc = accuracy_score(self.data.y[self.data.test_mask].cpu(), pred)
-        recall = recall_score(self.data.y[self.data.test_mask].cpu(), pred,average='micro')
-        dt_f1 = f1_score(self.data.y[self.data.test_mask].cpu(), pred, average='micro')
+        loss = F.cross_entropy(z[mask], self.data.y[mask]).cpu().item()
+        pred = torch.argmax(z[mask], dim=1).cpu()
+        dt_acc = accuracy_score(self.data.y[mask].cpu(), pred)
+        recall = recall_score(self.data.y[mask].cpu(), pred,average='micro')
+        dt_f1 = f1_score(self.data.y[mask].cpu(), pred, average='micro')
 
         log = {
             f'{stage}_loss': loss,
