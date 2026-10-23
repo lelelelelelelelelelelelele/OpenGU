@@ -322,7 +322,7 @@ for sel, label in [('random', 'Random'), ('degree', 'Degree'), ('pagerank', 'Pag
     row = '| '+label+' | '+' | '.join(cells)+' |'
     assert row in source, row
     printed_rows.append(row)
-contrast32 = pd.read_csv(ROOT / 'self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/AAGU-032-paired-baseline-contrasts.csv')
+contrast32 = pd.read_csv(ROOT / 'self/research/analyses/EXP-032_EXP-053/AAGU-032-paired-baseline-contrasts.csv')
 selected32 = contrast32[contrast32.selector.isin(['gt_full', 'gt_full_all_trainable', 'gt_full_all_trainable_hops3'])]
 assert len(selected32) == 72
 for d in DATASETS:

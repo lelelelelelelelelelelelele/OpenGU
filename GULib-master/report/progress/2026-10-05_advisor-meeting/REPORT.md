@@ -84,7 +84,7 @@ EXP-032 从四个预算和三个 D-full 配置补充了这个问题。当前 300
 
 我现在对这一段的判断是：IF 的信号并没有消失，但其有效条件还没解释清楚。下一段要进一步问，在已经存在 Retrain 损伤的地方，GU 是否保留了这个信号。
 
-材料：[EXP-032 当前分析](../../../self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md) · [逐预算配对数据](../../../self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/AAGU-032-paired-baseline-contrasts.csv)。
+材料：[EXP-032 当前分析](../../../self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md) · [逐预算配对数据](../../../self/research/analyses/EXP-032_EXP-053/AAGU-032-paired-baseline-contrasts.csv)。
 
 ## 3. GU 怎样改变删除的影响？
 
@@ -345,7 +345,7 @@ GraphRevoker 案例来源为 [diagnostic_atlas_10seeds.csv](../../../self/resear
 
 | 讲稿位置 | 直接附在本稿的数据 | 完整材料与原始来源 |
 |---|---|---|
-| 第 2 节：IF → Retrain | [Retrain 均值、SD 与基线差](assets/retrain-reference.csv)；图 1 | [EXP-011 汇总](../../../self/research/analyses/EXP-011/table02-v2-summary.csv)；[EXP-032 逐条件](../../../self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/AAGU-032-all-conditions.csv) |
+| 第 2 节：IF → Retrain | [Retrain 均值、SD 与基线差](assets/retrain-reference.csv)；图 1 | [EXP-011 汇总](../../../self/research/analyses/EXP-011/table02-v2-summary.csv)；[EXP-032 逐条件](../../../self/research/analyses/EXP-032_EXP-053/AAGU-032-all-conditions.csv) |
 | 第 3.1 节：Retrain → GU | [统一符号的完整表](assets/table02-unified-signs.csv)；[两案例分解](assets/decomposition-cases.csv)；图 2 | [六 GU 全表](../../../self/research/analyses/EXP-011/table02-v2-tables.html)；[原始 manifest](../../../results/runs/gpu4090/exp011-t2/0925-v1/run.json) |
 | 第 3.2 节：IF、IM 与行为偏离 | 表 3、3b；[全部策略与 GU 的均值及 SD](assets/behavior-selector-summary.csv) | [主表分析](../../../self/research/analyses/EXP-011/table02-v2-analysis.html)；[校准证据](../../../self/research/analyses/EXP-062/closeout-20260924.md) |
 | 第 4 节：十种子的跨模型响应 | 图 3–5；[十种子配对数据](../../../self/research/analyses/EXP-079/e79r5/paired_seed_values.csv)；[响应区间](../../../self/research/analyses/EXP-079/e79r5/response_profile_summary.csv) | [完整响应分析](../../../self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html)；[原始 manifest](../../../results/runs/gpu4090/exp079-surrogate-multiseed/e79r5/run.json) |

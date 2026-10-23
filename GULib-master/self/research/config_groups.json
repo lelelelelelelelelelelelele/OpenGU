@@ -128,5 +128,10 @@
     "owner": "EXP-081",
     "kind": "experiment",
     "note": "复用已审阅Random5草稿目录；当前GraphRevoker三seed小样本诊断，执行状态由EXP-081拥有。"
+  },
+  "exp014": {
+    "owner": "EXP-014",
+    "kind": "experiment",
+    "note": "ogbn-arxiv 选点可运行性配置目录；仅登记归属，配置准备与执行状态以 EXP-014 当前记录为准。"
   }
 }

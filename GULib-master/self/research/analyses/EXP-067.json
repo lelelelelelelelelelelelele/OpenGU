@@ -102,22 +102,22 @@
       "evidence": [
         {
           "label": "H64 theory result with full input identity",
-          "path": "self/research/analyses/h64-theory-20260924/citeseer.json"
+          "path": "self/research/analyses/EXP-067_EXP-068/citeseer.json"
         },
         {
-          "label": "H64 candidate table review",
-          "path": "self/research/analyses/h64-theory-20260924/README.md"
+          "label": "EXP-067 / EXP-068 · H64 数值参数候选推导（历史阶段说明）",
+          "path": "self/research/analyses/EXP-067_EXP-068/README.md"
         }
       ]
     },
     "evidence": [
       {
         "label": "H64 theory result with full input identity",
-        "path": "self/research/analyses/h64-theory-20260924/citeseer.json"
+        "path": "self/research/analyses/EXP-067_EXP-068/citeseer.json"
       },
       {
-        "label": "H64 candidate table review",
-        "path": "self/research/analyses/h64-theory-20260924/README.md"
+        "label": "EXP-067 / EXP-068 · H64 数值参数候选推导（历史阶段说明）",
+        "path": "self/research/analyses/EXP-067_EXP-068/README.md"
       },
       {
         "label": "H64 Observer calibration analysis",

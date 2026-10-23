@@ -395,11 +395,11 @@
   ],
   "sources": [
     {
-      "label": "完整2016条件分析 HTML",
+      "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受）",
       "path": "self/research/analyses/EXP-080/full-20261021/REPORT.html"
     },
     {
-      "label": "完整2016条件分析 Markdown",
+      "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受） · Markdown",
       "path": "self/research/analyses/EXP-080/full-20261021/REPORT.md"
     },
     {
@@ -420,11 +420,11 @@
     "note": "汇总base1764、Cora high105、CiteSeer high147，4035文件、1722同请求GU/Retrain配对及252前缀关系核验通过。覆盖五种选点策略、六GU和Retrain；IM先在训练seed内平均。描述性三训练seed结果，科学接受另行决定。 五策略比较补充：分离原始效用、同预算Random增量、Retrain交互差与去均值GU形状，保留IM抽样敏感性和GNNDelete坐标剔除。",
     "evidence": [
       {
-        "label": "五策略与IM模式中文分析",
+        "label": "EXP-080 · 五策略响应对照与 IM 补充（同批次专题）",
         "path": "self/research/analyses/EXP-080/full-20261021/STRATEGY_REPORT.html"
       },
       {
-        "label": "五策略分析Markdown",
+        "label": "EXP-080 · 五策略响应对照与 IM 补充（同批次专题） · Markdown",
         "path": "self/research/analyses/EXP-080/full-20261021/STRATEGY_REPORT.md"
       },
       {
@@ -432,11 +432,11 @@
         "path": "self/research/analyses/EXP-080/full-20261021/strategy_statistics_validation.json"
       },
       {
-        "label": "完整2016条件分析 HTML",
+        "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受）",
         "path": "self/research/analyses/EXP-080/full-20261021/REPORT.html"
       },
       {
-        "label": "完整2016条件分析 Markdown",
+        "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受） · Markdown",
         "path": "self/research/analyses/EXP-080/full-20261021/REPORT.md"
       },
       {
@@ -526,11 +526,11 @@
     "note": "用户授权分析并提交main，未确认科学接受。原运行版本、失败尝试和范围边界保留；不把报告提交当作算法修复、完整论文实现验证或新GPU实验。",
     "evidence": [
       {
-        "label": "完整2016条件分析 HTML",
+        "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受）",
         "path": "self/research/analyses/EXP-080/full-20261021/REPORT.html"
       },
       {
-        "label": "完整2016条件分析 Markdown",
+        "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受） · Markdown",
         "path": "self/research/analyses/EXP-080/full-20261021/REPORT.md"
       }
     ]

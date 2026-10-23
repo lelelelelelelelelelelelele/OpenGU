@@ -1,0 +1,39 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>联合分析目录改名</title><style>
+:root { color-scheme: light; --ink:#182a37; --muted:#60717b; --line:#dce5e9; --accent:#12665b; }
+* { box-sizing:border-box; }
+body { margin:0; background:#f3f6f5; color:var(--ink); font:16px/1.8 "Segoe UI","Microsoft YaHei",sans-serif; }
+main { max-width:1240px; margin:42px auto; padding:46px 56px; background:white; border-top:6px solid var(--accent); box-shadow:0 12px 48px #18382c0a; }
+h1 { font-size:36px; line-height:1.35; letter-spacing:.02em; margin:0 0 20px; }
+h2 { font-size:25px; margin-top:52px; padding-top:20px; border-top:1px solid var(--line); }
+h3 { font-size:19px; margin-top:30px; }
+h1 + p { color:var(--muted); font-size:14px; }
+a { color:var(--accent); text-decoration:underline; text-underline-offset:3px; overflow-wrap:anywhere; }
+p,li,td { overflow-wrap:anywhere; }
+strong { color:#104d46; }
+code { background:#edf3f3; border-radius:4px; padding:2px 5px; font-size:.88em; overflow-wrap:anywhere; }
+.table-scroll { overflow-x:auto; margin:20px 0; }
+table { width:100%; border-collapse:collapse; font-size:14px; line-height:1.65; min-width:740px; }
+th,td { padding:12px 14px; border:1px solid var(--line); text-align:left; vertical-align:top; }
+th { background:#eaf2ef; color:#194a41; }
+tr:nth-child(even) { background:#fafcfb; }
+li { margin:9px 0; }
+footer { color:var(--muted); font-size:13px; margin-top:40px; }
+@media(max-width:760px) { main { margin:0; padding:26px 20px; } h1 { font-size:27px; } h2 { font-size:22px; } }
+@media print { main { margin:0; padding:0; box-shadow:none; } body { background:white; } table { min-width:0; font-size:10px; } h2 { break-after:avoid; } }
+</style></head><body><main><h1>联合分析目录改名</h1>
+<p>2026-10-24 · 已按用户指定名称完成最终改名</p>
+<p>原目录 <code>self/research/analyses/shard300-20261023/</code> 已改为 <code>self/research/analyses/EXP-011_EXP-079/</code>。目录名以两项实验编号标识联合分析，主题、日期与版本保留在报告说明中；EXP-011/e11r1 与 EXP-079/e79r6 的身份保持不变。</p>
+<p><a href="../../self/research/analyses/EXP-011_EXP-079/REPORT.html">打开联合分析报告</a> · <a href="../../self/research/analyses/EXP-011_EXP-079/EXP011_REPORT.html">EXP-011 图册</a> · <a href="../../self/research/analyses/EXP-011_EXP-079/EXP079_REPORT.html">EXP-079 图册</a></p>
+<h2>更新范围</h2>
+<ul>
+<li>更新 Work Plan 说明、EXP-011/079 分析记录和包含该路径的实验状态引用。</li>
+<li>更新 DocMap 论文主页面、结果章引用，以及此前整理方案和实施记录中的可点击路径。</li>
+<li>更新论文修订证据检查脚本，并通过原脚本重新生成其核验结果；目录内的报告及图表使用相对路径，无需重算或重写。</li>
+<li>通过各自生成器重建 Work Plan 页面、结果章 HTML 与整理报告 HTML。旧目录已不存在，没有保留兼容副本。</li>
+</ul>
+<h2>验证</h2>
+<p>目录内原有140个文件逐一比较改名前后的SHA-256。原始实验身份、科学数值、结论及接受状态不因改名改变。文件校验结果及源文件更新清单见<a href="rename-to-experiment-ids.json">本次改名核验记录</a>。</p>
+<p>论文修订证据脚本在新路径成功运行，核验11975个原始文件，已有CSV与原始输出一致；没有启动GPU任务或更改科学接受状态。Work Plan 重建完成，链接检查覆盖1631个来源引用。</p>
+<p>当前研究入口与DocMap不再引用旧目录。历史差异快照、AAGU-106的历史组合验证/阻塞记录仍保留当时的旧路径，它们描述的是当时现场，不作为现行文件入口。旧名到新名的对应由本记录说明，不改写历史审计事实。</p>
+<p>此前“暂不搬文件”的实施记录属于入口整理阶段；本次改名依据用户后续明确授权。其他并发修改保留，未提交或推送。</p>
+</main></body></html>

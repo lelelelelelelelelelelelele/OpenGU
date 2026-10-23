@@ -77,8 +77,8 @@
 
 ## 三张数据集结果表
 
-- [Cora 结果表](evidence/AAGU-032-AAGU-053-3000epoch-20260923/cora-3000-only-tables.md)
-- [CiteSeer 结果表](evidence/AAGU-032-AAGU-053-3000epoch-20260923/citeseer-3000-only-tables.md)
-- [PubMed 结果表](evidence/AAGU-032-AAGU-053-3000epoch-20260923/pubmed-3000-only-tables.md)
+- [Cora 结果表](EXP-032_EXP-053/cora-3000-only-tables.md)
+- [CiteSeer 结果表](EXP-032_EXP-053/citeseer-3000-only-tables.md)
+- [PubMed 结果表](EXP-032_EXP-053/pubmed-3000-only-tables.md)
 
-全矩阵复算文件与身份核验摘要在 `self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/`：`analyze_current_only.py`、`summary-current-only.json`、AAGU-032 120 组 selector-budget 均值及配对对照 CSV、AAGU-053 48 对请求明细与 selector/dataset 汇总 CSV。
+全矩阵复算文件与身份核验摘要在 `self/research/analyses/EXP-032_EXP-053/`：`analyze_current_only.py`、`summary-current-only.json`、AAGU-032 120 组 selector-budget 均值及配对对照 CSV、AAGU-053 48 对请求明细与 selector/dataset 汇总 CSV。

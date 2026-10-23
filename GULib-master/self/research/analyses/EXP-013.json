@@ -25,11 +25,11 @@
       "state": "completed",
       "evidence": [
         {
-          "label": "Surrogate分析报告",
+          "label": "EXP-013 · 三 seed 代理迁移 / Surrogate分析报告",
           "path": "self/research/analyses/EXP-013/REPORT.md"
         },
         {
-          "label": "Surrogate图表HTML",
+          "label": "EXP-013 · 三 seed 代理迁移 / Surrogate图表HTML",
           "path": "self/research/analyses/EXP-013/REPORT.html"
         },
         {
@@ -56,11 +56,11 @@
     "note": "条件性迁移结论已记录；新增GIN→GCN三数据集×六GU的gt_full/r_point完整比较图及中英文Discussion草稿，展示GCN direct/GIN/Random/Degree的三seed均值±SD。seed只作重复，保留不支持与基线更强的条件；本记录保留原三seed分析范围；后续十seed验证的当前证据与决定见EXP-079。",
     "evidence": [
       {
-        "label": "GIN多GU比较图与Discussion HTML",
+        "label": "EXP-013 · 三 seed 代理迁移 / GIN多GU比较图与Discussion HTML",
         "path": "self/research/analyses/EXP-013/gin_transfer_discussion_REPORT.html"
       },
       {
-        "label": "GIN多GU比较图与Discussion Markdown",
+        "label": "EXP-013 · 三 seed 代理迁移 / GIN多GU比较图与Discussion Markdown",
         "path": "self/research/analyses/EXP-013/gin_transfer_discussion_REPORT.md"
       },
       {
@@ -68,11 +68,11 @@
         "path": "self/research/analyses/EXP-013/gin_transfer_summary.csv"
       },
       {
-        "label": "当前迁移结论HTML",
+        "label": "EXP-013 · 三 seed 代理迁移 / 当前迁移结论HTML",
         "path": "self/research/analyses/EXP-013/transfer_conclusion_REPORT.html"
       },
       {
-        "label": "当前迁移结论Markdown",
+        "label": "EXP-013 · 三 seed 代理迁移 / 当前迁移结论Markdown",
         "path": "self/research/analyses/EXP-013/transfer_conclusion_REPORT.md"
       },
       {
@@ -80,11 +80,11 @@
         "path": "self/research/analyses/EXP-013/transfer_method_correlations.csv"
       },
       {
-        "label": "Post主报告HTML",
+        "label": "EXP-013 · 三 seed 代理迁移 / Post主报告HTML",
         "path": "self/research/analyses/EXP-013/post_REPORT.html"
       },
       {
-        "label": "Post主报告Markdown",
+        "label": "EXP-013 · 三 seed 代理迁移 / Post主报告Markdown",
         "path": "self/research/analyses/EXP-013/post_REPORT.md"
       },
       {
@@ -96,11 +96,11 @@
         "path": "self/research/analyses/EXP-013/post_audit.json"
       },
       {
-        "label": "Surrogate分析报告",
+        "label": "EXP-013 · 三 seed 代理迁移 / Surrogate分析报告",
         "path": "self/research/analyses/EXP-013/REPORT.md"
       },
       {
-        "label": "Surrogate图表HTML",
+        "label": "EXP-013 · 三 seed 代理迁移 / Surrogate图表HTML",
         "path": "self/research/analyses/EXP-013/REPORT.html"
       },
       {

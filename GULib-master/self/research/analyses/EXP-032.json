@@ -61,7 +61,7 @@
     "note": "当前 3000 轮结果已有分析草稿，科学结论待审阅。以下先展示当前参数下的 Retrain 对照；100→3000 轮历史比较作为补充材料，不能混合为同一参数设置的结果。",
     "evidence": [
       {
-        "label": "3000轮参数下论文结果分析草稿",
+        "label": "EXP-032 / EXP-053 · 3000 轮结果的论文用途分析",
         "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
       },
       {
@@ -69,7 +69,7 @@
         "path": ".workblock/items/AAGU-033/REPORT.md"
       },
       {
-        "label": "100→3000 参数对照分析报告",
+        "label": "EXP-032 / EXP-053 · 训练协议变更对照（独立于 current-only 结果）",
         "path": "self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md"
       },
       {
@@ -82,15 +82,15 @@
       },
       {
         "label": "cora 当前参数完整结果表",
-        "path": "self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/cora-3000-only-tables.md"
+        "path": "self/research/analyses/EXP-032_EXP-053/cora-3000-only-tables.md"
       },
       {
         "label": "citeseer 当前参数完整结果表",
-        "path": "self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/citeseer-3000-only-tables.md"
+        "path": "self/research/analyses/EXP-032_EXP-053/citeseer-3000-only-tables.md"
       },
       {
         "label": "pubmed 当前参数完整结果表",
-        "path": "self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/pubmed-3000-only-tables.md"
+        "path": "self/research/analyses/EXP-032_EXP-053/pubmed-3000-only-tables.md"
       }
     ],
     "highlights": [

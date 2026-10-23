@@ -908,27 +908,27 @@
   ],
   "analysis": {
     "state": "complete",
-    "note": "本轮新协议图册与描述性分析已完成，等待人工科学验收。下方保留的decision对象及其证据属于历史分析，不自动接受本轮新结果。",
+    "note": "推荐阅读批次为 e79r6（聚合损失修正、分片300轮）；结果章现有正文仍绑定 e79r5，见论文主页面的版本说明。本轮新协议图册与描述性分析已完成，等待人工科学验收。下方保留的decision对象及其证据属于历史分析，不自动接受本轮新结果。",
     "evidence": [
       {
-        "label": "300轮新协议分析（e79r6，待科学验收）",
-        "path": "self/research/analyses/shard300-20261023/REPORT.html"
+        "label": "EXP-011 / EXP-079 · 主矩阵与迁移响应联合分析（e11r1 / e79r6；待科学验收）",
+        "path": "self/research/analyses/EXP-011_EXP-079/REPORT.html"
       },
       {
-        "label": "EXP-079 新版完整图册",
-        "path": "self/research/analyses/shard300-20261023/EXP079_REPORT.html"
+        "label": "EXP-079 · 十 seed 迁移与响应图册（e79r6；新协议，待科学验收）",
+        "path": "self/research/analyses/EXP-011_EXP-079/EXP079_REPORT.html"
       },
       {
-        "label": "新版分析 Markdown",
-        "path": "self/research/analyses/shard300-20261023/REPORT.md"
+        "label": "EXP-011 / EXP-079 · 联合分析 Markdown（e11r1 / e79r6；待科学验收）",
+        "path": "self/research/analyses/EXP-011_EXP-079/REPORT.md"
       },
       {
         "label": "新旧结果逐格身份核验",
-        "path": "self/research/analyses/shard300-20261023/input_audit.json"
+        "path": "self/research/analyses/EXP-011_EXP-079/input_audit.json"
       },
       {
         "label": "上一版完整分析与决定快照",
-        "path": "self/research/analyses/shard300-20261023/EXP079_previous_analysis.json"
+        "path": "self/research/analyses/EXP-011_EXP-079/EXP079_previous_analysis.json"
       }
     ],
     "highlights": [
@@ -940,22 +940,22 @@
   },
   "decision": {
     "state": "not_requested",
-    "note": "用户请求研究与报告，尚未确认科学接受。本轮支持局部可辨认GU响应及条件性跨surrogate保留；不支持普遍不变策略指纹。近似区间为固定split/预算/算法集合下的探索性训练seed推断，未进行等效检验或新增GPU确认。",
+    "note": "本段及其证据属于 e79r5；不作为 e79r6 新批次的科学决定，e79r6 仍待科学验收。用户请求研究与报告，尚未确认科学接受。本轮支持局部可辨认GU响应及条件性跨surrogate保留；不支持普遍不变策略指纹。近似区间为固定split/预算/算法集合下的探索性训练seed推断，未进行等效检验或新增GPU确认。",
     "evidence": [
       {
-        "label": "响应模式研究 md",
+        "label": "EXP-079/e79r5 · 历史批次 / 响应模式研究 md",
         "path": "self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md"
       },
       {
-        "label": "响应模式研究 html",
+        "label": "EXP-079/e79r5 · 历史批次 / 响应模式研究 html",
         "path": "self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html"
       },
       {
-        "label": "完整十seed科学分析 md",
+        "label": "EXP-079/e79r5 · 历史批次 / 完整十seed科学分析 md",
         "path": "self/research/analyses/EXP-079/e79r5/REPORT.md"
       },
       {
-        "label": "完整十seed科学分析 html",
+        "label": "EXP-079/e79r5 · 历史批次 / 完整十seed科学分析 html",
         "path": "self/research/analyses/EXP-079/e79r5/REPORT.html"
       }
     ]
@@ -987,20 +987,20 @@
       "path": ".syncmate/deliveries/exp079-20261013-e79r5.json"
     },
     {
-      "label": "300轮新协议分析（e79r6，待科学验收）",
-      "path": "self/research/analyses/shard300-20261023/REPORT.html"
+      "label": "EXP-011 / EXP-079 · 主矩阵与迁移响应联合分析（e11r1 / e79r6；待科学验收）",
+      "path": "self/research/analyses/EXP-011_EXP-079/REPORT.html"
     },
     {
-      "label": "EXP-079 新版完整图册",
-      "path": "self/research/analyses/shard300-20261023/EXP079_REPORT.html"
+      "label": "EXP-079 · 十 seed 迁移与响应图册（e79r6；新协议，待科学验收）",
+      "path": "self/research/analyses/EXP-011_EXP-079/EXP079_REPORT.html"
     },
     {
-      "label": "新版分析 Markdown",
-      "path": "self/research/analyses/shard300-20261023/REPORT.md"
+      "label": "EXP-011 / EXP-079 · 联合分析 Markdown（e11r1 / e79r6；待科学验收）",
+      "path": "self/research/analyses/EXP-011_EXP-079/REPORT.md"
     },
     {
       "label": "新旧结果逐格身份核验",
-      "path": "self/research/analyses/shard300-20261023/input_audit.json"
+      "path": "self/research/analyses/EXP-011_EXP-079/input_audit.json"
     }
   ]
 }

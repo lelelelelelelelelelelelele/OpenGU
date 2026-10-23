@@ -45,20 +45,20 @@
       "path": ".workblock/items/AAGU-011/REPORT.md"
     },
     {
-      "label": "300轮新协议分析（e11r1，待科学验收）",
-      "path": "self/research/analyses/shard300-20261023/REPORT.html"
+      "label": "EXP-011 / EXP-079 · 主矩阵与迁移响应联合分析（e11r1 / e79r6；待科学验收）",
+      "path": "self/research/analyses/EXP-011_EXP-079/REPORT.html"
     },
     {
-      "label": "EXP-011 新版完整图册",
-      "path": "self/research/analyses/shard300-20261023/EXP011_REPORT.html"
+      "label": "EXP-011 · GU 主矩阵图册（e11r1；新协议，待科学验收）",
+      "path": "self/research/analyses/EXP-011_EXP-079/EXP011_REPORT.html"
     },
     {
-      "label": "新版分析 Markdown",
-      "path": "self/research/analyses/shard300-20261023/REPORT.md"
+      "label": "EXP-011 / EXP-079 · 联合分析 Markdown（e11r1 / e79r6；待科学验收）",
+      "path": "self/research/analyses/EXP-011_EXP-079/REPORT.md"
     },
     {
       "label": "新旧结果逐格身份核验",
-      "path": "self/research/analyses/shard300-20261023/input_audit.json"
+      "path": "self/research/analyses/EXP-011_EXP-079/input_audit.json"
     }
   ],
   "attempts": [
@@ -163,7 +163,7 @@
       "state": "completed",
       "evidence": [
         {
-          "label": "Table02 v2 full analysis",
+          "label": "EXP-011 · 历史 Table02 v2 分析（原接受决定的适用报告）",
           "path": "self/research/analyses/EXP-011/table02-v2-analysis.md"
         }
       ],
@@ -295,27 +295,27 @@
   ],
   "analysis": {
     "state": "complete",
-    "note": "本轮新协议图册与描述性分析已完成，等待人工科学验收。下方保留的decision对象及其证据属于历史分析，不自动接受本轮新结果。",
+    "note": "推荐阅读批次为 e11r1（聚合损失修正、分片300轮），入口见下方主矩阵图册。本轮新协议图册与描述性分析已完成，等待人工科学验收。下方保留的decision对象及其证据属于历史分析，不自动接受本轮新结果。",
     "evidence": [
       {
-        "label": "300轮新协议分析（e11r1，待科学验收）",
-        "path": "self/research/analyses/shard300-20261023/REPORT.html"
+        "label": "EXP-011 / EXP-079 · 主矩阵与迁移响应联合分析（e11r1 / e79r6；待科学验收）",
+        "path": "self/research/analyses/EXP-011_EXP-079/REPORT.html"
       },
       {
-        "label": "EXP-011 新版完整图册",
-        "path": "self/research/analyses/shard300-20261023/EXP011_REPORT.html"
+        "label": "EXP-011 · GU 主矩阵图册（e11r1；新协议，待科学验收）",
+        "path": "self/research/analyses/EXP-011_EXP-079/EXP011_REPORT.html"
       },
       {
-        "label": "新版分析 Markdown",
-        "path": "self/research/analyses/shard300-20261023/REPORT.md"
+        "label": "EXP-011 / EXP-079 · 联合分析 Markdown（e11r1 / e79r6；待科学验收）",
+        "path": "self/research/analyses/EXP-011_EXP-079/REPORT.md"
       },
       {
         "label": "新旧结果逐格身份核验",
-        "path": "self/research/analyses/shard300-20261023/input_audit.json"
+        "path": "self/research/analyses/EXP-011_EXP-079/input_audit.json"
       },
       {
         "label": "上一版完整分析与决定快照",
-        "path": "self/research/analyses/shard300-20261023/EXP011_previous_analysis.json"
+        "path": "self/research/analyses/EXP-011_EXP-079/EXP011_previous_analysis.json"
       }
     ],
     "highlights": [
@@ -327,12 +327,12 @@
   },
   "decision": {
     "state": "accepted",
-    "note": "用户明确同意EXP-011收口，接受固定设置下的完整主表及限定描述性分析；不等同于GIF/IDEA机制等价或独立鲁棒性证明。",
+    "note": "本决定仅适用于下方 table02-v2-analysis.md 所绑定的历史 Table02 v2 分析，不覆盖 e11r1 新协议分析；e11r1 仍待科学验收。用户明确同意EXP-011收口，接受固定设置下的完整主表及限定描述性分析；不等同于GIF/IDEA机制等价或独立鲁棒性证明。",
     "owner": "user",
     "scope": "1449 cells / 1242 GU-Retrain pairs; Table02 v2 descriptive results",
     "evidence": [
       {
-        "label": "Accepted analysis and paper positioning",
+        "label": "EXP-011 · 历史 Table02 v2 分析（原接受决定的适用报告）",
         "path": "self/research/analyses/EXP-011/table02-v2-analysis.md"
       }
     ]

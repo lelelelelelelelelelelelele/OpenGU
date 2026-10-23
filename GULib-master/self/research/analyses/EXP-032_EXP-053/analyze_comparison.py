@@ -1,7 +1,7 @@
 from pathlib import Path
 import csv, json, hashlib, statistics, collections
 ROOT = Path('.')
-OUT = ROOT/'self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923'
+OUT = ROOT/'self/research/analyses/EXP-032_EXP-053'
 OUT.mkdir(parents=True, exist_ok=True)
 
 RUNS = {

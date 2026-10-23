@@ -1,0 +1,557 @@
+--- E:\project\OpenGU\GULib-master\self\README.md (before this task)
++++ E:\project\OpenGU\GULib-master\self\README.md
+@@ -1,7 +1,8 @@
+ # Self 文档入口
+ 
+-`self/` 保存研究过程材料、历史判断和 dashboard。当前研究定义与实验计划在
+-[OpenGU DocMap](../../../OpenGU-DocMap/_文档地图.md)，开发变更在
++`self/` 保存研究过程材料、历史判断和 dashboard。研究问题与论文论证在
++[OpenGU DocMap](../../../OpenGU-DocMap/_文档地图.md)，实验计划与运行状态由
++[Work Plan](research/index.html) 管理；开发变更在
+ [WorkBlock / Companion 记录](../.workblock/items/)，生命周期在 [WorkItems](../.workblock/items/)。
+ 本页只做导航，不维护另一份研究计划或任务状态。
+ 
+@@ -9,6 +10,7 @@
+ 
+ | 你要做什么 | 入口 | 如何使用 |
+ |---|---|---|
++| 串起研究问题、实验分析与论文章节 | [论文论证导航](../../../OpenGU-DocMap/40_论文写作/40_论文写作.md#研究问题、分析与章节导航) | 先看问题和用途，再进入指定批次报告；接受决定按证据范围阅读 |
+ | 看实验下一步与依赖 | [Work Plan](research/index.html) | 独立实验过程及明确的开发阻塞 |
+ | 看开发变更 | [WorkBlock / Companion](../.workblock/items/) | 开发交付与生命周期 |
+ | 看研究框架、配置单、结果与分析 | [Work Plan](research/index.html) | 按编号、研究组与阶段查实验 |
+@@ -46,7 +48,7 @@
+ ## 新内容放哪里
+ 
+ - 当前研究问题、实验解释、矩阵与论文思考进入 OpenGU DocMap；此处通过链接引用。
+-- 当前任务与依赖由 WorkBlock / Companion 管理；生命周期交给对应 WorkItem，不在研究笔记里另建任务事实源。
++- 实验计划、运行状态与实验依赖由 Work Plan 管理；开发任务与依赖由 WorkBlock / Companion 管理，生命周期交给对应 WorkItem。研究笔记通过链接引用。
+ - 代码合同、实现说明进入 `docs/`；阶段汇报、课程报告与答辩成果进入 `report/`。
+ - 实验产物由其执行和收集流程写入 `results/`；不要通过整理文档修改实验事实。
+ - 旧材料只有在仍承担明确参考用途时才保留。删除或合并前核对独有内容是否已被吸收、引用是否仍有效；不能仅凭文件日期裁定。
+--- E:\project\OpenGU\GULib-master\self\research\README.md (before this task)
++++ E:\project\OpenGU\GULib-master\self\research\README.md
+@@ -3,6 +3,26 @@
+ [打开实验总表](index.html) · [运行流程](RUNBOOK.md) · [实验归属整理](MIGRATION.md)
+ 
+ Work Plan 与 Block 平行。这里拥有实验创建、定义修订、运行尝试、重跑原因、分析、科学决定和实验依赖。Block 只拥有开发变更。SyncMate 负责提交、监控、回传、校验；SSH AutoReport 是按需追查的运行审计，不是日常工作计划。
++
++## 阅读入口与命名
++
++这里负责实验过程及其已保存分析；跨实验的“研究问题 → 分析报告 → 论文章节”关系统一在[论文论证导航](../../../../OpenGU-DocMap/40_论文写作/40_论文写作.md#研究问题、分析与章节导航)维护。查运行进度使用[实验总表](index.html)，写论文先从论证导航进入，不按目录日期猜测最新结论。
++
++实验编号、分析主题和运行批次分别表达：显示标题写“EXP-NNN · 内容主题”，副标题或引用标签注明 run ID、训练协议和范围。现有文件路径不变；历史 AAGU 文件名保留来源身份，阅读标签使用对应的现行 EXP 编号。
++
++| 现有位置 | 阅读名称与用途 |
++|---|---|
++| analyses/EXP-013/ | EXP-013 · 代理选点迁移：三 seed 分析；十 seed 扩展看 EXP-079 |
++| analyses/EXP-080/full-20261021/ | EXP-080 · 删除预算与多 GU 响应；总报告与五策略/IM 专题分别进入 |
++| analyses/shard300-20261023/ | EXP-011 / EXP-079 · 主矩阵与迁移响应联合分析；e11r1 / e79r6，新损失、分片 300 轮 |
++| analyses/h64-theory-20260924/ | EXP-067 / EXP-068 · H64 数值参数候选推导；历史推导，不是完整谱保证或后续验证状态 |
++| analyses/validation-20260924/ | EXP-067 / EXP-068 · 固定参数验证分析脚本；它是共享脚本，报告入口在各 EXP 分析记录 |
++| analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md | EXP-032 / EXP-053 · 3000 轮结果的论文用途分析 |
++| analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md | EXP-032 / EXP-053 · 训练协议变更对照；与 current-only 结果分开阅读 |
++
++读取 `analysis` 与 `decision` 时同时核对 note、报告和运行范围：新版分析可以与旧版接受决定并存，旧 `accepted` 不自动覆盖新版。EXP-011 的 e11r1、EXP-079 的 e79r6 已有分析但仍待科学验收；各自历史决定只适用于原证据。此处为 2026-10-24 的入口说明，后续状态以各 EXP 记录为准。
++
++新增单实验报告放入所属 EXP 目录，批次优先使用真实 run ID；跨实验专题用内容主题命名，并列出关联实验和全部运行身份。总入口使用 REPORT.md / REPORT.html，独立专题使用语义名称。日期只标识批次，避免仅用 final、latest、new 或参数简称命名。不复制实验状态或建立另一套验收台账。
+ 
+ ## 事实来源
+ 
+--- E:\project\OpenGU-DocMap\_文档地图.md (before this task)
++++ E:\project\OpenGU-DocMap\_文档地图.md
+@@ -1,7 +1,7 @@
+ ---
+ title: OpenGU/GULib OB 入口
+ created: 2026-06-28
+-updated: 2026-10-17
++updated: 2026-10-24
+ type: home
+ tags: [moc, ob, human-facing]
+ ---
+@@ -52,6 +52,8 @@
+ ---
+ 
+ ## 当前要读
++
++- [论文论证导航](40_论文写作/40_论文写作.md#研究问题、分析与章节导航)：按 Q1–Q3 查实验与论文章节；预算、近似、数值校准和证据缺口另列。报告入口区分运行批次与决定适用范围，实验进度回到 [Work Plan](../OpenGU/GULib-master/self/research/index.html)。
+ 
+ - 研究进度总览：[[30_评审与汇报/33_研究进度总览]] —— 从 2026 年 2 月起梳理研究历程，5 月之后合并为 6—7 月、8—9 月两阶段；包含成果、评价与证据边界。
+ 
+--- E:\project\OpenGU-DocMap\40_论文写作\40_论文写作.md (before this task)
++++ E:\project\OpenGU-DocMap\40_论文写作\40_论文写作.md
+@@ -1,7 +1,7 @@
+ ---
+ title: 论文写作
+ created: 2026-08-28
+-updated: 2026-09-18
++updated: 2026-10-24
+ type: canonical-paper-writing
+ status: active
+ tags: [paper, writing, canonical]
+@@ -34,6 +34,35 @@
+ | 8. 局限与更广泛影响 | [[40_论文写作/08_局限与更广泛影响\|8. Limitations and Broader Impact]] |
+ | 9. 结论 | [[40_论文写作/09_结论\|9. Conclusion]] |
+ | 附录 | [[40_论文写作/A_附录\|Appendix]] |
++
++## 研究问题、分析与章节导航
++
++2026-10-24 入口整理：本节唯一维护跨实验与章节的对应关系。Q1–Q3 沿用第 6 章，X1–X8 来自[研究主题](../../OpenGU/GULib-master/self/research/framework.json)；第 5 章的四个问题是实验设计视角，不新增另一套结果编号。下表安排阅读与写作位置，不改变科学结论或接受决定。
++
++| 研究问题或支撑主题 | 实验分析入口 | 论文章节 | 阅读边界 |
++|---|---|---|---|
++| Q1：策略性请求改变了什么？ | [EXP-011 · 主矩阵](../../OpenGU/GULib-master/self/research/analyses/EXP-011.json)、[EXP-079 · 多 GU 响应](../../OpenGU/GULib-master/self/research/analyses/EXP-079.json)；[012 · 分解](../../OpenGU/GULib-master/self/research/analyses/EXP-012.json)、[051 · Random 波动](../../OpenGU/GULib-master/self/research/analyses/EXP-051.json)支撑 | [第4章：指标与参照](04_攻击与审计框架.md) → [第5章：比较协议](05_实验设计/00_实验设计总览.md) → [第6章 Q1](06_结果.md#Q1：策略性请求改变了什么？) → [讨论](07_讨论.md) | X3/X4；效用、Random 增量、Retrain 效用差与预测不一致率分别解读 |
++| Q2：不同策略能否形成可区分的 GU 响应？ | [EXP-079](../../OpenGU/GULib-master/self/research/analyses/EXP-079.json)、[EXP-011](../../OpenGU/GULib-master/self/research/analyses/EXP-011.json)；[EXP-080 · 五策略与预算](../../OpenGU/GULib-master/self/research/analyses/EXP-080.json)补充 | [第6章 Q2](06_结果.md#Q2：不同策略能否形成可区分的 GU 响应？)、[讨论](07_讨论.md)、[附录](A_附录.md) | X3/X4/X5；保留完整相关方法/策略，080 与分片新协议分开呈现 |
++| Q3：换 surrogate 后策略差异还能保留吗？ | [EXP-079 · 十 seed](../../OpenGU/GULib-master/self/research/analyses/EXP-079.json)；[EXP-013 · 三 seed 迁移](../../OpenGU/GULib-master/self/research/analyses/EXP-013.json)作较早批次补充 | [第3章：权限](03_问题定义与威胁模型.md)、[第6章 Q3](06_结果.md#Q3：策略差异换一个 surrogate 后还能保留吗？)、[局限](08_局限与更广泛影响.md) | X7；不合并两批次重复数，选点模型迁移不等于目标 Backbone 泛化 |
++| 选点机制与近似：为何比较这些策略？ | [031 · 选点/排名](../../OpenGU/GULib-master/self/research/analyses/EXP-031.json)、[032 · Retrain 对照](../../OpenGU/GULib-master/self/research/analyses/EXP-032.json)、[053 · RR 配置诊断](../../OpenGU/GULib-master/self/research/analyses/EXP-053.json)；[039 · CP3/CP6](../../OpenGU/GULib-master/self/research/analyses/EXP-039.json)为独立待回答问题 | [第4章](04_攻击与审计框架.md)、[第6章支撑分析](06_结果.md#支撑分析与独立证据批次)、[附录B](A_附录.md#B. Reference / proxy validation) | X1/X2；Retrain 对照不充当近似 GU 误差证据；053 已有论文定位决定按原范围使用 |
++| 删除预算如何影响响应？ | [EXP-080 · 预算总报告](../../OpenGU/GULib-master/self/research/analyses/EXP-080/full-20261021/REPORT.html) → [五策略与 IM 专题](../../OpenGU/GULib-master/self/research/analyses/EXP-080/full-20261021/STRATEGY_REPORT.html)；032 的 Retrain 预算对照单列 | 第6章 Q1/Q2 的扩展、[第5章](05_实验设计/00_实验设计总览.md)、[附录](A_附录.md) | X5；080 的范围与旧协议独立，不自动接入 e11r1/e79r6 主表 |
++| 训练与数值条件是否支撑比较？ | [059 · 收敛诊断](../../OpenGU/GULib-master/self/research/analyses/EXP-059.json)、[061 · 基础模型](../../OpenGU/GULib-master/self/research/analyses/EXP-061.json)、[062 · 校准验证批次](../../OpenGU/GULib-master/self/research/analyses/EXP-062.json)及 [065](../../OpenGU/GULib-master/self/research/analyses/EXP-065.json)、[066](../../OpenGU/GULib-master/self/research/analyses/EXP-066.json)、[067](../../OpenGU/GULib-master/self/research/analyses/EXP-067.json)、[068](../../OpenGU/GULib-master/self/research/analyses/EXP-068.json)；[078](../../OpenGU/GULib-master/self/research/experiments/EXP-078.json)、[081](../../OpenGU/GULib-master/self/research/experiments/EXP-081.json)、[082](../../OpenGU/GULib-master/self/research/experiments/EXP-082.json)、[083](../../OpenGU/GULib-master/self/research/experiments/EXP-083.json)诊断/门禁 | [第5章证据要求](05_实验设计/03_实验矩阵与证据要求.md)、[附录D/E](A_附录.md)、[局限](08_局限与更广泛影响.md) | 数值稳定、执行门禁和模型交付各有范围，不作为遗忘正确性结论 |
++| 成本、规模与泛化还有什么缺口？ | [014 · ogbn-arxiv 选点可运行性](../../OpenGU/GULib-master/self/research/experiments/EXP-014.json)、[058 · Backbone](../../OpenGU/GULib-master/self/research/analyses/EXP-058.json)、[021 · 小图计时](../../OpenGU/GULib-master/self/research/analyses/EXP-021.json)、[022 · 大图计时](../../OpenGU/GULib-master/self/research/analyses/EXP-022.json)、[056 · 大图RR](../../OpenGU/GULib-master/self/research/analyses/EXP-056.json) | [第8章](08_局限与更广泛影响.md)；有对应证据后才进入结果/附录 | X6/X8；014 按当前草案仅检验选点可运行性，旧大图GU定义不代表现行范围；无分析不写成完成，选点可行性不等于大图 GU 有效性 |
++
++其余历史或辅助实验也沿用原编号：[EXP-010 · 预测分歧与跳数指标](../../OpenGU/GULib-master/self/research/analyses/EXP-010.json)支撑 Q1 的评价口径；[EXP-007 · 最小执行门禁](../../OpenGU/GULib-master/self/research/analyses/EXP-007.json)支撑第5章的流程说明；[EXP-008 · K5 噪声参照](../../OpenGU/GULib-master/self/research/analyses/EXP-008.json)只作其预算范围的 Q1 支撑；[EXP-015 · IF 分阶段设计](../../OpenGU/GULib-master/self/research/analyses/EXP-015.json)作为031/032的设计来源；[EXP-027 · collateral 证据恢复](../../OpenGU/GULib-master/self/research/analyses/EXP-027.json)保留为副作用分析的证据缺口。以上不因进入导航而获得新的完成或接受状态。
++
++### 分析批次与正文采用版本
++
++下表为入口核对（2026-10-24），实时运行与决定仍由各 EXP 记录维护。推荐阅读入口不等于已获科学接受，也不表示正文已经换用该版本。
++
++| 材料 | 指定入口与用途 | 决定或正文使用边界 |
++|---|---|---|
++| EXP-011 / EXP-079 新协议联合分析 | [总报告](../../OpenGU/GULib-master/self/research/analyses/shard300-20261023/REPORT.html) → [011/e11r1 图册](../../OpenGU/GULib-master/self/research/analyses/shard300-20261023/EXP011_REPORT.html) / [079/e79r6 图册](../../OpenGU/GULib-master/self/research/analyses/shard300-20261023/EXP079_REPORT.html)；聚合损失修正、分片训练300轮 | 两个新批次待科学验收；011 历史 accepted 不覆盖 e11r1；079 原决定也不自动覆盖 e79r6 |
++| EXP-079/e79r5 | [响应模式报告](../../OpenGU/GULib-master/self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md) | 当前第6章 Q1–Q3 的正文与图仍绑定本批次；旧分析未科学接受。本次不改正文结论 |
++| EXP-080/full-20261021 | [预算总报告](../../OpenGU/GULib-master/self/research/analyses/EXP-080/full-20261021/REPORT.html)与[五策略专题](../../OpenGU/GULib-master/self/research/analyses/EXP-080/full-20261021/STRATEGY_REPORT.html) | 已保存分析、未科学接受；与011/079新协议分开使用 |
++| EXP-013 三seed迁移 | [分析记录及报告清单](../../OpenGU/GULib-master/self/research/analyses/EXP-013.json) | 保留原范围；十seed扩展查079，不直接继承决定 |
++| EXP-032 / EXP-053 | [3000轮论文用途分析](../../OpenGU/GULib-master/self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md)；[训练协议变更对照](../../OpenGU/GULib-master/self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md)单列 | 032 的科学判断待审；053 接受的是配置诊断收口与论文定位，不是攻击成功或采样充分性 |
++| EXP-067 / EXP-068 H64 | [历史参数候选推导](../../OpenGU/GULib-master/self/research/analyses/h64-theory-20260924/README.md) → [067 分析记录](../../OpenGU/GULib-master/self/research/analyses/EXP-067.json) / [068 分析记录](../../OpenGU/GULib-master/self/research/analyses/EXP-068.json) | 推导 README 的“尚未执行”属于当时阶段；后续校准/验证按记录限定范围已接受，不证明完整遗忘正确性 |
+ 
+ ## 大表和图 · 2026-09-18 结构与主表共识
+ 
+@@ -112,7 +141,7 @@
+ 
+ ## 写作落位与当前结果复核
+ 
+-本节记录结论的写作落位。AAGU-032/053 论文数字仅依据当前 3000 轮运行。本轮分析见[当前结果草稿](../../OpenGU/GULib-master/self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md)。
++本节保留 EXP-032/053 的既有写作落位与独立证据范围；其中 6.1–6.6 是结果章保留的支撑小节，不替代上方 Q1–Q3 导航。AAGU-032/053 论文数字仅依据本节所述 3000 轮运行。本轮分析见[当前结果草稿](../../OpenGU/GULib-master/self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md)。
+ 
+ > 当前归档的 `utility.f1_*` 字段按代码实际语义写作测试准确率，macro-F1 尚未出现在归档指标中。当前结果及其解释范围以分析报告和对应逐数据集表为准。
+ 
+--- E:\project\OpenGU-DocMap\40_论文写作\05_实验设计\00_实验设计总览.md (before this task)
++++ E:\project\OpenGU-DocMap\40_论文写作\05_实验设计\00_实验设计总览.md
+@@ -1,7 +1,7 @@
+ ---
+ title: 5. 实验设计总览
+ created: 2026-09-09
+-updated: 2026-09-25
++updated: 2026-10-24
+ type: paper-chapter-index
+ status: drafting
+ ---
+@@ -20,6 +20,12 @@
+ 3. Relative to a budget-matched random request, how does a selected request change the measured GU outcome?
+ 4. How do these responses vary across GU methods, datasets, and attacker access settings, and how large is the signed gap from same-request retraining?
+ 
++## 与结果章的对应
++
++[论文论证导航](../40_论文写作.md#研究问题、分析与章节导航)统一维护问题、分析与章节关系。这里保留四个设计问题：选择集合差异对应 X1，reference/proxy 对齐对应 X2，作为策略说明和支撑分析；同预算 Random 下的 outcome 对应结果 Q1；方法、数据集与权限差异及同请求 Retrain 参照对应 Q1–Q3。预算扩展关联 X5，泛化与成本分别关联 X6/X8，不因列入设计就视为已有结论。
++
++实验方案与结果叙事使用不同视角，不把两套序号逐项强行对应。正文采用哪个运行批次、哪些报告待科学审阅，见论文主页面的“分析批次与正文采用版本”。
++
+ 本章按主题分文件维护，章节内容在下列各页唯一扩写。2026-09-18 从原单文件拆分，保留 5.1–5.6 的章节职责。
+ 
+ | 内容 | 维护位置 |
+--- E:\project\OpenGU-DocMap\40_论文写作\06_结果.md (before this task)
++++ E:\project\OpenGU-DocMap\40_论文写作\06_结果.md
+@@ -1,7 +1,7 @@
+ ---
+ title: 6. 结果
+ created: 2026-09-09
+-updated: 2026-10-18
++updated: 2026-10-24
+ type: paper-chapter
+ status: drafting
+ ---
+@@ -11,6 +11,14 @@
+ [[40_论文写作/40_论文写作|返回论文主页面]]
+ 
+ 相关章节：[[40_论文写作/04_攻击与审计框架|4. 方法代表选择]]；[[40_论文写作/A_附录#B. Reference / proxy validation|附录 B 完整消融]]；[[40_论文写作/07_讨论|7. 讨论]]。
++
++### 版本阅读提示 · 2026-10-24
++
++下方 Q1–Q3 的科学结论、数值与图仍使用 EXP-079/e79r5；本次只整理入口，不替换证据批次。[论文论证导航](40_论文写作.md#研究问题、分析与章节导航)提供完整问题与章节对应。
++
++后续批次请另读 [EXP-011 / EXP-079 · 主矩阵与迁移响应联合分析](../../OpenGU/GULib-master/self/research/analyses/shard300-20261023/REPORT.html)（e11r1 / e79r6，新损失、分片300轮）。新分析已形成但待科学验收，EXP-011 的历史 accepted 仅对应旧 Table02 v2 报告；[EXP-011 记录](../../OpenGU/GULib-master/self/research/analyses/EXP-011.json)与[EXP-079 记录](../../OpenGU/GULib-master/self/research/analyses/EXP-079.json)分别保留决定的证据范围。
++
++[EXP-080 · 删除预算总报告](../../OpenGU/GULib-master/self/research/analyses/EXP-080/full-20261021/REPORT.html)及[五策略与 IM 专题](../../OpenGU/GULib-master/self/research/analyses/EXP-080/full-20261021/STRATEGY_REPORT.html)可供 Q1/Q2 扩展阅读；该批次未科学接受，且不与新分片协议合并。更新正文须另行逐项核对科学结论。
+ 
+ ## 当前结果章大纲：三个问题与已有回答
+ 
+@@ -24,7 +32,7 @@
+ 
+ ### 本章当前使用的证据与比较口径
+ 
+-最新主分析是 [EXP-079/e79r5 响应模式报告](../../OpenGU/GULib-master/self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md)，补充 [完整结果](../../OpenGU/GULib-master/self/research/analyses/EXP-079/e79r5/REPORT.md)、[对照图解](../../OpenGU/GULib-master/self/research/analyses/EXP-079/e79r5/OVERVIEW_REPORT.md)与[诊断报告](../../OpenGU/GULib-master/self/research/analyses/EXP-079/e79r5/DIAGNOSIS_REPORT.md)。本次只整理已有分析；未重跑 GPU 实验，未重新执行原始文件全量哈希核验，科学接受状态仍按分析记录保留为 `not_requested`。
++本章正文绑定的主分析是 [EXP-079/e79r5 响应模式报告](../../OpenGU/GULib-master/self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md)，补充 [完整结果](../../OpenGU/GULib-master/self/research/analyses/EXP-079/e79r5/REPORT.md)、[对照图解](../../OpenGU/GULib-master/self/research/analyses/EXP-079/e79r5/OVERVIEW_REPORT.md)与[诊断报告](../../OpenGU/GULib-master/self/research/analyses/EXP-079/e79r5/DIAGNOSIS_REPORT.md)。本次只整理已有分析；未重跑 GPU 实验，未重新执行原始文件全量哈希核验，科学接受状态仍按分析记录保留为 `not_requested`。
+ 
+ - 范围为 Cora/CiteSeer/PubMed、固定 split seed 2024、训练候选池 10% 节点删除、十个训练 seed（42、212、2024、0–6）。目标为 GCN 设置；GraphEraser/GraphRevoker 为 GCN shard ensemble，full-graph GCN 选点不是其严格白盒攻击。
+ - 每个数据集、训练 seed 有 12 个请求实例：gt_full/r_point × GCN/SGC/GAT/GIN 共 8 个，Degree 1 个，Random 3 个。六 GU 与同请求 Retrain 共 2,520 格，其中 GU 2,160 格、Retrain 360 格。Random 在同一训练 seed 内先平均，不增加训练重复数。
+--- E:\project\OpenGU\GULib-master\self\research\analyses\EXP-011.json (before this task)
++++ E:\project\OpenGU\GULib-master\self\research\analyses\EXP-011.json
+@@ -45,15 +45,15 @@
+       "path": ".workblock/items/AAGU-011/REPORT.md"
+     },
+     {
+-      "label": "300轮新协议分析（e11r1，待科学验收）",
++      "label": "EXP-011 / EXP-079 · 主矩阵与迁移响应联合分析（e11r1 / e79r6；待科学验收）",
+       "path": "self/research/analyses/shard300-20261023/REPORT.html"
+     },
+     {
+-      "label": "EXP-011 新版完整图册",
++      "label": "EXP-011 · GU 主矩阵图册（e11r1；新协议，待科学验收）",
+       "path": "self/research/analyses/shard300-20261023/EXP011_REPORT.html"
+     },
+     {
+-      "label": "新版分析 Markdown",
++      "label": "EXP-011 / EXP-079 · 联合分析 Markdown（e11r1 / e79r6；待科学验收）",
+       "path": "self/research/analyses/shard300-20261023/REPORT.md"
+     },
+     {
+@@ -163,7 +163,7 @@
+       "state": "completed",
+       "evidence": [
+         {
+-          "label": "Table02 v2 full analysis",
++          "label": "EXP-011 · 历史 Table02 v2 分析（原接受决定的适用报告）",
+           "path": "self/research/analyses/EXP-011/table02-v2-analysis.md"
+         }
+       ],
+@@ -295,18 +295,18 @@
+   ],
+   "analysis": {
+     "state": "complete",
+-    "note": "本轮新协议图册与描述性分析已完成，等待人工科学验收。下方保留的decision对象及其证据属于历史分析，不自动接受本轮新结果。",
++    "note": "推荐阅读批次为 e11r1（聚合损失修正、分片300轮），入口见下方主矩阵图册。本轮新协议图册与描述性分析已完成，等待人工科学验收。下方保留的decision对象及其证据属于历史分析，不自动接受本轮新结果。",
+     "evidence": [
+       {
+-        "label": "300轮新协议分析（e11r1，待科学验收）",
++        "label": "EXP-011 / EXP-079 · 主矩阵与迁移响应联合分析（e11r1 / e79r6；待科学验收）",
+         "path": "self/research/analyses/shard300-20261023/REPORT.html"
+       },
+       {
+-        "label": "EXP-011 新版完整图册",
++        "label": "EXP-011 · GU 主矩阵图册（e11r1；新协议，待科学验收）",
+         "path": "self/research/analyses/shard300-20261023/EXP011_REPORT.html"
+       },
+       {
+-        "label": "新版分析 Markdown",
++        "label": "EXP-011 / EXP-079 · 联合分析 Markdown（e11r1 / e79r6；待科学验收）",
+         "path": "self/research/analyses/shard300-20261023/REPORT.md"
+       },
+       {
+@@ -327,12 +327,12 @@
+   },
+   "decision": {
+     "state": "accepted",
+-    "note": "用户明确同意EXP-011收口，接受固定设置下的完整主表及限定描述性分析；不等同于GIF/IDEA机制等价或独立鲁棒性证明。",
++    "note": "本决定仅适用于下方 table02-v2-analysis.md 所绑定的历史 Table02 v2 分析，不覆盖 e11r1 新协议分析；e11r1 仍待科学验收。用户明确同意EXP-011收口，接受固定设置下的完整主表及限定描述性分析；不等同于GIF/IDEA机制等价或独立鲁棒性证明。",
+     "owner": "user",
+     "scope": "1449 cells / 1242 GU-Retrain pairs; Table02 v2 descriptive results",
+     "evidence": [
+       {
+-        "label": "Accepted analysis and paper positioning",
++        "label": "EXP-011 · 历史 Table02 v2 分析（原接受决定的适用报告）",
+         "path": "self/research/analyses/EXP-011/table02-v2-analysis.md"
+       }
+     ]
+--- E:\project\OpenGU\GULib-master\self\research\analyses\EXP-013.json (before this task)
++++ E:\project\OpenGU\GULib-master\self\research\analyses\EXP-013.json
+@@ -25,11 +25,11 @@
+       "state": "completed",
+       "evidence": [
+         {
+-          "label": "Surrogate分析报告",
++          "label": "EXP-013 · 三 seed 代理迁移 / Surrogate分析报告",
+           "path": "self/research/analyses/EXP-013/REPORT.md"
+         },
+         {
+-          "label": "Surrogate图表HTML",
++          "label": "EXP-013 · 三 seed 代理迁移 / Surrogate图表HTML",
+           "path": "self/research/analyses/EXP-013/REPORT.html"
+         },
+         {
+@@ -56,11 +56,11 @@
+     "note": "条件性迁移结论已记录；新增GIN→GCN三数据集×六GU的gt_full/r_point完整比较图及中英文Discussion草稿，展示GCN direct/GIN/Random/Degree的三seed均值±SD。seed只作重复，保留不支持与基线更强的条件；本记录保留原三seed分析范围；后续十seed验证的当前证据与决定见EXP-079。",
+     "evidence": [
+       {
+-        "label": "GIN多GU比较图与Discussion HTML",
++        "label": "EXP-013 · 三 seed 代理迁移 / GIN多GU比较图与Discussion HTML",
+         "path": "self/research/analyses/EXP-013/gin_transfer_discussion_REPORT.html"
+       },
+       {
+-        "label": "GIN多GU比较图与Discussion Markdown",
++        "label": "EXP-013 · 三 seed 代理迁移 / GIN多GU比较图与Discussion Markdown",
+         "path": "self/research/analyses/EXP-013/gin_transfer_discussion_REPORT.md"
+       },
+       {
+@@ -68,11 +68,11 @@
+         "path": "self/research/analyses/EXP-013/gin_transfer_summary.csv"
+       },
+       {
+-        "label": "当前迁移结论HTML",
++        "label": "EXP-013 · 三 seed 代理迁移 / 当前迁移结论HTML",
+         "path": "self/research/analyses/EXP-013/transfer_conclusion_REPORT.html"
+       },
+       {
+-        "label": "当前迁移结论Markdown",
++        "label": "EXP-013 · 三 seed 代理迁移 / 当前迁移结论Markdown",
+         "path": "self/research/analyses/EXP-013/transfer_conclusion_REPORT.md"
+       },
+       {
+@@ -80,11 +80,11 @@
+         "path": "self/research/analyses/EXP-013/transfer_method_correlations.csv"
+       },
+       {
+-        "label": "Post主报告HTML",
++        "label": "EXP-013 · 三 seed 代理迁移 / Post主报告HTML",
+         "path": "self/research/analyses/EXP-013/post_REPORT.html"
+       },
+       {
+-        "label": "Post主报告Markdown",
++        "label": "EXP-013 · 三 seed 代理迁移 / Post主报告Markdown",
+         "path": "self/research/analyses/EXP-013/post_REPORT.md"
+       },
+       {
+@@ -96,11 +96,11 @@
+         "path": "self/research/analyses/EXP-013/post_audit.json"
+       },
+       {
+-        "label": "Surrogate分析报告",
++        "label": "EXP-013 · 三 seed 代理迁移 / Surrogate分析报告",
+         "path": "self/research/analyses/EXP-013/REPORT.md"
+       },
+       {
+-        "label": "Surrogate图表HTML",
++        "label": "EXP-013 · 三 seed 代理迁移 / Surrogate图表HTML",
+         "path": "self/research/analyses/EXP-013/REPORT.html"
+       },
+       {
+--- E:\project\OpenGU\GULib-master\self\research\analyses\EXP-032.json (before this task)
++++ E:\project\OpenGU\GULib-master\self\research\analyses\EXP-032.json
+@@ -61,7 +61,7 @@
+     "note": "当前 3000 轮结果已有分析草稿，科学结论待审阅。以下先展示当前参数下的 Retrain 对照；100→3000 轮历史比较作为补充材料，不能混合为同一参数设置的结果。",
+     "evidence": [
+       {
+-        "label": "3000轮参数下论文结果分析草稿",
++        "label": "EXP-032 / EXP-053 · 3000 轮结果的论文用途分析",
+         "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
+       },
+       {
+@@ -69,7 +69,7 @@
+         "path": ".workblock/items/AAGU-033/REPORT.md"
+       },
+       {
+-        "label": "100→3000 参数对照分析报告",
++        "label": "EXP-032 / EXP-053 · 训练协议变更对照（独立于 current-only 结果）",
+         "path": "self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md"
+       },
+       {
+--- E:\project\OpenGU\GULib-master\self\research\analyses\EXP-053.json (before this task)
++++ E:\project\OpenGU\GULib-master\self\research\analyses\EXP-053.json
+@@ -54,7 +54,7 @@
+         "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+       },
+       {
+-        "label": "100→3000 参数对照分析报告",
++        "label": "EXP-032 / EXP-053 · 训练协议变更对照（独立于 current-only 结果）",
+         "path": "self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md"
+       },
+       {
+@@ -66,7 +66,7 @@
+         "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
+       },
+       {
+-        "label": "3000轮参数下论文结果分析草稿",
++        "label": "EXP-032 / EXP-053 · 3000 轮结果的论文用途分析",
+         "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
+       },
+       {
+--- E:\project\OpenGU\GULib-master\self\research\analyses\EXP-067.json (before this task)
++++ E:\project\OpenGU\GULib-master\self\research\analyses\EXP-067.json
+@@ -105,7 +105,7 @@
+           "path": "self/research/analyses/h64-theory-20260924/citeseer.json"
+         },
+         {
+-          "label": "H64 candidate table review",
++          "label": "EXP-067 / EXP-068 · H64 数值参数候选推导（历史阶段说明）",
+           "path": "self/research/analyses/h64-theory-20260924/README.md"
+         }
+       ]
+@@ -116,7 +116,7 @@
+         "path": "self/research/analyses/h64-theory-20260924/citeseer.json"
+       },
+       {
+-        "label": "H64 candidate table review",
++        "label": "EXP-067 / EXP-068 · H64 数值参数候选推导（历史阶段说明）",
+         "path": "self/research/analyses/h64-theory-20260924/README.md"
+       },
+       {
+--- E:\project\OpenGU\GULib-master\self\research\analyses\EXP-068.json (before this task)
++++ E:\project\OpenGU\GULib-master\self\research\analyses\EXP-068.json
+@@ -101,7 +101,7 @@
+           "path": "self/research/analyses/h64-theory-20260924/pubmed.json"
+         },
+         {
+-          "label": "H64 candidate table review",
++          "label": "EXP-067 / EXP-068 · H64 数值参数候选推导（历史阶段说明）",
+           "path": "self/research/analyses/h64-theory-20260924/README.md"
+         }
+       ]
+@@ -112,7 +112,7 @@
+         "path": "self/research/analyses/h64-theory-20260924/pubmed.json"
+       },
+       {
+-        "label": "H64 candidate table review",
++        "label": "EXP-067 / EXP-068 · H64 数值参数候选推导（历史阶段说明）",
+         "path": "self/research/analyses/h64-theory-20260924/README.md"
+       },
+       {
+--- E:\project\OpenGU\GULib-master\self\research\analyses\EXP-079.json (before this task)
++++ E:\project\OpenGU\GULib-master\self\research\analyses\EXP-079.json
+@@ -908,18 +908,18 @@
+   ],
+   "analysis": {
+     "state": "complete",
+-    "note": "本轮新协议图册与描述性分析已完成，等待人工科学验收。下方保留的decision对象及其证据属于历史分析，不自动接受本轮新结果。",
++    "note": "推荐阅读批次为 e79r6（聚合损失修正、分片300轮）；结果章现有正文仍绑定 e79r5，见论文主页面的版本说明。本轮新协议图册与描述性分析已完成，等待人工科学验收。下方保留的decision对象及其证据属于历史分析，不自动接受本轮新结果。",
+     "evidence": [
+       {
+-        "label": "300轮新协议分析（e79r6，待科学验收）",
++        "label": "EXP-011 / EXP-079 · 主矩阵与迁移响应联合分析（e11r1 / e79r6；待科学验收）",
+         "path": "self/research/analyses/shard300-20261023/REPORT.html"
+       },
+       {
+-        "label": "EXP-079 新版完整图册",
++        "label": "EXP-079 · 十 seed 迁移与响应图册（e79r6；新协议，待科学验收）",
+         "path": "self/research/analyses/shard300-20261023/EXP079_REPORT.html"
+       },
+       {
+-        "label": "新版分析 Markdown",
++        "label": "EXP-011 / EXP-079 · 联合分析 Markdown（e11r1 / e79r6；待科学验收）",
+         "path": "self/research/analyses/shard300-20261023/REPORT.md"
+       },
+       {
+@@ -940,22 +940,22 @@
+   },
+   "decision": {
+     "state": "not_requested",
+-    "note": "用户请求研究与报告，尚未确认科学接受。本轮支持局部可辨认GU响应及条件性跨surrogate保留；不支持普遍不变策略指纹。近似区间为固定split/预算/算法集合下的探索性训练seed推断，未进行等效检验或新增GPU确认。",
++    "note": "本段及其证据属于 e79r5；不作为 e79r6 新批次的科学决定，e79r6 仍待科学验收。用户请求研究与报告，尚未确认科学接受。本轮支持局部可辨认GU响应及条件性跨surrogate保留；不支持普遍不变策略指纹。近似区间为固定split/预算/算法集合下的探索性训练seed推断，未进行等效检验或新增GPU确认。",
+     "evidence": [
+       {
+-        "label": "响应模式研究 md",
++        "label": "EXP-079/e79r5 · 历史批次 / 响应模式研究 md",
+         "path": "self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md"
+       },
+       {
+-        "label": "响应模式研究 html",
++        "label": "EXP-079/e79r5 · 历史批次 / 响应模式研究 html",
+         "path": "self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html"
+       },
+       {
+-        "label": "完整十seed科学分析 md",
++        "label": "EXP-079/e79r5 · 历史批次 / 完整十seed科学分析 md",
+         "path": "self/research/analyses/EXP-079/e79r5/REPORT.md"
+       },
+       {
+-        "label": "完整十seed科学分析 html",
++        "label": "EXP-079/e79r5 · 历史批次 / 完整十seed科学分析 html",
+         "path": "self/research/analyses/EXP-079/e79r5/REPORT.html"
+       }
+     ]
+@@ -987,15 +987,15 @@
+       "path": ".syncmate/deliveries/exp079-20261013-e79r5.json"
+     },
+     {
+-      "label": "300轮新协议分析（e79r6，待科学验收）",
++      "label": "EXP-011 / EXP-079 · 主矩阵与迁移响应联合分析（e11r1 / e79r6；待科学验收）",
+       "path": "self/research/analyses/shard300-20261023/REPORT.html"
+     },
+     {
+-      "label": "EXP-079 新版完整图册",
++      "label": "EXP-079 · 十 seed 迁移与响应图册（e79r6；新协议，待科学验收）",
+       "path": "self/research/analyses/shard300-20261023/EXP079_REPORT.html"
+     },
+     {
+-      "label": "新版分析 Markdown",
++      "label": "EXP-011 / EXP-079 · 联合分析 Markdown（e11r1 / e79r6；待科学验收）",
+       "path": "self/research/analyses/shard300-20261023/REPORT.md"
+     },
+     {
+--- E:\project\OpenGU\GULib-master\self\research\analyses\EXP-080.json (before this task)
++++ E:\project\OpenGU\GULib-master\self\research\analyses\EXP-080.json
+@@ -395,11 +395,11 @@
+   ],
+   "sources": [
+     {
+-      "label": "完整2016条件分析 HTML",
++      "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受）",
+       "path": "self/research/analyses/EXP-080/full-20261021/REPORT.html"
+     },
+     {
+-      "label": "完整2016条件分析 Markdown",
++      "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受） · Markdown",
+       "path": "self/research/analyses/EXP-080/full-20261021/REPORT.md"
+     },
+     {
+@@ -420,11 +420,11 @@
+     "note": "汇总base1764、Cora high105、CiteSeer high147，4035文件、1722同请求GU/Retrain配对及252前缀关系核验通过。覆盖五种选点策略、六GU和Retrain；IM先在训练seed内平均。描述性三训练seed结果，科学接受另行决定。 五策略比较补充：分离原始效用、同预算Random增量、Retrain交互差与去均值GU形状，保留IM抽样敏感性和GNNDelete坐标剔除。",
+     "evidence": [
+       {
+-        "label": "五策略与IM模式中文分析",
++        "label": "EXP-080 · 五策略响应对照与 IM 补充（同批次专题）",
+         "path": "self/research/analyses/EXP-080/full-20261021/STRATEGY_REPORT.html"
+       },
+       {
+-        "label": "五策略分析Markdown",
++        "label": "EXP-080 · 五策略响应对照与 IM 补充（同批次专题） · Markdown",
+         "path": "self/research/analyses/EXP-080/full-20261021/STRATEGY_REPORT.md"
+       },
+       {
+@@ -432,11 +432,11 @@
+         "path": "self/research/analyses/EXP-080/full-20261021/strategy_statistics_validation.json"
+       },
+       {
+-        "label": "完整2016条件分析 HTML",
++        "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受）",
+         "path": "self/research/analyses/EXP-080/full-20261021/REPORT.html"
+       },
+       {
+-        "label": "完整2016条件分析 Markdown",
++        "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受） · Markdown",
+         "path": "self/research/analyses/EXP-080/full-20261021/REPORT.md"
+       },
+       {
+@@ -526,11 +526,11 @@
+     "note": "用户授权分析并提交main，未确认科学接受。原运行版本、失败尝试和范围边界保留；不把报告提交当作算法修复、完整论文实现验证或新GPU实验。",
+     "evidence": [
+       {
+-        "label": "完整2016条件分析 HTML",
++        "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受）",
+         "path": "self/research/analyses/EXP-080/full-20261021/REPORT.html"
+       },
+       {
+-        "label": "完整2016条件分析 Markdown",
++        "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受） · Markdown",
+         "path": "self/research/analyses/EXP-080/full-20261021/REPORT.md"
+       }
+     ]
+--- E:\project\OpenGU\GULib-master\self\research\config_groups.json (before this task)
++++ E:\project\OpenGU\GULib-master\self\research\config_groups.json
+@@ -128,5 +128,10 @@
+     "owner": "EXP-081",
+     "kind": "experiment",
+     "note": "复用已审阅Random5草稿目录；当前GraphRevoker三seed小样本诊断，执行状态由EXP-081拥有。"
++  },
++  "exp014": {
++    "owner": "EXP-014",
++    "kind": "experiment",
++    "note": "ogbn-arxiv 选点可运行性配置目录；仅登记归属，配置准备与执行状态以 EXP-014 当前记录为准。"
+   }
+ }

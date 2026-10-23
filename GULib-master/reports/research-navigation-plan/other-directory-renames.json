@@ -1,0 +1,142 @@
+[
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\h64-theory-20260924\\.gitattributes",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\.gitattributes",
+    "sha256": "7a016c66788add4a5d76394af1c98b8b5b4abe376e6a0caa97277cf484146854"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\h64-theory-20260924\\citeseer.json",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\citeseer.json",
+    "sha256": "985ce5d84fbf36086ef7c77cb3c86531bc6029db5939e15ea3753857c1ebab87"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\h64-theory-20260924\\citeseer.receipt.json",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\citeseer.receipt.json",
+    "sha256": "bd103f015a676d2921af67406f1de78a6a044bcf94ce2c2db1cad00081f73042"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\h64-theory-20260924\\citeseer.stderr.txt",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\citeseer.stderr.txt",
+    "sha256": "6dff711ed21dce508824b0f306fff4143a7251fabebbc876d619656ac4412d4e"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\h64-theory-20260924\\generation.json",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\generation.json",
+    "sha256": "c309774dba7e5c09d5bd1f2f0e75a437b9cd994075399e0602e8c086492f8e5e"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\h64-theory-20260924\\pubmed.json",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\pubmed.json",
+    "sha256": "5fc4b3f4cdfce95876b41bc68e598e1279c60c3e279597ea041d43435066d6f2"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\h64-theory-20260924\\pubmed.receipt.json",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\pubmed.receipt.json",
+    "sha256": "70c19a30d76eba78432230a861888ab7f129b7583c06b957f02138161c2eb344"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\h64-theory-20260924\\pubmed.stderr.txt",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\pubmed.stderr.txt",
+    "sha256": "6dff711ed21dce508824b0f306fff4143a7251fabebbc876d619656ac4412d4e"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\h64-theory-20260924\\README.md",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\README.md",
+    "sha256": "60e9b4e2ed4eef534c8dc7ec2f610fcd39db6b0b01e8674801e567dd1da37d49"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\h64-theory-20260924\\verification.json",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\verification.json",
+    "sha256": "9b87b217ca22573cc0b046c4effc200a88a52dd7916e4135035b88884f7a565f"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\validation-20260924\\analyze.py",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-067_EXP-068\\analyze.py",
+    "sha256": "2130afec9efa96c67e8f266dba2e5b8b23e8901e3e1e876b692b562014a17def"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\AAGU-032-all-conditions.csv",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\AAGU-032-all-conditions.csv",
+    "sha256": "4d659d1a8bd502357e964b509e46b9cbd2e455a41c684e9eab7546c94f3aab74"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\AAGU-032-paired-baseline-contrasts.csv",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\AAGU-032-paired-baseline-contrasts.csv",
+    "sha256": "442d2e914ae5a3d4bca962b6e4cc05a2630c814967b80d81bcc5a13abcade2a6"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\AAGU-032-selector-budget-summary.csv",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\AAGU-032-selector-budget-summary.csv",
+    "sha256": "1640bd676159decad0a239d2d8d932564f539074a08a47c7ae72c381377f9fda"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\AAGU-032-summary-120-groups.csv",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\AAGU-032-summary-120-groups.csv",
+    "sha256": "3e660748ca4706a78587ce693d2709e3a15bf505e782d31e55a77c50ae9676b4"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\AAGU-053-all-pairs.csv",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\AAGU-053-all-pairs.csv",
+    "sha256": "2681a162d623706be641f84abf3647ba8f7a2eb076ae7b6076874e332f5a318d"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\AAGU-053-dataset-summary.csv",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\AAGU-053-dataset-summary.csv",
+    "sha256": "cbe5a86c4651b971fff581a7077a2d4665fb53af8e1c6d71fbe05c0801bda06d"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\AAGU-053-paired-GNNDelete-Retrain.csv",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\AAGU-053-paired-GNNDelete-Retrain.csv",
+    "sha256": "d140ace1e46391a14223d20254ef1ea0738379939f6f9ff67eb232a360f28a5b"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\AAGU-053-selector-summary.csv",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\AAGU-053-selector-summary.csv",
+    "sha256": "7276ecd5fb043d0d5d45e338bb305f6377d92a17dd724ad37cd545da7683bde6"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\AAGU-053-summary-18-groups.csv",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\AAGU-053-summary-18-groups.csv",
+    "sha256": "0dba925c1f9ca1c297e2fec360f4fa549de60f650f63e123f0ffb04e39d1d5f8"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\analyze_comparison.py",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\analyze_comparison.py",
+    "sha256": "edd2f8befc5062ac0da86841021df85cc82cc47db430a8e517c70b773fbc8eaa"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\analyze_current_only.py",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\analyze_current_only.py",
+    "sha256": "2372c64eb1a023efde6601a8e9ad71b80bccc6cecb1f4311fcac44fc8d307c02"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\build_report.py",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\build_report.py",
+    "sha256": "72adc690b03389eebe468188601f5f8347c9edbff325ddd8b69414961f3ce64b"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\citeseer-3000-only-tables.md",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\citeseer-3000-only-tables.md",
+    "sha256": "0b8fdb9baee424fec8d0166d350b84b578671ab3f70d5191dd4aa84afeb209d3"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\cora-3000-only-tables.md",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\cora-3000-only-tables.md",
+    "sha256": "cd7c084b206f23a10759eea401c3fced17f2970ba5e059cc7a17ef558f72dc7a"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\pubmed-3000-only-tables.md",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\pubmed-3000-only-tables.md",
+    "sha256": "7a539e5031e05e5525e85e347720ef1e30e486586a631aa580914442ee71ad0d"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\summary-current-only.json",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\summary-current-only.json",
+    "sha256": "d1fe155dc5b03f347c37e92c6d1dbf5eca8be0424565ef5a8e21a2bcffa0d6ff"
+  },
+  {
+    "source": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\evidence\\AAGU-032-AAGU-053-3000epoch-20260923\\summary.json",
+    "destination": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-032_EXP-053\\summary.json",
+    "sha256": "4989e6cb1d149d1a8ef4a9bae0ac8e5be6e0355e9822e89a3b50812492fff3bf"
+  }
+]

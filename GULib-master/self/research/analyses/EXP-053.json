@@ -54,7 +54,7 @@
         "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
       },
       {
-        "label": "100→3000 参数对照分析报告",
+        "label": "EXP-032 / EXP-053 · 训练协议变更对照（独立于 current-only 结果）",
         "path": "self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md"
       },
       {
@@ -66,7 +66,7 @@
         "path": "results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json"
       },
       {
-        "label": "3000轮参数下论文结果分析草稿",
+        "label": "EXP-032 / EXP-053 · 3000 轮结果的论文用途分析",
         "path": "self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md"
       },
       {

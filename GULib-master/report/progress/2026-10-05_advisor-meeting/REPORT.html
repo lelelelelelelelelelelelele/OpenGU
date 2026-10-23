@@ -104,7 +104,7 @@ nav{display:flex;gap:8px 20px;flex-wrap:wrap;padding:20px 0;margin-top:14px;bord
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.144825</dc:date>
+    <dc:date>2026-10-24T05:05:42.937413</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -511,7 +511,7 @@ z
 <p>这已经暴露了第一个需要解释的问题：更完整地计入图扰动，并没有在每个数据集上带来更强的准确率攻击。它可能涉及影响估计误差，也可能涉及批量删除与分类边界；现在还不能凭这个表决定原因。</p>
 <p>EXP-032 从四个预算和三个 D-full 配置补充了这个问题。当前 3000 轮参数分析中，D-full 相对 Degree 的平均准确率差，在 Cora 为 −0.277 pp，PubMed 为 −0.922 pp，CiteSeer 为 +0.188 pp。负值代表攻击损伤更大。它也呈现条件性，但这是多个配置与预算的描述性汇总，科学审阅尚未完成，不能用来替代逐条件分析。</p>
 <p>我现在对这一段的判断是：IF 的信号并没有消失，但其有效条件还没解释清楚。下一段要进一步问，在已经存在 Retrain 损伤的地方，GU 是否保留了这个信号。</p>
-<p>材料：<a href="../../../self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md">EXP-032 当前分析</a> · <a href="../../../self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/AAGU-032-paired-baseline-contrasts.csv">逐预算配对数据</a>。</p>
+<p>材料：<a href="../../../self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md">EXP-032 当前分析</a> · <a href="../../../self/research/analyses/EXP-032_EXP-053/AAGU-032-paired-baseline-contrasts.csv">逐预算配对数据</a>。</p>
 <h2 id="section-4">3. GU 怎样改变删除的影响？</h2>
 <h3>3.1 效用损伤会被放大或削弱</h3>
 <p>为了看清这一步，我给每个删除请求都配了完整重训，同时保留 Random。先定义 G 为同请求 Retrain 准确率减去 GU 准确率。G 大于零，表示 GU 比重训差；小于零，表示 GU 的任务效用更高。这个量只比较效用，不等于遗忘正确性。</p>
@@ -521,7 +521,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.152975</dc:date>
+    <dc:date>2026-10-24T05:05:42.946549</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -1215,7 +1215,7 @@ z
 <tr>
 <td>第 2 节：IF → Retrain</td>
 <td><a href="assets/retrain-reference.csv">Retrain 均值、SD 与基线差</a>；图 1</td>
-<td><a href="../../../self/research/analyses/EXP-011/table02-v2-summary.csv">EXP-011 汇总</a>；<a href="../../../self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/AAGU-032-all-conditions.csv">EXP-032 逐条件</a></td>
+<td><a href="../../../self/research/analyses/EXP-011/table02-v2-summary.csv">EXP-011 汇总</a>；<a href="../../../self/research/analyses/EXP-032_EXP-053/AAGU-032-all-conditions.csv">EXP-032 逐条件</a></td>
 </tr>
 <tr>
 <td>第 3.1 节：Retrain → GU</td>
@@ -1317,7 +1317,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.158039</dc:date>
+    <dc:date>2026-10-24T05:05:42.952085</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -1542,7 +1542,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.165599</dc:date>
+    <dc:date>2026-10-24T05:05:42.958256</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -1834,7 +1834,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.176510</dc:date>
+    <dc:date>2026-10-24T05:05:42.967915</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -2130,7 +2130,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.187562</dc:date>
+    <dc:date>2026-10-24T05:05:42.978655</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -2398,7 +2398,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.198990</dc:date>
+    <dc:date>2026-10-24T05:05:42.988192</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -2701,7 +2701,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.207893</dc:date>
+    <dc:date>2026-10-24T05:05:42.997228</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -3069,7 +3069,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.213942</dc:date>
+    <dc:date>2026-10-24T05:05:43.002598</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -3290,7 +3290,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.219787</dc:date>
+    <dc:date>2026-10-24T05:05:43.009943</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -3605,7 +3605,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.227712</dc:date>
+    <dc:date>2026-10-24T05:05:43.016827</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -3842,7 +3842,7 @@ z
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-18T23:29:12.235437</dc:date>
+    <dc:date>2026-10-24T05:05:43.027801</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>

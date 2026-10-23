@@ -1,4 +1,8 @@
-# CiteSeer / PubMed H64 Observer candidate tables
+# EXP-067 / EXP-068 · H64 参数候选推导与共享验证脚本
+
+本目录按实验归属汇集历史候选推导材料与[固定参数验证分析脚本](analyze.py)。下面的候选表和状态描述保留 2026-09-24 推导阶段的范围；后续验证报告及接受范围分别见 [EXP-067 分析记录](../EXP-067.json)和 [EXP-068 分析记录](../EXP-068.json)，不能把候选阶段的“尚未执行”当作当前状态，也不能把后续接受扩大为完整谱保证。
+
+## CiteSeer / PubMed H64 Observer candidate tables（历史候选阶段）
 
 Status: generated and dry-run validated; Observer not executed; parameters not frozen.
 
@@ -21,8 +25,8 @@ Original calculation source SHA: `501716bc30d59e39fa21d75c1f7af43a4ff47572`. CUD
 
 H64 theory YAML now equals the actual effective input and directly references the audited cache. No paired-PT run was fabricated. H16 unchanged.
 
-- [CiteSeer table](../../../experiments/configs/aagu067/observer_candidates_h64.yaml), [raw result](citeseer.json), [receipt](citeseer.receipt.json)
-- [PubMed table](../../../experiments/configs/aagu068/observer_candidates_h64.yaml), [raw result](pubmed.json), [receipt](pubmed.receipt.json)
+- [CiteSeer table](../../../../experiments/configs/aagu067/observer_candidates_h64.yaml), [raw result](citeseer.json), [receipt](citeseer.receipt.json)
+- [PubMed table](../../../../experiments/configs/aagu068/observer_candidates_h64.yaml), [raw result](pubmed.json), [receipt](pubmed.receipt.json)
 - [Generation manifest](generation.json), [verification](verification.json)
 
 Finite Ritz estimates are not certified full-spectrum bounds. No training, Observer, retrain comparison, parameter freeze or scientific acceptance occurred. Dry-run validates configuration expansion, not remote launch readiness. Before execution, verify the recorded checkpoint SHA/state hash and dataset identity, then prepare/review a separate SyncMate Recipe and normal execution preflight.

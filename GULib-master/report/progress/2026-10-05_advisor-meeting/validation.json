@@ -48,10 +48,10 @@
   },
   "offline_html": true,
   "formula_count": 12,
-  "source_sha256": "48ed27ec400344b05730aa50131ce5cd30cbd39a803998cde1f1921224b4ed60",
+  "source_sha256": "e3fa6c09d54f68f9d39166bc2abaaa8eb4d7c0f61438e2024d95c35dbb6ab016",
   "Q2_metrics_prototype": {
-    "validation_sha256": "b7769e92f8c83bd4be105d91190b19f32d45fa1cf0da0efc8632ba49a8f10a35",
-    "source_sha256": "b4efbbde659e9d3be292c2963ff81384d9a2309d16515facaef5df57b65f09da",
+    "validation_sha256": "534cf35bd3054393c2a238364c11ee4a4b4696574310354f0186bf06bde61b78",
+    "source_sha256": "6cc428c45898ebd4b9f344521443a4d984ff5e61e966c382ad2d483042201737",
     "embedded_figure_sha256": "1701db4376190aef123137f602f8f7309aa333c2ce0c3b7f9372eff1c8c5131f"
   },
   "figure_sha256": {

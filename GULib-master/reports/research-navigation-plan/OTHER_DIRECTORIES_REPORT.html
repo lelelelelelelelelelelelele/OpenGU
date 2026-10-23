@@ -1,0 +1,71 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>分析目录命名整理</title><style>
+:root { color-scheme: light; --ink:#182a37; --muted:#60717b; --line:#dce5e9; --accent:#12665b; }
+* { box-sizing:border-box; }
+body { margin:0; background:#f3f6f5; color:var(--ink); font:16px/1.8 "Segoe UI","Microsoft YaHei",sans-serif; }
+main { max-width:1240px; margin:42px auto; padding:46px 56px; background:white; border-top:6px solid var(--accent); box-shadow:0 12px 48px #18382c0a; }
+h1 { font-size:36px; line-height:1.35; letter-spacing:.02em; margin:0 0 20px; }
+h2 { font-size:25px; margin-top:52px; padding-top:20px; border-top:1px solid var(--line); }
+h3 { font-size:19px; margin-top:30px; }
+h1 + p { color:var(--muted); font-size:14px; }
+a { color:var(--accent); text-decoration:underline; text-underline-offset:3px; overflow-wrap:anywhere; }
+p,li,td { overflow-wrap:anywhere; }
+strong { color:#104d46; }
+code { background:#edf3f3; border-radius:4px; padding:2px 5px; font-size:.88em; overflow-wrap:anywhere; }
+.table-scroll { overflow-x:auto; margin:20px 0; }
+table { width:100%; border-collapse:collapse; font-size:14px; line-height:1.65; min-width:740px; }
+th,td { padding:12px 14px; border:1px solid var(--line); text-align:left; vertical-align:top; }
+th { background:#eaf2ef; color:#194a41; }
+tr:nth-child(even) { background:#fafcfb; }
+li { margin:9px 0; }
+footer { color:var(--muted); font-size:13px; margin-top:40px; }
+@media(max-width:760px) { main { margin:0; padding:26px 20px; } h1 { font-size:27px; } h2 { font-size:22px; } }
+@media print { main { margin:0; padding:0; box-shadow:none; } body { background:white; } table { min-width:0; font-size:10px; } h2 { break-after:avoid; } }
+</style></head><body><main><h1>分析目录命名整理</h1>
+<p>2026-10-24 · 已完成目录移动与引用更新 · 空目录保留</p>
+<p>分析目录按实验编号命名，内容主题与运行版本保留在报告标题、文件名和批次目录中。当前入口见 <a href="../../self/research/README.md">Work Plan 说明</a>，研究问题与章节对应关系见<a href="../../../../OpenGU-DocMap/40_%E8%AE%BA%E6%96%87%E5%86%99%E4%BD%9C/40_%E8%AE%BA%E6%96%87%E5%86%99%E4%BD%9C.md#%E7%A0%94%E7%A9%B6%E9%97%AE%E9%A2%98%E3%80%81%E5%88%86%E6%9E%90%E4%B8%8E%E7%AB%A0%E8%8A%82%E5%AF%BC%E8%88%AA">论文论证导航</a>。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>原位置（相对 analyses/）</th>
+<th>当前位置</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>shard300-20261023/（此前已完成）</td>
+<td><a href="../../self/research/analyses/EXP-011_EXP-079/REPORT.html">EXP-011_EXP-079/</a></td>
+<td>e11r1 / e79r6 联合分析；不替代旧版接受范围</td>
+</tr>
+<tr>
+<td>evidence/AAGU-032-AAGU-053-3000epoch-20260923/</td>
+<td><a href="../../self/research/analyses/EXP-032_EXP-053/">EXP-032_EXP-053/</a></td>
+<td>3000 轮结果表、配对数据与复算脚本</td>
+</tr>
+<tr>
+<td>h64-theory-20260924/</td>
+<td><a href="../../self/research/analyses/EXP-067_EXP-068/README.md">EXP-067_EXP-068/</a></td>
+<td>H64 历史参数候选推导</td>
+</tr>
+<tr>
+<td>validation-20260924/analyze.py</td>
+<td><a href="../../self/research/analyses/EXP-067_EXP-068/analyze.py">EXP-067_EXP-068/analyze.py</a></td>
+<td>两项实验的共享验证分析脚本</td>
+</tr>
+</tbody>
+</table></div>
+<p>已有单实验目录及其运行批次名称保留。EXP-079 的 e79r5、gate252 等批次和 EXP-080 的 full-20261021 继续区分证据范围。散落的历史分析文件名保留来源身份，其入口与相关引用已指向现行目录。</p>
+<h2>引用与状态</h2>
+<p>已更新 Work Plan 说明、涉及路径的分析记录、论文主页面、结果章、附录表格入口、导师报告和对应生成脚本。生成页面使用各自原生成器重建；032/053 目录变浅一级后，复算脚本的仓库根目录定位已同步修正。</p>
+<p>H64 README 将候选推导阶段与后续验证明确分开。原始结果、运行身份、结论和接受范围保持原样；EXP-011/e11r1 与 EXP-079/e79r6 仍不因入口整理获得科学接受。历史收据、运行 ID 和旧核验快照保留原始出处，不把它们改写成新的执行记录。</p>
+<h2>核验</h2>
+<ul>
+<li>本次移动 28 个文件：23 个文件 SHA-256 完全一致；其余 5 个仅为 README 入口说明和分析脚本路径调整。</li>
+<li>58 份分析与实验状态记录已比较：除目录引用替换外，JSON 内容一致。</li>
+<li>18 份源文件与原文比较，仅替换路径；其中包括重新生成的 032/053 协议比较报告，科学正文未改变。</li>
+<li>288 个本地文档链接全部存在；4 个迁移后的 Python 脚本语法检查通过，仓库根目录解析正确。</li>
+<li>Work Plan 的 36 个页面/SVG 已重建，并通过一致性及 1633 个来源引用检查。导师报告、结果章与论文阅读版也已通过各自生成器核验。</li>
+</ul>
+<p>文件移动清单见 <a href="other-directory-renames.json">other-directory-renames.json</a>，本次核验见 <a href="other-directory-verification.json">other-directory-verification.json</a>。本次未启动实验、未重新计算科学分析。</p>
+<p><code>self/research/analyses/evidence/</code> 和 <code>self/research/analyses/validation-20260924/</code> 已核对为空目录，按用户要求保留。本次未执行删除，也未移入 rubbish。</p>
+<footer>由 OTHER_DIRECTORIES_REPORT.md 生成；实验状态以相应 EXP 记录为准。</footer></main></body></html>

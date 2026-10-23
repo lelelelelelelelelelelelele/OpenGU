@@ -56,7 +56,7 @@ def analyze(number):
         configs[ref], _ = read_git_yaml(ROOT, run['commit'], path, 'method')
     archive = read(ROOT/f'self/research/analyses/EXP-{number}/observer-calibration-h64-20260924.json')
     frozen = next(c for c in archive['cases'] if c['dataset'] == dataset and c['hidden_channels'] == 64)
-    theory, methods, _ = load_theory(ROOT/f'self/research/analyses/h64-theory-20260924/{dataset.lower()}.json')
+    theory, methods, _ = load_theory(ROOT/f'self/research/analyses/EXP-067_EXP-068/{dataset.lower()}.json')
     groups = collections.defaultdict(list)
     selections = collections.defaultdict(set)
     utility = collections.defaultdict(dict)

@@ -2,7 +2,7 @@ from pathlib import Path
 import json,statistics,csv,sys
 sys.stdout.reconfigure(encoding='utf-8',errors='replace')
 root=Path('.')
-out=root/'self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923'
+out=root/'self/research/analyses/EXP-032_EXP-053'
 x=json.loads((out/'summary.json').read_text(encoding='utf-8'))
 pairs053=list(csv.DictReader((out/'AAGU-053-all-pairs.csv').open(encoding='utf-8-sig')))
 def f(v): return f'{v:.3f}'
@@ -120,7 +120,7 @@ a('## 证据与可复算产物')
 a('')
 a('- 新 AAGU-032 manifest：results/runs/gpu4090/aagu032-extended-v2-multi-gcn-retrain/aagu032-recovery-full-20260920/run.json；旧逐格结果：.workblock/items/AAGU-033/analysis/20260908/retrain_cells.csv；旧报告：.workblock/items/AAGU-033/analysis/20260908/REPORT.md。')
 a('- 新 AAGU-053 manifest：results/runs/gpu4090/aagu053-im-group-budget10/aagu053-newtraining-full-20260920/run.json；旧逐条件比较：.workblock/items/AAGU-053/evidence/table-detail.json；RR10 独立历史报告：.workblock/items/AAGU-053/REPORT.md。')
-a('- 完整逐格配对与摘要 CSV、summary.json 和复算脚本归档在 evidence/AAGU-032-AAGU-053-3000epoch-20260923/。从仓库根目录运行 python self/research/analyses/evidence/AAGU-032-AAGU-053-3000epoch-20260923/analyze_comparison.py 可复算配对摘要；再运行同目录 build_report.py 可重建本报告。')
+a('- 完整逐格配对与摘要 CSV、summary.json 和复算脚本归档在 EXP-032_EXP-053/。从仓库根目录运行 python self/research/analyses/EXP-032_EXP-053/analyze_comparison.py 可复算配对摘要；再运行同目录 build_report.py 可重建本报告。')
 a('- 参数身份依据：experiments/modular_config.py（默认训练轮数）；experiments/node_deletion.py 中 pairing_identity（把完整 training 参数写入配对身份）；experiments/modular_gu.py（GU 输出身份再绑定基础 checkpoint state hash）。')
 report='\n'.join(lines)+'\n'
 target=root/'self/research/analyses/AAGU-032-AAGU-053-3000epoch-comparison-20260923.md'
