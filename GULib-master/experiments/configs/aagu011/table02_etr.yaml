@@ -1,0 +1,47 @@
+# ETR supplement; preserve the original request axes and matched Retrain.
+kind: experiment
+schema_version: 1
+experiment_id: exp011-t2
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- r_point.yaml
+- gt_full.yaml
+- degree.yaml
+- random.yaml
+- pagerank.yaml
+- ../im_group_discussion/rr_4096.yaml
+- ../im_group_discussion/rr_16384.yaml
+- ../im_group_discussion/rr_65536.yaml
+unlearning_refs:
+- etr.yaml
+- retrain.yaml
+evaluation_refs:
+- post_unlearning_utility_and_retrain_gap.yaml
+- post_unlearning_flip_hop.yaml
+matrix: cartesian_product
+seeds:
+- 42
+- 212
+- 2024
+im_selector_seeds:
+- 11
+- 22
+- 33
+random_selector_seeds:
+- 11
+- 22
+- 33
+- 44
+- 55
+- 66
+- 77
+- 88
+- 99
+- 104245
+budget_ratios:
+- 0.1
+return_scores: false

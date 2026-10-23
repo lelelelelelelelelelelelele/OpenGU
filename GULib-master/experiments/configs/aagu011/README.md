@@ -84,3 +84,29 @@ unrelated-to-Retrain source change; the analysis records each source SHA.
 ### GPA数值恢复
 
 047恢复gate在PubMed GraphRevoker分区目标出现nonfinite并失败，保留原run。048修复GPA的无边batch与零概率目标/梯度边界，采用recovery_gate_v2.yaml（相同3图、gt_full、两分片方法、seed42/2024、10%），run aagu048-gpa-gate-v1。完整主表仍使用未启动过的aagu011-table01-v2，科学配置不变。新的GR producer与初始ensemble重算，GE与其余GU/Selection/Retrain继续按完整身份复用。
+
+## ETR supplement (2026-10-24)
+
+[table02_etr.yaml](table02_etr.yaml) preserves every Table02 v2 dataset,
+selector, training seed, Random/IM repeat, deletion budget and evaluation axis.
+It explicitly runs ETR plus matched Retrain: 207 requests, 414 cells. The original
+six-GU table and submitted Recipes remain unchanged. Use the public ETR parameters;
+no GIF/IDEA parameter profile applies to these two methods.
+
+[exp011-etr-r1](../../../scripts/syncmate/recipes/exp011-etr-r1.yaml) uses RID
+`e11etr1`, with a 21600-second cap. Exact input/checkpoint/Selection/Retrain identities
+may reuse cache; a declaration or inventory is not proof of HIT.
+
+First run the shared [ETR gate](table02_etr_gate.yaml), bound by
+[exp011-etr-gate](../../../scripts/syncmate/recipes/exp011-etr-gate.yaml): RID `etrg1`,
+three original datasets, training seed 42, Degree and Random seed 11, 10% budget,
+ETR and Retrain, 12 cells, 3600-second cap. This is an exact request subset of both
+supplements. Require finite outputs, correct selected nodes and paired evaluation,
+complete collection/checksums/trusted-index/project verification before either full
+supplement. On failure, stop; never auto-retry or overwrite an occupied RID.
+
+All-MISS serial planning: gate 1344 seconds; supplement 34290 seconds. These are
+low-confidence engineering allowances, not measured GPU durations or upper bounds;
+no cache discount is applied. The cold estimate exceeds the six-hour run cap, so
+one-attempt completion is not guaranteed. Work Plan owns the component estimates,
+execution status and deployment blocker; YAML/Recipe readiness alone is not a run.

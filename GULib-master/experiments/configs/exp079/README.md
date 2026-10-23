@@ -99,3 +99,11 @@ gate 要求 Score/Selection/Output 的适用请求全部命中，producer 未调
 gate本身验证缓存命中、访问耗时、指标与引用一致性及AutoReport。首轮Evaluation MISS符合预期，不称完整缓存HIT；若指标此前已经存在则如实记录HIT，不清空缓存制造冷轮。Selection/Output等预期HIT层出现MISS即不满足纯缓存gate，应按已写入的审计定位；普通reuse并非cache-only，MISS仍会进入正常计算，因此保留小范围与硬超时，不自动重试或扩大。热轮等待首轮结果核验后才提交。
 
 AutoReport逐条fsync，超时或强杀后已保存的started/completed及当前wall仍可读取；被杀条目可能只有started，不能编造其结束时间或耗时。MD/HTML可能落后于JSONL，在需要处理失败终态时使用现有精确job审计重建入口，不手改历史事件。两轮都有独立RID；未完成时可以分析已完成条目的性能，但不能判整轮通过或推断252格/2520格总耗时。
+
+## ETR 补充（2026-10-24）
+
+[surrogate_multiseed_etr.yaml](surrogate_multiseed_etr.yaml) 保留原十训练 seed、三数据集、四种选点模型及 Random/Degree、抽样种子、10% 预算和两套评价，仅声明 ETR 与同请求 Retrain：360 个请求，共 720 格。ETR 使用公共实例参数和既有 GCN 目标侧；GAT/GIN/SGC 仍只是选点模型。原六 GU 配置、已提交 Recipe 和既有结果保持不变。
+
+[exp079-etr-r1](../../../scripts/syncmate/recipes/exp079-etr-r1.yaml) 使用新 RID `e79etr1`，硬上限 21600 秒。先通过 EXP-011 的[共用 12 格 ETR gate](../aagu011/table02_etr_gate.yaml)及可信回传核验，再按 EXP-011 → EXP-079 顺序补充。已有输入、Selection、checkpoint、Retrain 只有身份精确匹配才能复用；不预先宣称全 HIT。
+
+全 MISS 串行工程预算为 135120 秒（低置信度规划额度，非实测或上界）；共用 gate 只在 EXP-011 计一次，不扣缓存收益，不含排队回传。该预算超过单次六小时上限，不保证一次完成，不自动重跑。具体分项、部署阻塞与下一步由原 Work Plan 实验记录维护；本配置不代表 GPU 已启动或新结果已被科学接受。
