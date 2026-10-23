@@ -7,7 +7,7 @@ configuration_fingerprint: bbe48eb05716a53d2a6db3b27201232f5ee97a86c93b6676922d5
 run_identity:
   experiment_id: exp014-selector-rr65536
   run_id: e14r4
-timeout_seconds: 21600
+timeout_seconds: 7200
 logical_cells: 1
 stage: selector
 expected_datasets:

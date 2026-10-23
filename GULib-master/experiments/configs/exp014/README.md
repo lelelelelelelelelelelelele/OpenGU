@@ -67,9 +67,11 @@ Recipes alone therefore answer time and output-validity questions, not the full
 peak-memory question. Mark unobserved memory as unavailable. Additional resource
 observation, if required, must be established before execution.
 
-Each declaration has a 21600-second (six-hour) whole-job timeout. It is a safety
-cap, not a completion estimate, and four caps total at most 24 job-hours before
-allowing for termination overhead. There is no automatic batch submission or
+R-point, IM-RR65536 and D-full each have a user-approved 7200-second
+(two-hour) whole-job timeout, including any required model preparation. Their
+combined serial cap is six job-hours. The combined Random/Degree job retains
+its 21600-second timeout. These are spending caps, not completion estimates;
+termination overhead is additional. There is no automatic batch submission or
 retry. Before any GPU launch, record an evidence-based all-MISS serial estimate
 for the agreed full scope in Work Plan, check the required gate, synchronize the
 reviewed version and pass formal preflight. This preparation does not launch jobs.
