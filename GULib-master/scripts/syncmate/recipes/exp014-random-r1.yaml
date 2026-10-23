@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp014-random-r1
+runner: experiment
+config_path: experiments/configs/exp014/random.yaml
+config_sha256: 0e43cd8b49e8fa488c5676870b4bec76ac203364f9086a45ab0bb4579b380b03
+configuration_fingerprint: 634d1e816e21355d8da148a208952c07ef506062f26c6a5d52d708f084bd9384
+run_identity:
+  experiment_id: exp014-selector-random
+  run_id: e14r1
+timeout_seconds: 21600
+logical_cells: 1
+stage: selector
+expected_datasets:
+- num_nodes: 169343
+  candidate_count: 118540
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

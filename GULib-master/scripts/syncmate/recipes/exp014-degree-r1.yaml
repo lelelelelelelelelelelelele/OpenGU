@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp014-degree-r1
+runner: experiment
+config_path: experiments/configs/exp014/degree.yaml
+config_sha256: 83d0a457dff2f0557da3b3dd8c564b19528fe48a47ca68ea0267cf4e83e4075d
+configuration_fingerprint: e27f4a1f44c34a11191d25e030c0be39c41d8f6e1b1102a4400098b200ef5a88
+run_identity:
+  experiment_id: exp014-selector-degree
+  run_id: e14r2
+timeout_seconds: 21600
+logical_cells: 1
+stage: selector
+expected_datasets:
+- num_nodes: 169343
+  candidate_count: 118540
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
