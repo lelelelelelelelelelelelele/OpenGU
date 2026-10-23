@@ -67,9 +67,10 @@ def retrain_node(args, model, data, nodes, runtime_root, observer=None):
 from experiments.modular_megu import megu_node, megu_logits
 
 from experiments.modular_idea import idea_node
+from experiments.modular_etr import etr_node
 
 
-GU_METHODS = {'MEGU': megu_node, 'IDEA': idea_node, 'GNNDelete': gnndelete_node, 'GIF': gif_node, 'Retrain': retrain_node}
+GU_METHODS = {'ETR': etr_node, 'MEGU': megu_node, 'IDEA': idea_node, 'GNNDelete': gnndelete_node, 'GIF': gif_node, 'Retrain': retrain_node}
 
 
 def gu_producer(method, model_config):
@@ -125,6 +126,10 @@ def _gu_producer(method, model_config):
         from unlearning.unlearning_methods.GIF.solver import solve_gif_system, GIFNumericalError
         functions += [idea, IDEATrainer, idea_node, solve_gif_system, GIFNumericalError,
                       model_class.forward_once, model_class.forward_once_unlearn]
+    elif method == 'ETR':
+        from unlearning.unlearning_methods.ETR import etr
+        functions += [etr.training_graph, etr.influence_nodes, etr.seed_subgraph,
+                      etr.edit_subgraphs, etr.gradient_information, etr.erase, etr.rectify, etr.run_etr]
     elif method == 'Retrain':
         functions += [run_retrain, train_supervised]
     else:
