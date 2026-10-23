@@ -100,7 +100,7 @@ def load_metric_output(reference, store_root, *, data=None, dataset_root=None):
     if not data.train_mask[selected].all() or len(selected) == int(data.train_mask.sum()):
         raise ConfigurationError('node deletion needs selected training nodes and retained supervision')
     arrays = {key: getattr(data, key).detach().cpu().numpy()
-              for key in ('y', 'test_mask', 'edge_index')}
+              for key in ('y', 'train_mask', 'test_mask', 'edge_index')}
     arrays.update(payload.arrays)
     evaluation_identity = original_identity
     evaluation_edges = data.edge_index

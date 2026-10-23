@@ -11,7 +11,16 @@ from experiments.effective_config import ConfigurationError, fields
 from experiments.node_deletion import retrain_pairing_matches
 
 
+from experiments.response_diagnostics import METRICS as RESPONSE_METRICS
+
+
 CASES = {
+    'post_unlearning_response_diagnostics': {
+        'metrics': RESPONSE_METRICS,
+        'required_inputs': ('method_output', 'exact_retrain_same_selection', 'persisted_original_predictions', 'bound_original_graph'),
+        'consumers': ('modular_v1',),
+        'producer_version': 'persisted-response-diagnostics-v1',
+    },
     'post_unlearning_flip_hop': {
         'metrics': ('fraction_flipped', 'node_count', 'flipped_count') + tuple(
             label + '_hop_' + suffix for label in ('1', '2', '3', 'gt3')
@@ -86,6 +95,10 @@ def _formula_functions(case):
     from experiments.measurement_formulas import utility_metrics, retrain_gap, flip_metrics
     from experiments.output_metrics import method_metrics, update_detection
     from experiments.unlearning_outputs import utility
+    if case == 'post_unlearning_response_diagnostics':
+        from experiments.response_diagnostics import response_diagnostics, prediction_triangle, cross_entropy, request_composition
+        from experiments.flip_hop_metrics import exact_retrain, hop_groups
+        return [response_diagnostics, prediction_triangle, cross_entropy, request_composition, exact_retrain, hop_groups, retrain_pairing_matches]
     if case == 'post_method_metrics':
         return [method_metrics, update_detection]
     if case == 'post_unlearning_utility':
@@ -115,6 +128,10 @@ def _measure(instance, reference, output, pair=None, *, method_evaluation=None):
                 raise ConfigurationError('method evaluation receipt does not match current Output and protocol')
             values = method_evaluation['metrics']
         identity['method_evaluation'] = protocol
+    elif case == 'post_unlearning_response_diagnostics':
+        from experiments.response_diagnostics import response_diagnostics
+        values, protocol = response_diagnostics(output, pair[1])
+        identity.update(retrain_output=pair[0], protocol=protocol)
     elif case == 'post_unlearning_utility':
         values, _ = utility_metrics(output)
     elif case == 'post_unlearning_utility_and_retrain_gap':

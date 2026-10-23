@@ -151,7 +151,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
         'execution_receipt': context.receipt(), 'datasets': datasets,
         'selectors': [], 'unlearning': [], 'evaluations': []}
     if config['stage'] == 'metrics':
-        from experiments.modular_artifacts import read_run
+        from experiments.modular_artifacts import read_run, metric_source_cells
         from experiments.evaluation_cache import describe_output
         from experiments.modular_config import dataset_binding
         portable = {d['data_identity']['split_hash']: [] for d in datasets}
@@ -161,7 +161,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
         notify_event(notify, 'progress', position=position, current=0, total=total)
         for source_index, value in enumerate(config['output_inputs']):
             previous, documents = read_run(directory / value['run'], value['sha256'])
-            for cell, document in zip(previous['cells'], documents):
+            for cell, document in metric_source_cells(previous, value, documents):
                 reference = cell.get('output')
                 if not reference:
                     continue

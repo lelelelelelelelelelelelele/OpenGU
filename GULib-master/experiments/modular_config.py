@@ -445,7 +445,12 @@ def load_experiment(path):
         if value.get('return_scores'):
             raise ConfigurationError('metrics does not generate scores')
         for source in value['output_inputs']:
-            fields(source, {'run', 'sha256'}, {'run', 'sha256'}, 'metrics input')
+            fields(source, {'run', 'sha256', 'cell_ids'}, {'run', 'sha256'}, 'metrics input')
+            if 'cell_ids' in source:
+                ids = source['cell_ids']
+                if (not isinstance(ids, list) or not ids or any(not isinstance(v, str) or not v for v in ids)
+                        or len(ids) != len(set(ids))):
+                    raise ConfigurationError('metrics input cell_ids must be a nonempty unique list of strings')
     result = dict(value)
     refs = value['dataset_refs']
     if not isinstance(refs, list) or not refs:
