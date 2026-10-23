@@ -2,13 +2,13 @@
 
 The question is whether the existing selectors can generate valid deletion
 requests on ogbn-arxiv within practical time and memory limits. This preparation
-contains five independent, single-condition selector submissions. It does not
+contains four submissions covering five selector conditions. Random and Degree
+share a two-condition job; the other selectors retain independent jobs. It does not
 run GU, Retrain, downstream utility evaluation, or a multi-seed effect study.
 
 | Selector | Configuration | Recipe ID | Run ID |
 | --- | --- | --- | --- |
-| Random | `random.yaml` | `exp014-random-r1` | `e14r1` |
-| Degree | `degree.yaml` | `exp014-degree-r1` | `e14r2` |
+| Random + Degree | `baselines.yaml` | `exp014-baselines-r1` | `e14b1` |
 | R-point | `r-point.yaml` | `exp014-r-point-r1` | `e14r3` |
 | IM-RR, 65536 sets | `rr65536.yaml` | `exp014-rr65536-r1` | `e14r4` |
 | D-full (`gt_full`) | `d-full.yaml` | `exp014-d-full-r1` | `e14r5` |
@@ -42,8 +42,12 @@ compute times; do not add them again to the enclosing wall time. Dataset load,
 startup, export and report generation are outside the selector-entry wall;
 Runner start-to-finish time is the separate whole-job measure.
 
-Each Recipe uses its own process so an earlier selector cannot share an in-memory
-model with a later selector or prevent its result from being exported. Persistent
+Each model-based selector uses its own process so an earlier selector cannot share
+an in-memory model with a later selector or prevent its result from being exported.
+Random and Degree share input loading but retain separate selector-entry timing;
+their whole-job wall time is one shared observation and must not be counted twice.
+The executor's batch ordering, rather than YAML display order, determines which
+baseline runs first. Persistent
 checkpoint, Score and Selection caches still work normally. Inspect all relevant
 cache states and `producer_called` fields before classifying a measurement:
 
@@ -64,7 +68,7 @@ peak-memory question. Mark unobserved memory as unavailable. Additional resource
 observation, if required, must be established before execution.
 
 Each declaration has a 21600-second (six-hour) whole-job timeout. It is a safety
-cap, not a completion estimate, and five caps total at most 30 job-hours before
+cap, not a completion estimate, and four caps total at most 24 job-hours before
 allowing for termination overhead. There is no automatic batch submission or
 retry. Before any GPU launch, record an evidence-based all-MISS serial estimate
 for the agreed full scope in Work Plan, check the required gate, synchronize the

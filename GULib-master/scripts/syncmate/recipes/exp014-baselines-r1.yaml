@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp014-baselines-r1
+runner: experiment
+config_path: experiments/configs/exp014/baselines.yaml
+config_sha256: 6b210b2bc1e4b2841ec7ae83e3e8df058cbf4b61c1aafb96476caeab65514b46
+configuration_fingerprint: 6bf3214de7df46aa92985440a9e0356849efb21efdef79e60088a3dfcc3ed834
+run_identity:
+  experiment_id: exp014-selector-baselines
+  run_id: e14b1
+timeout_seconds: 21600
+logical_cells: 2
+stage: selector
+expected_datasets:
+- num_nodes: 169343
+  candidate_count: 118540
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

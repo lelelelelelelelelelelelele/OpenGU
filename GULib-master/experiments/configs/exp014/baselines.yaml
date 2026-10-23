@@ -1,0 +1,16 @@
+# EXP-014: combine the two model-free baselines in one bounded job.
+kind: experiment
+schema_version: 1
+stage: selector
+experiment_id: exp014-selector-baselines
+dataset_refs:
+- ogbn-arxiv.yaml
+selector_refs:
+- random.yaml
+- degree.yaml
+matrix: cartesian_product
+random_selector_seeds:
+- 11
+budget_ratios:
+- 0.05
+return_scores: false
