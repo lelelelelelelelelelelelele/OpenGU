@@ -1,0 +1,14 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Graph unlearning.}
+Graph-unlearning methods include approaches based on partitioning and partial retraining, influence-function updates, and learned deletion-aware objectives. GraphEraser and GraphRevoker are partition-based approaches \cite{chen2022graph,zhang2024graphrevoker}; GIF estimates deletion effects with influence functions \cite{wu2023gif}; GNNDelete and MEGU use learned update procedures \cite{cheng2023gnndelete,li2024towards}; and IDEA studies certified graph unlearning \cite{dong2024idea}. These methods motivate evaluation across update mechanisms. Our question is different from proposing another update rule: we study how the choice of deletion request interacts with the output of an existing GU method.
+
+\paragraph{Security and auditing of machine unlearning.}
+Prior work has examined poisoning or adversarial behavior around machine-unlearning procedures, as well as the reliability of empirical unlearning evaluation \cite{marchant2022hard,di2022hidden,huang2024exploring,zhang2024towards}. Privacy attacks on graph models provide related tools for studying information exposed by graph predictions \cite{olatunji2021membership,he2021stealing}. Our setting focuses on a distinct control point: the requester chooses which eligible graph elements to submit for deletion. The resulting utility difference is an audit outcome, not by itself a privacy guarantee or proof of forgetting.
+
+\paragraph{Influence and target selection.}
+Influence maximization selects sets to increase expected propagation or coverage in a graph \cite{kempe2003maximizing,leskovec2007cost,goyal2011celf++}. Influence functions and gradient-tracing methods estimate how training examples affect model objectives or parameters \cite{koh2017understanding,pruthi2020estimating}. These signals provide possible selection objectives, but their scores are not definitions of downstream GU error. We therefore evaluate the selected request after the GU and retraining procedures, rather than treating selector scores or selected-set overlap as attack effectiveness.
+
+\paragraph{Positioning.}
+This work connects request-selection mechanisms to a paired audit of GU outcomes. It distinguishes selector objective, request identity, post-deletion utility, and the full-retraining reference. The evaluation is intended to explain the conditions under which the observed responses differ; it does not assume that the methods form a universal vulnerability ordering.

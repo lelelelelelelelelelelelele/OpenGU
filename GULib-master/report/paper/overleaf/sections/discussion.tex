@@ -1,0 +1,10 @@
+\section{Discussion}
+\label{sec:discussion}
+
+The cases illustrate the value of reporting more than a post-deletion score. The Cora matrix shows substantial gaps between some GU outputs and full retraining, while the matched analysis shows that the size and sign of those gaps depend on both method and dataset. A single average score would hide whether a change comes from the request's effect under retraining or from the additional GU--retraining difference. The decompositions make these reference questions visible; they do not identify a causal mechanism by themselves.
+
+The results also caution against treating a selector's score as a direct measure of attack effectiveness. R-point, D-full, and structural selectors optimize or rank requests using different information. Their downstream utility outcomes can vary by dataset and GU method. The current results do not establish that influence and structural objectives are misaligned as a general rule, nor do they show that one objective is universally preferable.
+
+For future GU evaluations, a useful protocol should disclose the eligible request pool and attacker information, report multiple independent random requests, and pair each selected request with both its GU result and a full-retraining reference when feasible. It should keep test utility, prediction disagreement, update detection, and forgetting or privacy claims separate. These measurements support a more interpretable audit while preserving the limits of each endpoint.
+
+The method-specific case studies support an audit perspective rather than a benchmark ranking. They do not imply that every approximate GU method is unsafe, that lower test utility means better forgetting, or that a result on citation graphs transfers unchanged to other graph tasks.

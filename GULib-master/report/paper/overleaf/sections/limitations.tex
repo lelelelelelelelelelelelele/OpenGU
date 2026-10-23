@@ -1,0 +1,10 @@
+\section{Limitations}
+\label{sec:limitations}
+
+The primary matrix covers three citation-network datasets, one GCN backbone, a single 10\% deletion budget, and three training seeds. Random, Degree, and PageRank selections are reused across those training seeds in the reported matrix; consequently, those rows do not estimate variability over independent request draws. The current draft also focuses on node deletion and does not establish behavior for edge or feature deletion.
+
+The AAGU-032/053 analyses use archived outputs from a 3000-epoch configuration. AAGU-032 is retraining-only, and AAGU-053 fixes the training seed to 42 while varying requests. The latter's request-level results therefore do not establish robustness to training randomness. Its utility field is test accuracy despite its f1 name; we report that metric separately from the primary F1 tables.
+
+The current analysis reports remain pending scientific acceptance, and several implementation details needed for independent reproduction are marked TODO. The available outcomes do not establish forgetting correctness, deletion compliance, or privacy. In particular, the update-detection AUC uses a specific implemented sampling rule and score and should not be generalized to membership inference without a separate threat model and controls.
+
+Finally, a full-retraining result is a useful matched reference but not a test-utility upper bound. For partition-based methods, a GU--retraining difference may also reflect architecture and aggregation. These values should not be interpreted as pure approximation error without additional evidence.

@@ -1,73 +1,63 @@
-\documentclass{article}
+\documentclass[sigconf,anonymous,review]{acmart}
 
-% NeurIPS 2026 style — the macros are backwards compatible year-over-year.
-\usepackage{neurips_2026}
+% WWW 2027 research-track anonymous review format.
+% https://www2027.thewebconf.org/research-track-papers/
+\setcopyright{none}
+\settopmatter{printacmref=false}
+\acmConference[WWW '27]{The ACM Web Conference 2027}{May 10--14, 2027}{Dublin, Ireland}
+\acmYear{2027}
+\copyrightyear{2027}
+\acmDOI{}
+\acmISBN{}
+\input{math_commands.tex}
 
-% to compile a preprint version (e.g., arXiv): use [preprint]
-% \usepackage[preprint]{neurips_2026}
-% camera-ready: use [final]
-% \usepackage[final]{neurips_2026}
-
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{hyperref}
-\usepackage{url}
 \usepackage{booktabs}
-\usepackage{amsfonts}
-\usepackage{nicefrac}
+\usepackage{graphicx}
 \usepackage{microtype}
 \usepackage{xcolor}
-\usepackage[table]{xcolor}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{amsthm}
-\usepackage{graphicx}
-\usepackage{multirow}
-\usepackage{enumitem}
 
-% Theorem/definition environments
-\newtheorem{definition}{Definition}
-\newtheorem{theorem}{Theorem}
-\newtheorem{assumption}{Assumption}[section]
+% Draft markers; remove or resolve before submission.
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\draftnote}[1]{\textcolor{blue!70!black}{[#1]}}
 
-\DeclareMathOperator*{\argmax}{arg\,max}
-\DeclareMathOperator*{\argmin}{arg\,min}
+\title{Auditing Strategic Deletion Requests in Graph Unlearning}
 
-% Macros for marking Phase-B-pending numbers (replace before submission)
-\newcommand{\interim}[1]{\textcolor{red}{\textbf{[B-TODO: #1]}}}
-\newcommand{\note}[1]{\textcolor{blue!70!black}{[#1]}}
-
-\bibliographystyle{plain}
-
-\title{Adversarial Deletion Attacks on Approximate Graph Unlearning:\\
-A Cross-Family Vulnerability Audit}
-
-\author{%
-  Anonymous Authors \\
-  Affiliation \\
-  \texttt{anon@example.org}
-}
+% Keep anonymous for review; supply author metadata only for the final version.
+\author{Anonymous Authors}
 
 \begin{document}
 
+\input{sections/abstract}
+\keywords{graph unlearning, adversarial deletion requests, robustness, graph neural networks}
+\input{teaser-figure}
 \maketitle
+\draftnote{Working title; results and claims remain provisional pending scientific review.}
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/problem}
+\input{sections/methods}
+\input{sections/experiments}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/limitations}
+\input{sections/conclusion}
 
-\input{sec/0_abstract}
-\input{sec/1_intro}
-\input{sec/2_related_work}
-\input{sec/3_method}
-\input{sec/4_experiment}
-\input{sec/5_results}
-\input{sec/6_conclusion}
+% Optional: include an ethics statement when the work raises relevant issues.
+% \section*{Ethics Statement}
+% \todo{Address relevant privacy, security, dataset, or research-integrity issues.}
 
+% Reproducibility information; complete before submission.
+\section*{Reproducibility Statement}
+\todo{Point to the paper, appendix, and anonymous materials needed to reproduce the results.}
+
+% Replace with an accurate disclosure consistent with ACM authorship policy.
+\section*{AI Use Statement}
+\todo{Disclose required and recommended AI use, author review, and responsibility.}
+
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
 
-\clearpage
 \appendix
-\input{sec/A_appendix}
-
-\clearpage
-\section*{NeurIPS Paper Checklist}
-\input{sec/B_checklist}
+\input{sections/appendix}
 
 \end{document}
