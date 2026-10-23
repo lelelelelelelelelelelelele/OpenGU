@@ -2,7 +2,7 @@
   "id": "EXP-011",
   "title": "GU 主矩阵 · Table02",
   "question": "六GU与同请求Retrain，三个数据集、三个训练seed、10%删除预算，比较结构化请求的效用损害与重训偏离。",
-  "scope": "六GU与同请求Retrain，三个数据集、三个训练seed、10%删除预算，比较结构化请求的效用损害与重训偏离。",
+  "scope": "e11r1：完整Table02，三数据集、三训练seed、10%删除，1449格；两分片方法采用新损失及300轮，其他条件保持。；旧协议与本次分析分别保留，不合并科学样本。",
   "configs": [
     {
       "label": "table02.yaml",
@@ -28,6 +28,11 @@
       "label": "references.yaml",
       "path": "experiments/configs/aagu011/references.yaml",
       "role": "reference"
+    },
+    {
+      "label": "本轮300轮新协议提交声明",
+      "path": "scripts/syncmate/recipes/exp011-shard300-r1.yaml",
+      "role": "current"
     }
   ],
   "sources": [
@@ -38,6 +43,22 @@
     {
       "label": "结果与分析报告",
       "path": ".workblock/items/AAGU-011/REPORT.md"
+    },
+    {
+      "label": "300轮新协议分析（e11r1，待科学验收）",
+      "path": "self/research/analyses/shard300-20261023/REPORT.html"
+    },
+    {
+      "label": "EXP-011 新版完整图册",
+      "path": "self/research/analyses/shard300-20261023/EXP011_REPORT.html"
+    },
+    {
+      "label": "新版分析 Markdown",
+      "path": "self/research/analyses/shard300-20261023/REPORT.md"
+    },
+    {
+      "label": "新旧结果逐格身份核验",
+      "path": "self/research/analyses/shard300-20261023/input_audit.json"
     }
   ],
   "attempts": [
@@ -154,26 +175,154 @@
         "commit": "1f5cfec08494ef1a78eda16bd3f69428ac47b0bd",
         "completed": 1449
       }
+    },
+    {
+      "job_id": "exp011-20261023-e11r1",
+      "run_id": "e11r1",
+      "recipe": "exp011-shard300-r1",
+      "config_path": "experiments/configs/aagu011/table02_v2.yaml",
+      "git_sha": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+      "scope": "完整Table02，三数据集、三训练seed、10%删除，1449格；两分片方法采用新损失及300轮，其他条件保持。",
+      "reason": "User authorized EXP-011 first; submit EXP-079 only if 011 completes normally in less than six hours. User explicitly requires new submission declarations/run identities and preservation of all old Results; no automatic retries.",
+      "state": "completed",
+      "evidence": [
+        {
+          "label": "Frozen authorized sequence",
+          "path": ".syncmate/shard300-sequence-20261023/plan.json"
+        },
+        {
+          "label": "Installed exact version",
+          "path": ".syncmate/shard300-sequence-20261023/install-receipt.json"
+        },
+        {
+          "label": "Immutable submission handoff",
+          "path": ".syncmate/runs/exp011-20261023-e11r1.json"
+        },
+        {
+          "label": "Trusted delivery / failure evidence",
+          "path": ".syncmate/deliveries/exp011-20261023-e11r1.json"
+        }
+      ],
+      "runtime": {
+        "estimate_status": "recorded_before_start",
+        "estimated_seconds": 56232,
+        "estimate_scope": "完整Table02，三数据集、三训练seed、10%删除，1449格；两分片方法采用新损失及300轮，其他条件保持。；全MISS串行预算",
+        "estimate_basis": "All-MISS serial engineering budget, no HIT discount: 207*(GNNDelete3+MEGU1+Eraser15+Revoker15+Retrain12+GIF1+IDEA1)=9936s; original Selector allowance8856s;27 model slots*180s=4860s;1449*20s evaluation/IO=28980s;fixed3600s. New shard unit15s exceeds Cora Gate means8.38/7.62s; other units remain conservative historical planning assumptions. Not measured total or upper bound; queue/return excluded.",
+        "job_started": true,
+        "actual_status": "recorded",
+        "actual_seconds": 12705.0,
+        "actual_basis": "Identity-bound Core started_at/finished_at; excludes queue/return",
+        "actual_scope": "This exact job wall",
+        "queue_seconds": 13.0,
+        "return_seconds": null,
+        "evidence": [
+          {
+            "label": "Frozen authorized sequence",
+            "path": ".syncmate/shard300-sequence-20261023/plan.json"
+          },
+          {
+            "label": "Installed exact version",
+            "path": ".syncmate/shard300-sequence-20261023/install-receipt.json"
+          },
+          {
+            "label": "Immutable submission handoff",
+            "path": ".syncmate/runs/exp011-20261023-e11r1.json"
+          },
+          {
+            "label": "Trusted delivery / failure evidence",
+            "path": ".syncmate/deliveries/exp011-20261023-e11r1.json"
+          }
+        ],
+        "cache": {
+          "status": "observed",
+          "summary": "Verified exact-run per-cell cache accesses.",
+          "counts": {
+            "score": {
+              "hit": 882,
+              "not_applicable": 567
+            },
+            "selection": {
+              "hit": 1449
+            },
+            "method": {
+              "hit": 1039,
+              "miss": 410
+            },
+            "selector_checkpoint": {
+              "hit": 126,
+              "not_applicable": 1323
+            },
+            "method_checkpoint": {
+              "hit": 1242,
+              "not_applicable": 207
+            },
+            "evaluation": {
+              "hit": 442,
+              "miss": 1007
+            },
+            "post_unlearning_utility_and_retrain_gap": {
+              "hit": 352,
+              "miss": 890,
+              "not_applicable": 207
+            },
+            "post_unlearning_flip_hop": {
+              "hit": 352,
+              "miss": 890,
+              "not_applicable": 207
+            }
+          },
+          "evidence": [
+            {
+              "label": "Verified run",
+              "path": "results/runs/gpu4090/exp011-t2/e11r1/run.json"
+            }
+          ]
+        },
+        "started_at": "2026-10-23T07:21:07",
+        "finished_at": "2026-10-23T10:52:52"
+      },
+      "execution_digest": "b2cadd35dddbe092c0a6d749dddfbf448fc224835cc384a0515c53ebe17f5726",
+      "submitted_at": "2026-10-23T07:20:54",
+      "manifest": {
+        "label": "本轮可信完整结果",
+        "path": "results/runs/gpu4090/exp011-t2/e11r1/run.json",
+        "sha256": "3cfe5445d467e10d14bf9724752dba2d9d38eed4fb4d29c945ee24af1a8803b6",
+        "experiment_id": "exp011-t2",
+        "commit": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+        "completed": 1449
+      }
     }
   ],
   "analysis": {
     "state": "complete",
-    "note": "完整主表分析已完成，用户同意收口；GIF/IDEA机制差异保留疑问，不阻塞本次描述性结论。",
+    "note": "本轮新协议图册与描述性分析已完成，等待人工科学验收。下方保留的decision对象及其证据属于历史分析，不自动接受本轮新结果。",
     "evidence": [
       {
-        "label": "Table02 v2 full analysis",
-        "path": "self/research/analyses/EXP-011/table02-v2-analysis.md"
+        "label": "300轮新协议分析（e11r1，待科学验收）",
+        "path": "self/research/analyses/shard300-20261023/REPORT.html"
       },
       {
-        "label": "Full summary CSV",
-        "path": "self/research/analyses/EXP-011/table02-v2-summary.csv"
+        "label": "EXP-011 新版完整图册",
+        "path": "self/research/analyses/shard300-20261023/EXP011_REPORT.html"
+      },
+      {
+        "label": "新版分析 Markdown",
+        "path": "self/research/analyses/shard300-20261023/REPORT.md"
+      },
+      {
+        "label": "新旧结果逐格身份核验",
+        "path": "self/research/analyses/shard300-20261023/input_audit.json"
+      },
+      {
+        "label": "上一版完整分析与决定快照",
+        "path": "self/research/analyses/shard300-20261023/EXP011_previous_analysis.json"
       }
     ],
     "highlights": [
-      "1449格及1242条GU–Retrain严格配对完整；所有逐格文件哈希通过本地复核。",
-      "GIF/IDEA在207组对应条件的F1相同；不能据此认为输出或算法相同。",
-      "GIF/IDEA：PubMed D-full相对Random降低0.942pp；CiteSeer R-point/D-full提高0.430pp，不支持普遍效用攻击。",
-      "R-point在三个数据集均增加GIF/IDEA相对Retrain的预测分歧；效用与一致性需要分开判断。"
+      "e11r1：1449格及1242条同请求 GU–Retrain 配对，2899个当前文件哈希与可信索引复核通过。",
+      "八类请求、三训练seed；Random/IM重复先在seed内平均，不把选点重复当独立训练seed。",
+      "PubMed R-point相对Random：GraphEraser −1.258pp，GraphRevoker −1.896pp；均为点态95%区间低于零。",
+      "旧0925-v1的科学接受只适用于旧证据；e11r1图册待人工验收。"
     ]
   },
   "decision": {
@@ -188,7 +337,7 @@
       }
     ]
   },
-  "recorded_at": "2026-09-30",
+  "recorded_at": "2026-10-23",
   "gate_acceptance": {
     "state": "accepted",
     "scope": "Six-cell GIF/IDEA Profile engineering gate: mapping, execution and GU cache identity",

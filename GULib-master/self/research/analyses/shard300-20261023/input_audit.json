@@ -1,0 +1,226 @@
+{
+  "EXP-011": {
+    "current": {
+      "experiment": "EXP-011",
+      "run_id": "e11r1",
+      "execution_sha": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+      "cells": 1449,
+      "paired_gu_cells": 1242,
+      "verified_files": 2899,
+      "manifest": "results/runs/gpu4090/exp011-t2/e11r1/run.json",
+      "manifest_sha256": "3cfe5445d467e10d14bf9724752dba2d9d38eed4fb4d29c945ee24af1a8803b6",
+      "unique_selection_ids": 81,
+      "training_seeds": [
+        42,
+        212,
+        2024
+      ],
+      "cache": {
+        "score": {
+          "hit": 882,
+          "not_applicable": 567
+        },
+        "selection": {
+          "hit": 1449
+        },
+        "method": {
+          "hit": 1039,
+          "miss": 410
+        },
+        "selector_checkpoint": {
+          "hit": 126,
+          "not_applicable": 1323
+        },
+        "method_checkpoint": {
+          "hit": 1242,
+          "not_applicable": 207
+        },
+        "evaluation": {
+          "hit": 442,
+          "miss": 1007
+        },
+        "post_unlearning_utility_and_retrain_gap": {
+          "hit": 352,
+          "miss": 890,
+          "not_applicable": 207
+        },
+        "post_unlearning_flip_hop": {
+          "hit": 352,
+          "miss": 890,
+          "not_applicable": 207
+        }
+      },
+      "checks": "SHA256 + trusted index + delivery/current run + dataset/seed/selection matched Retrain",
+      "scientific_acceptance": "not_requested"
+    },
+    "historical": {
+      "experiment": "EXP-011",
+      "run_id": "0925-v1",
+      "execution_sha": "1f5cfec08494ef1a78eda16bd3f69428ac47b0bd",
+      "cells": 1449,
+      "paired_gu_cells": 1242,
+      "verified_files": 2899,
+      "manifest": "results/runs/gpu4090/exp011-t2/0925-v1/run.json",
+      "manifest_sha256": "ae24efa4a348cdcee1e87efd6aa15714c679c7a0a8591787c41cf1c6e95e7720",
+      "unique_selection_ids": 81,
+      "training_seeds": [
+        42,
+        212,
+        2024
+      ],
+      "cache": {
+        "score": {
+          "hit": 882,
+          "not_applicable": 567
+        },
+        "selection": {
+          "hit": 1449
+        },
+        "method": {
+          "miss": 414,
+          "hit": 1035
+        },
+        "selector_checkpoint": {
+          "hit": 126,
+          "not_applicable": 1323
+        },
+        "method_checkpoint": {
+          "hit": 1242,
+          "not_applicable": 207
+        }
+      },
+      "checks": "SHA256 + trusted index + historical manifest + dataset/seed/selection matched Retrain",
+      "scientific_acceptance": "not_requested"
+    }
+  },
+  "EXP-079": {
+    "current": {
+      "experiment": "EXP-079",
+      "run_id": "e79r6",
+      "execution_sha": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+      "cells": 2520,
+      "paired_gu_cells": 2160,
+      "verified_files": 5041,
+      "manifest": "results/runs/gpu4090/exp079-surrogate-multiseed/e79r6/run.json",
+      "manifest_sha256": "7dfa125956275758857f54f140ffd0b8266f44278694e42a258c51ff42ea03f7",
+      "unique_selection_ids": 252,
+      "training_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        42,
+        212,
+        2024
+      ],
+      "cache": {
+        "score": {
+          "hit": 2520
+        },
+        "selection": {
+          "hit": 2520
+        },
+        "method": {
+          "hit": 1908,
+          "miss": 612
+        },
+        "selector_checkpoint": {
+          "hit": 1680,
+          "not_applicable": 840
+        },
+        "method_checkpoint": {
+          "hit": 2160,
+          "not_applicable": 360
+        },
+        "evaluation": {
+          "hit": 1908,
+          "miss": 612
+        },
+        "post_unlearning_utility_and_retrain_gap": {
+          "hit": 1548,
+          "miss": 612,
+          "not_applicable": 360
+        },
+        "post_unlearning_flip_hop": {
+          "hit": 1548,
+          "miss": 612,
+          "not_applicable": 360
+        }
+      },
+      "checks": "SHA256 + trusted index + delivery/current run + dataset/seed/selection matched Retrain",
+      "scientific_acceptance": "not_requested"
+    },
+    "historical": {
+      "experiment": "EXP-079",
+      "run_id": "e79r5",
+      "execution_sha": "e02b5fa40ebce66fb45e57ea23b8d6c8d7856685",
+      "cells": 2520,
+      "paired_gu_cells": 2160,
+      "verified_files": 5041,
+      "manifest": "results/runs/gpu4090/exp079-surrogate-multiseed/e79r5/run.json",
+      "manifest_sha256": "115ebaa86a7fa95dd65ca64fc34d5fcc0d6033a2a9ee912ad54d947dbda38f56",
+      "unique_selection_ids": 252,
+      "training_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        42,
+        212,
+        2024
+      ],
+      "cache": {
+        "score": {
+          "hit": 2317,
+          "miss": 203
+        },
+        "selection": {
+          "hit": 2317,
+          "miss": 203
+        },
+        "method": {
+          "hit": 2184,
+          "miss": 336
+        },
+        "selector_checkpoint": {
+          "hit": 1582,
+          "not_applicable": 840,
+          "miss": 98
+        },
+        "method_checkpoint": {
+          "hit": 2160,
+          "not_applicable": 360
+        },
+        "evaluation": {
+          "hit": 756,
+          "miss": 1764
+        },
+        "post_unlearning_utility_and_retrain_gap": {
+          "hit": 648,
+          "not_recorded": 360,
+          "miss": 1512
+        },
+        "post_unlearning_flip_hop": {
+          "hit": 648,
+          "not_recorded": 360,
+          "miss": 1512
+        }
+      },
+      "checks": "SHA256 + trusted index + historical manifest + dataset/seed/selection matched Retrain",
+      "scientific_acceptance": "not_requested"
+    }
+  },
+  "gif_idea_max_differences": {
+    "after": 0.0,
+    "CE": 1.0118267834702266e-08,
+    "AUC": 0.0007093525769477083
+  },
+  "non_shard_outputs_and_metrics_unchanged": true,
+  "statistical_unit": "training seed after averaging selection repetitions within seed; pointwise two-sided 95% t CI; no multiplicity correction"
+}

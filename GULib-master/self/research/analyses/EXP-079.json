@@ -2,7 +2,7 @@
   "id": "EXP-079",
   "title": "Surrogate 条件性迁移的多 seed 验证（总10个）",
   "question": "固定目标GCN时，gt_full/r_point/Degree/Random是否形成可辨认的多GU响应；同策略换选点surrogate后相对影响是否保持并比异策略更接近？",
-  "scope": "e79r5完整2520格，3数据集、完整10训练seed、12请求实例、6 GU与Retrain；响应模式科学图表统一十seed。历史252格工程Gate不并入科学样本；已有诊断保留为范围独立的辅助证据。",
+  "scope": "e79r6：完整十训练seed、三数据集、跨四种选点模型及Random/Degree，共2520格；两分片方法新损失及300轮。；旧协议与本次分析分别保留，不合并科学样本。",
   "configs": [
     {
       "label": "252格Gate",
@@ -27,6 +27,11 @@
     {
       "label": "完整2520格六小时缓存续跑e79r5",
       "path": "scripts/syncmate/recipes/opengu-exp079-surrogate-multiseed-r5.yaml",
+      "role": "historical"
+    },
+    {
+      "label": "本轮300轮新协议提交声明",
+      "path": "scripts/syncmate/recipes/exp079-shard300-r6.yaml",
       "role": "current"
     }
   ],
@@ -784,206 +789,153 @@
       "execution_digest": "b09753289794f9b8ce8a1f7cb46068b326d21f9972b4e2ef026c8c3aced50ab1",
       "started_at": "2026-10-13T20:37:32",
       "finished_at": "2026-10-14T02:27:31"
+    },
+    {
+      "job_id": "exp079-20261023-e79r6",
+      "run_id": "e79r6",
+      "recipe": "exp079-shard300-r6",
+      "config_path": "experiments/configs/exp079/surrogate_multiseed.yaml",
+      "git_sha": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+      "scope": "完整十训练seed、三数据集、跨四种选点模型及Random/Degree，共2520格；两分片方法新损失及300轮。",
+      "reason": "User authorized EXP-011 first; submit EXP-079 only if 011 completes normally in less than six hours. User explicitly requires new submission declarations/run identities and preservation of all old Results; no automatic retries.",
+      "state": "completed",
+      "evidence": [
+        {
+          "label": "Frozen authorized sequence",
+          "path": ".syncmate/shard300-sequence-20261023/plan.json"
+        },
+        {
+          "label": "Installed exact version",
+          "path": ".syncmate/shard300-sequence-20261023/install-receipt.json"
+        },
+        {
+          "label": "Immutable submission handoff",
+          "path": ".syncmate/runs/exp079-20261023-e79r6.json"
+        },
+        {
+          "label": "Trusted delivery / failure evidence",
+          "path": ".syncmate/deliveries/exp079-20261023-e79r6.json"
+        }
+      ],
+      "runtime": {
+        "estimate_status": "recorded_before_start",
+        "estimated_seconds": 173280,
+        "estimate_scope": "完整十训练seed、三数据集、跨四种选点模型及Random/Degree，共2520格；两分片方法新损失及300轮。；全MISS串行预算",
+        "estimate_basis": "All-MISS serial engineering budget, no HIT or prior011 discount:30 dataset-seed groups*(12 requests*(GNNDelete3+GIF1+IDEA1+MEGU1+Eraser15+Revoker15+Retrain12)+8 model-selectors*300s+4 model slots*180s+84 outputs*20s evaluation/IO+400s fixed)=173280s. Shard unit15s based on Cora Gate with allowance; other units inherited full-matrix cold planning assumptions. Not measured total or upper bound; queue/return excluded.",
+        "job_started": true,
+        "actual_status": "recorded",
+        "actual_seconds": 14706.0,
+        "actual_basis": "Identity-bound Core started_at/finished_at; excludes queue/return",
+        "actual_scope": "This exact job wall",
+        "queue_seconds": 13.0,
+        "return_seconds": null,
+        "evidence": [
+          {
+            "label": "Frozen authorized sequence",
+            "path": ".syncmate/shard300-sequence-20261023/plan.json"
+          },
+          {
+            "label": "Installed exact version",
+            "path": ".syncmate/shard300-sequence-20261023/install-receipt.json"
+          },
+          {
+            "label": "Immutable submission handoff",
+            "path": ".syncmate/runs/exp079-20261023-e79r6.json"
+          },
+          {
+            "label": "Trusted delivery / failure evidence",
+            "path": ".syncmate/deliveries/exp079-20261023-e79r6.json"
+          }
+        ],
+        "cache": {
+          "status": "observed",
+          "summary": "Verified exact-run per-cell cache accesses.",
+          "counts": {
+            "score": {
+              "hit": 2520
+            },
+            "selection": {
+              "hit": 2520
+            },
+            "method": {
+              "hit": 1908,
+              "miss": 612
+            },
+            "selector_checkpoint": {
+              "hit": 1680,
+              "not_applicable": 840
+            },
+            "method_checkpoint": {
+              "hit": 2160,
+              "not_applicable": 360
+            },
+            "evaluation": {
+              "hit": 1908,
+              "miss": 612
+            },
+            "post_unlearning_utility_and_retrain_gap": {
+              "hit": 1548,
+              "miss": 612,
+              "not_applicable": 360
+            },
+            "post_unlearning_flip_hop": {
+              "hit": 1548,
+              "miss": 612,
+              "not_applicable": 360
+            }
+          },
+          "evidence": [
+            {
+              "label": "Verified run",
+              "path": "results/runs/gpu4090/exp079-surrogate-multiseed/e79r6/run.json"
+            }
+          ]
+        },
+        "started_at": "2026-10-23T10:57:33",
+        "finished_at": "2026-10-23T15:02:39"
+      },
+      "execution_digest": "5ff8d224a9d468c4a77023ea949ba44272489941b1035834d590fb3cf2825292",
+      "submitted_at": "2026-10-23T10:57:20",
+      "manifest": {
+        "label": "本轮可信完整结果",
+        "path": "results/runs/gpu4090/exp079-surrogate-multiseed/e79r6/run.json",
+        "sha256": "7dfa125956275758857f54f140ffd0b8266f44278694e42a258c51ff42ea03f7",
+        "experiment_id": "exp079-surrogate-multiseed",
+        "commit": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+        "completed": 2520
+      }
     }
   ],
   "analysis": {
     "state": "complete",
-    "note": "完整十seed响应模式研究完成：重新核验5041原始文件、CSV配对与flip的同请求GU/Retrain语义。Cora的gt_full/r_point相对区分主要依赖GNNDelete；PubMed的SGC可反转GU相对影响，GCN/GAT/GIN有局部保留；CiteSeer未建立稳定U区分。flip有附加且坐标敏感的探索性模式。采用S/K交互对比、去中心化距离及跨seed平方距离裕量；U/G的该几何代数相同，不重复计票。保留原始强度、共享Random依赖、GIF/IDEA去重及逐GU敏感性。未新增GPU实验，科学接受未请求。",
+    "note": "本轮新协议图册与描述性分析已完成，等待人工科学验收。下方保留的decision对象及其证据属于历史分析，不自动接受本轮新结果。",
     "evidence": [
       {
-        "label": "响应模式中文论文研究报告 HTML",
-        "path": "self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.html"
+        "label": "300轮新协议分析（e79r6，待科学验收）",
+        "path": "self/research/analyses/shard300-20261023/REPORT.html"
       },
       {
-        "label": "响应模式中文论文研究报告 Markdown",
-        "path": "self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md"
+        "label": "EXP-079 新版完整图册",
+        "path": "self/research/analyses/shard300-20261023/EXP079_REPORT.html"
       },
       {
-        "label": "完整原始输入及配对核验",
-        "path": "self/research/analyses/EXP-079/e79r5/response_input_audit.json"
+        "label": "新版分析 Markdown",
+        "path": "self/research/analyses/shard300-20261023/REPORT.md"
       },
       {
-        "label": "多GU选择性与Holm结果",
-        "path": "self/research/analyses/EXP-079/e79r5/response_selectivity.csv"
+        "label": "新旧结果逐格身份核验",
+        "path": "self/research/analyses/shard300-20261023/input_audit.json"
       },
       {
-        "label": "跨surrogate相对区分及敏感性",
-        "path": "self/research/analyses/EXP-079/e79r5/response_consistency_margin.csv"
-      },
-      {
-        "label": "响应图谱 U/G PNG",
-        "path": "self/research/analyses/EXP-079/e79r5/response_atlas_U_G_10seeds.png"
-      },
-      {
-        "label": "科研图 PDF",
-        "path": "self/research/analyses/EXP-079/e79r5/response_atlas_U_G_10seeds.pdf"
-      },
-      {
-        "label": "可复现响应分析脚本",
-        "path": "self/research/analyses/EXP-079/e79r5/response_pattern.py"
-      },
-      {
-        "label": "报告及公式核验",
-        "path": "self/research/analyses/EXP-079/e79r5/response_report_verification.json"
-      },
-      {
-        "label": "迁移规律偏窄的诊断 HTML",
-        "path": "self/research/analyses/EXP-079/e79r5/DIAGNOSIS_REPORT.html"
-      },
-      {
-        "label": "迁移诊断 Markdown",
-        "path": "self/research/analyses/EXP-079/e79r5/DIAGNOSIS_REPORT.md"
-      },
-      {
-        "label": "补充指标与配对区间",
-        "path": "self/research/analyses/EXP-079/e79r5/diagnostic_metric_checks.csv"
-      },
-      {
-        "label": "诊断原始证据及执行源码核验",
-        "path": "self/research/analyses/EXP-079/e79r5/diagnosis_verification.json"
-      },
-      {
-        "label": "十seed GCN参照迁移主图",
-        "path": "self/research/analyses/EXP-079/e79r5/transfer_focus_10seeds.png"
-      },
-      {
-        "label": "迁移主图全部配对统计",
-        "path": "self/research/analyses/EXP-079/e79r5/transfer_focus_10seeds.csv"
-      },
-      {
-        "label": "GCN参照迁移主图与完整矩阵 HTML",
-        "path": "self/research/analyses/EXP-079/e79r5/OVERVIEW_REPORT.html"
-      },
-      {
-        "label": "GCN参照迁移主图与完整矩阵 Markdown",
-        "path": "self/research/analyses/EXP-079/e79r5/OVERVIEW_REPORT.md"
-      },
-      {
-        "label": "四视图数值与配对区间",
-        "path": "self/research/analyses/EXP-079/e79r5/diagnostic_atlas_10seeds.csv"
-      },
-      {
-        "label": "检测图数值重算与核验",
-        "path": "self/research/analyses/EXP-079/e79r5/overview_verification.json"
-      },
-      {
-        "label": "完整十seed科学分析 md",
-        "path": "self/research/analyses/EXP-079/e79r5/REPORT.md"
-      },
-      {
-        "label": "完整十seed科学分析 html",
-        "path": "self/research/analyses/EXP-079/e79r5/REPORT.html"
-      },
-      {
-        "label": "2520格复核摘要",
-        "path": "self/research/analyses/EXP-079/e79r5/audit.json"
-      },
-      {
-        "label": "全组别配对统计",
-        "path": "self/research/analyses/EXP-079/e79r5/summary.csv"
-      },
-      {
-        "label": "跨GU相关",
-        "path": "self/research/analyses/EXP-079/e79r5/correlations.csv"
-      },
-      {
-        "label": "252格Gate Markdown",
-        "path": "self/research/analyses/EXP-079/gate252-20261012/REPORT.md"
-      },
-      {
-        "label": "252格Gate HTML",
-        "path": "self/research/analyses/EXP-079/gate252-20261012/REPORT.html"
-      },
-      {
-        "label": "性能瓶颈研究",
-        "path": "self/research/analyses/EXP-079/gate252-20261012/PERFORMANCE_DIAGNOSIS.html"
-      },
-      {
-        "label": "性能瓶颈研究源",
-        "path": "self/research/analyses/EXP-079/gate252-20261012/PERFORMANCE_DIAGNOSIS.md"
-      },
-      {
-        "label": "seed2024 252点Gate md",
-        "path": "self/research/analyses/EXP-079/gate252-20261013/REPORT.md"
-      },
-      {
-        "label": "seed2024 252点Gate html",
-        "path": "self/research/analyses/EXP-079/gate252-20261013/REPORT.html"
-      },
-      {
-        "label": "seed212冷热效果报告md",
-        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/REPORT.md"
-      },
-      {
-        "label": "seed212冷热效果报告html",
-        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/REPORT.html"
-      },
-      {
-        "label": "保存耗时只读排查md",
-        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/SAVE_VARIATION_REPORT.md"
-      },
-      {
-        "label": "保存耗时只读排查html",
-        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/SAVE_VARIATION_REPORT.html"
-      },
-      {
-        "label": "SSH同内容保存对照md",
-        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/SSH_SAVE_REPORT.md"
-      },
-      {
-        "label": "SSH同内容保存对照html",
-        "path": "self/research/analyses/EXP-079/gate252-s212-20261013/SSH_SAVE_REPORT.html"
+        "label": "上一版完整分析与决定快照",
+        "path": "self/research/analyses/shard300-20261023/EXP079_previous_analysis.json"
       }
     ],
     "highlights": [
-      "响应模式：Cora去中心化U距离裕量9.976 [5.122,14.830] pp²；去掉GNNDelete后0.333 [-0.200,0.865]，整体策略差异主要依赖此坐标。",
-      "PubMed的gt_full：GNNDelete/GraphRevoker交互从GCN的-1.269 pp变成SGC的+5.658 pp，配对变化+6.927 [4.865,8.989]；不能称跨所有surrogate保留。",
-      "CiteSeer U裕量-0.003 [-0.041,0.035]；flip另有小幅、坐标敏感的探索性优势。U/G去中心化几何在该设计中代数相同，不算独立验证。",
-      "Degree每数据集只有一份节点集合，Random每数据集只有三份集合跨训练seed重用；训练重复不是独立删除请求重复。",
-      "后续诊断：区分GCN参照有效性、验证CE与GU后F1的目标错位、last_layer/20步LiSSA数值疑点、训练删边但原图评估、静态单点top-k的批量交互；均未伪称已确认机制或实现错误。",
-      "此前transfer_focus保留为单GU局部增益辅助图；本轮主图为三数据集、全部六GU、全部选点条件的响应图谱与选择性/敏感性图，不以GNNDelete案例代替整体。",
-      "e79r5完整2520格、10训练seed；5041/5041文件哈希及可信索引一致，原756格与EXP-013身份和关键指标一致。",
-      "Cora/GNNDelete/gt_full：GIN drop 22.38pp，GCN 20.42pp、Random 12.92pp、Degree 18.89pp；GIN−Random 9.46pp，点态95%配对区间[6.91,12.02]。新增7seed全部胜Random。",
-      "同条件GIN−Degree为3.49pp [0.43,6.54]，GIN−direct为1.96pp [-0.95,4.86]；无预设等效阈值，未经全矩阵多重比较调整，不作等效或普遍优势声明。",
-      "Cora/GNNDelete/r_point：GIN比Random少3.39pp；GIN跨GU相关由old3的1.00降为new7的0.30/all10的0.40。",
-      "PubMed/GNNDelete/gt_full：SGC drop 8.03pp，GCN 1.79pp，GIN 1.59pp；新增7seed也保持对Random优势。最强损伤与匹配direct是不同目标。",
-      "GIF/IDEA全部360对drop相同，相关主表按五GU计算；Random三抽样先在训练seed内平均，不扩充独立训练重复。",
-      "历史e79g4/e79g7/e79g8性能Gate与失败运行保留，不并入科学样本；运行完成、分析完成与用户科学接受分别维护。"
-    ],
-    "tables": [
-      {
-        "caption": "Cora / GNNDelete / gt_full 十seed平均F1 drop（百分点）",
-        "columns": [
-          "选点",
-          "均值"
-        ],
-        "rows": [
-          [
-            "GCN",
-            "20.424"
-          ],
-          [
-            "SGC",
-            "15.332"
-          ],
-          [
-            "GAT",
-            "17.177"
-          ],
-          [
-            "GIN",
-            "22.380"
-          ],
-          [
-            "Random",
-            "12.915"
-          ],
-          [
-            "Degree",
-            "18.893"
-          ]
-        ]
-      }
+      "e79r6：2520格及2160条同请求 GU–Retrain 配对，5041个当前文件哈希与可信索引复核通过。",
+      "PubMed两种分片方法在R-point/D-full下均低于Random；CiteSeer GraphEraser方向相反，不能宣称普遍伤害。",
+      "Cora跨来源响应区分仍主要由GNNDelete驱动，去掉该维度后近似95%区间跨零。",
+      "GIF/IDEA任务指标重合；推断几何只计一个维度。全部新图仅绑定e79r6，尚未科学接受。"
     ]
   },
   "decision": {
@@ -1008,7 +960,7 @@
       }
     ]
   },
-  "recorded_at": "2026-10-15",
+  "recorded_at": "2026-10-23",
   "sources": [
     {
       "label": "首轮可信结果",
@@ -1033,6 +985,22 @@
     {
       "label": "e79r5可信回传与项目验收",
       "path": ".syncmate/deliveries/exp079-20261013-e79r5.json"
+    },
+    {
+      "label": "300轮新协议分析（e79r6，待科学验收）",
+      "path": "self/research/analyses/shard300-20261023/REPORT.html"
+    },
+    {
+      "label": "EXP-079 新版完整图册",
+      "path": "self/research/analyses/shard300-20261023/EXP079_REPORT.html"
+    },
+    {
+      "label": "新版分析 Markdown",
+      "path": "self/research/analyses/shard300-20261023/REPORT.md"
+    },
+    {
+      "label": "新旧结果逐格身份核验",
+      "path": "self/research/analyses/shard300-20261023/input_audit.json"
     }
   ]
 }

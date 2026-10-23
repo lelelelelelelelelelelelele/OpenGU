@@ -1,0 +1,74 @@
+[
+  {
+    "figure": "e11r1_cora_accuracy",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e11r1_cora_ce",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e11r1_cora_auc",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e11r1_citeseer_accuracy",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e11r1_citeseer_ce",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e11r1_citeseer_auc",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e11r1_pubmed_accuracy",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e11r1_pubmed_ce",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e11r1_pubmed_auc",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e79r6_cora_accuracy",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e79r6_cora_ce",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e79r6_cora_auc",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e79r6_citeseer_accuracy",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e79r6_citeseer_ce",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e79r6_citeseer_auc",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e79r6_pubmed_accuracy",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e79r6_pubmed_ce",
+    "outside_canvas": []
+  },
+  {
+    "figure": "e79r6_pubmed_auc",
+    "outside_canvas": []
+  }
+]

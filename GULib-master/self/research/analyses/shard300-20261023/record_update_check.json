@@ -1,0 +1,14 @@
+{
+  "EXP-011": {
+    "historical_decision_unchanged": true,
+    "current_run": "e11r1",
+    "execution_sha": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+    "new_scientific_acceptance": "not_requested"
+  },
+  "EXP-079": {
+    "historical_decision_unchanged": true,
+    "current_run": "e79r6",
+    "execution_sha": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+    "new_scientific_acceptance": "not_requested"
+  }
+}

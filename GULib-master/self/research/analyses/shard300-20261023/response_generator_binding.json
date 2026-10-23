@@ -1,0 +1,10 @@
+{
+  "generator": "self/research/analyses/EXP-079/e79r5/response_pattern.py",
+  "sha256": "b3ab6b9ff88a893e575a720a97932aaa90fac7e03161ab05c07075bb7e86065d",
+  "input": "response_seed_profiles.csv",
+  "input_sha256": "eb0003e4f4b486592844c03872b48342f02af7935259614aebc672998da5fecb",
+  "run_id": "e79r6",
+  "execution_sha": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+  "old_loader_called": false,
+  "old_narrative_reused": false
+}
