@@ -22,15 +22,27 @@ E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py apply
 E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt
 ```
 
-`apply` verifies local/origin identity, gates runner admission, pauses an idle
-persistent service, enables academic acceleration before GitHub fetch, and
-fast-forwards the fixed SSH checkout to that exact SHA. It validates Git state,
+`apply` verifies clean local main and the reviewed [private deployment policy](deployment.json),
+gates runner admission, pauses an idle persistent service, and fast-forwards the
+fixed SSH checkout from a hash-verified bounded Git bundle to that exact SHA.
+It never accesses GitHub or rewrites `refs/remotes/origin/*`. It validates Git state,
 protected-path diff and changed Python syntax without scanning caches. It restores
 only the service it paused; a stopped runner remains stopped. One-shot or bounded
 workers must finish first. Queue/run/return occupancy and unknown locks stop the
 operation; failed installation retains maintenance state for explicit diagnosis.
-The bounded bundle route is used only if accelerated Git transfer is unavailable.
-`receipt` reads the installation result instead of repeating SSH verification.
+The bundle is the only code transport. Its advertised main ref, SHA-256, target
+policy, prerequisites and fast-forward ancestry must match before the merge.
+The policy digest hashes its canonical JSON object, independent of LF/CRLF;
+the full Git target still binds all exact source bytes.
+`receipt` reads and validates the exact installation result instead of repeating SSH verification.
+Preview and dispatch read the same policy and require a successful receipt for
+the current full SHA. Core still checks clean main on both endpoints, equal full
+SHAs, and all configuration, input and output identities. The current successful
+`runtime/install/<SHA>/receipt.json` remains the local execution credential. The
+closeout owner archives it in the WorkItem; its runtime copy may be removed only
+after a later installation supersedes that execution version. Temporary bundles
+are removed automatically and the append-only runner installation log is preserved. Public origin may
+remain at its true historical SHA; it is not the private execution baseline.
 Prepare all code, configurations and Recipe files before this one installation.
 
 ## Independent recipe YAML
@@ -70,8 +82,9 @@ It performs no SSH, synchronization, submission or producer computation.
 The recipe must be tracked before preview; a dirty candidate can be inspected
 but is not dispatch-ready. The normal Core dispatch command remains unchanged.
 
-Code synchronization is separate: reviewed local main, origin/main and clean
-runner main must share the exact full commit before dispatch. Dispatch does not
+Code synchronization is separate: reviewed local main, the verified private bundle
+and clean runner main must share the exact full commit before dispatch. Public
+origin keeps its historical value; the current installation receipt is required. Dispatch does not
 copy working-tree changes or update runner code. The existing job freezes commit
 and config hash; receipts preserve its execution and return facts.
 

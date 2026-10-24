@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "transport": "private-bundle",
+  "require_origin_main": false
+}

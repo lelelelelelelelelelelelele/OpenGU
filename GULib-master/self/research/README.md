@@ -69,9 +69,9 @@ python -B -X utf8 -m pytest --noconftest tests/test_research_overview.py -q
 
 ## Git 与执行版本
 
-- 运行前照常核对本地 main、origin/main、SSH main 的完整 SHA 一致并绑定实际执行 SHA。运行、停止、回传等只更新忽略的状态，不触发 Git commit、push 或 SSH checkout 更新。
+- 运行前通过登记的 private-bundle 安装动作核对本地 main、已核验 bundle 目标、SSH main 的完整 SHA 一致，并消费当前版本安装回执、绑定实际执行 SHA；origin/main 保留公开远端真实历史值，不要求相等，不重写引用。运行、停止、回传等只更新忽略的状态，不触发 Git commit、push 或 SSH checkout 更新。
 - 分析完成后审阅并显式提交本次 `analyses/<id>.json` 及其分析报告；不能使用 `git add .`，不能夹带其他 Block 的修改。该提交不是科学验收，也不得把运行 SHA 改成分析提交 SHA。
-- 分析提交会推动本地 HEAD。下一次正式运行前再同步三端；有活跃任务时不得为了同步更新其 SSH checkout。跨阶段批次若需要立即继续，可先保留分析草稿，待当前执行批次结束再提交分析。
+- 分析提交会推动本地 HEAD。下一次正式运行前再同步本地／bundle／SSH 执行版本；有活跃任务时不得为了同步更新其 SSH checkout。跨阶段批次若需要立即继续，可先保留分析草稿，待当前执行批次结束再提交分析。
 - 状态内容不随 clone/pull 分发。新设备或新克隆需显式取回维护中的状态副本；生成器缺失状态时明确失败，不从历史分析推断实时状态。主目录状态自行保留和备份，不使用 git clean -x 清理它。
 - 分析文件保留支撑结论的 run ID、实际代码 SHA、配置与证据引用；历史资料没有具体身份时保留原报告引用并注明缺失，不补造。分析范围或配置与当前计划不一致时，不自动放行依赖。
 
