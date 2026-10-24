@@ -99,7 +99,10 @@ class MEGUTrainer(BaseTrainer):
         self.temp_node = temp_node
         self.neighbor_khop = neighbor_khop
         operator = GATE(self.data.num_classes).to(self.device)
-        optimizer = torch.optim.SGD(self.model.parameters(), lr=self.model.config.lr, weight_decay=self.model.config.decay)
+        optimizer = torch.optim.SGD([
+            {'params': self.model.parameters()},
+            {'params': operator.parameters()},
+        ], lr=self.model.config.lr, weight_decay=self.model.config.decay)
         self.data = self.data.to(self.device)
             
 
