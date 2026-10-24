@@ -395,6 +395,10 @@
   ],
   "sources": [
     {
+      "label": "论文采用：Fig. 4 · CiteSeer 五 Selector 预算响应",
+      "path": "report/paper/figures/exp080-ratio-response-20261025/REPORT.html"
+    },
+    {
       "label": "EXP-080 · 删除预算与多 GU 响应（full-20261021；未科学接受）",
       "path": "self/research/analyses/EXP-080/full-20261021/REPORT.html"
     },
