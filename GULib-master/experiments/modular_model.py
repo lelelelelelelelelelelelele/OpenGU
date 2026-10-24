@@ -49,10 +49,10 @@ def create_model(model_config, dataset_name, data, device):
     return model.to(device)
 
 
-def train_supervised(model, data, training, checkpoint_epochs):
+def train_supervised(model, data, training, checkpoint_epochs, *, epoch_end=None):
     return train_trajectory(model, data, checkpoint_epochs=checkpoint_epochs,
         epochs=training['epochs'], lr=training['lr'], weight_decay=training['weight_decay'],
-        milestones=(), gamma=1.0, optimizer_name=training['optimizer'])
+        milestones=(), gamma=1.0, optimizer_name=training['optimizer'], epoch_end=epoch_end)
 
 
 def training_metadata(model, instance, data):

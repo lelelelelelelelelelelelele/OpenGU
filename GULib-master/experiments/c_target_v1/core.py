@@ -170,6 +170,7 @@ def train_trajectory(
     milestones: Sequence[int],
     gamma: float,
     optimizer_name: str = "sgd",
+    epoch_end=None,
 ) -> Tuple[List[Dict[str, object]], Dict[str, float]]:
     normalized_optimizer = optimizer_name.strip().lower()
     if normalized_optimizer == "sgd":
@@ -202,6 +203,9 @@ def train_trajectory(
         optimizer.step()
         scheduler.step()
         last_loss = float(loss.item())
+        if epoch_end is not None:
+            epoch_end({'phase': 'epoch_end', 'step': epoch, 'values': {
+                'model': model, 'data': data, 'train_loss': last_loss, 'update_lr': update_lr}})
         if epoch in wanted:
             state = capture_state(model)
             checkpoints.append(

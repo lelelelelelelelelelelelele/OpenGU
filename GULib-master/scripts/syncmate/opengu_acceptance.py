@@ -95,7 +95,7 @@ def acceptance_payload(profile, definition, context):
             if configuration_fingerprint(config_path) != definition['configuration_fingerprint']:
                 raise ValueError('collector reviewed configuration changed')
             config = load_experiment(config_path)
-            expected_cells = (definition['expected_cells'] if config['stage'] == 'metrics' else planned_cells(config))
+            expected_cells = (definition['expected_cells'] if config['stage'] in ('metrics', 'retrain_diagnostics') else planned_cells(config))
             if len(run['cells']) != len(expected_cells):
                 raise ValueError('collected cell count differs from registration')
             actual_paths = [run_remote]
@@ -103,11 +103,11 @@ def acceptance_payload(profile, definition, context):
                 if any(cell[key] != expected[key] for key in ('cell_id', 'path', 'conditions')):
                     raise ValueError('result cell conditions differ from configured matrix')
                 conditions = cell['conditions']
-                if config['stage'] == 'metrics':
+                if config['stage'] in ('metrics', 'retrain_diagnostics'):
                     matching = [i for i in range(len(config['datasets']))
                                 if dataset_binding(config, i)['dataset_fingerprint'] == conditions['dataset_fingerprint']]
                     if len(matching) != 1:
-                        raise ValueError('Metrics Dataset fingerprint must match exactly one configured Dataset')
+                        raise ValueError('Source Dataset fingerprint must match exactly one configured Dataset')
                     counts = definition['expected_datasets'][matching[0]]
                 else:
                     counts = definition['expected_datasets'][conditions['dataset_index']]
@@ -133,6 +133,9 @@ def acceptance_payload(profile, definition, context):
                 if 'metrics.json' in document:
                     from experiments.modular_evaluation import CASES, is_paired_evaluation
                     expected_metrics = []
+                    if config['stage'] == 'retrain_diagnostics':
+                        from experiments.retrain_diagnostics import METRICS
+                        expected_metrics = [('retrain_validation_trace', METRICS)]
                     if config['stage'] == 'unlearning':
                         expected_metrics = [('method', set(CASES['post_method_metrics']['metrics'])),
                             ('utility', {'f1_before', 'f1_after', 'f1_drop', 'f1_drop_ratio'})]

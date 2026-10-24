@@ -27,7 +27,7 @@ DEFAULT_STATUS_HTML_PATH = REPO_ROOT / "results" / "_journal" / "auto_report.htm
 
 EVENT_SCHEMA = "opengu.autoreport.event"
 EVENT_SCHEMA_VERSION = 3
-STAGES = {"selection", "attack", "collateral", "evaluation", "run"}
+STAGES = {"selection", "attack", "collateral", "evaluation", "retrain_diagnostics", "run"}
 STATES = {"started", "completed", "failed", "skipped", "retrying"}
 TERMINAL_STATES = {"completed", "failed", "skipped"}
 CACHE_TYPES = {"selection", "result", "score", "artifact", "run_artifact"}

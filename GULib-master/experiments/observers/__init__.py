@@ -6,7 +6,7 @@ import time
 from pathlib import Path, PurePosixPath
 
 from experiments.effective_config import ConfigurationError, fields
-from . import linear_solver_trace, same_graph_change, hessian_calibration
+from . import linear_solver_trace, same_graph_change, hessian_calibration, retrain_validation
 
 
 SOLVER_FIELDS = {'update', 'rhs', 'matvec', 'curvature', 'scale', 'damp', 'iterations'}
@@ -20,6 +20,7 @@ CAPABILITIES = {method: {
 
 
 OBSERVERS = {
+    'retrain_validation_trace': retrain_validation.RetrainValidationTrace,
     'linear_solver_trace': linear_solver_trace.LinearSolverTrace,
     'same_graph_change': same_graph_change.SameGraphChange,
     'hessian_calibration': hessian_calibration.HessianCalibration,
