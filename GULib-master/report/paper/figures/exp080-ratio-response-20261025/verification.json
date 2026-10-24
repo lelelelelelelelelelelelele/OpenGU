@@ -144,7 +144,7 @@
     "self/research/analyses/EXP-080/full-20261021/condition_summary.csv": "f0300bf0ff8ca8c3e7e2833d153e7db58c2c13e1e47ed881e788fecf5b908b52",
     "self/research/analyses/EXP-080/full-20261021/verification.json": "3715d2ca63dc0448a0dc3c616c10f5634cf87621118d837760799f8ba5dcf0ff",
     "report/paper/figures/exp080-ratio-response-20261025/REPORT.md": "a177441673d65cebb71d961c3de7dfebf9987929de97081a508b4e1eb84327a7",
-    "report/paper/overleaf/sections/results.tex": "d633310691e574c130cb2b175ee3ba1c1d4d16de603e25aa86c48ed4b0139cee",
+    "report/paper/overleaf/sections/results.tex": "f7e84ddfba3db1c7c98f56697f4c8f58d2a40bcb4488d8411762a2c2c723ffa8",
     "report/paper/overleaf/figures/citeseer_selector_responses.pdf": "2b7b7263fc585301e98892c4e1343eac52c764c40f167312ef761f3d58483a44",
     "scripts/plot_exp080_selector_response.py": "f995c1f9667ea0d2b0d404378f1915128f3a77058076bf39d32ac693322c07bf",
     "scripts/plot_exp080_disagreement_increment.py": "293311be6f9034f32fe33b9bfef0f523ecd336d5bd7153158c5bbee2c55ca1e6",
