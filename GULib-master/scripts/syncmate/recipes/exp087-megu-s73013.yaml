@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-megu-s73013
+runner: experiment
+config_path: experiments/configs/exp087/megu_seed73013.yaml
+config_sha256: e5321a11d15f988aafa38df33c19856ee2574dd4ca7ffcdd458090bb020c1ab3
+configuration_fingerprint: b7aa42a81c123561be89aa5d701802e9d1daf40f0327b51bf4ac5f30b3024682
+run_identity:
+  experiment_id: exp087-megu-s73013
+  run_id: e87h05
+timeout_seconds: 3600
+logical_cells: 16
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
