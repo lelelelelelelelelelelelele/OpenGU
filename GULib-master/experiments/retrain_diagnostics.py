@@ -20,7 +20,7 @@ def validate_observer_reference(identity, cell, reference):
     source = cell.get('source', {})
     original = source.get('output', {})
     if ('output' in cell or cell['conditions']['method'] != 'Retrain'
-            or reference['name'] != 'retrain_validation_trace'
+            or reference['name'] not in ('retrain_validation_trace','ret_reference_trace')
             or reference['status'] != 'completed'
             or identity.get('source') != source
             or identity['output_identity']['target']['method'] != 'Retrain'
@@ -88,6 +88,9 @@ def source_inputs(config, context, datasets, loaded_data):
 
 
 def execute_retrain_diagnostics(config, context, datasets, loaded_data, summary, run_state, audit, notify):
+    if config.get('ret_reference'):
+        from experiments.ret_reference_diagnostics import execute_references
+        return execute_references(config, context, datasets, loaded_data, summary, run_state, audit, notify)
     from attack.cache_identity import seeded_execution
     from experiments.modular_model import create_model, train_supervised
     from experiments.node_deletion import retained_graph

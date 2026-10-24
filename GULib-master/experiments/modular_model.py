@@ -61,7 +61,7 @@ def training_metadata(model, instance, data):
             'implementation': implementation_fingerprint(*model_functions(model), train_supervised)}
 
 
-def prepare_model(instance, *, data, dataset_name, checkpoint_root, device, reference_directory):
+def prepare_model(instance, *, data, dataset_name, checkpoint_root, device, reference_directory, fail_if_training=False):
     from attack.cache_identity import seeded_execution
     model_config, training = instance['model'], instance['training']
     with seeded_execution(training['seed']):
@@ -75,6 +75,8 @@ def prepare_model(instance, *, data, dataset_name, checkpoint_root, device, refe
                 'execution_seed': training['seed'], 'numerics': numerical_environment(data),
                 'implementation': implementation_fingerprint(*model_functions(model))}}
     if instance.get('kind') == 'selector' and instance['method'].startswith('tracin_cp_'):
+        if fail_if_training:
+            raise ValueError('Ret reference requires a prepared single-checkpoint selector')
         from experiments.model_trajectory import prepare_trajectory
         return prepare_trajectory(model, instance, data, checkpoint_root)
     metadata = training_metadata(model, instance, data)
@@ -82,6 +84,8 @@ def prepare_model(instance, *, data, dataset_name, checkpoint_root, device, refe
     path = resolve_cached_weights(checkpoint_root, metadata)
     hit = path.exists()
     if not hit:
+        if fail_if_training:
+            raise ValueError('prepared selector checkpoint MISS; Ret reference cannot train proxy assets')
         with seeded_execution(training['seed']):
             train_supervised(model, data, training, ())
         save_cached_weights(path, capture_state(model), metadata)

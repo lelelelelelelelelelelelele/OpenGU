@@ -66,10 +66,36 @@ def reproduce(saved, actual, name, *, probabilities=False):
     return dict(changed_labels=changed,max_abs_error=error,probabilities=probabilities)
 
 
-def restore_original(output, data, checkpoint_root, device):
+def restore_original(output, data, checkpoint_root, device, original_checkpoint=None):
     """Resolve one deterministic checkpoint and verify actual bytes and state."""
     binding=output.identity['pairing']
     expected=output.identity['target'].get('checkpoint_state_hash')
+    external = all(binding['training'].get(k) is None for k in ('epochs','optimizer','lr','weight_decay','scheduler'))
+    if external:
+        from pathlib import Path
+        from experiments.modular_model import numerical_environment
+        from experiments.implementation_identity import implementation_fingerprint, model_functions
+        from utils.target_checkpoint import load_weights
+        receipt = original_checkpoint
+        if (not expected or not isinstance(receipt,dict)
+                or set(receipt) != {'path','file_sha256','state_hash','hit','source','effective_identity'}
+                or receipt['source'] != 'external_state_dict' or type(receipt['hit']) is not bool
+                or receipt['state_hash'] != expected or not Path(receipt['path']).is_absolute()):
+            raise ConfigurationError('external Original requires its exact declared checkpoint receipt')
+        model=create_model(binding['model'],output.identity['dataset_input']['instance']['dataset']['name'],data,device)
+        effective = dict(data_identity=data_identity(data),model=binding['model'],
+            execution_seed=binding['training']['seed'],numerics=numerical_environment(data),
+            implementation=implementation_fingerprint(*model_functions(model)))
+        if receipt['effective_identity'] != effective:
+            raise ConfigurationError('external Original Dataset/model/seed identity mismatch')
+        loaded=load_weights(receipt['path'],model)
+        if (loaded['file_sha256'] != receipt['file_sha256'] or loaded['state_hash'] != expected
+                or state_hash(model.state_dict()) != expected):
+            raise ConfigurationError('external Original bytes/state differ from exact receipt')
+        return model.eval(),dict(source='external_state_dict',**{k:receipt[k] for k in
+            ('path','file_sha256','state_hash','effective_identity')})
+    if original_checkpoint is not None:
+        raise ConfigurationError('external Original receipt supplied for internal training identity')
     if (not expected or any(binding['training'].get(k) is None
             for k in ('epochs','optimizer','lr','weight_decay','scheduler'))):
         raise ConfigurationError('Original requires an exact internal training checkpoint; external/missing references are unsupported')
@@ -126,7 +152,7 @@ def _raw_logits(model,graph,deletion_masks=None):
     return result
 
 
-def graph_sensitivity(output,retrain,*,checkpoint_root,device):
+def graph_sensitivity(output,retrain,*,checkpoint_root,device,original_checkpoint=None):
     """Original reproduction is a hard gate before changing evaluation edges."""
     if checkpoint_root is None or device is None:
         raise ConfigurationError('graph diagnostics requires explicit checkpoint root and execution device')
@@ -148,7 +174,7 @@ def graph_sensitivity(output,retrain,*,checkpoint_root,device):
     if method=='MEGU' and 'megu_pseudo_labels' not in output.auxiliary:
         raise ConfigurationError('MEGU requires saved pseudo-labels; cannot regenerate')
     deletion_masks=_saved_deletion_masks(output) if method=='GNNDelete' else None
-    original,checkpoint=restore_original(output,graphs['original'],checkpoint_root,device)
+    original,checkpoint=restore_original(output,graphs['original'],checkpoint_root,device,original_checkpoint)
     models=dict(no_update_raw=original,updated_raw=restore_model(output).to(device),retrain_raw=restore_model(retrain).to(device))
     if deletion_masks is not None:
         # DeletionLayer.mask is an ordinary attribute, so Module.to does not move it.

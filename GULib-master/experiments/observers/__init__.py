@@ -6,7 +6,7 @@ import time
 from pathlib import Path, PurePosixPath
 
 from experiments.effective_config import ConfigurationError, fields
-from . import linear_solver_trace, same_graph_change, hessian_calibration, retrain_validation
+from . import linear_solver_trace, same_graph_change, hessian_calibration, retrain_validation, ret_reference
 
 
 SOLVER_FIELDS = {'update', 'rhs', 'matvec', 'curvature', 'scale', 'damp', 'iterations'}
@@ -20,6 +20,7 @@ CAPABILITIES = {method: {
 
 
 OBSERVERS = {
+    'ret_reference_trace': ret_reference.RetReferenceTrace,
     'retrain_validation_trace': retrain_validation.RetrainValidationTrace,
     'linear_solver_trace': linear_solver_trace.LinearSolverTrace,
     'same_graph_change': same_graph_change.SameGraphChange,
@@ -40,9 +41,12 @@ def validate_capabilities(method, specs, cache_policy):
         raise ConfigurationError('unknown GU cache policy')
     if cache_policy == 'disabled' and method not in ('GIF', 'IDEA', 'GNNDelete', 'Retrain'):
         raise ConfigurationError('GU cache policy unsupported for ' + method)
+    if method == 'Retrain' and specs and cache_policy != 'disabled':
+        raise ConfigurationError('Ret reference Observer requires gu_cache=disabled')
     for spec in specs:
         for event, required in OBSERVERS[spec['name']].requires.items():
-            if not required <= CAPABILITIES.get(method, {}).get(event, set()):
+            capabilities = ret_reference.RetReferenceTrace.requires if method == 'Retrain' else CAPABILITIES.get(method, {})
+            if not required <= capabilities.get(event, set()):
                 raise ConfigurationError(f'{method} does not provide {event} fields required by {spec["name"]}')
 
 

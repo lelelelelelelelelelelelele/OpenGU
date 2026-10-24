@@ -67,7 +67,12 @@ def planned_cells(config):
                 if config['stage'] == 'retrain_diagnostics':
                     if run['stage'] != 'unlearning' or cell['conditions']['method'] != 'Retrain':
                         raise ValueError('Ret diagnostics require original unlearning-stage Retrain Outputs')
-                    cells.append({key: cell[key] for key in ('cell_id', 'path', 'conditions')})
+                    if config.get('ret_reference'):
+                        from experiments.ret_reference_policy import reference_cell
+                        cells.extend(reference_cell(cell, config['ret_reference'], arm)
+                                     for arm in config['ret_reference']['arms'])
+                    else:
+                        cells.append({key: cell[key] for key in ('cell_id', 'path', 'conditions')})
                     continue
                 if cell.get('output') and (cell['conditions']['method'] != 'Retrain' or any(
                         not is_paired_evaluation(e) for e in config['evaluations'])):
@@ -181,6 +186,8 @@ def export_outputs(summary, *, config, context, run):
             cell['timing'] = {'method_compute_seconds': None}
             cell['cache'] = {'method': 'hit'}
             cell['producer_called'] = {'method': False}
+            if row.get('original_checkpoint') is not None:
+                cell['cache_provenance'] = {'original_checkpoint':row['original_checkpoint']}
         else:
             selected = row if config['stage'] == 'selector' else next(s for s in summary['selectors']
                 if s['matrix_values'] == row['matrix_values'] and s['selector_ref'] == row['selector_ref'])
@@ -212,6 +219,8 @@ def export_outputs(summary, *, config, context, run):
                     checkpoint and checkpoint.get('source') != 'external_state_dict') else 'not_applicable'
             cell['cache_provenance'] = {key: row.get(key) for key in
                 ('generation_producer', 'consumption_producer') if row.get(key) is not None}
+            if (row.get('checkpoint') or {}).get('source') == 'external_state_dict':
+                cell['cache_provenance']['original_checkpoint'] = row['checkpoint']
             if 'ensemble_preparation' in row:
                 preparation = row['ensemble_preparation']
                 cell['cache_provenance']['ensemble'] = preparation
@@ -363,6 +372,11 @@ def read_run(path, expected_sha256):
                     raise ValueError('result cell ownership mismatch')
                 values[name] = value
         selection = values['selection.json']
+        for reference in cell.get('observers', []):
+            if reference['name']=='ret_reference_trace':
+                from experiments.ret_reference_reading import validate_trace
+                validate_trace(json.loads(values['observers/ret_reference_trace/result.json']),
+                    values['observers/ret_reference_trace/trace.jsonl'],reference,cell)
         nodes = selection['selected_nodes']
         if (selection['selection_id'] != cell['selection_id'] or type(selection['requested_k']) is not int
                 or selection['requested_k'] != len(nodes) or not nodes or len(set(nodes)) != len(nodes)

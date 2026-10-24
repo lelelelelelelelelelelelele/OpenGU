@@ -214,18 +214,31 @@ class ResolvedOutput:
                              for name in ('train', 'val', 'test')])
         retained_identity = {**original_identity,
             'edge_index_hash': tensor_hash(retained.edge_index), 'split_hash': tensor_hash(masks)}
+        trained, trained_identity = retained, retained_identity
+        if 'reference' in payload.identity:
+            from experiments.ret_reference_policy import training_graph, ARMS, DETERMINISTIC
+            reference = payload.identity['reference']
+            if (payload.identity['target']['method'] != 'Retrain' or reference.get('policy') != DETERMINISTIC
+                    or reference.get('arm') not in ARMS):
+                raise ConfigurationError('invalid explicit Ret reference identity')
+            trained, _ = training_graph(data, payload.arrays['selected_nodes'], reference['arm'])
+            trained_identity = _output_data_identity(trained)
+            if (reference['training_graph_identity'] != trained_identity or
+                    reference['validation_graph_identity'] != retained_identity or
+                    reference['training'] != pairing['training']):
+                raise ConfigurationError('Ret reference intervention identity mismatch')
         expected = dict(data_identity=original_identity,
             selected_nodes=list(map(int, payload.arrays['selected_nodes'])),
             model=pairing['model'], training=pairing['training'], deletion=pairing['deletion'],
-            training_graph_identity=retained_identity,
+            training_graph_identity=trained_identity,
             evaluation_graph_identity=original_identity if evaluation is data else retained_identity)
         if expected != pairing:
             raise ConfigurationError('output Dataset/Split or deletion identity mismatch')
         self.arrays = {key: getattr(data, key).detach().cpu().numpy() for key in
                       ('x', 'y', 'edge_index', 'train_mask', 'val_mask', 'test_mask')}
         self.arrays.update(payload.arrays)
-        self.arrays.update(retain_mask=retained.train_mask.cpu().numpy(),
-            training_edge_index=retained.edge_index.cpu().numpy(),
+        self.arrays.update(retain_mask=trained.train_mask.cpu().numpy(),
+            training_edge_index=trained.edge_index.cpu().numpy(),
             evaluation_edge_index=evaluation.edge_index.cpu().numpy())
 
     @property

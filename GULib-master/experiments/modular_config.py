@@ -258,7 +258,7 @@ def gu_defaults(method):
 
 
 def unlearning(value, *, parameter_profile_parameters=None):
-    fields(value, {'kind', 'schema_version', 'method', 'model', 'training', 'parameters', 'checkpoint', 'deletion'},
+    fields(value, {'kind', 'schema_version', 'method', 'model', 'training', 'parameters', 'checkpoint', 'deletion', 'reference'},
                   {'kind', 'schema_version', 'method'}, 'unlearning')
     supplied_parameters = value.get('parameters', {})
     if parameter_profile_parameters is not None:
@@ -324,6 +324,13 @@ def unlearning(value, *, parameter_profile_parameters=None):
         raise ConfigurationError('ETR modular node consumer currently supports GCN')
     if value['method'] == 'Retrain' and 'checkpoint' in value:
         raise ConfigurationError('Retrain starts from scratch and cannot consume a checkpoint')
+    if 'reference' in value:
+        from experiments.ret_reference_policy import resolve_reference as resolve_ret_reference
+        if value['method'] != 'Retrain' or model['architecture'] != 'OpenGU.GCNNet' or training['epochs'] != 3000:
+            raise ConfigurationError('new Ret reference requires Retrain, GCN and 3000 epochs')
+        value = {**value, 'reference': resolve_ret_reference(value['reference'])}
+        if value.get('deletion', {}).get('evaluation_graph', 'original') != 'original':
+            raise ConfigurationError('new Ret reference primary probe must be original')
     from experiments.node_deletion import resolve_deletion
     return {**value, 'model': model, 'training': training, 'parameters': params,
             'deletion': resolve_deletion(value.get('deletion'))}
@@ -420,7 +427,7 @@ def load_experiment(path):
     fields(value, required | {'round',
         'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
         'seeds', 'random_selector_seeds', 'budget_ratios', 'im_selector_seeds', 'return_scores',
-        'execution', 'observers', 'parameter_profile_ref'},
+        'execution', 'observers', 'parameter_profile_ref', 'ret_reference'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
@@ -457,6 +464,11 @@ def load_experiment(path):
                         or len(ids) != len(set(ids))):
                     raise ConfigurationError('metrics input cell_ids must be a nonempty unique list of strings')
     result = dict(value)
+    if 'ret_reference' in value:
+        from experiments.ret_reference_policy import resolve_reference as resolve_ret_reference
+        if value['stage'] != 'retrain_diagnostics':
+            raise ConfigurationError('ret_reference experiment settings belong to retrain_diagnostics')
+        result['ret_reference'] = resolve_ret_reference(value['ret_reference'], source=True)
     refs = value['dataset_refs']
     if not isinstance(refs, list) or not refs:
         raise ConfigurationError('dataset_refs must be a nonempty list')
@@ -552,8 +564,21 @@ def load_experiment(path):
         if len({spec['name'] for spec in specs}) != len(specs):
             raise ConfigurationError('duplicate observer for method')
         validate_capabilities(method, specs, policies.get(method, 'reuse'))
+    references = [item for item in result['unlearnings'] if 'reference' in item]
+    if references:
+        if methods != {'Retrain'} or len(references) != len(result['unlearnings']) or policies.get('Retrain') != 'disabled':
+            raise ConfigurationError('new references require Ret-only unlearning with gu_cache=disabled')
+        if {item['reference']['policy'] for item in references} != {'ret-deterministic-v1'}:
+            raise ConfigurationError('one new reference invocation needs deterministic policy')
+        if observer_specs(result, 'Retrain') != [{'name':'ret_reference_trace','parameters':{}}]:
+            raise ConfigurationError('new Ret reference requires exactly ret_reference_trace Observer')
+        if any(s['method'] in IM_METHODS or s['method'].startswith('tracin_cp_') for s in result['selectors']):
+            raise ConfigurationError('new Ret references require prepared single-checkpoint target-direct selectors')
+    elif observer_specs(result, 'Retrain'):
+        raise ConfigurationError('Ret Observer requires an explicit new reference policy')
     if value['stage'] == 'retrain_diagnostics':
-        result['observers'] = [{'methods': ['Retrain'], 'instance': {'name': 'retrain_validation_trace', 'parameters': {}}}]
+        name = 'ret_reference_trace' if 'ret_reference' in result else 'retrain_validation_trace'
+        result['observers'] = [{'methods': ['Retrain'], 'instance': {'name': name, 'parameters': {}}}]
     result['source_directory'] = str(path.parent)
     # Validate matrix axes while parsing, including during the ordinary dry-run.
     validate_repeats(result)
