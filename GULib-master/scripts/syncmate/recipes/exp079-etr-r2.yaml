@@ -1,0 +1,27 @@
+schema_version: 1
+id: exp079-etr-r2
+runner: experiment
+config_path: experiments/configs/exp079/surrogate_multiseed_etr.yaml
+config_sha256: 65e0e79e840caf49fb66bdd64969bb9b8027af6c09400847c4d2bf1f0970b501
+configuration_fingerprint: 737214e8d942bad4fcb096c6926bd8adeb8e5ea25f87910f4dcb90c7f36a1e9f
+run_identity:
+  experiment_id: exp079-surrogate-multiseed
+  run_id: e79etr2
+timeout_seconds: 21600
+logical_cells: 720
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

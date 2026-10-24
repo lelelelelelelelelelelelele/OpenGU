@@ -1,0 +1,27 @@
+schema_version: 1
+id: exp011-etr-r2
+runner: experiment
+config_path: experiments/configs/aagu011/table02_etr.yaml
+config_sha256: 702ade7186a7338b11613346af8e7c499eff6d5e652b450ec71b160f364ba49c
+configuration_fingerprint: c1b2ab9c7ec2d56b7709bb16f32200687e0927145c51e458597acc686a65650c
+run_identity:
+  experiment_id: exp011-t2
+  run_id: e11etr2
+timeout_seconds: 21600
+logical_cells: 414
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
