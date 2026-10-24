@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp085-retrain-remaining
+runner: experiment
+config_path: experiments/configs/exp085/retrain_remaining.yaml
+config_sha256: 9d2d57f9c2e325fb577185873c6e9682a537d78e6f139b57b6dcd50591f5565b
+configuration_fingerprint: 2564f1e1f269e5e8ee9a4673c6bd8694913c3e9835a842401063e32c2a1bb24e
+run_identity:
+  experiment_id: exp085-response-diagnostics
+  run_id: e85rtr1
+timeout_seconds: 1800
+logical_cells: 6
+stage: retrain_diagnostics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

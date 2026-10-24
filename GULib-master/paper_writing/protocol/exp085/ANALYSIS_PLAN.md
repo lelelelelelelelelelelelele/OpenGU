@@ -1,0 +1,100 @@
+# Ret 固定训练轨迹：冻结分析方案草稿
+
+状态：`frozen_before_ret_dispatch`。本方案于 2026-10-24T01:05:45+00:00（UTC）在正式运行前固定。冻结不代表已部署、派发或取得科学结果；写作门槛仍为 `not_met`。
+
+## 1. 问题与固定范围
+
+回答：CiteSeer 33% 删除时，既有 3000 轮 Ret 的终轮是否对训练轮次敏感；这一边界是否影响 B 对 Ret 响应的解释。范围固定 R-point、Random、Degree × seed 42、212、2024，共九条。Dataset/Split 沿用源实验，源 `dataset_index=1`；当前单 Dataset 配置索引为 0 时，也必须通过完整 fingerprint 唯一匹配，不能直接覆盖源条件。
+
+旧来源为 EXP-080/e80r305，run SHA256 `c3749e44045e0b770c95ceea066c68d1892c9a99d57377dd286f61c863ab7582`，执行 SHA `a217daf5c67b485afed63c393b5e8bb23820b237`。九条 Output、Selection、全部有序删除节点及旧 test 指标逐一存入 `FROZEN_RET_INPUTS.json`；每请求 768/2328 个训练节点，Dataset 共 3327 节点、固定 test 666 节点。源文件通过既有 TrustedRun 的 job、handoff、delivery、verification 和可信索引检查，不凭文件存在或统计表挑选来源。
+
+## 2. 训练与选择协议
+
+- 只运行显式 `retrain_diagnostics` stage，恢复旧 Output 的模型、训练参数、请求和 seed。禁止新增 Selector、Original 或 GU；不更新旧 Output，不声明新旧训练源码兼容。
+- 固定 3000 轮，保留原训练参数。每轮在 retained 训练图、原 split 的 validation mask 上记录 post-update eval accuracy/CE；train CE 为 pre-update train-mode CE，二者含义不得混用。
+- best 仅取 validation accuracy 最大的最早一轮；final 固定 epoch 3000。test 不参与选择，只在训练结束后测两个预定端点，使用原图及原 test mask。
+- 同时保留 old-final、new-final、validation-best 三类 test accuracy/CE。best 不改名为旧 Ret，也不因 test 更好替换主参照。
+- tiny CPU 实现验证须已证明 observer 不改变 RNG、优化器更新及最终权重；这属于 AAGU-110 的工程证据，不能当九条正式 Ret 已完成。
+
+## 3. 两批执行与预算
+
+| 批次 | 固定范围 | run / Recipe | 全 MISS 工程估计 | timeout | 轻量回传 |
+|---|---|---|---:|---:|---:|
+| pilot | seed42 三策略 | e85rtg1 / exp085-retrain-pilot | 420 秒 = 180 + 80×3 | 1800 秒 | 13 文件 |
+| remaining | seed212、2024 六条 | e85rtr1 / exp085-retrain-remaining | 660 秒 = 180 + 80×6 | 1800 秒 | 25 文件 |
+
+总预算 1080 秒为低置信串行工程估计，不使用旧 HIT 访问时间估算训练成本；排队、传输和只读资产审计另记实际耗时。pilot 的三条在 complete 分析中精确复用，不重复训练。先完成 A 确认及所有按冻结条件触发的 A/B 旧 Original 权重控制，再部署共享训练链变更。
+
+pilot 的用途是技术和新旧 final 一致性检查。只要 B 仍为核心且解释删除数据造成的 Ret 响应，无论 seed42 是否触发，都补完其余六条；不能选择性扩展。若核心地位撤销，根任务须先记录原因与范围变更，不能将三条 pilot 的无触发写成九条无问题。
+
+## 4. 预定量化与阈值
+
+每条完整 trace 必须恰有 epoch 1…3000，逐轮保留 train CE、validation CE/accuracy、更新学习率。缺轮、重复/乱序、非有限数、非正学习率均失败。独立重算最早 best、固定 final 和末段窗口，核对 Observer 摘要与 metrics。
+
+优化敏感触发为以下任一条件成立：
+
+1. best validation accuracy − final validation accuracy ≥ 0.01，即 1 个百分点。
+2. epoch 2501–3000 的平均 validation CE ≥ 1.10 × epoch 2001–2500 的平均 validation CE。
+
+窗口基值为零时：零到正值触发；两个窗口都为零不触发，并将相对增幅标记为 null/明确状态，不除零。触发只说明固定训练协议的优化敏感性；未触发不证明收敛、无过拟合或 Ret 为理论最优。
+
+逐条报告 best epoch、两端点 validation accuracy/CE、两个 500 轮窗口、触发原因、best−final test accuracy/CE、new-final−old-final test accuracy，以及全节点/test argmax 变化数、最大绝对 logit 差、权重 state hash 是否一致。输出完整 27000 行轨迹和 27 行端点表；pilot 为 9000/9 行。
+
+R-point−Random 与 R-point−Degree 在同 seed 内配对，对 old-final/new-final/best 各自计算 test accuracy 百分点差及 CE 差。仅给三 seed 描述性均值/样本 SD 和完整逐 seed 值；不把 3000 个 epoch、666 个测试节点当独立重复，不宣称统计功效。三 seed 是固定 split 下请求/训练联合重复，不是三个独立数据集。
+
+另在开跑前固定同源的全部 18 个 GIF/MEGU GU Output（九请求×两方法），逐一与三类 Ret 端点比较，共 54 条配对端点记录。GU 使用原保存预测；MEGU 明确为 updated+C&S，不混称 raw。用已有 exact Output reader、exact_retrain 配对检查和 CE 实现，不训练、不 forward、不补 Original。每对输出 GU/Ret 正确性的 00/01/10/11 四格计数，且每格再给预测不同的计数；特别是 00 格中两模型均错但可以预测相同或不同，不能只从四格边际猜 D。本地从整数计数独立重建 D 和双方 accuracy，保留双方 CE。
+
+每个 method×seed 计算三个 Ret 角色的 R-point−Degree、R-point−Random 的 D 百分点差，并计算 best−old-final 对该请求差的改变量；同时保留每一对 D(best)−D(old-final)。不以 Ret accuracy 变化代替 GU–Ret D 的直接计算。pilot 的六个 GU 对只用于同三条 Ret；complete 固定十八对，不能看到敏感性才挑选方法或请求。
+
+全类别解释维度明确标记为 **post-hoc descriptive**：它是在查看 B 第一层组成线索后、正式 Ret 运行前新增的探索性解释，不是预注册机制发现或因果证据。对全部六个类别、全部十八对及 old-final/final/best 输出同样的四格正确性/分歧计数及 CE，不只选某个类别。类别数据来自精确 Dataset 真值，不回传逐节点预测或标签；类别节点数之和必须为 666，所有整数计数逐项还原全局，CE 按节点数加权还原全局。缺失类别仍须保留零计数/null 率，不能丢弃。此维度不改变训练、选模、seed 或任何触发阈值。
+
+## 5. 技术接纳与不可解释差异
+
+接纳顺序固定为：冻结文件及哈希 → 正式回传 TrustedRun → 完整矩阵和来源 → 完整 trace/固定选择 → 另行只读资产审计 → 科学解释。任何步骤失败保留失败 attempt，停止接纳；不能跳过正式回传验收。
+
+`analyze_ret.py` 要求精确 execution SHA、正式 frozen manifest SHA、源 Dataset fingerprint/index、全部有序请求、旧 Output recipe/content/id、Observer/Ret producer fingerprint、配置/Recipe SHA、13/25 文件范围及全部事件。producer_called 必须 selection=false、original=false、method=true，method cache 必须 disabled。
+
+`audit_ret_endpoints.py` 在正式运行结束且 runner idle 后只读执行：精确 run/hash 和安装 SHA；用既有 reader 读取旧不可变 Output 与原 Dataset/Split；重新读取 best/final 纯权重和 NPZ，核对文件/state hash、形状/类型/有限性；由保存 logits 独立重算 test accuracy/CE、旧新 final 预测差；确认 cache index 与运行文件未变化。只输出 JSON，不训练、forward、改写 cache 或导出新模型。它证明保存资产及比较的一致性，不额外声称独立重新 forward 已通过。
+
+本地分析必须显式传入该审计 JSON 及其 SHA，并与 TrustedRun 的 run、cell、结果文件、Output、端点 hash 逐项绑定；不能用未绑定的 `passed` 字样。审计输出需保留真实执行记录和远端原始字节哈希，根任务采用正式只读回传方式留存，不手写或补造回执。
+
+自动通过新旧 final 复现必须同时满足：state hash 相同、全节点/test argmax 改变均 0、最大绝对 logit 误差为 0。任何差异均量化保留，并返回 `stop_unexplained_final_difference`，暂停后续扩展和科学推断。不能简单归因 CUDA 随机性；需要具体环境/程序证据后由根任务审查解释，必要新协议须先记录再执行。本脚本不提供放宽阈值或忽略差异开关。
+
+旧表 CE 与 CPU 重算/跨设备汇总的数值一致性仅采用既有分析容差 atol=2e-6、rtol=2e-6；accuracy 容差 1e-12。该容差用于校验同一 logits 的统计聚合，不适用于放过旧新 final 的 logit/权重差异。
+
+## 6. 完成决策与论文含义
+
+| 状态 | 允许的下一步 | 不允许的结论 |
+|---|---|---|
+| 任意身份/回传/资产/trace 检查失败 | 保留证据，修复技术路径后按同协议处理 | 科学接纳、缺失单元按零处理 |
+| 新旧 final 存在差异 | 停止扩展，解释差异后再由根任务决定 | 把新轨迹直接解释为原 Ret 的训练历史 |
+| pilot 三条有效且 final 精确复现 | B 为核心则完成其余六条 | seed42 无触发意味着全局训练无问题 |
+| 九条完成且有触发 | 重新审查 B：注明固定训练边界，完整展示三个端点 | 用 best 替换旧参照后宣称原机制更强 |
+| 九条完成且均无触发 | 仅排除本协议两项阈值所捕捉的现象 | 证明 Ret 已收敛或是绝对 gold standard |
+
+本范围只有 33% Ret，不能独自重建 B 的 5%→33% GU–Ret 变化，也不能由 Ret test accuracy 推出 GU 遗忘失败。即使 33% 的 best 参考下 R-point−Degree/Random 的 D 对比保留，也只能说明该固定比例的参考敏感性；5% 未进行同规则选模，因此不自动证明完整新参考下的预算交互。重判基于全部十八对直接预测比较，不凭 Ret utility 猜测。
+
+`writing_gate` 一律保持 `not_met`；待根任务整合 A 确认、B 完整控制及 Ret 诊断，并通过 V/C/E/I/P 和理论/实验/分析三类复审均 ≥ Weak Accept 后才可改为 pass。工程通过与写作验收分离。
+
+## 7. 正式文件、复验与命令接口
+
+配置位于 `experiments/configs/exp085/retrain_pilot.yaml`、`retrain_remaining.yaml`；Recipes 位于 `scripts/syncmate/recipes/exp085-retrain-pilot.yaml`、`exp085-retrain-remaining.yaml`。本目录 `RET_EXECUTION_FREEZE.json` 记录旧草稿冻结哈希、提升时间、实际验证源码 SHA、所有来源与正式文件哈希。分析器 ROOT 按本目录位置解析。
+
+提升时的候选源码预验不能替代最终 main 复验和正式 preflight。根任务提交正式文件后，用 `promote_ret.py --verify-existing --validation-source-root <canonical> --validation-source-sha <final_SHA40>` 重新执行原生配置/Recipe与分析测试，保留独立回执。该操作不修改冻结 manifest。执行 SHA 以正式 run、传入分析器的精确 SHA 和最终复验回执为准，不把候选 SHA 冒称实验执行版本。
+
+先完成 A 确认及所有按冻结条件触发的 A/B 旧 Original 权重控制，再部署训练链变更。A 的 e84c1 独立确认未通过，按原协议降为探索案例，其核心解释20对分支不触发；这不改变B的完整控制范围或Ret的九条固定轨迹。根任务完成 Work Plan 预算、安装、三端 SHA 对齐及 preflight。当前只固定实验方案，不表示这些前置工作已完成。
+
+正式运行完成且 runner idle 后，只读资产审计：
+
+```text
+python paper_writing/protocol/exp085/audit_ret_endpoints.py --repo-root <active_checkout> --run results/runs/exp085-response-diagnostics/e85rtg1/run.json --run-sha256 <trusted_run_SHA256> --expected-commit <execution_SHA40> --frozen-manifest paper_writing/protocol/exp085/RET_EXECUTION_FREEZE.json --frozen-sha256 <manifest_SHA256>
+```
+
+既有 TrustedRun helper 只在本地 `helper_for` 使用时校验固定哈希；远端 `check_frozen` 不要求部署 ignored helper。只读审计 JSON 及原始字节 SHA 正式回传后本地分析：
+
+```text
+python paper_writing/protocol/exp085/analyze_ret.py --frozen-manifest paper_writing/protocol/exp085/RET_EXECUTION_FREEZE.json --frozen-sha256 <manifest_SHA256> --expected-commit <execution_SHA40> --scope pilot --endpoint-audit <pilot_JSON> <audit_SHA256>
+python paper_writing/protocol/exp085/analyze_ret.py --frozen-manifest paper_writing/protocol/exp085/RET_EXECUTION_FREEZE.json --frozen-sha256 <manifest_SHA256> --expected-commit <execution_SHA40> --scope complete --endpoint-audit <pilot_JSON> <audit_SHA256> --endpoint-audit <remaining_JSON> <audit_SHA256>
+```
+
+输出到本目录 `analysis/pilot/` 或 `analysis/complete/`，包括九个 CSV、DECISION.json、REPORT.md/html 和 GU_reference/REPORT.md/html。全部六类维度保持 post-hoc descriptive，固定十八个 GU 对照和三个 Ret 角色；33% 敏感性不代表新参考下完整 5%→33% 预算交互。目录存在即拒绝覆盖，失败证据与首次结果均需留存。

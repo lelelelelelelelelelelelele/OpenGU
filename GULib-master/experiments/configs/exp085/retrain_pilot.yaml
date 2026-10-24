@@ -1,0 +1,14 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp085-response-diagnostics
+stage: retrain_diagnostics
+dataset_refs:
+- citeseer.yaml
+output_inputs:
+- run: ../../../results/runs/exp080-cc-base/e80r305/run.json
+  sha256: c3749e44045e0b770c95ceea066c68d1892c9a99d57377dd286f61c863ab7582
+  cell_ids:
+  - 75f233089c59f824a6f8
+  - 97526b2fbc3d9cdcd548
+  - b1a39ba3565cff37b320
+matrix: cartesian_product
