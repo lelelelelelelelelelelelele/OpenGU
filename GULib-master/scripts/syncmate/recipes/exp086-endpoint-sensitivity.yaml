@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp086-endpoint-sensitivity
+runner: experiment
+config_path: experiments/configs/exp086/endpoint_sensitivity.yaml
+config_sha256: d71665d9a5494a9ce467d96a6fd514169024c79c7e8829f331f1938b47a00499
+configuration_fingerprint: 6c38ae066a963f88c4c4203465a0e58151f6e98eab7d49d18d012ad7b94e1619
+run_identity:
+  experiment_id: exp086-endpoint-sensitivity
+  run_id: e86m1
+timeout_seconds: 3600
+logical_cells: 36
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

@@ -1,0 +1,212 @@
+kind: experiment
+schema_version: 1
+stage: metrics
+matrix: cartesian_product
+experiment_id: exp086-endpoint-sensitivity
+dataset_refs:
+- citeseer.yaml
+output_inputs:
+- run: ../../../results/runs/exp080-cc-base/e80r305/run.json
+  sha256: c3749e44045e0b770c95ceea066c68d1892c9a99d57377dd286f61c863ab7582
+  cell_ids:
+  - e8368348f4b616e47b09
+  - b53532a2fac25ee6e27b
+  - 3f50faaf2d520d90d772
+  - f528264d15d647922a2b
+  - 510f1ab6c9e2305392ba
+  - ee8e6789229b92d33d39
+  - dbaf439d796804db26ad
+  - bf4c5601037de44ecf72
+  - 9fe1cab7ba5159802ffc
+  - 366a8f4203fd4fd8429c
+  - e8a43b55924f545b02e3
+  - 49c5d98ee0cb56980a98
+  - 16791545334e3d83c2c2
+  - 35fbeb7264debf61161f
+  - 39a0e224e9e5e9f1e00f
+  - 5322dbbcf84a2dbee300
+  - fea448a71416b5657316
+  - f38d011a1825d37c3693
+  - 18eaf06fd55a0b8a641b
+  - e57c1cabf18a1f8c643e
+  - e0f53eeb7796756e46d1
+  - 81e5e8cb3bd0fb988dbe
+  - 33902a06d7ce09005e58
+  - f42fe00e2ff64881ad2d
+  - b5fb04576bd611bc9ff4
+  - 4cffb53db63aafe571f4
+  - 0abf1aa15b7e9765744a
+  - c0557400d0347d68b5e3
+  - 5a6a260975d69965f9fe
+  - c64b5eac8aa16bd25f73
+  - 1cd2bbb36563d72b5f30
+  - 96148a2bd63ef48bdee4
+  - 13894ab893248801268d
+  - f1d75a3b2d144882e65b
+  - a9f0fd19d19bd5ac1eec
+  - 1283305208a5ab91c188
+ret_endpoint_inputs:
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 16adbc3ef1dfb456f074
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: eeb34ad3837d2b9ec720
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 64e00c03a07d0ecd4731
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 9a864d1f61eb3496eedd
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 9fe39bf993cb978266fd
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 712fccff2ee02707b7f8
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 71f6e0a46c8b6e114a9e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 697698e4fa15b902fff7
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 1d6fb6770edd7be233e6
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 9cb0475363b7dd0068fa
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: f58072e78b23ad3faa32
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 393e10284addb442741c
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 774d9bb0b1ef47264cf3
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 55d0d467979e13e0a3fb
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: c527474ae7881b0c714a
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 8ca168ee0c6495f947c6
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 022e11ad41f526fe5a8f
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp086-ret-reference-audit/e86r1/run.json
+  sha256: e4620791df5caa589c3e5220e52834cbb6912ffc73b4787d6c4f91420436a85a
+  cell_id: 49b9a69248035442b19e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+evaluation_refs:
+- post_unlearning_ret_endpoint_sensitivity.yaml

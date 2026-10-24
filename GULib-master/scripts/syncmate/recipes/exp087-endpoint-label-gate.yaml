@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-endpoint-label-gate
+runner: experiment
+config_path: experiments/configs/exp087/endpoint_label_gate.yaml
+config_sha256: d16c9cac0a752dbbc2706c59b1431b3647a177c8dc7bfbaaafd1c4306ded3938
+configuration_fingerprint: a531a57bb91c77ef8afe042a252752c4e4c4db761055e5c0c1df687884e3492f
+run_identity:
+  experiment_id: exp087-endpoint-label-gate
+  run_id: e87eg1
+timeout_seconds: 1800
+logical_cells: 4
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
