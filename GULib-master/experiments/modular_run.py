@@ -249,7 +249,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                     with audit.phase('model_prepare'):
                         model, checkpoints, observation = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
                         checkpoint_root=checkpoint_root, device=device, reference_directory=directory,
-                        **({'fail_if_training':True} if reference_only else {}))
+                        **({'fail_if_training':True} if reference_only or item['method'] == 'overlap_profile_r_point' else {}))
                 if item['method'] in IM_METHODS:
                     from experiments.modular_im import resolve_im
                     from experiments.modular_rr import resolve_rr
