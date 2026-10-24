@@ -1,0 +1,16 @@
+kind: selector
+schema_version: 1
+method: overlap_profile_r_point
+candidate:
+  pool: train_mask
+budget:
+  mode: ratio
+  value: 0.01
+parameters:
+  matching_seed: 55
+  overlap_seed: 55
+  profile_counts:
+  - 116
+  - 768
+training:
+  seed: 73007

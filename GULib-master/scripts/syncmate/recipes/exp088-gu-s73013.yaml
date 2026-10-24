@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp088-gu-s73013
+runner: experiment
+config_path: experiments/configs/exp088/gu_seed73013.yaml
+config_sha256: 7ba1a9ebe302a8bd6c8b669832b52b9a3193d0e0a5d463a30e2633d3983f72bb
+configuration_fingerprint: 2a2438290d85bc60274aa39102da675c222133441af32c2e505c6458b81d5d1f
+run_identity:
+  experiment_id: exp088-gu-s73013
+  run_id: e88g05
+timeout_seconds: 1800
+logical_cells: 6
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

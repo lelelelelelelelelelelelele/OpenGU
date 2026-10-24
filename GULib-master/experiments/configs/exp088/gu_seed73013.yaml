@@ -1,0 +1,18 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp088-gu-s73013
+stage: unlearning
+dataset_refs:
+- citeseer_seed2025.yaml
+selector_refs:
+- ./full/seed73013/profile_44.yaml
+- ./full/seed73013/profile_55.yaml
+- ./full/seed73013/profile_66.yaml
+unlearning_refs:
+- ../exp087/full/seed73013/gif.yaml
+parameter_profile_ref: gif_idea_fixed_pt.yaml
+matrix: cartesian_product
+budget_ratios:
+- 0.05
+- 0.33
+return_scores: false
