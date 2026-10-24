@@ -350,9 +350,15 @@ def test_all_active_methods_match_pre_refactor_formulas(tables, record_property)
         for suffix, view in [('3','cp3'), ('6','cp_all')]:
             expected['tracin_cp_' + source + '_' + suffix] = weighted_checkpoint_scores(vectors,
                 [item['update_lr'] for item in checkpoints], views[view])
+    from experiments.target_direct_v1.class_matching import class_prefix_matched_order, ordinal_scores
+    from experiments.c_target_v1.core import stable_ranking
+    candidate_list = candidates.cpu().tolist()
+    matched = class_prefix_matched_order(candidate_list, data.y[candidates].cpu().tolist(),
+        stable_ranking(candidate_list, expected['r_point']), 44)
+    expected['class_matched_r_point'] = ordinal_scores(candidate_list, matched)
     selectors = []
     for name in SCORE_NAMES:
-        p = resolve_parameters(name)
+        p = resolve_parameters(name, {'matching_seed': 44} if name == 'class_matched_r_point' else None)
         if 'lissa' in p:
             p['lissa'] = lissa
         if 'hutchinson' in p:
