@@ -6,6 +6,8 @@ from cache_v2 import canonical_sha256
 from experiments.ret_reference_policy import ARMS, DETERMINISTIC, OBSERVED
 from experiments.observers.ret_reference import AUDIT_EPOCHS
 
+METRICS = {'final_accuracy', 'final_cross_entropy', 'repetitions'}
+
 
 def validate_trace(document, trace, reference, cell):
     if (document.get('identity') != reference['identity'] or document.get('status') != 'completed'

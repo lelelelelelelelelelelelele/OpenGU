@@ -135,7 +135,7 @@ def acceptance_payload(profile, definition, context):
                     expected_metrics = []
                     if config['stage'] == 'retrain_diagnostics':
                         if config.get('ret_reference'):
-                            from experiments.ret_reference_training import METRICS
+                            from experiments.ret_reference_reading import METRICS
                             expected_metrics = [('ret_reference_trace', METRICS)]
                         else:
                             from experiments.retrain_diagnostics import METRICS

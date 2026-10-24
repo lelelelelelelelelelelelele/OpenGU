@@ -7,9 +7,6 @@ from experiments.modular_model import create_model, train_supervised
 from experiments.ret_reference_policy import training_graph, environment
 from utils.target_checkpoint import data_identity, state_hash
 
-METRICS = {'final_accuracy', 'final_cross_entropy', 'repetitions'}
-
-
 def reference_identity(instance, data, nodes):
     spec = instance['reference']
     trained, validation = training_graph(data, nodes, spec['arm'])
