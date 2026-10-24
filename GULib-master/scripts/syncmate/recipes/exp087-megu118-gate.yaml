@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-megu118-gate
+runner: experiment
+config_path: experiments/configs/exp087/megu118_gate.yaml
+config_sha256: 8d298858e9600270820188eefc061d98ab6288e260622d34d751dfa375a63e68
+configuration_fingerprint: 5795ab8f1e97a71bf910043baff4ae3943374689a4af65349ddb7d1cafea0b29
+run_identity:
+  experiment_id: exp087-megu118-gate
+  run_id: e87mg1
+timeout_seconds: 1800
+logical_cells: 2
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

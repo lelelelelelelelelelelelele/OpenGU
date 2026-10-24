@@ -1,0 +1,20 @@
+kind: unlearning
+schema_version: 1
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  seed: 73039
+checkpoint: ../../../../../results/runtime/modular/e87x2/unlearning/45f54b6dd65c19154cd0b2b8d74558633e4dddaafec30ae0173d5bcc01195591/reference_assets/reference/final.pt
+deletion:
+  evaluation_graph: original
+method: MEGU
+parameters:
+  unlearning_epochs: 50
+  kappa: 0.01
+  alpha1: 0.8
+  alpha2: 0.5
+  GNN_layer: 3
+  unlearn_lr: 0.05
+  unlearn_weight_decay: 0.0001
