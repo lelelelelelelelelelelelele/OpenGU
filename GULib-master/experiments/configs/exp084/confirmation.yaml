@@ -1,0 +1,26 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp084-gnndelete-checkpoint-audit
+stage: unlearning
+dataset_refs:
+- cora.yaml
+selector_refs:
+- r_point_sgc.yaml
+- gt_full_sgc.yaml
+- degree.yaml
+unlearning_refs:
+- gnndelete.yaml
+- retrain.yaml
+evaluation_refs:
+- post_unlearning_utility_and_retrain_gap.yaml
+- post_unlearning_flip_hop.yaml
+matrix: cartesian_product
+seeds:
+- 1701
+- 1709
+- 1721
+- 1733
+- 1741
+budget_ratios:
+- 0.1
+return_scores: false

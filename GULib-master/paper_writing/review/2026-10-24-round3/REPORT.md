@@ -1,6 +1,6 @@
 # 第三轮：正式执行、候选发现与写作门槛
 
-2026-10-24 08:34（Asia/Shanghai）快照。实时状态由 Work Plan 的 EXP-084／EXP-085 维护。
+2026-10-24 08:31（Asia/Shanghai）快照。实时状态由 Work Plan 的 EXP-084／EXP-085 维护。
 
 **当前判断：writing_gate=not_met。** GNNDelete 的验证集选模修复已合并部署，原十 seed 的限定重算已可信完成，顺序交叉通过预定恢复判据。但五个新 seed 的独立确认、A自身解释、B解释控制及Ret质量尚未闭合，不能将论文评为Weak Accept。尚未开始英文科研正文。
 

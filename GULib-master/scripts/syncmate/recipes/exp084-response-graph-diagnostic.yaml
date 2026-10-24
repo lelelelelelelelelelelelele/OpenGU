@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp084-response-graph-diagnostic
+runner: experiment
+config_path: experiments/configs/exp084/diagnostic_main.yaml
+config_sha256: 1321261d6a9858a2ebaafb40c07e1a1800a9bafc40a147451bcd2f295d27c701
+configuration_fingerprint: 2d5f90881d6754f4624a4e9b0e0ae37dfdce40963cd9c544f57befed7f93df39
+run_identity:
+  experiment_id: exp084-gnndelete-checkpoint-audit
+  run_id: e84d1
+timeout_seconds: 3600
+logical_cells: 20
+stage: metrics
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

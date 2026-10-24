@@ -1,0 +1,32 @@
+{
+  "run_id": "e84c1",
+  "seeds": [
+    1701,
+    1709,
+    1721,
+    1733,
+    1741
+  ],
+  "protocol_sha256": "d329095471847cb720d64c721df27e0f9363f2e0af3065dbefe30d0947124d40",
+  "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e",
+  "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+  "config_path": "experiments/configs/exp084/confirmation.yaml",
+  "config_sha256": "e65b1ad8fe67e2d80139d5ae4c5241dc2da5ff18aef2aea362be4996b5fa5576",
+  "evidence": [
+    {
+      "path": "self/research/experiments/drafts/round3-execution-prep/e84r1/DECISION.json",
+      "sha256": "505c8696bd3e6d664fee20018cab8bb4886103bef91d4eefeff2f7a153993b42"
+    },
+    {
+      "path": "self/research/experiments/drafts/round3-execution-prep/a-confirmation/REMOTE_SEED_MANIFEST_AUDIT.json",
+      "sha256": "0f9a3224f3e390a86a4d1a021aa7e292694dc1b710f3825bcdeca6197770e38b"
+    },
+    {
+      "path": "self/research/experiments/drafts/round3-execution-prep/a-confirmation/REMOTE_SEED_SCHEMA_RESOLUTION.json",
+      "sha256": "b4ef917acd0f1816ca7b91058a056e28cff866e715e9b36779e6b4f51e3632fd"
+    }
+  ],
+  "decision_rule": "all five seeds; joint direction >=4/5; deltaR CI97.5 lower>0 and deltaG CI97.5 upper<0",
+  "budget_seconds": 7025,
+  "timeout_seconds": 14400
+}

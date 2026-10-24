@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp085-graph-main
+runner: experiment
+config_path: experiments/configs/exp085/graph_main.yaml
+config_sha256: edbd54ba5132f427d4b919f29be315ce4afbebadfe05d887d8abe7bb49d2c59e
+configuration_fingerprint: 41e10f5f779c0e0b4d54b1e579127a8d0701b7c410db1a1be2a2a96e199b9304
+run_identity:
+  experiment_id: exp085-response-diagnostics
+  run_id: e85gr1
+timeout_seconds: 3600
+logical_cells: 36
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

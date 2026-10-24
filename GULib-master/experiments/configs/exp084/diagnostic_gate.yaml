@@ -1,0 +1,18 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp084-gnndelete-checkpoint-audit
+stage: metrics
+dataset_refs:
+- cora.yaml
+evaluation_refs:
+- post_unlearning_response_diagnostics.yaml
+- post_unlearning_response_graph_sensitivity.yaml
+matrix: cartesian_product
+output_inputs:
+- run: ../../../results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json
+  sha256: 3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307
+  cell_ids:
+  - 6c93cf4ae67e9a646e8f
+  - 63b1b51f3c83b3972bb3
+  - 58c4501eff6ffccbe09b
+  - f1f92422751044159a10

@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp085-graph-gate
+runner: experiment
+config_path: experiments/configs/exp085/graph_gate.yaml
+config_sha256: a0f3436d63e57215e4ba46879169c89710245ab87e3db12a4ffa7a8e9e75352a
+configuration_fingerprint: ea34d141e5e889d00595804fabff839d785db6c23e0909c6e07ea96918b3ec6b
+run_identity:
+  experiment_id: exp085-response-diagnostics
+  run_id: e85gg1
+timeout_seconds: 1800
+logical_cells: 2
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

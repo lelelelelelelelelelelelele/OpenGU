@@ -3,7 +3,7 @@
   "sources": [
     {
       "source": "outline\\OUTLINE.md",
-      "sha256": "47426869df6a7685f6b199e63fdda1f7c21adb8572282f1b4fd4c09bc332fe01"
+      "sha256": "e0d602751bb9194ec05036ab7a94297fe19c38fc1a6b88fe3778c7cd7024ac2b"
     },
     {
       "source": "outline\\OUTLINE.v4.md",
@@ -18,15 +18,23 @@
       "sha256": "d329095471847cb720d64c721df27e0f9363f2e0af3065dbefe30d0947124d40"
     },
     {
+      "source": "protocol\\ROUND3_STAGE2_ADDENDUM.md",
+      "sha256": "b69f0690bf7b8563f92dea2a53ff6fbd2a05cf431f23278789a5403d8ab13000"
+    },
+    {
+      "source": "protocol\\STAGE2_PRELAUNCH_REVIEW.md",
+      "sha256": "1efbad8736ffc1cdb71208add166b0e4058fcfa0f2c6dc709bc3535d705514da"
+    },
+    {
       "source": "README.md",
       "sha256": "1a9179aec0e4c893708a57de063a87514970d3fa743de2dc93d55426830b4034"
     },
     {
       "source": "review\\2026-10-24-round3\\REPORT.md",
-      "sha256": "9a4add83656fa3db94117eca18115ba4cb3d9d554f8683792f5708cef257403b"
+      "sha256": "de82835118117818669d5d4b7f39045c6667db9fec4be5f48372a8bfd4639e0d"
     }
   ],
-  "local_links_checked": 189,
+  "local_links_checked": 192,
   "outline_writing_units": {
     "**核心目标（要说什么）：**": 102,
     "**准备怎么说：**": 102,

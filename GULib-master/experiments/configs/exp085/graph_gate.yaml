@@ -1,0 +1,16 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp085-response-diagnostics
+stage: metrics
+dataset_refs:
+- citeseer.yaml
+output_inputs:
+- run: ../../../results/runs/exp080-cc-base/e80r305/run.json
+  sha256: c3749e44045e0b770c95ceea066c68d1892c9a99d57377dd286f61c863ab7582
+  cell_ids:
+  - b1a39ba3565cff37b320
+  - 9fe1cab7ba5159802ffc
+  - 49c5d98ee0cb56980a98
+evaluation_refs:
+- post_unlearning_response_graph_sensitivity.yaml
+matrix: cartesian_product

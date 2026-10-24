@@ -1,0 +1,54 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp084-gnndelete-checkpoint-audit
+stage: metrics
+dataset_refs:
+- cora.yaml
+evaluation_refs:
+- post_unlearning_response_diagnostics.yaml
+- post_unlearning_response_graph_sensitivity.yaml
+matrix: cartesian_product
+output_inputs:
+- run: ../../../results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json
+  sha256: 3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307
+  cell_ids:
+  - 6c93cf4ae67e9a646e8f
+  - 63b1b51f3c83b3972bb3
+  - 58c4501eff6ffccbe09b
+  - f1f92422751044159a10
+  - 9b66b4049ac6ab5eaea9
+  - 05e1b2f1d8550f4e309f
+  - 47b7a81a98fa983cd24a
+  - b40432ff56a9b3090254
+  - 105fe6c8619787ef3c8c
+  - a2d921aa1c60ac8e7a56
+  - 9f2b1fa937a2cc2b2f2d
+  - 2e48d0e6989f14ca593f
+  - 4b15b61006633d096680
+  - e477485101dbe7ac810a
+  - d26b7368820bb5f1bd7c
+  - 4e14af5487453e037642
+  - 5478e8085eeec966be13
+  - c9749be4974cc30c4c87
+  - f6a7e6e39fab245783bb
+  - ae98d89557fdce7814fa
+  - 20fb6b8c389967414af4
+  - 5cab282bbe3a18566a2e
+  - b5b50ff2df6fbe97b07b
+  - 8530388de85d303a10cb
+  - ec44d161748c55c51bbf
+  - 121db981515f9cd76316
+  - 32dab306af632808aae5
+  - 4b5cd9694d52bb806ae1
+  - a2d495f6cd7baa9963fd
+  - ac8daea7a2c27e813cca
+  - 2a9563b9d007c24c5a0a
+  - 7dd02482395bd810643f
+  - 8091fe5ee251782e4067
+  - a2006b27981e955932ac
+  - f7ad5cffe5fee577539f
+  - 0c5d0b59a446330446be
+  - 0c5af2219079c06fa918
+  - 47b521a4f0e8c4f65a3d
+  - dba712f13a45cb5c8f26
+  - 3a73fae55f81bcdf2799

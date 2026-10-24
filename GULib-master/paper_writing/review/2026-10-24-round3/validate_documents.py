@@ -26,7 +26,8 @@ class Page(HTMLParser):
 
 sources = [WRITING / x for x in (
     'outline/OUTLINE.md', 'outline/OUTLINE.v4.md', 'outline/OUTLINE.v5.md',
-    'protocol/ROUND3_EXECUTION_PROTOCOL.md', 'README.md',
+    'protocol/ROUND3_EXECUTION_PROTOCOL.md', 'protocol/ROUND3_STAGE2_ADDENDUM.md',
+    'protocol/STAGE2_PRELAUNCH_REVIEW.md', 'README.md',
     'review/2026-10-24-round3/REPORT.md')]
 errors, checked = [], []
 links = 0
@@ -65,6 +66,10 @@ if len(set(counts.values())) != 1 or '详细提纲 v6' not in outline:
 freeze = json.loads((WRITING / 'protocol/PROTOCOL_FREEZE.json').read_text(encoding='utf-8-sig'))
 if freeze['sha256'] != sha256((WRITING / 'protocol/ROUND3_EXECUTION_PROTOCOL.md').read_bytes()).hexdigest():
     errors.append('frozen protocol hash mismatch')
+stage2 = json.loads((WRITING / 'protocol/STAGE2_FREEZE.json').read_text(encoding='utf-8'))
+for item in stage2['files']:
+    if sha256((ROOT / item['path']).read_bytes()).hexdigest() != item['sha256']:
+        errors.append('second-stage frozen file differs: ' + item['path'])
 result = {'passed': not errors, 'sources': checked, 'local_links_checked': links,
           'outline_writing_units': counts, 'errors': errors,
           'visual_check': 'not performed; structural checks only'}

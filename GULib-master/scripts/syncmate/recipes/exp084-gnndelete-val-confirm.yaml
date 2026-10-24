@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp084-gnndelete-val-confirm
+runner: experiment
+config_path: experiments/configs/exp084/confirmation.yaml
+config_sha256: e65b1ad8fe67e2d80139d5ae4c5241dc2da5ff18aef2aea362be4996b5fa5576
+configuration_fingerprint: bc0ad7995901185fe9dbf035e112dd2b142f48e6c2585a3f8e338a36b22f1fbc
+run_identity:
+  experiment_id: exp084-gnndelete-checkpoint-audit
+  run_id: e84c1
+timeout_seconds: 14400
+logical_cells: 30
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

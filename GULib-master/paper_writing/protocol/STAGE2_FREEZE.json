@@ -1,0 +1,75 @@
+{
+  "version": "stage2-1.1",
+  "frozen_at": "2026-10-24T08:34:59.996045+08:00",
+  "prior_freeze": {
+    "path": "paper_writing/protocol/STAGE2_FREEZE.pre-lf.json",
+    "sha256": "9dcdbfe3a07a8d67884ca00a9e1c1400c37b5197c31596d33996a76f011e04a4"
+  },
+  "revision_reason": "Before any dispatch: normalize newly authored YAML to LF and rebind config/Recipe byte hashes; scope, seeds, metrics, budgets and scientific decisions unchanged.",
+  "parent_protocol_sha256": "d329095471847cb720d64c721df27e0f9363f2e0af3065dbefe30d0947124d40",
+  "phase": "before_any_stage2_dispatch",
+  "writing_gate": "not_met",
+  "final_execution_gate": "still required: accepted merge, native dry-run/assembly, exact three-end SHA, formal preflight",
+  "files": [
+    {
+      "path": "paper_writing/protocol/ROUND3_STAGE2_ADDENDUM.md",
+      "sha256": "b69f0690bf7b8563f92dea2a53ff6fbd2a05cf431f23278789a5403d8ab13000"
+    },
+    {
+      "path": "paper_writing/protocol/STAGE2_PRELAUNCH_REVIEW.md",
+      "sha256": "1efbad8736ffc1cdb71208add166b0e4058fcfa0f2c6dc709bc3535d705514da"
+    },
+    {
+      "path": "paper_writing/protocol/exp084/FROZEN_CONFIRMATION.json",
+      "sha256": "fd4df73272c091c6d9bf253864eaf774cbe3dd7305afde61ac5669f7be1429ba"
+    },
+    {
+      "path": "self/research/experiments/drafts/round3-execution-prep/analyze_a_confirmation.py",
+      "sha256": "01fb4fb873d52e3f05ee86d6afc0a049fbb41df599e2556f0e164669f1241faf"
+    },
+    {
+      "path": "experiments/configs/exp084/confirmation.yaml",
+      "sha256": "e65b1ad8fe67e2d80139d5ae4c5241dc2da5ff18aef2aea362be4996b5fa5576"
+    },
+    {
+      "path": "experiments/configs/exp084/diagnostic_gate.yaml",
+      "sha256": "b80501f7a599c5cd37fb59a8022a5ec89385b665e5eb21ba1f32e6508890415e"
+    },
+    {
+      "path": "experiments/configs/exp084/diagnostic_main.yaml",
+      "sha256": "1321261d6a9858a2ebaafb40c07e1a1800a9bafc40a147451bcd2f295d27c701"
+    },
+    {
+      "path": "experiments/configs/exp085/graph_gate.yaml",
+      "sha256": "a0f3436d63e57215e4ba46879169c89710245ab87e3db12a4ffa7a8e9e75352a"
+    },
+    {
+      "path": "experiments/configs/exp085/graph_main.yaml",
+      "sha256": "edbd54ba5132f427d4b919f29be315ce4afbebadfe05d887d8abe7bb49d2c59e"
+    },
+    {
+      "path": "experiments/configs/evaluations/post_unlearning_response_graph_sensitivity.yaml",
+      "sha256": "3e323d37a2dd91d6558f6e00129b8c05c1f96ff782b39650d05416072e83032f"
+    },
+    {
+      "path": "scripts/syncmate/recipes/exp084-gnndelete-val-confirm.yaml",
+      "sha256": "f70cf79d688f04207cbea94da309891b8e4f70c264f494de27a128f0210d15c3"
+    },
+    {
+      "path": "scripts/syncmate/recipes/exp084-response-graph-gate.yaml",
+      "sha256": "ed7625bb39cb7e6b28f65bf5455bda25f9ec614e64fce6d23f9cb42ad2cec413"
+    },
+    {
+      "path": "scripts/syncmate/recipes/exp084-response-graph-diagnostic.yaml",
+      "sha256": "4654de39ae2f04939a26552f6d8f69f87b27cc5ba33b4850eae16f7955ea9fa4"
+    },
+    {
+      "path": "scripts/syncmate/recipes/exp085-graph-gate.yaml",
+      "sha256": "4343461525e2e58724ec3abf76caa526714ece5de7fe9cb44fa5573dca39afe4"
+    },
+    {
+      "path": "scripts/syncmate/recipes/exp085-graph-main.yaml",
+      "sha256": "730eaf6c1a406c10e643962a0a620035392143ff7f11427ad2511b7b2e6a8ee4"
+    }
+  ]
+}
