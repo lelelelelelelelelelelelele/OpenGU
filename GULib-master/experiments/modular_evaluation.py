@@ -13,14 +13,21 @@ from experiments.node_deletion import retrain_pairing_matches
 
 from experiments.response_diagnostics import METRICS as RESPONSE_METRICS
 from experiments.response_graph_sensitivity import CASE as GRAPH_CASE, METRICS as GRAPH_METRICS
+from experiments.ret_endpoint_metrics import CASE as ENDPOINT_CASE, METRICS as ENDPOINT_METRICS
 
 
 CASES = {
+    ENDPOINT_CASE: {
+        'metrics': ENDPOINT_METRICS,
+        'required_inputs': ('method_output', 'persisted_original_predictions', 'explicit_ret_endpoints'),
+        'consumers': ('modular_v1',),
+        'producer_version': 'saved-original-ret-endpoints-v1',
+    },
     GRAPH_CASE: {
         'metrics': GRAPH_METRICS,
         'required_inputs': ('method_output', 'exact_retrain_same_selection', 'saved_weights', 'exact_original_checkpoint'),
         'consumers': ('modular_v1',),
-        'producer_version': 'fixed-weight-graph-cs-diagnostics-v1',
+        'producer_version': 'fixed-weight-graph-cs-diagnostics-v2',
     },
     'post_unlearning_response_diagnostics': {
         'metrics': RESPONSE_METRICS,
@@ -104,6 +111,7 @@ def _formula_functions(case):
     from experiments.unlearning_outputs import utility
     if case == GRAPH_CASE:
         from experiments.response_graph_sensitivity import graph_sensitivity, restore_original, reproduction_policy
+        from experiments.response_diagnostics import prediction_triangle, prediction_by_label, cross_entropy
         from experiments.unlearning_outputs import load_output, restore_model
         from experiments.modular_model import create_model
         from experiments.modular_megu import megu_logits
@@ -112,7 +120,7 @@ def _formula_functions(case):
         from model.base_gnn.deletion import GCNDelete, DeletionLayer
         from experiments.node_deletion import retained_graph
         from utils.target_checkpoint import load_cached_weights
-        return [graph_sensitivity, restore_original, reproduction_policy, load_output, restore_model,
+        return [graph_sensitivity, prediction_triangle, prediction_by_label, cross_entropy, restore_original, reproduction_policy, load_output, restore_model,
                 create_model, GCNNet, GCNDelete, DeletionLayer, megu_logits, MEGUTrainer.correct_and_smooth, retained_graph, load_cached_weights]
     if case == 'post_unlearning_response_diagnostics':
         from experiments.response_diagnostics import response_diagnostics, prediction_triangle, cross_entropy, request_composition
@@ -180,12 +188,17 @@ def _pair(instance, identity, candidates):
 
 
 def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verified_outputs=(), dataset_root=None, audit=None,
-                     retrain_rows=(), loaded_outputs=None, checkpoint_root=None, device=None):
+                     retrain_rows=(), loaded_outputs=None, checkpoint_root=None, device=None, endpoint_config=None):
     from contextlib import nullcontext
     from experiments.evaluation_cache import describe_output, evaluation_request, cached_measurements, phase
     from experiments.unlearning_outputs import load_metric_output, load_output
     from experiments.execution_audit import cache_fact
     require_consumer(instance, 'modular_v1')
+    if instance['case'] == ENDPOINT_CASE:
+        if endpoint_config is None:
+            raise ConfigurationError('Ret endpoint Metrics requires explicit bound experiment inputs')
+        from experiments.ret_endpoint_metrics import evaluate
+        return evaluate(instance, unlearning_rows, config=endpoint_config, store_root=store_root, dataset_root=dataset_root)
     full = instance['case'] == GRAPH_CASE
     if full and (checkpoint_root is None or device is None):
         raise ConfigurationError('graph diagnostics requires explicit checkpoint root and execution device')

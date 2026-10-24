@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from experiments.effective_config import ConfigurationError
-from experiments.response_diagnostics import prediction_triangle, response_diagnostics
+from experiments.response_diagnostics import prediction_triangle, prediction_by_label, response_diagnostics
 from experiments.unlearning_outputs import restore_model
 from experiments.modular_model import create_model
 from experiments.modular_megu import megu_logits
@@ -198,6 +198,7 @@ def graph_sensitivity(output,retrain,*,checkpoint_root,device,original_checkpoin
     values={key:None for key in METRICS}
     outputs={}
     checks={}
+    by_label={}
     for graph_name,graph in graphs.items():
         with torch.no_grad():
             current={k:_raw_logits(model,graph,deletion_masks if k=='updated_raw' else None) for k,model in models.items()}
@@ -228,6 +229,7 @@ def graph_sensitivity(output,retrain,*,checkpoint_root,device,original_checkpoin
         for name,(o,g) in triangles.items():
             measured=prediction_triangle(o[mask],g[mask],current['retrain_raw'][mask],a['y'][mask])
             values.update({graph_name+'_graph_'+name+'_'+k:v for k,v in measured.items()})
+            by_label.setdefault(graph_name,{})[name]=prediction_by_label(o[mask],g[mask],current['retrain_raw'][mask],a['y'][mask])
         from experiments.response_diagnostics import cross_entropy
         for endpoint in ENDPOINTS:
             if endpoint not in current:
@@ -256,7 +258,8 @@ def graph_sensitivity(output,retrain,*,checkpoint_root,device,original_checkpoin
         if endpoint in outputs['original']:
             values[endpoint+'_graph_disagreement_count']=int(np.count_nonzero(outputs['original'][endpoint][mask].argmax(1)!=outputs['retained'][endpoint][mask].argmax(1)))
     from utils.target_checkpoint import tensor_hash
-    protocol=dict(version='fixed-weight-two-graphs-matched-cs-v1',first_layer=first_protocol,
+    protocol=dict(version='fixed-weight-two-graphs-matched-cs-v2',first_layer=first_protocol,
+        class_order='zero_based_label_id',by_label=by_label,
         checkpoint=checkpoint,state_hashes=states,graphs=graph_hashes,
         reproduction_policy=reproduction_policy(),reproduction_observations=checks,
         evaluation_mask='unchanged_test_mask_excluding_selected',

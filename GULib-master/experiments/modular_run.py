@@ -188,7 +188,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                             or payload['pairing']['training']['seed'] != cell['conditions']['seed']):
                         raise ConfigurationError('metrics source conditions differ from remote output')
                     original_checkpoint = cell.get('cache_provenance', {}).get('original_checkpoint')
-                    portable[matches[0]['data_identity']['split_hash']].append((reference, payload, None, cell['conditions'], original_checkpoint))
+                    portable[matches[0]['data_identity']['split_hash']].append((reference, payload, None, cell['conditions'], original_checkpoint, cell['cell_id']))
                     summary['metric_sources'][cell['cell_id']] = {'output': reference,
                         'selection_document': document['selection.json'], 'original_checkpoint': original_checkpoint,
                         'source': cell.get('source', {'experiment_id': previous['experiment_id'], 'run_id': previous['run_id']})}
@@ -199,8 +199,8 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
             total = len(config['evaluations'])
             notify_event(notify, 'progress', position=position, current=0, total=total)
             for evaluation_index, item in enumerate(config['evaluations']):
-                result = evaluate_modular(item, [{'output':v[0], 'conditions':v[3], 'original_checkpoint':v[4]} for v in portable[datasets[index]['data_identity']['split_hash']]], store_root=store_root, data=data,
-                    dataset_root=dataset_root, audit=audit, checkpoint_root=checkpoint_root, device=context.request_device)
+                result = evaluate_modular(item, [{'output':v[0], 'conditions':v[3], 'original_checkpoint':v[4], 'cell_id':v[5]} for v in portable[datasets[index]['data_identity']['split_hash']]], store_root=store_root, data=data,
+                    dataset_root=dataset_root, audit=audit, checkpoint_root=checkpoint_root, device=context.request_device, endpoint_config=config)
                 summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
                 notify_event(notify, 'progress', position=position, current=evaluation_index + 1, total=total)
         summary['selector_producer_called'] = False

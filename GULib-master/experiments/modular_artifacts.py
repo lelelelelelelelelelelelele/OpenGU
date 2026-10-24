@@ -96,6 +96,9 @@ def planned_cells(config):
                 method = (gu['method'] + '_' if gu else '') + selector['method']
                 cells.append({'cell_id': cell_id, 'path': f'cells/{coordinate}/{_slug(method)}_{cell_id}/seed{seed}',
                               'conditions': conditions})
+    if config.get('ret_endpoint_inputs'):
+        from experiments.ret_endpoint_metrics import planned_pairs
+        planned_pairs(config)
     if len({c['cell_id'] for c in cells}) != len(cells):
         raise ValueError('duplicate result cell identity')
     return cells
@@ -259,7 +262,7 @@ def export_outputs(summary, *, config, context, run):
                             cell['timing'][label + '_access_seconds'] = cache['access_seconds']
                             cell['producer_called'][label] = cache['producer_called']
                         item = {'stage': evaluation['effective_config']['case'], 'values': measured['metrics']}
-                        if evaluation['effective_config']['case'] in ('post_unlearning_flip_hop', 'post_unlearning_response_diagnostics', 'post_unlearning_response_graph_sensitivity'):
+                        if evaluation['effective_config']['case'] in ('post_unlearning_flip_hop', 'post_unlearning_response_diagnostics', 'post_unlearning_response_graph_sensitivity', 'post_unlearning_ret_endpoint_sensitivity'):
                             item.update(evaluation_receipt_id=measured['evaluation_receipt_id'],
                                         identity=measured['identity'])
                         if 'retrain_output' in measured['identity']:
@@ -387,6 +390,18 @@ def read_run(path, expected_sha256):
                 raise ValueError('invalid metrics document')
             for row in values['metrics.json']['rows']:
                 allowed = {'stage', 'values', 'baseline_output'}
+                if row.get('stage') == 'post_unlearning_ret_endpoint_sensitivity':
+                    from cache_v2 import canonical_sha256
+                    from experiments.ret_endpoint_metrics import validate_inputs
+                    allowed |= {'evaluation_receipt_id', 'identity'}
+                    identity = row.get('identity', {})
+                    endpoints = identity.get('ret_endpoints', {})
+                    validate_inputs([endpoints.get('input')])
+                    if (identity.get('case') != row['stage'] or identity.get('unlearning_output') != cell.get('output')
+                            or identity.get('metrics') != sorted(row['values']) or not identity.get('protocol')
+                            or set(endpoints.get('endpoints', {})) != {'final', 'best'}
+                            or row.get('evaluation_receipt_id') != 'evalr_' + canonical_sha256(identity)[:32]):
+                        raise ValueError('Ret endpoint metric identity mismatch')
                 if row.get('stage') in ('post_unlearning_flip_hop', 'post_unlearning_response_diagnostics', 'post_unlearning_response_graph_sensitivity'):
                     from cache_v2 import canonical_sha256
                     allowed |= {'evaluation_receipt_id', 'identity'}
