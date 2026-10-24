@@ -1,2 +1,4 @@
 # Generated PDFs, auxiliary files, and local validation logs.
 /latex/build/
+# Working Ret analyses are archived with source hashes in the round review bundle.
+/protocol/exp085/analysis/
