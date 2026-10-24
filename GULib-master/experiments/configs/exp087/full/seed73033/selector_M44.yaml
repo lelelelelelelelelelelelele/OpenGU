@@ -1,0 +1,12 @@
+kind: selector
+schema_version: 1
+method: class_matched_r_point
+candidate:
+  pool: train_mask
+budget:
+  mode: ratio
+  value: 0.01
+parameters:
+  matching_seed: 44
+training:
+  seed: 73033
