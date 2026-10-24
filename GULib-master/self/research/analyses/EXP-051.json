@@ -28,18 +28,22 @@
   "attempts": [],
   "analysis": {
     "state": "review",
-    "note": "分布分析已交付，报告决定为待决定。",
+    "note": "150个输出条件与分布分析已交付，当前只待科学审阅和决定；这不是待合并的开发候选。原始301文件的历史核验曾通过，但2026-10-13清理核查未定位其归档位置；现有分析、审计和回执仍保留，本次未重新验证原始文件。",
     "evidence": [
       {
         "label": "结果与分析报告",
         "path": ".workblock/items/AAGU-051/REPORT.md"
+      },
+      {
+        "label": "原开发分支已清理及原始文件定位缺口",
+        "path": ".workblock/items/AAGU-051/evidence/branch-cleanup-20261013/cleanup.json"
       }
     ]
   },
   "decision": {
     "state": "pending",
-    "note": "实验定义、执行交付与科学判断分别记录。",
+    "note": "科学决定归EXP-051维护，仍待定；执行完成和旧开发分支清理不等于科学接受。",
     "evidence": []
   },
-  "recorded_at": "2026-09-22"
+  "recorded_at": "2026-10-25"
 }
