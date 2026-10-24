@@ -1,11 +1,13 @@
 # WWW27 本地写作工作区
 
-本目录用于提纲审查、证据修复和后续论文写作。2026-10-24：详细提纲v6已纳入正式EXP-084重算，保留摘要、八章正文及附录的段落层级。旧GNNDelete输出继续隔离；新十seed顺序交叉为待五新seed确认与解释控制的候选发现。第一版科研正文须等有效证据包经理论、实验、分析三类复审均达到Weak Accept或以上，并由主审认可后才开始，当前门槛未达到。
+本目录用于提纲审查、证据修复和后续论文写作。2026-10-24：详细提纲v7保留102组逐段写作安排。A五个新seed未达到冻结确认标准，已降为探索；B完成预测真值、两图与C&S控制；Ret pilot三条新旧终轮均不一致，按冻结规则暂停其余六条。第一版科研正文须等有效证据包经理论、实验、分析三类复审均达到Weak Accept或以上，并由主审认可后才开始，当前门槛未达到。
 
 - [OUTLINE.md](outline/OUTLINE.md)：本轮待审提纲的可编辑源文件；每段列目标、写法与关键边界，每幅主图列内容、布局和caption要素。
 - [OUTLINE.html](outline/OUTLINE.html)：由同一提纲生成的阅读版。
+- [v7审后勘误](outline/OUTLINE_REVIEW_ADDENDUM.html)：更正四处残留的待补状态，与冻结v7一同阅读；不更改科学判定。
 - [第三轮执行协议](protocol/ROUND3_EXECUTION_PROTOCOL.html)：固定范围、判断与停止规则、A/B分支和正式写作门槛；[可编辑源](protocol/ROUND3_EXECUTION_PROTOCOL.md)。
 - [第三轮执行报告](review/2026-10-24-round3/REPORT.html)：实际完成的CPU分析／代码验证、正式GPU执行状态、预算和下一步；[可编辑源](review/2026-10-24-round3/REPORT.md)。
+- [最终共同复审输入](review/2026-10-24-round3/REVIEW_INPUTS.html)：固定提纲及146份归档证据，保留失败和解释边界；[全部输入哈希](review/2026-10-24-round3/REVIEW_INPUTS.json)。
 - [第二轮审查与处置](review/2026-10-24-round2/REPORT.html)：当前判断、三份独立模拟审稿、20项意见处置及恢复证据的最小路径；[可编辑源](review/2026-10-24-round2/REPORT.md)。
 - [第一轮提纲自审报告](review/2026-10-24-self-audit/REPORT.html)：理解修正、完整实验层次、新CPU分析与Weak Accept补强判断；[可编辑源](review/2026-10-24-self-audit/REPORT.md)。
 - [最小补强验证方案](review/2026-10-24-self-audit/VALIDATION_PLAN.html)：第一轮114引用规格，尚未执行；A组受影响GU暂停，B组54引用可优先推进，当前分支以第二轮报告为准。

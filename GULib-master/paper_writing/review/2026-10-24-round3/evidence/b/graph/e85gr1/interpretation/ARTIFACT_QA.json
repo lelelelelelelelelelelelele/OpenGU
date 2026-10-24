@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "validation_manifest_sha256": "d53272996eee9197b281d5469b37fc89c88d442edac7e162b6b7011c87996eab",
+  "md_html_source_hash": "matched",
+  "source_and_output_hashes": "matched",
+  "figures_checked": [
+    "strategy_graph_controls.png",
+    "ret_only_truth.png",
+    "megu_cs_controls.png"
+  ],
+  "pdf_headers": "passed",
+  "unicode_replacement_characters": 0,
+  "budget_direction_groups": 12,
+  "budget_positive_seeds_each": 3,
+  "max_metric_check_error": 1.981657060667885e-08,
+  "visual_review": "all three PNGs viewed; axes, legends, category order, shared scales and labels readable",
+  "scope": "visual and report artifact QA, not another scientific acceptance"
+}

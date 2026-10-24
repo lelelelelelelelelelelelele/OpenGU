@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="source-sha256" content="b4fb77b987f15dcab2375203349bdd5c24c0e3a50c466aab3dd3b3fce7012c01"><title>第三轮独立模拟复审：分析、统计与推断边界</title><style>:root{color-scheme:light;--ink:#24313e;--muted:#667382;--line:#d7e0e7;--accent:#175b80}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f2f5f7;color:var(--ink);font:16px/1.85 system-ui,'Microsoft YaHei',sans-serif}.layout{max-width:1440px;margin:auto;padding:34px 28px 90px;display:grid;grid-template-columns:235px minmax(0,1fr);gap:34px}nav{position:sticky;top:30px;align-self:start;font-size:13px}nav strong{display:block;font-size:17px;line-height:1.5;margin-bottom:14px}nav a{display:block;padding:8px 0;border-bottom:1px solid var(--line);color:var(--muted);text-decoration:none}.meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}main{min-width:0;padding:40px 46px;background:white;border:1px solid var(--line)}h1{font-size:29px;line-height:1.4;margin:0 0 24px}h2{font-size:22px;line-height:1.5;margin:42px 0 18px;padding-top:16px;border-top:2px solid #b5cbd7;scroll-margin-top:20px}h3{font-size:18px;margin:27px 0 12px}h4{font-size:16px;color:var(--accent);margin:22px 0 10px}p{margin:13px 0}li{margin:8px 0}a{color:var(--accent);text-underline-offset:3px}code{font-size:.87em;background:#edf2f6;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{padding:16px;background:#edf2f6;overflow:auto}pre code{padding:0;background:none;overflow-wrap:normal}blockquote{border-left:4px solid #b5cbd7;margin:20px 0;padding:1px 20px;color:#3b5263;background:#f5f8fa}.table-scroll{overflow:auto;margin:22px 0}table{border-collapse:collapse;min-width:610px;width:100%;font-size:14px;line-height:1.75}th,td{border:1px solid var(--line);padding:11px 13px;text-align:left;vertical-align:top}th{background:#eaf1f6}tr:nth-child(even) td{background:#f8fafb}img{max-width:100%;height:auto}footer{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}@media(max-width:960px){.layout{display:block;padding:16px}nav{position:static;margin:0 0 20px}nav a{display:inline-block;margin-right:14px}main{padding:25px 20px}h1{font-size:25px}}@media print{body{background:white}.layout{display:block;padding:0}nav{display:none}main{border:0;padding:0}h2,h3,h4{break-after:avoid}table{font-size:10px;min-width:0}a{color:inherit}}
+nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-width:960px){nav{max-height:none;overflow:visible;padding-right:0}}</style></head>
+<body><div class="layout"><nav><strong>OpenGU · Paper Writing</strong><p class="meta">2026-10-24<br>由 Markdown 源文件生成</p><a href="#pw-doc-section-1">1. 冻结输入与独立复核</a>
+<a href="#pw-doc-section-2">2. 我认可的当前认识，以及不能合并的三个量</a>
+<a href="#pw-doc-section-3">3. V／C／E／I／P 逐项判断</a>
+<a href="#pw-doc-section-4">4. 关键缺口一：Ret 参照家族的训练解释尚未闭合</a>
+<a href="#pw-doc-section-5">5. 关键缺口二：条件检查的数量不能替代核心认识的适用对象</a>
+<a href="#pw-doc-section-6">6. 只需改写或编排，不应据此继续加实验</a>
+<a href="#pw-doc-section-7">7. 最终判断与评分改变条件</a><p><a href="ANALYSIS_REVIEW.md">编辑用源文件</a></p></nav><main><h1 id="section">第三轮独立模拟复审：分析、统计与推断边界</h1>
+<p>2026-10-24。此为作者内部模拟复审，不是真实会议评审。只根据本轮冻结共同输入判断，未读取另外两位复审者的报告或评分；未新增实验、修改实验状态、提纲或冻结清单。</p>
+<p><strong>评分：Borderline。</strong> 相比第二轮，核心的计数解释、同权重两图和 MEGU 后处理控制已实质完成。B 已经超出“准确率不等于 fidelity”的口号，提供了明确的策略×预算关系及其预测关系组成。但作为当前唯一核心候选，它仍依赖一个训练解释未闭合的 Retrain 参照家族；新增控制多数是同一批输出的条件检查，不能补足这一缺口。因此本轮仍未达到我认可的 Weak Accept。</p>
+<p>我不将“新旧 final 不逐位相同”自动等同于旧结果无效，也不要求所有描述性经验论文都证明因果、达到统计显著或完成多数据划分。评分依据是剩余缺口对<strong>本论文主要新增认识</strong>的影响，不是工作量、运行成功数或是否遵守一个任意的显著性门槛。</p>
+<h2 id="pw-doc-section-1">1. 冻结输入与独立复核</h2>
+<p>共同输入：<a href="REVIEW_INPUTS.md">REVIEW_INPUTS.md</a>／<a href="REVIEW_INPUTS.json">REVIEW_INPUTS.json</a>；提纲：<a href="../../outline/OUTLINE.md">v7</a>。本轮先核验再读取：</p>
+<ul>
+<li>输入 JSON SHA-256：<code>6c4b057b4243bfe0b5ae304ba4ab6dd03293e9838999f7a43293ccb57209aca0</code>。</li>
+<li>提纲 SHA-256：<code>49dce39a0e44c0b5da4910853266c204cf0605b663cac393cee1394c469f4d33</code>。</li>
+<li>清单内全部 <strong>153 项哈希一致</strong>。这确认了共同输入身份，不等于逐个重验远端模型或重新认证科学采用状态。</li>
+</ul>
+<p>实际读取了 v7、执行／Ret 分析协议、A 两阶段决定及确认逐 seed 表、B 第一层完整解释和直接计数分解、两图／C&amp;S 全范围、Ret pilot 的端点与原因边界、011／079／080 支持范围及图稿 proof。没有开展新文献检索；近邻比较按冻结包已核对的 §5.5/Fig.2、§5.6/Table10 范围使用，不声称覆盖全部文献。</p>
+<p>另用本地只读计算核对了以下完整表，而非仅接受报告中的有利摘要：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>独立复核对象</th>
+<th>本轮结果</th>
+<th>能证明的范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>e85r1：36 个端点、1,440 个关系×真值格</td>
+<td>每端点 40 格合计 666；三 accuracy 与三种 D 全部重建，最大绝对差约 9.72×10⁻¹⁷</td>
+<td>持久化计数与端点表内部一致</td>
+</tr>
+<tr>
+<td>e85r1：24 条逐 seed 请求差、12 条预算交互</td>
+<td>从端点计数重新作差，最大误差约 1.07×10⁻¹⁴ pp</td>
+<td>固定预算差与差中之差的分解正确</td>
+</tr>
+<tr>
+<td>e85gr1：180 个三角、7,200 个真值格</td>
+<td>同样完整重建，最大绝对差约 9.72×10⁻¹⁷</td>
+<td>已回传三角统计一致；不是全部 logits 或跨图节点连接的本地复验</td>
+</tr>
+<tr>
+<td>e85gr1 非重复控制切片</td>
+<td>12 个条件×3 seed 的 36 个预算交互均为正，最小为 +5.706 pp</td>
+<td>所测条件方向保留；36 行不是 36 次独立科学重复</td>
+</tr>
+<tr>
+<td>MEGU matched_cs 对 published</td>
+<td>36 对的 D(G,R) 差为 0</td>
+<td>G/R 没有变化的定义关系，不是第三种独立稳健性证据</td>
+</tr>
+<tr>
+<td>A 确认及 Ret pilot</td>
+<td>A 五 seed 的联合方向确为 3/5；Ret pilot 三策略各有 1…3000 共 9,000 行，三个 final 均不精确复现旧端点</td>
+<td>保持原决定：A not_confirmed；Ret remaining 未完成且不能自动续跑</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="pw-doc-section-2">2. 我认可的当前认识，以及不能合并的三个量</h2>
+<p>当前可成立的描述性认识是：<strong>在这组 CiteSeer 固定 split、请求构造和训练协议中，R-point 相对指定 Random／Degree 的 GU–Ret 分歧差由 5% 到 33% 增大；原图 published 流水线中，这个请求差及其预算增量的主要正向计数项都是 O=G≠R，而非由单条件总 D 的占比间接推断。</strong> 两图和 raw／published 控制保留了高预算方向，但改变幅度，并提供低预算排序反向。</p>
+<p>这里至少有三个不同估计对象：</p>
+<ol>
+<li><strong>总 D 份额</strong>：一个请求内 <code>n(O=G≠R)/n(G≠R)</code>；原图 33% R-point 的逐 seed 比值均值为 GIF 96.89%、MEGU 92.54%。它本身不说明 R-point 相对基线的差分组成。</li>
+<li><strong>固定预算请求差</strong>：<code>D(R-point,33%)−D(baseline,33%)</code>；三种互斥不等关系分别作差，分量可为负。</li>
+<li><strong>预算交互</strong>：上述请求差在 33% 与 5% 之间再作差；不是同一请求的连续删除轨迹，也不是新增分歧节点的追踪。</li>
+</ol>
+<p>新提供的<a href="evidence/b/first_layer/decomposition/FIRST_LAYER_DECOMPOSITION.md">直接分解</a>解决了第二轮一个实质问题：<strong>第 2、3 项现在都有直接计数证据</strong>，不应继续以“只有总 D 占比”为由否定它们。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>原图 published，均值 pp</th>
+<th style="text-align: right;">33% 请求差</th>
+<th style="text-align: right;">其中 O=G≠R 项</th>
+<th style="text-align: right;">5%→33% 交互</th>
+<th style="text-align: right;">其中 O=G≠R 项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GIF，相对 Random</td>
+<td style="text-align: right;">14.615</td>
+<td style="text-align: right;">14.114</td>
+<td style="text-align: right;">14.064</td>
+<td style="text-align: right;">14.014</td>
+</tr>
+<tr>
+<td>GIF，相对 Degree</td>
+<td style="text-align: right;">16.517</td>
+<td style="text-align: right;">16.266</td>
+<td style="text-align: right;">15.065</td>
+<td style="text-align: right;">15.065</td>
+</tr>
+<tr>
+<td>MEGU，相对 Random</td>
+<td style="text-align: right;">14.815</td>
+<td style="text-align: right;">15.315</td>
+<td style="text-align: right;">15.015</td>
+<td style="text-align: right;">15.265</td>
+</tr>
+<tr>
+<td>MEGU，相对 Degree</td>
+<td style="text-align: right;">17.117</td>
+<td style="text-align: right;">17.217</td>
+<td style="text-align: right;">16.216</td>
+<td style="text-align: right;">16.266</td>
+</tr>
+</tbody>
+</table></div>
+<p>全部 12 条 33% 逐 seed 请求差及全部 12 条交互中，O=G≠R 都是最大的正向分量。MEGU 的该分量可超过净差，因为其他项抵消；这是有符号计数分解，<strong>不能称“超过 100% 的因果贡献”或概率份额</strong>。三端点真值进一步区分 Ret 纠错、O/G 对而 Ret 错、以及两者均错，这比只说“Ret 在移动”更有信息。</p>
+<p><a href="evidence/b/graph/e85gr1/interpretation/REPORT.md">控制报告</a>也确实收窄了适用范围：GIF 33% 的 R-point−Degree 从原图 16.517 pp 降到保留图 9.259 pp；5% 则从 +1.451 变为 −0.751 pp，后者三 seed 都负。MEGU R-point 33% 的真实 raw→updated+C&amp;S 对 D(G,R) 的影响为 −2.803／−0.801 pp；Random 33% 保留图为 +0.501 pp。不能将 C&amp;S 影响概括为零或总能降低分歧。</p>
+<p>matched_cs 只把 O 改成 O+C&amp;S，改变的是 O–G、O–R 与关系分类，G/R 的共同距离天然不变。它有助于解释“接近哪个 Original”，没有增加一份 D(G,R) 稳健性确认。给定固定 pseudo labels 和 anchors 的四端点控制，也不等于穷尽重新生成 pseudo labels 的所有 MEGU 变体。</p>
+<h2 id="pw-doc-section-3">3. V／C／E／I／P 逐项判断</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>判断</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>V 有效性</strong></td>
+<td><strong>有限描述可用；核心参照解释尚未完全通过</strong></td>
+<td>A 修复后的结果与旧输出分离，B 计数及控制可重建，未见本次表内错配。Ret pilot 的旧／新 final 差异阻止其被接纳为旧训练历史，但尚不构成“旧 B 数值错误”的证明。不能把工程接收或哈希一致提升为参考质量认证。</td>
+</tr>
+<tr>
+<td><strong>C 贡献</strong></td>
+<td><strong>边界，未充分达到</strong></td>
+<td>具体策略×预算交互及其真值组成有信息量，强于普通 fidelity 分离和同预算策略差；但目前主要认识仍是有限实现与固定参照下的条件诊断。参照训练敏感性是否改变这一信息，是其能否形成独立重要认识的关键。A 不能补足这一项。</td>
+</tr>
+<tr>
+<td><strong>E 证据强度</strong></td>
+<td><strong>描述较强，总体推断有限</strong></td>
+<td>两基线、全部七预算背景、两图和后处理反例充分；n=3 是联合选点／训练重复，Random／Degree 请求复用，GIF／MEGU 共享 Ret。同一批权重的多个控制和 36 个正值不能按独立重复累加。独立 B 确认尚无，但这不是对所有有限描述的自动否决。</td>
+</tr>
+<tr>
+<td><strong>I 解释与边界</strong></td>
+<td><strong>部分通过，关键缺口仍在</strong></td>
+<td>总 D／额外 D／预算交互已分开，O/G/R 与真值、图语义及 C&amp;S 边界清楚。Ret 训练历史及完整参考敏感性未闭合；类别监督耗损仍是事后关联，未证明它导致 Ret 下降。</td>
+</tr>
+<tr>
+<td><strong>P 可写性</strong></td>
+<td><strong>有条件可写，最终采用尚需收紧</strong></td>
+<td>主张—CSV—分解—反例可追溯，三张控制图已有可读通栏复制版。原图小字失败仍保留；复制版高度约 5.5–6.55 英寸，不证明它们加其他图可放入 3.70 页 Results。提纲仍含少量过时“待补”及条件插槽，属编辑问题。</td>
+</tr>
+</tbody>
+</table></div>
+<p>以上不是数字打分，也不取平均。<strong>总评 Borderline，writing gate 未达到我方 Weak Accept 门槛。</strong></p>
+<h2 id="pw-doc-section-4">4. 关键缺口一：Ret 参照家族的训练解释尚未闭合</h2>
+<p><strong>严重性：高；涉及 Q2-P2/P5、D-P2、A-P3/A-P4。</strong></p>
+<p>最强异议是：论文唯一核心候选将预算交互的主要正项定位到 O=G≠R，而这一认识最直接依赖 Ret 的行为。已完成的两图及 C&amp;S 控制能说明保存模型在不同评价条件下怎样表现，不能判断旧 3000 轮 Ret 的差异在一个明确、可复核的训练／选模规则下是否仍保留。</p>
+<p>但不能夸大 pilot 的反证力度。<a href="evidence/retrain/pilot/DECISION.json">pilot 决定</a>确为三个新 final 均不复现旧 final，测试预测变化为 10／9／9 个，原因未定；新轨迹均触发 validation accuracy 敏感阈值。它<strong>不能回推旧轨迹过拟合、欠训练，也不能直接宣布 B 消失</strong>。完整<a href="evidence/retrain/pilot/gu_request_contrasts.csv">GU 参照对照</a>给出了更细的事实：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>seed42、33%，请求差 pp</th>
+<th style="text-align: right;">old-final Ret</th>
+<th style="text-align: right;">new-final Ret</th>
+<th style="text-align: right;">新轨迹 validation-best Ret</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GIF，R-point−Random</td>
+<td style="text-align: right;">17.267</td>
+<td style="text-align: right;">17.718</td>
+<td style="text-align: right;">13.063</td>
+</tr>
+<tr>
+<td>GIF，R-point−Degree</td>
+<td style="text-align: right;">20.871</td>
+<td style="text-align: right;">21.171</td>
+<td style="text-align: right;">15.465</td>
+</tr>
+<tr>
+<td>MEGU，R-point−Random</td>
+<td style="text-align: right;">18.919</td>
+<td style="text-align: right;">19.970</td>
+<td style="text-align: right;">14.865</td>
+</tr>
+<tr>
+<td>MEGU，R-point−Degree</td>
+<td style="text-align: right;">21.321</td>
+<td style="text-align: right;">22.372</td>
+<td style="text-align: right;">16.667</td>
+</tr>
+</tbody>
+</table></div>
+<p>这些高预算差在新端点下仍为正；validation-best 比旧 final 缩小约 4.05–5.41 pp，量级又不能忽略。它是有用的敏感性线索，既不是“早停解决了问题”，也不是全体三 seed、两个预算上的确认。<strong>不能用 33% 一个 seed 的新 best 去拼 5% 旧 final，再计算貌似修正后的预算交互。</strong></p>
+<p>足以显著改变评分的最小具体证据是一个<strong>一致参考规则覆盖完整比较对象</strong>的结果，而不是扩更多 GU：</p>
+<ul>
+<li>若可以定位三条不一致并恢复旧生成路径，先用可复核环境／状态证据解释差异，再严格按预定规则判断旧轨迹能否接纳；不能只放宽容差或挑最接近的一次。</li>
+<li>若旧历史无法可靠恢复，应另冻结一个新参考验证问题，与旧结果并列。只覆盖 B 已有的 CiteSeer、三请求、两个预算、三个既定 seed，即 18 个 Ret 条件；用同一事先确定的 final／validation 选择规则、同测试节点与现有 GU 作对照，重新计算请求差、预算交互及真值计数。无需先扩方法、split 或候选池。新参考即使表现更好，也不改名为旧 Ret。</li>
+<li>如果一致规则下交互及 O=G≠R 主导关系仍在，且真值结论没有被少数参考端点改变，我会明显提高 E/I 并重新考虑 Weak Accept；如果交互明显缩小或消失，论文应改为参考协议敏感性案例，不能维持原来的请求响应解释。</li>
+</ul>
+<p>这说明什么证据会改变判断，<strong>不是恢复剩余六条、修改冻结阈值或启动新训练的决定</strong>。当前停止状态应保留。确切复现旧 GPU 轨迹不是一切经验论文的普遍要求；这里要求的是参照含义可解释，以及整个交互使用一致的比较规则。</p>
+<h2 id="pw-doc-section-5">5. 关键缺口二：条件检查的数量不能替代核心认识的适用对象</h2>
+<p><strong>严重性：中；涉及摘要、I-P4/P5、E-P3、Q2-P5、C-P1。</strong></p>
+<p>“12 个非重复控制比较均为三个 seed 同方向”是正确的覆盖描述，却很容易成为强于数据的心理证据。它包括共享原始模型、共享 Ret、同一请求、两种评价图及后处理变体；两基线对比也共享 R-point 端点。未重复画同一个点，并不意味着比较统计独立。A 五 seed 未确认的结果进一步提醒作者：探索阶段的整齐方向不足以代替对生成程序的独立判断。</p>
+<p>最小修复可以先不新增实验：把主句写成固定范围的<strong>响应对象判别</strong>，明确该例中更大的 GU–Ret D 不宜被报告为同等幅度的 GU 新增效用损失；同时给出原图／保留图幅度、低预算反转、固定 Degree 的独立参照含义，以及真值中仍存在的 Ret 纠错。完整七预算提供背景，但五条曲线有局部均值回落，不能把两个端点的差写成全程单调机制。描述性结论不必加全表显著性星号，也不必将 3/3 视为一个精确总体概率。</p>
+<p>类别解释应同样克制：R-point 33% 的 class4 大量监督被删除、该类 Ret accuracy 很低，是有价值的事后定位；相同 k 不等于相同类别／结构信息损失。它可能是请求的作用路径，不一定是需机械调整掉的混杂。但当前没有保持类别组成与图结构的对照，不能称“损失选择通过类别耗损导致 Ret 失败”，也不能把该类别从完整六类表中抽出来当预注册机制发现。</p>
+<p>这一项能否只靠写作解决，取决于贡献范围。如果最终只陈述已观察到的有限比较，我不要求为了出版描述性事实默认增加 Random draw、目标 backbone 或 split。如果仍要把它称为可重复的请求构造规律，应在参考问题先解决后，冻结一个最小的新联合 seed 确认，例如只选 GIF、R-point 对 Degree、既定两预算与同一 split，预先指定交互方向及直接计数判据，独立报告所有预定 seed；不能从新结果中再挑方法或预算。确认不需要与原三 seed 混合获得显著性，也不能取代第一项参照问题。</p>
+<p><strong>会改变评分的关键并非再获得一个小 p 值，而是：一个稳定、明确命名的参考协议下，同一有限认识可被独立复核，并且确实改变对大 D 的解释。</strong> 若新增结果显示只有旧 Ret 及这组请求给出该模式，我会维持或下调评分；若它在冻结范围中保留且有明确评价用途，则足以提升当前边界性的 C/E 判断。</p>
+<h2 id="pw-doc-section-6">6. 只需改写或编排，不应据此继续加实验</h2>
+<ul>
+<li><strong>A 的状态</strong>：保持 not_confirmed。联合方向 3/5、GU 同时区间跨零，不等于证明不存在交叉；也不能用 CE、合并 15 seed 或新挑一格恢复核心地位。A20 未触发符合原分支，不是本轮必须补跑的缺口。</li>
+<li><strong>预测关系命名</strong>：“Ret-only”明确写成 O=G≠R 的关系类型。“纠错／损失”均绑定真值和关系子集；跨策略的计数差不是同一批节点的迁移，也不是因果贡献。</li>
+<li><strong>matched C&amp;S</strong>：caption 直接写 O 改为 O+C&amp;S、G/R 不变；重复相同 D(G,R) 不计新的稳健性支持。保留真实 C&amp;S 效应的正负反例。</li>
+<li><strong>停止边界与过时文字</strong>：R0 的“待补统计”、Q2-P4 的“远端再补”与 A-P3 的“准备 pilot／尚未完成”需改成实际已完成的组成统计、已完成但未获历史接纳的三条 pilot，以及未执行的 remaining。D-P2 的“Ret 轨迹仍缺”应精确为“旧轨迹未重建、完整范围未完成”。</li>
+<li><strong>图表采用</strong>：主图把直接请求差、预算交互与 O=G≠R 真值子集分开；用已通过尺寸检查的复制版来源，不能继续链接原小字版本却称最终可读。完整七点曲线与低预算反例保持可定位；不把三张单页 proof 当整篇 8 页排版验收。</li>
+<li><strong>样本量</strong>：一律标三个联合选点／训练 seed；666 节点、1,440／7,200 真值格、36／180 三角、多个 baseline 或图控制不增加科学重复数。Random 单请求的限制已经有固定 Degree 对照作为部分回应，不能仍笼统说完全没有随机基线控制。</li>
+</ul>
+<h2 id="pw-doc-section-7">7. 最终判断与评分改变条件</h2>
+<p>本轮的主要进展是<strong>真实解释证据已经到位</strong>：额外 D 和预算交互的直接计数分解、真值分类、两图幅度变化及 MEGU 四端点控制都可核查；它们不能再被当作待补计划。另一方面，A 的预定确认未通过，Ret pilot 也没有获准成为旧参考的训练历史，这两个负结果必须完整保留。</p>
+<p>我的最终档位是 <strong>Borderline</strong>。最强异议是：<strong>B 的主要计数增量恰好集中在与 Ret 不同、而 GU 与 Original 相同的关系；论文却还不能在完整两个预算、三个 seed 的一致参考规则下说明这一关系的训练解释是否保留。</strong> 这限制了从一个可信端点诊断走向独立重要经验认识的力度。</p>
+<p>最可能改变判断的是上文界定的参考协议闭合及完整预算关系复算，而非恢复 A、增加更多历史矩阵或追求全表显著。若这一关键证据支持当前关系，配合有限贡献措辞和明确图表，我会重新考虑 Weak Accept；若它揭示关系主要随参考规则改变，应诚实重构贡献并重新评价，而不能预先保证接受。当前不建议据本报告放行第一版英文正文。</p>
+<footer>Source: ANALYSIS_REVIEW.md<br>SHA-256: b4fb77b987f15dcab2375203349bdd5c24c0e3a50c466aab3dd3b3fce7012c01<br>使用 paper_writing/tools/render-docs.ps1 重建此页面。</footer></main></div></body></html>

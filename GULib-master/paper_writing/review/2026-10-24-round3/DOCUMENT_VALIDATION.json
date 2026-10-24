@@ -3,7 +3,7 @@
   "sources": [
     {
       "source": "outline\\OUTLINE.md",
-      "sha256": "e0d602751bb9194ec05036ab7a94297fe19c38fc1a6b88fe3778c7cd7024ac2b"
+      "sha256": "49dce39a0e44c0b5da4910853266c204cf0605b663cac393cee1394c469f4d33"
     },
     {
       "source": "outline\\OUTLINE.v4.md",
@@ -12,6 +12,14 @@
     {
       "source": "outline\\OUTLINE.v5.md",
       "sha256": "3c30343bf2c0f4a316f80f3c58867b7fc5f0c3b0784696ad2ebbe661ad907077"
+    },
+    {
+      "source": "outline\\OUTLINE.v6.md",
+      "sha256": "e0d602751bb9194ec05036ab7a94297fe19c38fc1a6b88fe3778c7cd7024ac2b"
+    },
+    {
+      "source": "outline\\OUTLINE_REVIEW_ADDENDUM.md",
+      "sha256": "70f4d178a29079f36d5d18597483b2998dc95a0abb12fa5588c418fc0022e3ae"
     },
     {
       "source": "protocol\\ROUND3_EXECUTION_PROTOCOL.md",
@@ -26,15 +34,39 @@
       "sha256": "1efbad8736ffc1cdb71208add166b0e4058fcfa0f2c6dc709bc3535d705514da"
     },
     {
+      "source": "protocol\\exp085\\ANALYSIS_PLAN.md",
+      "sha256": "3fa9f2b5546e87254511224238a6d89364db28e57cab602ceb10d2afb4475acb"
+    },
+    {
       "source": "README.md",
-      "sha256": "1a9179aec0e4c893708a57de063a87514970d3fa743de2dc93d55426830b4034"
+      "sha256": "9d0288b381bd70b7c7519ef4fb1375989ce671effaf8290c36455f75840c13b6"
+    },
+    {
+      "source": "latex\\ENVIRONMENT.md",
+      "sha256": "c51d52f9aff482a82af2826443d3efcefe485033cd559c1b9c017c92434f07ff"
+    },
+    {
+      "source": "review\\2026-10-24-round3\\REVIEW_INPUTS.md",
+      "sha256": "fdd314f52d3eef13502ce76caeecd60fa69903b1120c029b8b041bbdf52c3f9a"
+    },
+    {
+      "source": "review\\2026-10-24-round3\\THEORY_REVIEW.md",
+      "sha256": "ee7847c32bd56b53f318775111b9014bc02aa2089019ef74ecf344ea8d0f286d"
+    },
+    {
+      "source": "review\\2026-10-24-round3\\EXPERIMENT_REVIEW.md",
+      "sha256": "afe8f04a35badae4d91ad5c028d72d5fc3ef8f81f3b90ef6cb067fa7084a3822"
+    },
+    {
+      "source": "review\\2026-10-24-round3\\ANALYSIS_REVIEW.md",
+      "sha256": "b4fb77b987f15dcab2375203349bdd5c24c0e3a50c466aab3dd3b3fce7012c01"
     },
     {
       "source": "review\\2026-10-24-round3\\REPORT.md",
-      "sha256": "de82835118117818669d5d4b7f39045c6667db9fec4be5f48372a8bfd4639e0d"
+      "sha256": "54df95f086164c80b7420e8db45871422039371b01f2b021bf507ce8765161b6"
     }
   ],
-  "local_links_checked": 192,
+  "local_links_checked": 365,
   "outline_writing_units": {
     "**核心目标（要说什么）：**": 102,
     "**准备怎么说：**": 102,

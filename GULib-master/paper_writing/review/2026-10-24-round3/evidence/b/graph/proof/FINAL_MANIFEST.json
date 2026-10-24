@@ -1,0 +1,29 @@
+{
+  "status": "private_full_width_copy_proof_passed; original_assets_have_small_font_risk",
+  "files": {
+    "REPORT.md": "07e292c0b2d7b5cdd950631d50fb9feba51c7ec1ac327631805a6ead6a36c1c5",
+    "REPORT.html": "319a904bcb91511b6fb4f232045ec0c0071c177d40e208f63c098fb3838cf705",
+    "VALIDATION.json": "507ba8409717ca044365e97d431861be0403a0a1b4fe71e55e98d45fa333e4ae",
+    "REFLOW_PROVENANCE.json": "1154e476adc468a3d73dfaa6547cc56fa1a65e4fa4bcdd893b901572970ef927",
+    "main.tex": "cf0d42ad00659ae4108f40e2a80806b7f1bf177ab66be3cc9681c9419f41fb45",
+    "build\\main.pdf": "c77353c376b2da02253e52c16f0fe161f82c97475ec9e9cb37cef7bb4c387064",
+    "baseline\\build\\main.pdf": "1b0749dc18ebee9fcb6d8da6887c6b21bf01bc45cdc53739a884b2ddaa750820",
+    "private_plot_function.py": "b941ea6411dbbfd1ea5c44df8ffd56c0d0d7d6793f5eb795d43562f59d908315",
+    "original_plot_function.py": "ce9c8a7ac4e1ffbe6bf40257c4068d67d6d491a3a05455bf2938101f22676c97",
+    "reflow_copies.py": "e3b050971061de3a1c45fca117baeade3a0d31528977038d1c13ea8072ea3547",
+    "INPUTS.json": "5bce9567efe1d6d36c58133fa6f054116538590957793039a0aa67091c9b52dd",
+    "images/strategy_graph_controls.pdf": "313a7ddbfd1bf235862f224d5a070d2e75d074abdeeb0d5e7a6c11f37f8b8de1",
+    "images/ret_only_truth.pdf": "30b6b3d3495569a0830c6de873fff4371ee6162977fa8b04155bcbf268d2f7f7",
+    "images/megu_cs_controls.pdf": "5c40861b4478e22944b43699dadc4e53a84bff927ae282e6816ddeacbe1dbcb6",
+    "rendered/page-1.png": "795f695ddbf381886d9059eea040e2958daade398bfac1b43a5c83426c88d2d2",
+    "rendered/page-2.png": "f58f4730b0a6b961455129f6827e4ec769dbf8ef4743cc8c7c5265a141693fd9",
+    "rendered/page-3.png": "218869521799a8238810b839b124a4b40cb7c718b0d7ff2e7d616701d1fae10b",
+    "baseline/rendered/page-1.png": "94722e66ea3f7ef17be0337b6084924419c2be093bb0d0dacdbe50228bd4c6e2",
+    "baseline/rendered/page-2.png": "1cf3854af8f445955fc93fce07dad24b9fc4636f693418e699bd8d9bdd88b687",
+    "baseline/rendered/page-3.png": "75ba68f50b7af31044e93929f18ac16179433210ea1e4d6a2cf3bdf8921c823f",
+    "FINAL_MANIFEST.initial.json": "e099d14aaf6f1bd3121bb45950f1380ed3c67063d202ca2718c5e087de337e1c",
+    "MANIFEST_EXPANSION_CHECK.json": "ab08bfcb6fadfad4aa25af636e84e934435570c3c2de34d5340b3fbf35c75351"
+  },
+  "new_original_scientific_figures_adopted": false,
+  "writing_gate": "not_met"
+}

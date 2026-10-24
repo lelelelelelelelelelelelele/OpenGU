@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "original_manifest_sha256": "e099d14aaf6f1bd3121bb45950f1380ed3c67063d202ca2718c5e087de337e1c",
+  "preserved_original_manifest": "FINAL_MANIFEST.initial.json",
+  "historical_bytes_identical": true,
+  "only_files_table_expanded": true,
+  "other_top_level_fields_identical": true,
+  "original_7_file_entries_identical_and_current_hashes_matched": true,
+  "original_file_count": 7,
+  "expanded_file_count": 22,
+  "added_file_names": [
+    "private_plot_function.py",
+    "original_plot_function.py",
+    "reflow_copies.py",
+    "INPUTS.json",
+    "images/strategy_graph_controls.pdf",
+    "images/ret_only_truth.pdf",
+    "images/megu_cs_controls.pdf",
+    "rendered/page-1.png",
+    "rendered/page-2.png",
+    "rendered/page-3.png",
+    "baseline/rendered/page-1.png",
+    "baseline/rendered/page-2.png",
+    "baseline/rendered/page-3.png",
+    "FINAL_MANIFEST.initial.json",
+    "MANIFEST_EXPANSION_CHECK.json"
+  ],
+  "report_link_count": 17,
+  "report_link_dependencies_in_manifest": true,
+  "report_missing_links": [],
+  "build_entries": [
+    "baseline/build/main.pdf",
+    "build/main.pdf"
+  ],
+  "report_or_plot_or_scientific_data_bytes_modified": false
+}

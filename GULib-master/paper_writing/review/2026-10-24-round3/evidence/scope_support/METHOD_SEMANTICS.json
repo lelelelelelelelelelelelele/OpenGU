@@ -1,0 +1,28 @@
+[
+  {
+    "method": "GraphEraser",
+    "execution_sha": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+    "accepted_fix_candidate": "7491b59dab42635b64aecd5c463d5d7047c70447",
+    "path": "GULib-master/unlearning/unlearning_methods/GraphEraser/aggregation/optimal_aggregator.py",
+    "execution_blob": "d9cee2f5f8b569658825b1160837ae43b4301396",
+    "accepted_fix_blob": "d9cee2f5f8b569658825b1160837ae43b4301396",
+    "double_softmax_status": "corrected at executed checkout; same code as accepted A101 fix",
+    "per_output_original_producer_binding": "not reaudited in this bounded pass",
+    "paper_fidelity": "NOT established; as-implemented project instance; complete original-paper fidelity not audited; per-Output creating producer not reaudited here",
+    "allowed_use": "named project instance, conditional descriptive source boundary only",
+    "excluded_use": "original-paper algorithm defect/fidelity assertion; independent validation of new A; unqualified current original-algorithm comparison"
+  },
+  {
+    "method": "GraphRevoker",
+    "execution_sha": "bab1781e182254e0b02cbeb1de138d58f7f1cd50",
+    "accepted_fix_candidate": "7491b59dab42635b64aecd5c463d5d7047c70447",
+    "path": "GULib-master/unlearning/unlearning_methods/GraphRevoker/lib_aggregator/optimal_aggregator.py",
+    "execution_blob": "3b06716899f41b09edd9689f790512694b72ed53",
+    "accepted_fix_blob": "3b06716899f41b09edd9689f790512694b72ed53",
+    "double_softmax_status": "corrected at executed checkout; same code as accepted A101 fix",
+    "per_output_original_producer_binding": "not reaudited in this bounded pass",
+    "paper_fidelity": "NOT established; as-implemented GPA+optimal project variant; full original-paper contrastive aggregation not reproduced; per-Output creating producer not reaudited here",
+    "allowed_use": "named project instance, conditional descriptive source boundary only",
+    "excluded_use": "original-paper algorithm defect/fidelity assertion; independent validation of new A; unqualified current original-algorithm comparison"
+  }
+]

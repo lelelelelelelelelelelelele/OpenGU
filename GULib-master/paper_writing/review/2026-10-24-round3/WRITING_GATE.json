@@ -1,0 +1,57 @@
+{
+  "decided_at": "2026-10-24T01:27:56.585390+00:00",
+  "scope": "Internal manuscript writing readiness after round 3; not conference acceptance or human scientific acceptance",
+  "writing_gate": "not_met",
+  "rule": "All V/C/E/I/P and all three independent reviewers >= Weak Accept plus root agreement",
+  "review_inputs": {
+    "path": "REVIEW_INPUTS.json",
+    "sha256": "6c4b057b4243bfe0b5ae304ba4ab6dd03293e9838999f7a43293ccb57209aca0",
+    "sources_verified": 153
+  },
+  "reviewers": [
+    {
+      "role": "theory",
+      "score": "Weak Reject",
+      "path": "THEORY_REVIEW.md",
+      "sha256": "ee7847c32bd56b53f318775111b9014bc02aa2089019ef74ecf344ea8d0f286d"
+    },
+    {
+      "role": "experiment",
+      "score": "Weak Reject",
+      "path": "EXPERIMENT_REVIEW.md",
+      "sha256": "afe8f04a35badae4d91ad5c028d72d5fc3ef8f81f3b90ef6cb067fa7084a3822"
+    },
+    {
+      "role": "analysis",
+      "score": "Borderline",
+      "path": "ANALYSIS_REVIEW.md",
+      "sha256": "b4fb77b987f15dcab2375203349bdd5c24c0e3a50c466aab3dd3b3fce7012c01"
+    }
+  ],
+  "root": {
+    "agrees_with_not_met": true,
+    "gates": {
+      "V": "partial",
+      "C": "not_met",
+      "E": "partial",
+      "I": "partial",
+      "P": "partial"
+    },
+    "report": "REPORT.md",
+    "sha256": "54df95f086164c80b7420e8db45871422039371b01f2b021bf507ce8765161b6"
+  },
+  "editorial_addendum": {
+    "path": "../../outline/OUTLINE_REVIEW_ADDENDUM.md",
+    "sha256": "70f4d178a29079f36d5d18597483b2998dc95a0abb12fa5588c418fc0022e3ae",
+    "independently_rereviewed": false
+  },
+  "experimental_decisions_unchanged": {
+    "A": "not_confirmed",
+    "B_Ret_pilot": "stop_unexplained_final_difference",
+    "A20": "not_required_after_failed_confirmation",
+    "Ret_remaining": "not_dispatched"
+  },
+  "human_scientific_acceptance": "not_requested",
+  "english_research_body_started": false,
+  "new_experiment_dispatch_authorized_by_this_record": false
+}

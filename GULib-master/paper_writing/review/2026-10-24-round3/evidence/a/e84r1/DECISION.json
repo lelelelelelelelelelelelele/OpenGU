@@ -1,0 +1,71 @@
+{
+  "status": "passed",
+  "scientific_decision": "restored_candidate_requires_independent_confirmation",
+  "writing_gate": "not_met",
+  "execution_sha": "eb5e0d79950cf983bbe14b85c63961ce68ab7b0e",
+  "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e",
+  "run_sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+  "protocol_sha256": "d329095471847cb720d64c721df27e0f9363f2e0af3065dbefe30d0947124d40",
+  "frozen_input_sha256": "4a10ae8ef627902c35c3464e56867438acdc21e6ab9da05de0ec41c8619d22a2",
+  "checkpoint_audit_sha256": "5b8f7d9e6c8f8071fe12cc8ec1b4d422030f199151372e0164607f5d3bd26b9b",
+  "input_audit_sha256": "6681ab26a1981d3c674f3e4a63f24af45a129564b0d90e21f46f3b5566e00a2e",
+  "analysis_script_sha256": "26d69d8315b33e700c82c39b2f73f4386c1b308643ecb62ccf9c0e222164c754",
+  "trusted_reader_sha256": "a5d72efb4ac5bd72b71132674bd6a1cbb46748b886fc58699106475ec1eb62d3",
+  "checked_files": 121,
+  "endpoint_count": 60,
+  "independent_gu_updates": 30,
+  "joint_direction_count": 10,
+  "seed_count": 10,
+  "summary": [
+    {
+      "contrast": "delta_R_pp",
+      "n": 10,
+      "mean": 0.8487084870848747,
+      "sd": 0.6635229500251504,
+      "ci95_low": 0.37405276252635994,
+      "ci95_high": 1.3233642116433895,
+      "ci97_5_low": 0.2853277505256473,
+      "ci97_5_high": 1.412089223644102
+    },
+    {
+      "contrast": "delta_G_pp",
+      "n": 10,
+      "mean": -6.494464944649444,
+      "sd": 3.100509452044281,
+      "ci95_low": -8.712435793140546,
+      "ci95_high": -4.276494096158341,
+      "ci97_5_low": -9.127029950479827,
+      "ci97_5_high": -3.8618999388190605
+    },
+    {
+      "contrast": "interaction_pp",
+      "n": 10,
+      "mean": -7.343173431734319,
+      "sd": 3.305965545354457,
+      "ci95_low": -9.708118715444892,
+      "ci95_high": -4.978228148023746,
+      "ci97_5_low": -10.150186066204045,
+      "ci97_5_high": -4.536160797264593
+    },
+    {
+      "contrast": "delta_R_ce",
+      "n": 10,
+      "mean": -0.022276279621345912,
+      "sd": 0.007263160824040331,
+      "ci95_low": -0.027472031875867338,
+      "ci95_high": -0.017080527366824486,
+      "ci97_5_low": -0.02844324776410701,
+      "ci97_5_high": -0.016109311478584812
+    },
+    {
+      "contrast": "delta_G_ce",
+      "n": 10,
+      "mean": 0.20355323016669852,
+      "sd": 0.11183194876351417,
+      "ci95_low": 0.12355347331258443,
+      "ci95_high": 0.2835529870208126,
+      "ci97_5_low": 0.10859952033216413,
+      "ci97_5_high": 0.2985069400012329
+    }
+  ]
+}

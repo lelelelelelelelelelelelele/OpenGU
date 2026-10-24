@@ -1,0 +1,32 @@
+{
+  "status": "descriptive_interpretation_complete",
+  "source_checks_sha256": "adb4fc8ac604c8816ba2e41edda7af772554804ffbec4cb02691872e833ba34a",
+  "execution_sha": "d4d70db2b0a599c0385dc398abf41b030332c816",
+  "run_id": "e85gr1",
+  "source_csv_sha256": {
+    "endpoints.csv": "102f7a9de1e81108744037eb52710b3fe8ca784a11d44aaa306e687b7d0e3c31",
+    "paired_request_contrasts.csv": "0537c6c10d571127028a6ac35855c817e939fd091c7cf2d10f74a866ca2b0b1f",
+    "budget_contrast_changes.csv": "9f4ae5f9f6dd1f43c8ff773972aa804e4af829a98be507b05966a4ea75f542be",
+    "cs_effects.csv": "79ac9d65581203c5c39eda2d3153fd16aedf46114159bc6ca59d06a5a51bda29",
+    "graph_changes.csv": "596d4f5a4f2b7f5f43a5c4f2487f4c2f699bfd81b3cfaa0e94a5cbeb0fa963e1"
+  },
+  "outputs": {
+    "budget_interaction_summary.csv": "3f745a1a8cf1ede80fb17b34b50cfdb8ca067fb78972ed32f30a47a9faf22d7a",
+    "cs_summary.csv": "602e183a10881079c7682aba5504e31c68d9005679a658f1fb9d80c79ca45b7d",
+    "endpoint_summary.csv": "e0015d9d5be5c341cd145eb203849cfb59ea03de76579d07ef540d309cd8eb08",
+    "graph_change_summary.csv": "a6b1258be65a25d64d8ae6a2e6c802cdcd68ad7dfff9d200cba2126fef93a08f",
+    "KEY_FINDINGS.json": "b4fe9b0313802b6dc6c2f1ad10298f8198beff0819e2e9e8f7d0d893f881221e",
+    "megu_cs_controls.pdf": "b78025813ef9f51a7f2e6376d50f2359feeaa4f1e0ea3171371ecd4004aa2508",
+    "megu_cs_controls.png": "a30fa19e4278e9758873638b611d41335f039f5a5124a7105edd73a3ebb0e343",
+    "REPORT.html": "773677f61dffc62fad425333b6d3c5eb2ba8a546772e03cc9a25413d31eac469",
+    "REPORT.md": "846d8e7e7fa9df7247707676574e43b8424ee81fd2c4ed6a1fd3256970894350",
+    "request_contrast_summary.csv": "b29b516184cef2b5519a9781b352a6641bb5e5402d4d8dfb5f45a2c0a04f16d7",
+    "ret_only_truth.pdf": "6a05ced20b9ff4685e711102d44dd993b2f5f1fb6d0626a35c3965c339e1b4f9",
+    "ret_only_truth.png": "db9d6e0b1d03006b114932b8c7a4d7235fef254e765d82da1ae1058eda6db31c",
+    "strategy_graph_controls.pdf": "286bafaf7306e723c6614ad69a0ac3bb19a2b1e1edaa48f2651419f623c51061",
+    "strategy_graph_controls.png": "de161cc63745d6ce41716393044644e90f64a0b523561c6939871481c2fa495d"
+  },
+  "scientific_gate": "not_adjudicated; Ret-quality and contribution review remain separate",
+  "matched_cs_warning": "published and matched_cs share GU and Ret; equal GU-Ret D is definitional, not independent robustness evidence",
+  "uncertainty": "three joint runs; mean +/- sample SD; no hypothesis test or population confidence claim"
+}

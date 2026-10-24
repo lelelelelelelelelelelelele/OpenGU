@@ -1,0 +1,38 @@
+{
+  "status": "technical_passed_scientific_not_confirmed",
+  "execution_seconds": 527.0,
+  "queue_seconds": 230.0,
+  "a_total_executed_seconds": 1066.0,
+  "method_cache": {
+    "GNNDelete": {
+      "miss": 15
+    },
+    "Retrain": {
+      "miss": 15
+    }
+  },
+  "post_run_checkpoint_audit": {
+    "status": "passed",
+    "wall_seconds": 13.9348507,
+    "finished_at": "2026-10-24T08:56:03.8899609+08:00",
+    "producer_calls": 0,
+    "index_unchanged": true,
+    "checked_gnn_cells": 15,
+    "evidence": [
+      {
+        "label": "Checkpoint audit",
+        "path": "self/research/experiments/drafts/round3-execution-prep/A_CONFIRM_CHECKPOINT_AUDIT.json"
+      },
+      {
+        "label": "Separate audit timing",
+        "path": "self/research/experiments/drafts/round3-execution-prep/A_CONFIRM_CHECKPOINT_AUDIT_TIMING.json"
+      }
+    ]
+  },
+  "decision": "self/research/experiments/drafts/round3-execution-prep/e84c1/DECISION.json",
+  "untriggered_runs": [
+    "e84dg1",
+    "e84d1"
+  ],
+  "frozen_scenario_budget_seconds": 27225
+}

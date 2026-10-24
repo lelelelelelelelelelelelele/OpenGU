@@ -1,0 +1,25 @@
+{
+  "scope": "B full controls only; copied figures; no scientific manuscript body",
+  "source_before_sha256": {
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\interpret_graph.py": "138328196132f7d2b490c416e4bc7f833307b7258675a3855fad2600115f3bf1",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\checks.json": "adb4fc8ac604c8816ba2e41edda7af772554804ffbec4cb02691872e833ba34a",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\endpoints.csv": "102f7a9de1e81108744037eb52710b3fe8ca784a11d44aaa306e687b7d0e3c31",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\paired_request_contrasts.csv": "0537c6c10d571127028a6ac35855c817e939fd091c7cf2d10f74a866ca2b0b1f",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\budget_contrast_changes.csv": "9f4ae5f9f6dd1f43c8ff773972aa804e4af829a98be507b05966a4ea75f542be",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\cs_effects.csv": "79ac9d65581203c5c39eda2d3153fd16aedf46114159bc6ca59d06a5a51bda29",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\graph_changes.csv": "596d4f5a4f2b7f5f43a5c4f2487f4c2f699bfd81b3cfaa0e94a5cbeb0fa963e1",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\interpretation\\KEY_FINDINGS.json": "b4fe9b0313802b6dc6c2f1ad10298f8198beff0819e2e9e8f7d0d893f881221e",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\interpretation\\VALIDATION.json": "d53272996eee9197b281d5469b37fc89c88d442edac7e162b6b7011c87996eab",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\interpretation\\request_contrast_summary.csv": "b29b516184cef2b5519a9781b352a6641bb5e5402d4d8dfb5f45a2c0a04f16d7",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\interpretation\\cs_summary.csv": "602e183a10881079c7682aba5504e31c68d9005679a658f1fb9d80c79ca45b7d",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\interpretation\\strategy_graph_controls.pdf": "286bafaf7306e723c6614ad69a0ac3bb19a2b1e1edaa48f2651419f623c51061",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\interpretation\\strategy_graph_controls.png": "de161cc63745d6ce41716393044644e90f64a0b523561c6939871481c2fa495d",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\interpretation\\ret_only_truth.pdf": "6a05ced20b9ff4685e711102d44dd993b2f5f1fb6d0626a35c3965c339e1b4f9",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\interpretation\\ret_only_truth.png": "db9d6e0b1d03006b114932b8c7a4d7235fef254e765d82da1ae1058eda6db31c",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\interpretation\\megu_cs_controls.pdf": "b78025813ef9f51a7f2e6376d50f2359feeaa4f1e0ea3171371ecd4004aa2508",
+    "self\\research\\experiments\\drafts\\round3-graph-analysis\\e85gr1\\interpretation\\megu_cs_controls.png": "a30fa19e4278e9758873638b611d41335f039f5a5124a7105edd73a3ebb0e343"
+  },
+  "initial_main_tex_sha256": "cf0d42ad00659ae4108f40e2a80806b7f1bf177ab66be3cc9681c9419f41fb45",
+  "baseline_images_identical_to_scientific_sources": true,
+  "scientific_gate": "not_met; Ret quality and contribution reviews remain separate"
+}

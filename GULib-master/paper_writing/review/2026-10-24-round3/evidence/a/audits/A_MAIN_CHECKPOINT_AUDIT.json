@@ -1,0 +1,1496 @@
+{
+  "status": "passed",
+  "scope": "checkpoint-selection provenance and exact exported weights only; no scientific acceptance",
+  "read_only": true,
+  "producer_calls": 0,
+  "audit_script_sha256": "729deed6a10a61ba46548916a543fefaf19ed034a1e4ab2e7c663dd9592761b6",
+  "audit_checkout_commit": "eb5e0d79950cf983bbe14b85c63961ce68ab7b0e",
+  "expected_source": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e",
+  "target_run": {
+    "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+    "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+    "run_id": "e84r1"
+  },
+  "generation_runs": [
+    {
+      "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84g1/run.json",
+      "sha256": "143810f3880ae61d7ea2f7ebab6554c90a61c23d1c66ab0873f23e03550fcbfa",
+      "run_id": "e84g1"
+    }
+  ],
+  "index_sha256": "305324fb902f8821de3e6663974fd7c2f340e8e965b44a430108bae4c4d666fd",
+  "index_unchanged": true,
+  "audited_cells": 30,
+  "rows": [
+    {
+      "cell_id": "6c93cf4ae67e9a646e8f",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 42,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "r_point",
+        "selector_ref": "r_point_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 42,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_5f68a944_5a2af3d9",
+        "recipe_hash": "5f68a944a0330a190b4ebe97b8a027f4e27cc601ba5efc103ee324912694b2ba",
+        "content_hash": "5a2af3d928d607b81fedacca2cf0b50f5d5fb2249d54ad36d5e8cfa05bb8882c"
+      },
+      "selection_id": "sel_863e24ef_1b42fdb8",
+      "initial_checkpoint_state_hash": "b126ba12891cd19121934f91c0bd31ff8105aa265adc57045bb6eba062dc3572",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "hit",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84g1/run.json",
+        "sha256": "143810f3880ae61d7ea2f7ebab6554c90a61c23d1c66ab0873f23e03550fcbfa",
+        "run_id": "e84g1",
+        "cell_id": "6c93cf4ae67e9a646e8f"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84g1/unlearning/5f68a944a0330a190b4ebe97b8a027f4e27cc601ba5efc103ee324912694b2ba/model_best.pt",
+        "sha256": "1c0815c3a6eb962a1755657569620ed568de4f53d9680479cfcf6a56fd6c401c",
+        "epoch_zero_based": 31,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4981549815498154,
+        "model_state_hash": "4846389b00a92f696e4d31ae0eec967e87447b033d9f8d1fb5f2189ab18f13a7",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "63b1b51f3c83b3972bb3",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 42,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "gt_full",
+        "selector_ref": "gt_full_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 42,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_05587d14_8269c6cd",
+        "recipe_hash": "05587d14ebaf8758b1a99ced2166bd17b091d0d7d066bd2edf810efc16a8dacb",
+        "content_hash": "8269c6cd1c6172ad20c22b06e26e9ae92e269d19826b42083958b4c02c64db89"
+      },
+      "selection_id": "sel_300e729d_dfd2f5a2",
+      "initial_checkpoint_state_hash": "b126ba12891cd19121934f91c0bd31ff8105aa265adc57045bb6eba062dc3572",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "hit",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84g1/run.json",
+        "sha256": "143810f3880ae61d7ea2f7ebab6554c90a61c23d1c66ab0873f23e03550fcbfa",
+        "run_id": "e84g1",
+        "cell_id": "63b1b51f3c83b3972bb3"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84g1/unlearning/05587d14ebaf8758b1a99ced2166bd17b091d0d7d066bd2edf810efc16a8dacb/model_best.pt",
+        "sha256": "743aa6ef7fc48a01884c492b42dee97736a54494e57b2d100dcb4c56164c82a3",
+        "epoch_zero_based": 23,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.3800738007380073,
+        "model_state_hash": "2d8b94d3475f2d966812140dd9387234267ac3a968799123ce695c05fadb7f70",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "b58ceb2e2b88abcfdce8",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 42,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "degree",
+        "selector_ref": "degree.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 42,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_f6987f67_5b9fa8b4",
+        "recipe_hash": "f6987f679189f91219ce7dbab98ae474378f3178d0c359677d950e76e79342cc",
+        "content_hash": "5b9fa8b4ec8b23052bfecc1e4097109b14e19ca267bbfb8aae6a0bf584220900"
+      },
+      "selection_id": "sel_ff46e44a_c86d7141",
+      "initial_checkpoint_state_hash": "b126ba12891cd19121934f91c0bd31ff8105aa265adc57045bb6eba062dc3572",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "b58ceb2e2b88abcfdce8"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/f6987f679189f91219ce7dbab98ae474378f3178d0c359677d950e76e79342cc/model_best.pt",
+        "sha256": "46860cb8985b08133202cba2c88a32593491d52d2b711722c862d23ef19ff602",
+        "epoch_zero_based": 48,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.3948339483394834,
+        "model_state_hash": "953f8a09fd63e8a0a97be3ae09495659ee3572486ddada41bb529d52bf44639b",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "9b66b4049ac6ab5eaea9",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 212,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "r_point",
+        "selector_ref": "r_point_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 212,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_6a838276_26d79455",
+        "recipe_hash": "6a83827616969da58b5283760d43f0f55ed89f532fd534c1e7498f39882a17ce",
+        "content_hash": "26d79455e9012ce95eb366e3be1afba930220224dabb55391ad23383c04bbbc8"
+      },
+      "selection_id": "sel_2160304d_038bf57f",
+      "initial_checkpoint_state_hash": "b8058b5bc5d3a9c362767323f64c31cbdf5c0cfdc48487cb379efc05d0b5c80e",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "hit",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84g1/run.json",
+        "sha256": "143810f3880ae61d7ea2f7ebab6554c90a61c23d1c66ab0873f23e03550fcbfa",
+        "run_id": "e84g1",
+        "cell_id": "9b66b4049ac6ab5eaea9"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84g1/unlearning/6a83827616969da58b5283760d43f0f55ed89f532fd534c1e7498f39882a17ce/model_best.pt",
+        "sha256": "69fd7be4fc4b9edabf80ab63626227a9e68188f3d7d5e314a9fc9fd27c849a94",
+        "epoch_zero_based": 42,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5571955719557193,
+        "model_state_hash": "d8d3e7d2d66cc5bb1d8fd5934c7ccbde7a103765f3d3151f078f988a20c17996",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "05e1b2f1d8550f4e309f",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 212,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "gt_full",
+        "selector_ref": "gt_full_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 212,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_55cf52a7_c937e948",
+        "recipe_hash": "55cf52a70af034479b5de4dc734c485ef8aadcac7f06ca2fada69fa4d90361ed",
+        "content_hash": "c937e94874c7d95ec2fb565479990bfc301c154c827f99225d34f33030aa349e"
+      },
+      "selection_id": "sel_67d7b6f6_92751299",
+      "initial_checkpoint_state_hash": "b8058b5bc5d3a9c362767323f64c31cbdf5c0cfdc48487cb379efc05d0b5c80e",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "hit",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84g1/run.json",
+        "sha256": "143810f3880ae61d7ea2f7ebab6554c90a61c23d1c66ab0873f23e03550fcbfa",
+        "run_id": "e84g1",
+        "cell_id": "05e1b2f1d8550f4e309f"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84g1/unlearning/55cf52a70af034479b5de4dc734c485ef8aadcac7f06ca2fada69fa4d90361ed/model_best.pt",
+        "sha256": "97595d564d8e0064d0d455ef6df71743dbaa1bab5ed9708784965df0e0417605",
+        "epoch_zero_based": 48,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4612546125461252,
+        "model_state_hash": "7961088f77c8f0b3dd5620717ef13278b83979924c2d27c232d018368c7a9851",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "30423dbe210386f153c7",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 212,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "degree",
+        "selector_ref": "degree.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 212,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_84d07ace_890456f1",
+        "recipe_hash": "84d07ace1b33ef6f44f34e4baa7ebcdb88882684a233a9d001a13d1d0b3ab72e",
+        "content_hash": "890456f16ecb2de53d72de4f30b8743b744dc956bd23611b4b29d789802a1c7a"
+      },
+      "selection_id": "sel_ff46e44a_c86d7141",
+      "initial_checkpoint_state_hash": "b8058b5bc5d3a9c362767323f64c31cbdf5c0cfdc48487cb379efc05d0b5c80e",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "30423dbe210386f153c7"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/84d07ace1b33ef6f44f34e4baa7ebcdb88882684a233a9d001a13d1d0b3ab72e/model_best.pt",
+        "sha256": "d8b66add43f568813797bbda3575ae4fb964f1daeaa36e53699403813b3f721a",
+        "epoch_zero_based": 35,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4907749077490775,
+        "model_state_hash": "da03f001294bd546aed37a75e4eaffd0c1f326bb72cd00c7600e4f63a2c81619",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "105fe6c8619787ef3c8c",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 2024,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "r_point",
+        "selector_ref": "r_point_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 2024,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_ff72ec38_08f8f4b2",
+        "recipe_hash": "ff72ec384947623c919e951d983b4e343e5836eadb0484cad59de45dea37c836",
+        "content_hash": "08f8f4b2bb41d530f6878579d2bc509f4aa1ba24f2c1c364f6ae3b6175b1f503"
+      },
+      "selection_id": "sel_486bf24e_bc4efb26",
+      "initial_checkpoint_state_hash": "65f1a401059ace082d898f998d94388319dd7b1cea01818699dd8b8d962000ae",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "hit",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84g1/run.json",
+        "sha256": "143810f3880ae61d7ea2f7ebab6554c90a61c23d1c66ab0873f23e03550fcbfa",
+        "run_id": "e84g1",
+        "cell_id": "105fe6c8619787ef3c8c"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84g1/unlearning/ff72ec384947623c919e951d983b4e343e5836eadb0484cad59de45dea37c836/model_best.pt",
+        "sha256": "39ff64fb7c6e090d0e369a8e8b6049d2fbb3ed4d24d8709730dbe6237f898585",
+        "epoch_zero_based": 27,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5867158671586716,
+        "model_state_hash": "d50e60700d9ae143c867e19c2f86101bb5171ac8cf3a37c43105b533a5e21c4b",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "a2d921aa1c60ac8e7a56",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 2024,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "gt_full",
+        "selector_ref": "gt_full_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 2024,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_9e624ae4_9dbf2cd1",
+        "recipe_hash": "9e624ae4e499ff535dfaf61417ea8a0d854a250906ff10295226d17333014369",
+        "content_hash": "9dbf2cd1bffdfcfb33a667c4bea80b111899b44f19d045c5e1cdde2f7602ec7a"
+      },
+      "selection_id": "sel_5f3a42d0_2f0c0a26",
+      "initial_checkpoint_state_hash": "65f1a401059ace082d898f998d94388319dd7b1cea01818699dd8b8d962000ae",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "hit",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84g1/run.json",
+        "sha256": "143810f3880ae61d7ea2f7ebab6554c90a61c23d1c66ab0873f23e03550fcbfa",
+        "run_id": "e84g1",
+        "cell_id": "a2d921aa1c60ac8e7a56"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84g1/unlearning/9e624ae4e499ff535dfaf61417ea8a0d854a250906ff10295226d17333014369/model_best.pt",
+        "sha256": "07b72b6dcc733c3f4b5954188ea98e8f75c44feef98150d29f5098e19c502550",
+        "epoch_zero_based": 45,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5129151291512914,
+        "model_state_hash": "95c5adbc6b29b2bd63b4c210897ba2df7dadd63f1207956496a2f3478c35101e",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "0a256a0b5aa413d07b0e",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 2024,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "degree",
+        "selector_ref": "degree.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 2024,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_4b531f38_ddec7dcb",
+        "recipe_hash": "4b531f38d2bd4a145d3ba72d7e85bf2ef3bc4f9253dcda8f8666114176ec2ab6",
+        "content_hash": "ddec7dcb2fd34f30c1970b6cfc6806e1acc7ca4fee641fc8f8c7c4bed51b8e9c"
+      },
+      "selection_id": "sel_ff46e44a_c86d7141",
+      "initial_checkpoint_state_hash": "65f1a401059ace082d898f998d94388319dd7b1cea01818699dd8b8d962000ae",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "0a256a0b5aa413d07b0e"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/4b531f38d2bd4a145d3ba72d7e85bf2ef3bc4f9253dcda8f8666114176ec2ab6/model_best.pt",
+        "sha256": "8f164829bdcb1e0d32ef3400a7e43ab140d474b4502db15c9fef8130ccaecce7",
+        "epoch_zero_based": 36,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4981549815498154,
+        "model_state_hash": "39a178eb043a333bcffa60e09bbdad662e67f0b1985cb9578faf0e886585240f",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "4b15b61006633d096680",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 0,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "r_point",
+        "selector_ref": "r_point_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 0,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_4434af8f_57d2150f",
+        "recipe_hash": "4434af8f6c090fb1c23df01011ef11471ce9e93556fdb2b7498d188adadad654",
+        "content_hash": "57d2150f9445623fd6e0848e8bb24bbc1b8484ffe05974eb61de9932b6de6e2f"
+      },
+      "selection_id": "sel_2db62431_ee1042f9",
+      "initial_checkpoint_state_hash": "36c123fbbc489be319837650b486dfaf70c1cc5c43e752255ac7a43f9e65f1bd",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "4b15b61006633d096680"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/4434af8f6c090fb1c23df01011ef11471ce9e93556fdb2b7498d188adadad654/model_best.pt",
+        "sha256": "c1ce097a9a0971f21b03957d799d0bbac679ff552b0edf3db05e90fbbf934a38",
+        "epoch_zero_based": 28,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5055350553505535,
+        "model_state_hash": "e84415f0ae48c57531b6f25d66f09285e9761bdec350d2f03af7e37aa5dbc09b",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "e477485101dbe7ac810a",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 0,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "gt_full",
+        "selector_ref": "gt_full_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 0,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_d339425c_877de01a",
+        "recipe_hash": "d339425c6107a578007b3278d4ef11eb3b0895a76913131527674ccafea08a85",
+        "content_hash": "877de01a913fb4823b5a12b5a1de039142bf0d924476c9bc94341b79c6404df3"
+      },
+      "selection_id": "sel_155d58b5_a5b7b70f",
+      "initial_checkpoint_state_hash": "36c123fbbc489be319837650b486dfaf70c1cc5c43e752255ac7a43f9e65f1bd",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "e477485101dbe7ac810a"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/d339425c6107a578007b3278d4ef11eb3b0895a76913131527674ccafea08a85/model_best.pt",
+        "sha256": "aa3ff53e80cb20f58a7db81662e95e744ac5398c8b7d7581b37d6f9cb1141f60",
+        "epoch_zero_based": 45,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4169741697416973,
+        "model_state_hash": "63fe508fa4ad4f21212aa4fdacd9f10c09603404c5fb9ef24b252515c87f5cd9",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "5ad38a83ef15e8f65ec1",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 0,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "degree",
+        "selector_ref": "degree.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 0,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_be54ff9f_918029ab",
+        "recipe_hash": "be54ff9fc71bc5e0b2d68fbeba34cc69c7f0c88f4d1868316285e32f948a7a41",
+        "content_hash": "918029ab63c0f22b01ed85d982ed701cdc1283cec6b21f0ea5e2163467ce6422"
+      },
+      "selection_id": "sel_ff46e44a_c86d7141",
+      "initial_checkpoint_state_hash": "36c123fbbc489be319837650b486dfaf70c1cc5c43e752255ac7a43f9e65f1bd",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "5ad38a83ef15e8f65ec1"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/be54ff9fc71bc5e0b2d68fbeba34cc69c7f0c88f4d1868316285e32f948a7a41/model_best.pt",
+        "sha256": "ea5dc09372235094fc281f824379d08b89bf9285f279e918d9aaddb178ec950f",
+        "epoch_zero_based": 38,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.3874538745387455,
+        "model_state_hash": "187f440a1081551e015de04385c6834f9530c2336c74f5ff4afaa4a7cb547de5",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "5478e8085eeec966be13",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 1,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "r_point",
+        "selector_ref": "r_point_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 1,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_36c8c29a_8dedd443",
+        "recipe_hash": "36c8c29a81aeab461982315901b8d27ab58213244770f6a10c1965b72360da0e",
+        "content_hash": "8dedd44374727b7d25cf39dbad47a74a1f7b85c60c5330ddcc690c67622be18e"
+      },
+      "selection_id": "sel_a4870f32_c723c019",
+      "initial_checkpoint_state_hash": "ddc02ad58ae05cc8c39c8a6e7bc2fe442b965865b1d1dd86f9cc32c5d9d68337",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "5478e8085eeec966be13"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/36c8c29a81aeab461982315901b8d27ab58213244770f6a10c1965b72360da0e/model_best.pt",
+        "sha256": "14bb77872985e53bb92e740b05e12647ad62138411641a308aa77f74aa17eeca",
+        "epoch_zero_based": 44,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4833948339483394,
+        "model_state_hash": "1849b118b73bb06b3b2999d4384911741c32fb3656112f3fc00549279e6463c7",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "c9749be4974cc30c4c87",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 1,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "gt_full",
+        "selector_ref": "gt_full_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 1,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_019e1458_86849b9f",
+        "recipe_hash": "019e14583a61ed1ee11c3cfc39ae28de6940482402365124856b95fb29a435cc",
+        "content_hash": "86849b9f66b8298331d8afcc680613fa5bd813b1791bf5f2e47139bf20939fcc"
+      },
+      "selection_id": "sel_2f8eab23_1a38e191",
+      "initial_checkpoint_state_hash": "ddc02ad58ae05cc8c39c8a6e7bc2fe442b965865b1d1dd86f9cc32c5d9d68337",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "c9749be4974cc30c4c87"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/019e14583a61ed1ee11c3cfc39ae28de6940482402365124856b95fb29a435cc/model_best.pt",
+        "sha256": "ddb572e34c4af6a146782b5839a4941cb21fd05628173c436ad126863014092b",
+        "epoch_zero_based": 41,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.3800738007380073,
+        "model_state_hash": "31ab445b9c26fda43042269432523664ddbcc211738b90987cdc618363d7f022",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "8bfe239edd20ddf957f0",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 1,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "degree",
+        "selector_ref": "degree.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 1,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_e37efd3e_15038012",
+        "recipe_hash": "e37efd3e68303ad2f0dcd120685137a420271b10bee97908e298710f13482b94",
+        "content_hash": "150380128ff00d31478b25d47bb2163739801fd02a9d634077f27be6874a138e"
+      },
+      "selection_id": "sel_ff46e44a_c86d7141",
+      "initial_checkpoint_state_hash": "ddc02ad58ae05cc8c39c8a6e7bc2fe442b965865b1d1dd86f9cc32c5d9d68337",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "8bfe239edd20ddf957f0"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/e37efd3e68303ad2f0dcd120685137a420271b10bee97908e298710f13482b94/model_best.pt",
+        "sha256": "3d3c859b57f2c6dcb1c891e89cf80deb491ea0d8ca1115f2e1b33bf022a99479",
+        "epoch_zero_based": 49,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4833948339483394,
+        "model_state_hash": "54cf5d92310b75151253d3db97642ffd97ef13fec252d8e19ab2c6cfdd92a680",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "20fb6b8c389967414af4",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 2,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "r_point",
+        "selector_ref": "r_point_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 2,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_5c7a66c7_3a033ae9",
+        "recipe_hash": "5c7a66c70292650d09a6405a07cc378b55a047bb6a813e8b97ae86c72d5a55df",
+        "content_hash": "3a033ae98ea731286026f1023024b24ece43bb1fbdf304517b62e4af419413c1"
+      },
+      "selection_id": "sel_6e4dbef8_9f9dc539",
+      "initial_checkpoint_state_hash": "762217fcc988908b88a51f6d9ffd8abcea619704db628d117161a2450359ece1",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "20fb6b8c389967414af4"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/5c7a66c70292650d09a6405a07cc378b55a047bb6a813e8b97ae86c72d5a55df/model_best.pt",
+        "sha256": "efbde5eadc9920620c10fb837f911c9c8e27c4d120d3826ba5bbc2573d243433",
+        "epoch_zero_based": 38,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5719557195571956,
+        "model_state_hash": "05e5490ef355a0bb4045f71ee8372f8e1bf78af928c07028ecf59b6f7cde65c6",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "5cab282bbe3a18566a2e",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 2,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "gt_full",
+        "selector_ref": "gt_full_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 2,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_e9c15247_25f30890",
+        "recipe_hash": "e9c15247c28db0208a5ed5b04b8ee476e8d9e21858e0741f0abe4bd56a5aebcc",
+        "content_hash": "25f308904dffb0c289cb67bfb0ab12fd4a8360211f768447e136b9c51fb8c826"
+      },
+      "selection_id": "sel_46bf630b_0ec0a6d5",
+      "initial_checkpoint_state_hash": "762217fcc988908b88a51f6d9ffd8abcea619704db628d117161a2450359ece1",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "5cab282bbe3a18566a2e"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/e9c15247c28db0208a5ed5b04b8ee476e8d9e21858e0741f0abe4bd56a5aebcc/model_best.pt",
+        "sha256": "c3f0fd629474f6f7afdfc46e47cf0777dec3a67f448a2c15bce2f6ee51d20d41",
+        "epoch_zero_based": 33,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4317343173431734,
+        "model_state_hash": "f8438d06c64aa505ba2a0a94d324809daed0169353e73ef8e3e8f8ad0f3ef319",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "94dbb5305461ceb94b83",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 2,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "degree",
+        "selector_ref": "degree.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 2,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_45d88830_217b46f1",
+        "recipe_hash": "45d888305a06a5aaed6f9d9feef35bef04e6dd0dde21a86eff31466c0ca4c5eb",
+        "content_hash": "217b46f17c56b4d02b0f01eb9fe375f44fc5a72cc71d2d245307c7535083b743"
+      },
+      "selection_id": "sel_ff46e44a_c86d7141",
+      "initial_checkpoint_state_hash": "762217fcc988908b88a51f6d9ffd8abcea619704db628d117161a2450359ece1",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "94dbb5305461ceb94b83"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/45d888305a06a5aaed6f9d9feef35bef04e6dd0dde21a86eff31466c0ca4c5eb/model_best.pt",
+        "sha256": "beb7d4ae4485adc102e0d95ae0d5c633396676bd41655d7e457862aa50edf768",
+        "epoch_zero_based": 49,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5571955719557193,
+        "model_state_hash": "822894b586a43d7df939519a246665dd7779bf44381d974570db4ba4583f22b9",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "ec44d161748c55c51bbf",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 3,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "r_point",
+        "selector_ref": "r_point_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 3,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_09a67389_60708661",
+        "recipe_hash": "09a67389ba72b9a40b7a5c5a944723d7eb22d44867ee001b95baab6049f11fb5",
+        "content_hash": "60708661f6fafdbd675aee4f698574f30448040d9acf63efdb2de59e631af785"
+      },
+      "selection_id": "sel_f008ec7c_87fe7603",
+      "initial_checkpoint_state_hash": "c8d5463cfb4580b0bff63d9ca54b56de41f858f6bb59d2c4c1975dd54e14d26e",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "ec44d161748c55c51bbf"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/09a67389ba72b9a40b7a5c5a944723d7eb22d44867ee001b95baab6049f11fb5/model_best.pt",
+        "sha256": "bf3f17ede77a06d8c0bda0ded4d9e48ec7d1fa7e55284269a8de288b26c8a08c",
+        "epoch_zero_based": 42,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5055350553505535,
+        "model_state_hash": "14efff8402818476e2796d68df5a73a79ad3dfeba8519093273576b5e5788947",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "121db981515f9cd76316",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 3,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "gt_full",
+        "selector_ref": "gt_full_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 3,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_3fa5c056_60681f91",
+        "recipe_hash": "3fa5c056a3ac0c02a00c50d2c4939bb16f7ae8b1b812d17770f5cff70e4fd8c2",
+        "content_hash": "60681f91d62f595e6faf0e60cf041088337629f53e0f6e950bf844d2a9f2cdd1"
+      },
+      "selection_id": "sel_02213521_57316730",
+      "initial_checkpoint_state_hash": "c8d5463cfb4580b0bff63d9ca54b56de41f858f6bb59d2c4c1975dd54e14d26e",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "121db981515f9cd76316"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/3fa5c056a3ac0c02a00c50d2c4939bb16f7ae8b1b812d17770f5cff70e4fd8c2/model_best.pt",
+        "sha256": "66acbda9891fc616d5e58748d359d32f619d5ed7d919f937b93c147cadbf1962",
+        "epoch_zero_based": 47,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5129151291512914,
+        "model_state_hash": "a91104a40cdf364c94d6f31c5c5dc1dc6477c4e6e3658dbfd1712e23b5a29f56",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "6cd65f78425785be7fd5",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 3,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "degree",
+        "selector_ref": "degree.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 3,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_1139c2c3_4478f235",
+        "recipe_hash": "1139c2c3f7225afdeac624fd2d810cf8ed344c01872b587f672a549a60cabb30",
+        "content_hash": "4478f23581341e90fb7c8ae4d7ffa693fb7e00df5c91c98d587ba28ef1fc674d"
+      },
+      "selection_id": "sel_ff46e44a_c86d7141",
+      "initial_checkpoint_state_hash": "c8d5463cfb4580b0bff63d9ca54b56de41f858f6bb59d2c4c1975dd54e14d26e",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "6cd65f78425785be7fd5"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/1139c2c3f7225afdeac624fd2d810cf8ed344c01872b587f672a549a60cabb30/model_best.pt",
+        "sha256": "95b0ce5cbb4736085aeef107f8644f366f287468f4b8a0331774bab7601bde8f",
+        "epoch_zero_based": 41,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5129151291512914,
+        "model_state_hash": "c55d4969036bd02ded8a2e0b5b47fb351c886e0c95e2c3b011484281f11d5010",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "a2d495f6cd7baa9963fd",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 4,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "r_point",
+        "selector_ref": "r_point_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 4,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_5357b123_bc95e011",
+        "recipe_hash": "5357b123bd709beac29bb0fb2a12348897604d0792a6eab1ef7b65602a5a363d",
+        "content_hash": "bc95e0110a1a4a6fee41d76b1f152d7e19e6d3446ee3cda85bd00c0577938e29"
+      },
+      "selection_id": "sel_50384988_c84629b1",
+      "initial_checkpoint_state_hash": "4f1e4e95c981e5324501ea9f932f9dba3891335127cb2893c6d4d1d94b5434be",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "a2d495f6cd7baa9963fd"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/5357b123bd709beac29bb0fb2a12348897604d0792a6eab1ef7b65602a5a363d/model_best.pt",
+        "sha256": "f6603a19ece79fa626c6c951194a0ae5e463342083f40f5bcbb24b3c2d9db8a4",
+        "epoch_zero_based": 47,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5940959409594095,
+        "model_state_hash": "1b3720d7baa21e9ad4a130808d0033f497b99744c04495ee0c07b11b0759637a",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "ac8daea7a2c27e813cca",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 4,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "gt_full",
+        "selector_ref": "gt_full_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 4,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_c2a1e5da_68b1caef",
+        "recipe_hash": "c2a1e5da3fd3c417c08b22e9d965259768853eff538cdc8d0089f043add721de",
+        "content_hash": "68b1caefbeb3119bfceb90ac775a754bd42cd5362b1fa57ab1e5f77b17ccbad4"
+      },
+      "selection_id": "sel_4a2b9d18_bcdbc5ef",
+      "initial_checkpoint_state_hash": "4f1e4e95c981e5324501ea9f932f9dba3891335127cb2893c6d4d1d94b5434be",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "ac8daea7a2c27e813cca"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/c2a1e5da3fd3c417c08b22e9d965259768853eff538cdc8d0089f043add721de/model_best.pt",
+        "sha256": "a5d791c55647cdf8e329b44c4e2acfa24578433312b0b4da9a0600f76b88dc6b",
+        "epoch_zero_based": 49,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4317343173431734,
+        "model_state_hash": "ecfa0200c5c10ced1595eb059c106f885a51102d5fec24f8733d2c36c482230f",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "f6c26476a3cfc5c24250",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 4,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "degree",
+        "selector_ref": "degree.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 4,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_fb0619c3_928fd7db",
+        "recipe_hash": "fb0619c3e1ea21c06a2e74a791a4251b356cd61263272ed6f0b8f23fa1631a23",
+        "content_hash": "928fd7dbcdf37856fadb035c7e42e5ef7fea48aa3e8eece2cebe98135b1a2ec7"
+      },
+      "selection_id": "sel_ff46e44a_c86d7141",
+      "initial_checkpoint_state_hash": "4f1e4e95c981e5324501ea9f932f9dba3891335127cb2893c6d4d1d94b5434be",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "f6c26476a3cfc5c24250"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/fb0619c3e1ea21c06a2e74a791a4251b356cd61263272ed6f0b8f23fa1631a23/model_best.pt",
+        "sha256": "12e3c5acde09e5fbc4256d7bf0b5a0542fb8cc92b43b3a6b44b0ac1d4b5848e2",
+        "epoch_zero_based": 22,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.3948339483394834,
+        "model_state_hash": "c06028049776027e8d0d3c92203c915ad90f202006dc27d592d2c3a39147d3bc",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "8091fe5ee251782e4067",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 5,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "r_point",
+        "selector_ref": "r_point_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 5,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_790f69bf_6cc3d500",
+        "recipe_hash": "790f69bf3ee3fa06ab3f45ea58443243a5cd18fa32ab7eab7245834f28535450",
+        "content_hash": "6cc3d500cc779da02de4402103485550cc5cd447a62cd2cf1e6f69a9fc0d545e"
+      },
+      "selection_id": "sel_a126c6d6_2ac472d1",
+      "initial_checkpoint_state_hash": "81725aa9eae71be67ae5ee0c8c88ab3e357677f376c590d771dd74b26e3f47f2",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "8091fe5ee251782e4067"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/790f69bf3ee3fa06ab3f45ea58443243a5cd18fa32ab7eab7245834f28535450/model_best.pt",
+        "sha256": "44956df0d8f38536923cf3bf073282264eecbbaffdee8c2eed2539cb8a803197",
+        "epoch_zero_based": 48,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5129151291512914,
+        "model_state_hash": "fb4dd69c97fec378940f0870521e96bf2242a95148b27eb8f285ea49fd8ca0c8",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "a2006b27981e955932ac",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 5,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "gt_full",
+        "selector_ref": "gt_full_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 5,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_4fef1662_0e69e73e",
+        "recipe_hash": "4fef1662fced34c6342472df2e48fc19f2838593eeedf8f3711da0c029b3d584",
+        "content_hash": "0e69e73e9a73db6d119709abed74e7a3f03f3f8716c07c4f707424cbc5ff40d1"
+      },
+      "selection_id": "sel_527d6fc2_41867b86",
+      "initial_checkpoint_state_hash": "81725aa9eae71be67ae5ee0c8c88ab3e357677f376c590d771dd74b26e3f47f2",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "a2006b27981e955932ac"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/4fef1662fced34c6342472df2e48fc19f2838593eeedf8f3711da0c029b3d584/model_best.pt",
+        "sha256": "ae08ae6b34ea4ab6d2d7ee8552b5dc2b26f04924b7b0db2a8c096e14d93d2af2",
+        "epoch_zero_based": 43,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4095940959409594,
+        "model_state_hash": "4a421c9d2401e2ce4e9f68d048bf424e25ea58a9849e01fb13cb7262a6b959ad",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "2affbc49a865a1b03814",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 5,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "degree",
+        "selector_ref": "degree.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 5,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_6d10cf83_af155c4b",
+        "recipe_hash": "6d10cf834a613b9d9256ad4880a5f1ace7b3c832f581cff0311512972107aeb9",
+        "content_hash": "af155c4b7aed032c74921c69fd50322704f812517ca603850918e4bb1869785a"
+      },
+      "selection_id": "sel_ff46e44a_c86d7141",
+      "initial_checkpoint_state_hash": "81725aa9eae71be67ae5ee0c8c88ab3e357677f376c590d771dd74b26e3f47f2",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "2affbc49a865a1b03814"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/6d10cf834a613b9d9256ad4880a5f1ace7b3c832f581cff0311512972107aeb9/model_best.pt",
+        "sha256": "58b2c20e6365606fe115b13637399cf7abfcb40b7c122ef7a26b18f91c3033ef",
+        "epoch_zero_based": 32,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4686346863468636,
+        "model_state_hash": "03c7e4c53125adf0e36b2fcfe1d7a185765f34a62e632c97e80d8d6c9bf1e504",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "0c5af2219079c06fa918",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 6,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "r_point",
+        "selector_ref": "r_point_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 6,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_b4911d62_7a597c5a",
+        "recipe_hash": "b4911d62d4b2973434e3dc6ecf472afe7f3f351cb93474671e2b359fcbeff5dc",
+        "content_hash": "7a597c5a5f0524b09d2b4b14da0458e862adcc2d9bb040954d5852f8903f8a98"
+      },
+      "selection_id": "sel_63d45707_d9ac8867",
+      "initial_checkpoint_state_hash": "ccb4a2c33949d979b8a9771dd48c250a2735bd436c689284ac446168670827f4",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "0c5af2219079c06fa918"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/b4911d62d4b2973434e3dc6ecf472afe7f3f351cb93474671e2b359fcbeff5dc/model_best.pt",
+        "sha256": "e71cd66f0f40a40f86c5c7cc2b669645091a1e3af77710fed2e3d478ed23afa5",
+        "epoch_zero_based": 44,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.5498154981549819,
+        "model_state_hash": "e2b3990efd8a23463caf2b44f4f40370fa74ceaccc78d2dc092160b15b540fc1",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "47b521a4f0e8c4f65a3d",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 6,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "gt_full",
+        "selector_ref": "gt_full_sgc.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 6,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_8e0333bf_0ce6b176",
+        "recipe_hash": "8e0333bf6a3ff60816285eb8b3505d58b576e64071d2a1f4bc6824715be2ea7a",
+        "content_hash": "0ce6b176533c88ba0ff6f65e332296e16ed95a1590ba03acc69a9b65ede7dcf2"
+      },
+      "selection_id": "sel_63072d22_67a8423b",
+      "initial_checkpoint_state_hash": "ccb4a2c33949d979b8a9771dd48c250a2735bd436c689284ac446168670827f4",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "47b521a4f0e8c4f65a3d"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/8e0333bf6a3ff60816285eb8b3505d58b576e64071d2a1f4bc6824715be2ea7a/model_best.pt",
+        "sha256": "938c0b51a9115b8d9b19b6239ac63f42c037a4b66ce9e736560939515014e4e3",
+        "epoch_zero_based": 37,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.4981549815498154,
+        "model_state_hash": "2d271bc953116c38a263b2bf909dbae72b6f42f6b3da0a1b47d92c37949d6ab3",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    },
+    {
+      "cell_id": "ba8fe937ae2df8f12638",
+      "conditions": {
+        "dataset_index": 0,
+        "dataset_name": "Cora",
+        "dataset_fingerprint": "82741ce023ece70893d0f739fb2c7a06e8e81ec4afcb015b97fbd5b504a41dc7",
+        "training_seed": 6,
+        "budget_ratio": 0.1,
+        "model": "OpenGU.GCNNet",
+        "method": "GNNDelete",
+        "selector": "degree",
+        "selector_ref": "degree.yaml",
+        "unlearning_ref": "gnndelete.yaml",
+        "seed": 6,
+        "budget": {
+          "mode": "ratio",
+          "value": 0.1
+        }
+      },
+      "output": {
+        "artifact_id": "pred_c469f044_9a1d6786",
+        "recipe_hash": "c469f044b72c3ef4d8f5013115bbea192a0064d5f1fc0dc5b1cfcb776e22cbae",
+        "content_hash": "9a1d6786de07c0805c951e14cf988c5674f1eed4a4b0fc9ae97d4068293e654a"
+      },
+      "selection_id": "sel_ff46e44a_c86d7141",
+      "initial_checkpoint_state_hash": "ccb4a2c33949d979b8a9771dd48c250a2735bd436c689284ac446168670827f4",
+      "producer": {
+        "semantic_version": "opengu-independent-node-output-v1",
+        "source_fingerprint": "b6dc18cc580f6184cc500459b3b36d1f2f3002ddd3f7da81a969714ee2c0329e"
+      },
+      "consumption_cache_state": "miss",
+      "generation_run": {
+        "path": "results/runs/exp084-gnndelete-checkpoint-audit/e84r1/run.json",
+        "sha256": "3f9eb5f4d51c1153153d53ce466e1bbcb2050969f58f6e78541ea9d6f7a45307",
+        "run_id": "e84r1",
+        "cell_id": "ba8fe937ae2df8f12638"
+      },
+      "checkpoint": {
+        "path": "results/runtime/modular/e84r1/unlearning/c469f044b72c3ef4d8f5013115bbea192a0064d5f1fc0dc5b1cfcb776e22cbae/model_best.pt",
+        "sha256": "d50fae43a6653b7565af4d32420d6d6e0bd2ee52af50c6d726d529c65d06ffa8",
+        "epoch_zero_based": 38,
+        "selection_stage": "val",
+        "selection_metric": "accuracy+micro_f1",
+        "selection_score": 1.3874538745387455,
+        "model_state_hash": "9e2f1a0f13dc79720a540daa7ed172d8ef956ad79f965f2c5aec0bb7998e9bd6",
+        "tensor_count": 6,
+        "exported_output_weights_exact": true
+      }
+    }
+  ]
+}

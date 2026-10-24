@@ -1,0 +1,414 @@
+{
+  "status": "passed",
+  "local_links": [
+    {
+      "report": "a/e84c1/CONFIRMATION_PLOT_REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-execution-prep/e84c1/CONFIRMATION_PLOT_REPORT.md",
+      "url": "A_CONFIRMATION.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\a\\e84c1\\A_CONFIRMATION.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "a/e84c1/CONFIRMATION_PLOT_REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-execution-prep/e84c1/CONFIRMATION_PLOT_REPORT.html",
+      "url": "A_CONFIRMATION.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\a\\e84c1\\A_CONFIRMATION.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.md",
+      "url": "B_FIGURE_INPUTS.json",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_FIGURE_INPUTS.json",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.md",
+      "url": "B_original_gu_retrain_accuracy.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_original_gu_retrain_accuracy.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.md",
+      "url": "B_original_gu_retrain_accuracy.pdf",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_original_gu_retrain_accuracy.pdf",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.md",
+      "url": "B_original_gu_retrain_accuracy.svg",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_original_gu_retrain_accuracy.svg",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.md",
+      "url": "B_truth_partition.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_truth_partition.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.md",
+      "url": "B_truth_partition.pdf",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_truth_partition.pdf",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.md",
+      "url": "B_truth_partition.svg",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_truth_partition.svg",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.md",
+      "url": "plot_a_confirmation.py",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\plot_a_confirmation.py",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.html",
+      "url": "B_FIGURE_INPUTS.json",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_FIGURE_INPUTS.json",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.html",
+      "url": "B_original_gu_retrain_accuracy.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_original_gu_retrain_accuracy.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.html",
+      "url": "B_original_gu_retrain_accuracy.pdf",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_original_gu_retrain_accuracy.pdf",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.html",
+      "url": "B_original_gu_retrain_accuracy.svg",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_original_gu_retrain_accuracy.svg",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.html",
+      "url": "B_truth_partition.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_truth_partition.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.html",
+      "url": "B_truth_partition.pdf",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_truth_partition.pdf",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.html",
+      "url": "B_truth_partition.svg",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\B_truth_partition.svg",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/figures/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-prep/REPORT.html",
+      "url": "plot_a_confirmation.py",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\figures\\plot_a_confirmation.py",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/e85gr1/interpretation/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-graph-analysis/e85gr1/interpretation/REPORT.html",
+      "url": "strategy_graph_controls.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\e85gr1\\interpretation\\strategy_graph_controls.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/e85gr1/interpretation/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-graph-analysis/e85gr1/interpretation/REPORT.html",
+      "url": "ret_only_truth.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\e85gr1\\interpretation\\ret_only_truth.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/e85gr1/interpretation/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-graph-analysis/e85gr1/interpretation/REPORT.html",
+      "url": "megu_cs_controls.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\e85gr1\\interpretation\\megu_cs_controls.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/e85gr1/interpretation/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-graph-analysis/e85gr1/interpretation/REPORT.md",
+      "url": "strategy_graph_controls.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\e85gr1\\interpretation\\strategy_graph_controls.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/e85gr1/interpretation/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-graph-analysis/e85gr1/interpretation/REPORT.md",
+      "url": "ret_only_truth.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\e85gr1\\interpretation\\ret_only_truth.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/e85gr1/interpretation/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-graph-analysis/e85gr1/interpretation/REPORT.md",
+      "url": "megu_cs_controls.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\e85gr1\\interpretation\\megu_cs_controls.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "build/main.pdf",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\build\\main.pdf",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "baseline/build/main.pdf",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\baseline\\build\\main.pdf",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "rendered/page-1.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-1.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "rendered/page-2.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-2.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "rendered/page-3.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-3.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "baseline/rendered/page-1.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\baseline\\rendered\\page-1.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "baseline/rendered/page-2.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\baseline\\rendered\\page-2.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "baseline/rendered/page-3.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\baseline\\rendered\\page-3.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "INPUTS.json",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\INPUTS.json",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "REFLOW_PROVENANCE.json",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\REFLOW_PROVENANCE.json",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "VALIDATION.json",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\VALIDATION.json",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "reflow_copies.py",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\reflow_copies.py",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "original_plot_function.py",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\original_plot_function.py",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "private_plot_function.py",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\private_plot_function.py",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "rendered/page-1.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-1.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "rendered/page-2.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-2.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.md",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.md",
+      "url": "rendered/page-3.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-3.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "build/main.pdf",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\build\\main.pdf",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "baseline/build/main.pdf",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\baseline\\build\\main.pdf",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "rendered/page-1.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-1.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "rendered/page-2.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-2.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "rendered/page-3.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-3.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "baseline/rendered/page-1.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\baseline\\rendered\\page-1.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "baseline/rendered/page-2.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\baseline\\rendered\\page-2.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "baseline/rendered/page-3.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\baseline\\rendered\\page-3.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "INPUTS.json",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\INPUTS.json",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "REFLOW_PROVENANCE.json",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\REFLOW_PROVENANCE.json",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "VALIDATION.json",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\VALIDATION.json",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "reflow_copies.py",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\reflow_copies.py",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "original_plot_function.py",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\original_plot_function.py",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "private_plot_function.py",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\private_plot_function.py",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "rendered/page-1.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-1.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "rendered/page-2.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-2.png",
+      "status": "planned_archive_file"
+    },
+    {
+      "report": "b/graph/proof/REPORT.html",
+      "source_report": "self/research/experiments/drafts/round3-figure-proof/b-full-controls/REPORT.html",
+      "url": "rendered/page-3.png",
+      "resolved": "E:\\project\\OpenGU\\GULib-master\\paper_writing\\review\\2026-10-24-round3\\evidence\\b\\graph\\proof\\rendered\\page-3.png",
+      "status": "planned_archive_file"
+    }
+  ],
+  "external_links": [],
+  "issues": [],
+  "policy": "No rewriting. Relative target may be a planned manifest file that is not yet copied. Unresolved links block promotion; source reports remain unchanged."
+}

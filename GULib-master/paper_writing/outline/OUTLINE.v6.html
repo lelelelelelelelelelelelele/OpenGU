@@ -1,0 +1,1568 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="source-sha256" content="e0d602751bb9194ec05036ab7a94297fe19c38fc1a6b88fe3778c7cd7024ac2b"><title>Auditing Strategic Deletion Requests in Graph Unlearning</title><style>:root{color-scheme:light;--ink:#24313e;--muted:#667382;--line:#d7e0e7;--accent:#175b80}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f2f5f7;color:var(--ink);font:16px/1.85 system-ui,'Microsoft YaHei',sans-serif}.layout{max-width:1440px;margin:auto;padding:34px 28px 90px;display:grid;grid-template-columns:235px minmax(0,1fr);gap:34px}nav{position:sticky;top:30px;align-self:start;font-size:13px}nav strong{display:block;font-size:17px;line-height:1.5;margin-bottom:14px}nav a{display:block;padding:8px 0;border-bottom:1px solid var(--line);color:var(--muted);text-decoration:none}.meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}main{min-width:0;padding:40px 46px;background:white;border:1px solid var(--line)}h1{font-size:29px;line-height:1.4;margin:0 0 24px}h2{font-size:22px;line-height:1.5;margin:42px 0 18px;padding-top:16px;border-top:2px solid #b5cbd7;scroll-margin-top:20px}h3{font-size:18px;margin:27px 0 12px}h4{font-size:16px;color:var(--accent);margin:22px 0 10px}p{margin:13px 0}li{margin:8px 0}a{color:var(--accent);text-underline-offset:3px}code{font-size:.87em;background:#edf2f6;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{padding:16px;background:#edf2f6;overflow:auto}pre code{padding:0;background:none;overflow-wrap:normal}blockquote{border-left:4px solid #b5cbd7;margin:20px 0;padding:1px 20px;color:#3b5263;background:#f5f8fa}.table-scroll{overflow:auto;margin:22px 0}table{border-collapse:collapse;min-width:610px;width:100%;font-size:14px;line-height:1.75}th,td{border:1px solid var(--line);padding:11px 13px;text-align:left;vertical-align:top}th{background:#eaf1f6}tr:nth-child(even) td{background:#f8fafb}img{max-width:100%;height:auto}footer{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}@media(max-width:960px){.layout{display:block;padding:16px}nav{position:static;margin:0 0 20px}nav a{display:inline-block;margin-right:14px}main{padding:25px 20px}h1{font-size:25px}}@media print{body{background:white}.layout{display:block;padding:0}nav{display:none}main{border:0;padding:0}h2,h3,h4{break-after:avoid}table{font-size:10px;min-width:0}a{color:inherit}}
+nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-width:960px){nav{max-height:none;overflow:visible;padding-right:0}}</style></head>
+<body><div class="layout"><nav><strong>OpenGU · Paper Writing</strong><p class="meta">2026-10-24<br>由 Markdown 源文件生成</p><a href="#pw-doc-section-1">本轮执行与论文方案</a>
+<a href="#pw-doc-section-2">第二轮采纳决定与证据责任</a>
+<a href="#pw-doc-section-3">阅读方式与篇幅约束</a>
+<a href="#pw-doc-section-4">摘要：Abstract</a>
+<a href="#pw-doc-section-5">第1章：Introduction（引言）</a>
+<a href="#pw-doc-section-6">第2章：Related Work（相关工作）</a>
+<a href="#pw-doc-section-7">第3章：Problem Formulation and Threat Model（问题与威胁模型）</a>
+<a href="#pw-doc-section-8">第4章：Request Construction and Audit Protocol（请求构造与审计协议）</a>
+<a href="#pw-doc-section-9">第5章：Experimental Design（实验设计）</a>
+<a href="#pw-doc-section-10">第6章·6.0：Results — 请求差异的前置支撑</a>
+<a href="#pw-doc-section-11">第6章·6.1：Q1 — What changes under strategic deletion requests?</a>
+<a href="#pw-doc-section-12">第6章·6.2：Q2 — How do strategy–method responses vary with deletion budget?</a>
+<a href="#pw-doc-section-13">第6章·6.3：Q3 — Which responses persist across selection-model sources?</a>
+<a href="#pw-doc-section-14">第7章：Discussion and Limitations（讨论与限制）</a>
+<a href="#pw-doc-section-15">第8章：Conclusion（结论）</a>
+<a href="#pw-doc-section-16">附录A：Implementation and Reproducibility（实现与复现）</a>
+<a href="#pw-doc-section-17">附录B：Request Mechanisms and Approximations（请求机制与近似）</a>
+<a href="#pw-doc-section-18">附录C：Full Fixed-budget Results（固定预算全量结果）</a>
+<a href="#pw-doc-section-19">附录D：Full Budget Results（预算全量结果）</a>
+<a href="#pw-doc-section-20">附录E：Source Comparisons and Statistics（来源比较与统计）</a>
+<a href="#pw-doc-section-21">段落—图表—证据对应表</a>
+<a href="#pw-doc-section-22">审查重点与仍需准备的材料</a><p><a href="OUTLINE.v6.md">编辑用源文件</a></p></nav><main><h1 id="auditing-strategic-deletion-requests-in-graph-unlearning">Auditing Strategic Deletion Requests in Graph Unlearning</h1>
+<p>版本：详细提纲 v6 · 正式重算后的候选发现与确认路线 · 2026-10-24（Asia/Shanghai）
+用途：作者逐章、逐段审查；本文件是当前提纲的唯一编辑源，HTML 由它生成。<br />
+状态：旧F-A继续隔离；修复后的EXP-084已完成30个GNNDelete条件、匹配Ret、可信回传和实际checkpoint取证，十seed顺序交叉通过预定恢复判据，现为待独立确认的候选发现。B第一层技术gate已执行，回传验收接口正在修复，尚不可采用。五新seed确认与A/B解释控制仍待执行。写作门槛为三类复审均达到Weak Accept或以上且主审认可，目前未达到，不开始英文正文。见<a href="../protocol/ROUND3_EXECUTION_PROTOCOL.html">执行协议</a>及<a href="../review/2026-10-24-round3/REPORT.html">本轮执行报告</a>。</p>
+<p><strong>当前主问题：在固定候选池和预算下，不同删除请求构造怎样改变GU与同请求Retrain的响应；这种关系如何随预算和选点模型变化？</strong> 论文候选主线是“请求在重训上的效用顺序未必保留到近似更新，预测分歧还需辨认哪一个端点改变”。前半句有正确选模后的限定案例，后半句由B及后续控制检验。旧输出不能因新结果同方向而恢复；新增证据只覆盖明确重算范围。</p>
+<p>保留题目 <em>Auditing Strategic Deletion Requests in Graph Unlearning</em>。本文按经验研究组织，IM/IF为已有请求构造原则，直接策略对照为工具；不能靠更换术语或增加恒等式充当科学创新。近邻已报告普通accuracy–fidelity预算分离，新增价值仍需由策略直接对照、对照端点及有效性支持。</p>
+<h2 id="pw-doc-section-1">本轮执行与论文方案</h2>
+<p>本版保留逐章、逐段的目标／写法／注意点结构，但不预先写入尚未产生的结果。<a href="OUTLINE.v4.md">v4源文件</a>保留第二轮结束稿，<a href="OUTLINE.v5.md">v5源文件</a>保留开跑前方案。A的正确选模与十seed重算已通过；五个新seed及自身解释控制通过后，才决定是否承担核心贡献。</p>
+<p><strong>新证据A（已可信、尚未确认）：</strong> Cora／SGC-source／10%，D-full−R-point accuracy：Ret为+0.849 pp，同时95%区间[+0.285,+1.412]；GNNDelete为−6.494 pp，区间[−9.127,−3.862]。这里两条分别使用97.5%双侧t区间，十个联合seed均呈预定双向交叉。CE差分别−0.0223与+0.2036，只作次要一致性检查。不能据此宣称普遍反序、模型选择有效性已覆盖全部历史结果，或论文已经Weak Accept。见<a href="../../self/research/experiments/drafts/round3-execution-prep/e84r1/REPORT.html">逐seed与完整端点</a>。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>执行阶段</th>
+<th>固定范围与主要问题</th>
+<th>如何影响文章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>EXP-084 gate及完整重算</td>
+<td>已完成上述30个新GU条件与30个匹配Ret；121个文件校验、30个GU导出权重与validation checkpoint逐项一致</td>
+<td>已恢复限定候选关系，进入五新seed确认；不恢复Random、其他source或预算的旧GNNDelete结果</td>
+</tr>
+<tr>
+<td>A条件确认</td>
+<td>若完整重算保留候选主发现，再按协议使用五个预先指定新联合seed、三策略</td>
+<td>旧十seed与新五seed分别显示；确认不足时只能作为探索案例，不能独立支撑写作放行</td>
+</tr>
+<tr>
+<td>EXP-085第一层</td>
+<td>CiteSeer、5%/33%、R-point/Random/Degree、三seed、GIF/MEGU/Ret，共54已有引用</td>
+<td>三端点D、五类预测关系与真值、请求组成回答谁变化；本层不自动完成两图或C&amp;S控制</td>
+</tr>
+<tr>
+<td>B解释控制</td>
+<td>同权重两评价图，MEGU四端点匹配C&amp;S，33%三策略的Ret训练pilot；B作核心时扩展三seed</td>
+<td>结果决定Q2写GU变化、Ret变化还是pipeline边界；影响解释的控制必须进入主文</td>
+</tr>
+<tr>
+<td>三类复审</td>
+<td>有效性、贡献、证据强度、解释与边界、可写性五项均满足</td>
+<td>理论／实验／分析均≥Weak Accept且主审同意后，才能正式开始第一稿</td>
+</tr>
+</tbody>
+</table></div>
+<p>论文组织有三个明确分支：A恢复且确认、B解释闭合时，以A的请求顺序交叉和B的响应分离共同组织；A不成立时撤A，判断B经控制后的具体新增认识是否足够；若只剩普通accuracy–fidelity分离或关键解释未闭合，就不进入正式第一稿。不能用更强framing补足贡献缺口。</p>
+<p><strong>本轮新增CPU事实：</strong> B组54引用对应18请求×seed组、10个不同Selection，217项输入／回传哈希断言通过；9/9同策略同seed的5%→33%请求为严格嵌套前缀。R-point下Ret accuracy变化为−10.561±2.790 pp，CE为+0.3813±0.1259；GIF accuracy为−0.501±0.229 pp，MEGU为+0.050±0.229 pp（均值±样本SD）。33% R-point平均一跳test覆盖37.688%，低于Random43.844%及Degree58.559%。这些事实加强了三端点与Ret质量检查的必要性，不能单独证明因果机制或遗忘失败。详见<a href="../../self/research/experiments/drafts/round3-b-diagnostics/REPORT.html">CPU分析</a>。</p>
+<h2 id="pw-doc-section-2">第二轮采纳决定与证据责任</h2>
+<p><strong>必须先处理的P0：GNNDelete的best checkpoint选择。</strong> 训练路径名义上调用val评估，实际函数使用test_mask，并按test accuracy＋F1选best。已从原始MISS生成记录绑定到原F-A中的6个确切Output，而非只检查当前代码；原F-A所用30个GNNDelete引用全部隔离。其余24个未逐一找齐原始创建run，不表示干净；其他GNNDelete支持性行暂不进入可用主分析。完整生成链、版本与边界见<a href="../review/2026-10-24-round2/EXPERIMENT_REVIEW.html">实验审稿</a>。这不自动否定其他方法，也不删除既有证据。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>内容</th>
+<th>当前采纳方式</th>
+<th>当前允许写什么</th>
+<th>恢复更强主张的条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>原F-A：Cora/SGC/GNNDelete排序交叉</td>
+<td>从摘要、引言主例、主图和结论撤出；仅在内部审计保留原值</td>
+<td>不能当作干净科学发现，也不能以CE同向支持补救</td>
+<td>修复val/test语义，验证实际训练路径与新缓存身份，重跑预先固定的完整对照后重新判断</td>
+</tr>
+<tr>
+<td>新A：EXP-084的限定重算</td>
+<td>十seed候选关系成立，进入确认及解释控制；新旧输出分开</td>
+<td>可报告该固定split／source／预算下的两条直接差及同时区间</td>
+<td>五个预定新seed、20对自身解释控制和三类复审；不能扩展到未重算历史坐标</td>
+</tr>
+<tr>
+<td>B1：同预算策略直接分歧</td>
+<td>当前主观察，以GIF/MEGU及Ret原始端点呈现</td>
+<td>R-point、Random、Degree下的GU–Ret分歧不同；不等于GU预测破坏</td>
+<td>三端点、匹配C&amp;S、两评价图支持解释；R–R仅在声称异常／遗忘失败时必需</td>
+</tr>
+<tr>
+<td>B2：预算改变上述策略关系</td>
+<td>B1的第二比较层次，不包装成独立机制发现</td>
+<td>080三seed下配对预算变化；直接R-point−Degree与相对单Random分别解释</td>
+<td>独立确认与请求重复决定可外推范围；不能将点态区间当总体规律</td>
+</tr>
+<tr>
+<td>结构／来源支撑</td>
+<td>限制为可采用方法；完整分母与反例并列</td>
+<td>请求几何、带内D与整体D分开；source变化是请求生成程序变化</td>
+<td>因果传播、目标backbone、数据split泛化各需另证据</td>
+</tr>
+</tbody>
+</table></div>
+<p>新A已通过正确选模后的十seed恢复判据，现有论证仍不足以宣称达到Weak Accept。不能从其他有利格子事后更换主发现；五seed确认未通过时，A依冻结规则降为探索性案例，不能因十seed显著而放宽标准。B必须接受独立的贡献与解释审查。</p>
+<p>首页用途落到一个受控问题：平台仅依赖Random请求评估更新方案时，会漏掉哪些特定请求条件下的行为差异？当前提供研究诊断依据，不承诺线上筛查阈值、请求拒绝规则、部署防御或法律合规。全训练候选池是平台侧权限上界压力测试，不是普通用户已有的天然控制权。</p>
+<p>原<a href="../review/2026-10-24-self-audit/VALIDATION_PLAN.html">114输出验证清单</a>保留为第一轮输入历史，不能直接按原计划消费其中A组受影响GU。第二轮优先级改为：先修复与重新生成A组所需GU证据；B组54个现有端点可按原身份推进三端点／两图诊断。具体分支与仍未完成的工作见<a href="../review/2026-10-24-round2/REPORT.html">第二轮行动表</a>。</p>
+<h2 id="pw-doc-section-3">阅读方式与篇幅约束</h2>
+<p>下文“第几段”指未来论文中的论证段落；“第一小部分、第二小部分”指该段内的写作动作，不要求分别另起自然段。每个小部分都写明“核心目标—准备怎么说—注意点”。插图列在首次承担论证任务的位置，其后的章节只引用，不重复放置。</p>
+<p>数字均为已有分析中的候选写作依据，正式稿从对应逐 seed 数据生成；展示均值的舍入差不能代替配对差。图的文字示意是布局草案，不是新生成的实验结果图。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>内容</th>
+<th style="text-align: right;">版面预算（含本节图表）</th>
+<th>必须完成的任务</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标题、摘要与模板固定区域</td>
+<td style="text-align: right;">约0.40页</td>
+<td>让读者识别问题、设计、具体发现及范围。</td>
+</tr>
+<tr>
+<td>第1章 Introduction</td>
+<td style="text-align: right;">约0.95页</td>
+<td>Web 请求场景、真实案例、研究缺口与贡献。</td>
+</tr>
+<tr>
+<td>第2章 Related Work</td>
+<td style="text-align: right;">约0.35页</td>
+<td>与最接近工作的控制权、问题和证据作比较。</td>
+</tr>
+<tr>
+<td>第3章 Problem Formulation and Threat Model</td>
+<td style="text-align: right;">约0.50页</td>
+<td>候选池、权限、目标、训练图与评价图。</td>
+</tr>
+<tr>
+<td>第4章 Request Construction and Audit Protocol</td>
+<td style="text-align: right;">约0.85页</td>
+<td>请求机制、匹配关系、指标含义。</td>
+</tr>
+<tr>
+<td>第5章 Experimental Design</td>
+<td style="text-align: right;">约0.65页</td>
+<td>三模块、方法实现、重复层级和统计。</td>
+</tr>
+<tr>
+<td>第6章 Results</td>
+<td style="text-align: right;">约3.70页</td>
+<td>请求差异支撑及 Q1–Q3，保留反例。</td>
+</tr>
+<tr>
+<td>第7章 Discussion and Limitations</td>
+<td style="text-align: right;">约0.45页</td>
+<td>具体含义、替代解释、外推限制。</td>
+</tr>
+<tr>
+<td>第8章 Conclusion</td>
+<td style="text-align: right;">约0.15页</td>
+<td>回答核心问题及其适用范围。</td>
+</tr>
+</tbody>
+</table></div>
+<p>合计约8页，仅作为排版预算。参考文献与附录还受总页数限制，附录 A–E 是内容分工，不能理解为各占一页。完整 CSV 和高密度图册进入匿名复现材料；决定核心结论的定义、反例和协议差异必须在主文出现。压缩时先删重复说明、长推导和历史过程，保留原始端点、对照关系与不确定结果。</p>
+<h2 id="pw-doc-section-4">摘要：Abstract</h2>
+<p>本节职责：用一个段落给出“为什么研究—怎样研究—发现什么—意味着什么”。建议约180–220个英文词，最后据主文定稿。</p>
+<ol>
+<li><strong>第一段：将问题、设计与一条主观察的两个比较层次连成论证。</strong>
+<ol>
+<li><strong>第一小部分：问题与动机。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 图模型处理删除请求时，请求目标的选择会影响更新后的行为；需要辨别这种影响发生在哪个评价层面。</li>
+<li><strong>准备怎么说：</strong> 先用一句说明图服务面对删除请求，再用一句限定为“从已有候选节点中策略性选删”；直接引出效用与同请求 Retrain 的不同作用。</li>
+<li><strong>注意点／强调：</strong> 不以泛化的隐私口号开头；不把“合法候选池”写成已经验证真实个人所有权，不宣称完成数据物理擦除。</li>
+</ol>
+</li>
+<li><strong>第二小部分：研究设计。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 说明论文如何观察请求效应，以及观察范围。</li>
+<li><strong>准备怎么说：</strong> 用一句串联结构／传播／损失敏感性选择、同请求 GU–Retrain 配对、同预算 Random，以及预算和选点来源检验；三类 citation graphs 可作范围说明。</li>
+<li><strong>注意点／强调：</strong> 不列出所有方法和实验数量；更换选点模型不写成更换目标模型，IM/IF 不称为本文发明的新算法。</li>
+</ol>
+</li>
+<li><strong>第三小部分：候选主观察A——请求效用顺序交叉。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 若确认与解释通过，用一个具体请求对说明重训上的效用排序不能直接替代近似更新上的排序。</li>
+<li><strong>准备怎么说：</strong> 摘要预留最终效应量及范围：新十seed中D-full相对R-point的Ret为+0.849 pp、GNNDelete为−6.494 pp。若获准采用A，摘要以五新seed确认集效应为主，原十seed在正文完整报告；若未确认，本段改回B的受控策略关系，不能继续以A为确定发现。</li>
+<li><strong>注意点／强调：</strong> 新A仅覆盖Cora／SGC-source／10%／固定split；不能使用旧受污染值，也不能把确认与探索合并成15个独立确认seed。D增量与accuracy顺序属于不同对象。</li>
+</ol>
+</li>
+<li><strong>第四小部分：B2的预算范围与解释责任。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 同时说明策略关系怎样随预算变化，以及关键参照自己也在变化。</li>
+<li><strong>准备怎么说：</strong> 5%→33%的R-point相对Random额外D在GIF/MEGU约增加14.064/15.015 pp；Ret在R-point下accuracy下降约10.561 pp。摘要用简洁关系说明，完整三端点归因完成前不写GU损伤机制。</li>
+<li><strong>注意点／强调：</strong> B1/B2来自同一实验家族，不算两份独立确认；普通accuracy–fidelity分离已由近邻报告。若剩余证据仍不足以形成新增认识，摘要不能用强措辞补足。</li>
+</ol>
+</li>
+<li><strong>第五小部分：研究含义。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 点出怎样报告请求响应，才能避免误判。</li>
+<li><strong>准备怎么说：</strong> 结尾说明应同时保留实际任务端点、相对随机请求的增量及同请求重训参照，并检查预测层面的变化。</li>
+<li><strong>注意点／强调：</strong> 不承诺普遍防御、隐私保证或法律合规；摘要不配图、不放未经主文解释的缩写。摘要是否显式出现 surrogate，待本提纲审阅时与旧约定统一。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-5">第1章：Introduction（引言）</h2>
+<p>本章职责：让读者理解这个问题为何值得研究、本文增加了哪些具体认识，以及后续证据将如何支撑它们。建议五段。</p>
+<ol>
+<li><p><strong>第一段（I-P1）：从 Web 图服务中的删除请求进入问题。</strong></p>
+<ol>
+<li><strong>第一小部分：应用中的更新需求。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 图上的记录与连接会参与模型训练，删除请求会改变更新所依据的数据。</li>
+<li><strong>准备怎么说：</strong> 以平台评估者为主语：平台在已有候选训练记录上构造压力测试请求，比较近似更新和对应重训的行为。真实贡献者撤回只是动机；实验中的全候选池与标签／梯度权限另行明确。</li>
+<li><strong>注意点／强调：</strong> 该例用于解释问题，不声称已经在真实平台验证。后面的 citation graph 实验是受控研究，不能仅靠数据来源证明 Web 应用有效性。</li>
+</ol>
+</li>
+<li><strong>第二小部分：请求对象并非总是随机。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 在可请求范围内，选择删哪些记录本身可以改变模型面对的输入。</li>
+<li><strong>准备怎么说：</strong> 从自然请求的非均匀性过渡到策略性选择：固定候选池和预算，比较不同选择原则的后果。</li>
+<li><strong>注意点／强调：</strong> 真实单个用户通常不能控制任意训练节点。若实验使用全训练候选池，明确定位为权限较强的压力测试，不能把这一权限悄悄赋给普通用户。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（I-P2）：指出“节点重要”与“GU受损”之间尚需检验的关系。</strong></p>
+<ol>
+<li><strong>第一小部分：选择信号对应不同对象。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 度数、传播覆盖、目标损失敏感性是请求构造信号，其优化目标与最终 GU 行为不同。</li>
+<li><strong>准备怎么说：</strong> 用两句对照 IM 的传播覆盖与 IF 的损失响应，再指出它们可能同时改变 Retrain 端点，不能仅凭选点分数判断 GU 特有损害。</li>
+<li><strong>注意点／强调：</strong> 不预设 IF 优于拓扑方法；不把未观察到损害描述为选择器实现失败。</li>
+</ol>
+</li>
+<li><strong>第二小部分：提出需要分别回答的三件事。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 区分任务效用、相对同请求 Retrain 的效用响应、预测对齐。</li>
+<li><strong>准备怎么说：</strong> 用自然语言依次提出“模型还做得怎样”“重训会怎样”“预测是否一致”，把公式留到第4章。</li>
+<li><strong>注意点／强调：</strong> 预测一致不等于完整遗忘，预测不一致也不直接等于隐私泄漏；不要把三者并成单一攻击成功率。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（I-P3）：用可采用的端点说明策略关系与解释问题。</strong></p>
+<ol>
+<li><strong>第一小部分：同预算、不同请求的实际端点。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 让读者看到策略差异，同时看清GU与Ret各自表现。</li>
+<li><strong>准备怎么说：</strong> 080/CiteSeer/33%中，Degree→R-point的Ret accuracy为75.526%→64.715%；GIF为74.525%→74.374%，MEGU为74.725%→74.274%；GU–Ret D分别从8.108%→24.625%、7.808%→24.925%。这些是三训练seed均值，不能称验证了总体规律。</li>
+<li><strong>注意点／强调：</strong> 相应Ret变化很大，必须在同一图／段中可见；accuracy与D不确定逐节点谁改变。最终若A确认且解释闭合，本段主例改为新A，B例移到Q2开头；不能使用旧GNNDelete数值。</li>
+</ol>
+</li>
+<li><strong>第二小部分：给问题而非预先给因果答案。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 说明选择目标、请求效果与遗忘质量不能自动等同。</li>
+<li><strong>准备怎么说：</strong> 问“该策略主要改变了Ret、GU，还是两者的响应关系？”后文以直接策略对照、预算变化和已有／待补三端点诊断回答；目前可陈述关系，尚不能确定更新机制。</li>
+<li><strong>注意点／强调：</strong> 不因accuracy高于Ret就说GU更好；不因D更大就说隐私泄漏或遗忘失败。此例与近邻的差别必须落在具体策略对照，不能只画accuracy–D分离。</li>
+</ol>
+</li>
+<li><strong>插图 F1：请求流程与同预算原始端点。</strong>
+<ol>
+<li><p><strong>内容与组织：</strong> 左为候选池、选择器、S、GU/Ret分支。若A确认，右侧用新A的R-point/D-full原始accuracy、Ret/GU两条配对差，探索与确认分面，Degree放邻近边界表；若A未确认，采用下方B端点布局。两种最终出口只选一种，不将所有诊断塞进teaser。</p>
+</li>
+<li><p><strong>示意与布局：</strong> 双栏宽约1/3流程＋2/3数据，不用双y轴。A版按十seed探索／五seed确认分面，Ret/GU差各有清楚符号；B版按accuracy与D分面，三个seed点可见。两版均不让均值掩盖波动。</p>
+<pre><code class="language-text">请求生成 → S → GU / Ret         CiteSeer / 33% / n=3
+                               accuracy：Degree ○──□ R-point
+                               Ret / GIF / MEGU
+                               D：GIF / MEGU对各自同请求Ret
+</code></pre>
+</li>
+<li><p><strong>Caption 与关联：</strong> A版写正确validation选模、固定split、十seed探索／五seed确认分开及两个97.5%区间；B版写080、原图、三个联合seed及pipeline。accuracy与D为%，直接差为pp；Ret始终是同请求端点。图引用Q1/Q2中的解释控制，不承诺因果机制。</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第四段（I-P4）：准确定位相对已有工作的增量。</strong></p>
+<ol>
+<li><strong>第一小部分：承认最接近工作的覆盖。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 让研究缺口建立在真实差异上。</li>
+<li><strong>准备怎么说：</strong> 明确ICLR2026 benchmark §5.5/Fig.2已报告预算增加时accuracy近稳而fidelity下降，§5.6包含degree/class请求；注入删除与请求者建模也已有研究。本文转而检验传播／损失请求的直接顺序、相对Random的额外预算响应及来源条件。</li>
+<li><strong>注意点／强调：</strong> 不使用“首次发现 accuracy 不够”或“首次考虑策略性请求”。此段只给定位，详细引用比较放第2章。</li>
+</ol>
+</li>
+<li><strong>第二小部分：把缺口落到可回答的问题。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 将抽象审计落到 Q1–Q3。</li>
+<li><strong>准备怎么说：</strong> 顺序提出“构造目标对应何种GU/Ret响应”“哪种策略增加了同预算的额外分歧”“更换选点来源后关系是否保留”；每问对应一个结果小节。请求几何及Hop分层提供解释背景。</li>
+<li><strong>注意点／强调：</strong> 不新增隐私、效率或大图 RQ；当前证据不足以使这些主题成为平行主线。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第五段（I-P5）：用研究设计与具体发现陈述贡献。</strong></p>
+<ol>
+<li><strong>第一小部分：设定与可复核设计。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 说明本文构建了怎样的研究对象和比较方式。</li>
+<li><strong>准备怎么说：</strong> 用一句交代已有候选节点上的传播／损失请求比较及可复核设计，作为发现的共同基础；不把协议单列为与科学发现等重的一项创新。</li>
+<li><strong>注意点／强调：</strong> 不把已有 IM/IF、加减恒等式、代码规模分别包装成算法或理论创新。</li>
+</ol>
+</li>
+<li><strong>第二小部分：新增认识。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 让读者在引言结束前得到明确答案的预告。</li>
+<li><strong>准备怎么说：</strong> 最终按证据陈述两个相连认识：经独立确认的请求效用顺序交叉，以及由三端点／评价图／后处理控制界定的预算响应分离。当前仅前者的十seed候选通过；不能把未完成检查写成发现。完整范围与实现审计提供证据质量，不另凑贡献数量。</li>
+<li><strong>注意点／强调：</strong> 不仅写“广泛实验发现异质性”；不以三数据集、六方法或运行数量代替发现本身。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-6">第2章：Related Work（相关工作）</h2>
+<p>本章职责：按研究控制点和评价问题组织，建议三段。引用范围沿用前轮已审查的邻近工作，当前不扩展综述。</p>
+<ol>
+<li><p><strong>第一段（RW-P1）：GU 方法与评价。</strong></p>
+<ol>
+<li><strong>第一小部分：方法背景。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 简要交代分片重训、近似更新等路线，为后文的方法范围提供背景。</li>
+<li><strong>准备怎么说：</strong> 用一句概括路线并引用对应原论文，然后把重点移到这些方法在特定请求下如何被比较。</li>
+<li><strong>注意点／强调：</strong> 不逐一复述六个方法；不将本项目变体写成原方法的完整复现。</li>
+</ol>
+</li>
+<li><strong>第二小部分：与最近 benchmark 的关系。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 明确多维评价和非随机删除已经存在。</li>
+<li><strong>准备怎么说：</strong> 对照 <em>Is Graph Unlearning Ready for Practice?</em> §5.5的accuracy–fidelity预算分离及§5.6的degree/class选择，再写本文比较传播／损失机制的直接请求关系、同预算额外分歧及来源条件；其Original参照也应承认。</li>
+<li><strong>注意点／强调：</strong> 新增认识由第6章具体关系证明；“我们也比较Retrain／Original”及“accuracy不够”不能承担差异，不宣称首次。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（RW-P2）：对抗遗忘与请求者建模。</strong></p>
+<ol>
+<li><strong>第一小部分：控制权的差异。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 说明本文选择已有候选目标的设定与先注入再删除的区别。</li>
+<li><strong>准备怎么说：</strong> 以 <em>Attack by Unlearning</em> 为直接比较，按“可修改什么—何时修改—优化什么”三个维度交代差异。</li>
+<li><strong>注意点／强调：</strong> 不因没有注入就宣称更现实或更强；全候选池权限仍需第3章明确。</li>
+</ol>
+</li>
+<li><strong>第二小部分：与请求行为模型的关系。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 承认请求者的自适应／协作选择已有研究。</li>
+<li><strong>准备怎么说：</strong> 引用 <em>Modeling Deletion Requests in Machine Unlearning</em>，说明本文着重研究图选择机制、GU–Retrain响应及条件变化。</li>
+<li><strong>注意点／强调：</strong> 不暗示当前实验包含顺序自适应攻击或真实协作用户；这些能力没有因引用相关工作而获得验证。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（RW-P3）：请求构造的理论来源。</strong></p>
+<ol>
+<li><strong>第一小部分：IM 与 IF 各自提供什么。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 给后续两个选择目标提供学术来源。</li>
+<li><strong>准备怎么说：</strong> 依次引用 IC覆盖／RR采样、经典IF、图删除影响修正；结尾指出本文将它们实例化为可对照的请求。</li>
+<li><strong>注意点／强调：</strong> 本段不写求解推导；不将图影响相关论文的理论界或SGC结论移植到本项目GCN有限求解实现。无需新增插图，节省主文版面。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-7">第3章：Problem Formulation and Threat Model（问题与威胁模型）</h2>
+<p>本章职责：使读者在看公式和结果前知道“删谁、谁有权选、可用什么信息、实际改了什么图”。建议三段。</p>
+<ol>
+<li><p><strong>第一段（P-P1）：任务、候选池和端点。</strong></p>
+<ol>
+<li><strong>第一小部分：符号与研究范围。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 建立节点分类与节点删除的最小定义。</li>
+<li><strong>准备怎么说：</strong> 定义图 <code>G=(V,E,X,Y)</code>、固定训练／验证／测试集合、候选池 C、请求 <code>S⊆C</code>、预算 <code>k=|S|</code>；预算比例明确以候选训练节点计。</li>
+<li><strong>注意点／强调：</strong> 当前主结果不包含边／特征删除；比例分母、取整和候选资格以实验配置为准，不能靠“10%节点”略过。</li>
+</ol>
+</li>
+<li><strong>第二小部分：GU、Retrain与起点。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 定义 <code>U_M(S)</code>、<code>U_R(S)</code>、方法自身 <code>U_M,0</code> 和 canonical <code>U_0</code>。</li>
+<li><strong>准备怎么说：</strong> 用一句说明GU与重训各生成一个删后端点，再强调分片方法可能有自身起点和集成结构。</li>
+<li><strong>注意点／强调：</strong> shared full-graph GCN Retrain 是共同参照；对于分片集成，其差异并非纯粹的同模型近似误差。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（P-P2）：请求权限和信息可见性。</strong></p>
+<ol>
+<li><strong>第一小部分：攻击者的可操作范围。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 定义压力测试权限与禁止操作。</li>
+<li><strong>准备怎么说：</strong> 写选择器只能从规定候选池选已有节点；在本研究中不注入节点、不在请求前篡改数据，不用测试标签或重训输出优化请求。</li>
+<li><strong>注意点／强调：</strong> 这些约束是实际协议的陈述，正式稿需由配置和调用链核对；全训练池是权限上界，不能称为每个真实用户的天然权限。</li>
+</ol>
+</li>
+<li><strong>第二小部分：把信息模型绑定到实际实验。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 区分拓扑选择、GCN来源、SGC/GAT/GIN来源及真正target-direct条件。</li>
+<li><strong>准备怎么说：</strong> 用紧凑文字或表格列出结构、特征、训练／验证标签、选点checkpoint与梯度访问；模型来源行使用实际架构名称。</li>
+<li><strong>注意点／强调：</strong> full-graph GCN并非分片集成的同一模型，不能把“GCN-source”整行统称六种GU的白盒。第6.3节标题固定为“Changing selection-model sources”。</li>
+</ol>
+</li>
+<li><strong>必要小表：信息与操作范围。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 行为候选池、结构、特征／可用标签、选点模型、目标查询；列为Random、结构／IM、模型来源型IF。target-direct仅在实际身份吻合的范围单独标注。</li>
+<li><strong>示意与布局：</strong> 单栏4–5行，使用短词与脚注；若版面紧，将其并入第5章T1，不能删去实际标签、模型和候选池权限，不另开一张大表。</li>
+<li><strong>Caption 与关联：</strong> 解释“可见”仅指请求构造所需信息；标签不含测试标签，来源模型改变不代表目标backbone改变。关联第4章选择器与第6.3节，不沿用旧稿抽象T/S/W表覆盖所有GU。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（P-P3）：删除语义与评价图。</strong></p>
+<ol>
+<li><strong>第一小部分：训练侧执行的删除。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 把实验操作写到足够精确，避免“删除节点”产生不同理解。</li>
+<li><strong>准备怎么说：</strong> 明确移除删除节点的训练监督及 incident edges，保留对应特征行；定义训练原图与请求处理后的图。</li>
+<li><strong>注意点／强调：</strong> 保留特征行的协议不等于彻底擦除所有节点数据；不得把节点物理移除作为默认读法。</li>
+</ol>
+</li>
+<li><strong>第二小部分：推理时使用的图。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 说明当前效用和预测对齐是在原图评价上下文下得到。</li>
+<li><strong>准备怎么说：</strong> 写明所有比较使用固定测试节点与标签，评价图为原图；解释这种结果回答“更新后参数在共同原图上下文中的行为”。</li>
+<li><strong>注意点／强调：</strong> 不外推为 retained-graph 部署表现；这一限定主文必须可见，不能只放附录。F1流程可用短脚注标记训练图与评价图，详细语义回本段。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-8">第4章：Request Construction and Audit Protocol（请求构造与审计协议）</h2>
+<p>本章职责：让读者能够理解请求怎样产生、端点怎样配对、每个量能回答什么。建议五段；主要保留两个选择目标和一组评价定义，长推导移至附录B。</p>
+<ol>
+<li><p><strong>第一段（M-P1）：共同输入与结构基线。</strong></p>
+<ol>
+<li><strong>第一小部分：统一请求接口。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 选择策略的比较建立在共同候选池与预算上。</li>
+<li><strong>准备怎么说：</strong> 定义 <code>q(I_a,C,k)→S</code>，说明结构和模型信息只影响如何选择，随后所有请求进入相同的评价流程。</li>
+<li><strong>注意点／强调：</strong> 不暗示不同策略生成相同节点集合；选择seed、训练seed、split seed分开命名。</li>
+</ol>
+</li>
+<li><strong>第二小部分：Random、Degree、PageRank。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 给复杂选择器提供可信的随机与结构对照。</li>
+<li><strong>准备怎么说：</strong> Random从候选池均匀选k个节点，Degree/PageRank按各自分数选择；说明Degree是必须直接比较的基线，PageRank在011覆盖。</li>
+<li><strong>注意点／强调：</strong> 不默认模型型策略优于Degree；080和079没有全部011策略，不能在设置表中虚构统一全矩阵。图的类别轴不是连续过程。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（M-P2）：IM 的传播覆盖目标。</strong></p>
+<ol>
+<li><strong>第一小部分：定义为什么采用集合覆盖。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> IM根据联合传播覆盖选择一组节点，考虑多个节点影响范围的重叠。</li>
+<li><strong>准备怎么说：</strong> 给出 <code>σ(S)=Eω[|Reachω(S)|]</code> 与 <code>max σ(S), S⊆C, |S|=k</code>；一句说明Independent Cascade及选中节点计入reach。</li>
+<li><strong>注意点／强调：</strong> IC传播是选择用的代理过程，不等于GNN消息传递；大覆盖不保证更大任务损伤。</li>
+</ol>
+</li>
+<li><strong>第二小部分：实现实例与参数。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 把IM名称绑定到实际RR采样与贪心覆盖实例。</li>
+<li><strong>准备怎么说：</strong> 正文说明采用RR估计和贪心选择；主图代表设置为RR=65,536、传播概率0.1，011同时保留4,096和16,384的配置比较，重复层级在第5章说明。</li>
+<li><strong>注意点／强调：</strong> RR规模是估计配置，不是三个独立机制；不能声称65,536已被证明最优、收敛或充分。旧CELF计时不用于证明当前实现加速。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（M-P3）：IF 的目标损失敏感性与两种 source。</strong></p>
+<ol>
+<li><strong>第一小部分：共享评分形式。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> IF用局部近似估计候选删除对验证目标损失的影响。</li>
+<li><strong>准备怎么说：</strong> 定义验证节点集Q的CE梯度g_Q及训练损失Hessian H，实际评分写作 <code>s_T(v)=q_vᵀ û_T</code>，其中û_T为所用有限shifted递推输出；逆矩阵形式仅作条件解释。所有候选在原checkpoint上一次评分，取有符号分数最大的k点，不在每次选点后重算边际值。</li>
+<li><strong>注意点／强调：</strong> 明确removal正号、验证CE目标、参数子空间、有限迭代；测试accuracy/CE是外部响应，不是同一目标。不能默认代理目标已实现，也不能用GU更新校准替代selector数值诊断。</li>
+</ol>
+</li>
+<li><strong>第二小部分：R-point 与 D-full 的区别。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 被比较的关键机制差异是删除source的定义。</li>
+<li><strong>准备怎么说：</strong> R-point取候选自身的损失梯度；D-full加入单删该候选引起的保留训练节点损失变化。它仍以单点source的可加代理选top-k，不等于联合删除集合的精确图耦合优化。使用last-layer和限定邻域；请求source梯度q_v与selection-model source架构a分别命名。</li>
+<li><strong>注意点／强调：</strong> D-full中的“full”指两项source，并不意味着全参数Hessian、完整传播范围或精确重训影响；不能继承相关论文在其他模型上的理论保证。评分方法的数值参数与GU方法内部求解参数分开。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第四段（M-P4）：同请求配对与随机参照。</strong></p>
+<ol>
+<li><strong>第一小部分：建立可核对的 GU–Retrain 对。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 两个端点必须对应相同的删除集合和评价条件。</li>
+<li><strong>准备怎么说：</strong> 按dataset、split、训练seed、Selection身份和测试节点集合连接GU与Retrain；声明共同评价图和指标，并引用F1分支。</li>
+<li><strong>注意点／强调：</strong> “同seed”不能替代同请求身份；不能临时选择一个表现最接近GU的Retrain。分片的架构差异仍保留，不因配对消失。</li>
+</ol>
+</li>
+<li><strong>第二小部分：Random用于衡量请求选择的增量。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 区分删后效用与“比同预算随机请求多改变多少”。</li>
+<li><strong>准备怎么说：</strong> 在同一训练seed中先平均Random重复，再与选择策略的端点比较；IM的多抽样同样先在训练seed内平均。</li>
+<li><strong>注意点／强调：</strong> 三个实验模块的Random重复数量不同；080单一Random请求的复用限制需要明写，不能用011的十次请求替代080的不确定性。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第五段（M-P5）：互补指标及可解释范围。</strong></p>
+<ol>
+<li><strong>第一小部分：原始效用和有符号差分。</strong>
+<ol>
+<li><p><strong>核心目标（要说什么）：</strong> 将任务性能、随机请求增量和重训相对响应分开定义。</p>
+</li>
+<li><p><strong>准备怎么说：</strong> 用以下一组公式紧凑定义，随后用F1案例解释符号。accuracy越高越好，原值用%，差值用pp。</p>
+<pre><code class="language-text">U_M(S)             = GU删后测试准确率；U_R(S)为同请求Retrain准确率
+L_M(S)             = U_M,0 − U_M(S)                   方法自身的效用下降
+G_M(S)             = U_R(S) − U_M(S)                  有符号效用差
+A_M(S)             = mean_r U_M(S_r) − U_M(S)          相对Random额外效用损失
+A_R(S)             = mean_r U_R(S_r) − U_R(S)
+E_M(S)             = G_M(S) − mean_r G_M(S_r)
+                   = A_M(S) − A_R(S)
+</code></pre>
+</li>
+<li><p><strong>注意点／强调：</strong> <code>E_M&lt;0</code>只代表有符号差值相对Random下降，不代表<code>|G_M|</code>或D下降。此等式是解释工具；“gap amplification”若沿用须明确signed。起点分解只有确实帮助解释案例时才在附录展开。</p>
+</li>
+</ol>
+</li>
+<li><strong>第二小部分：预测级诊断。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 补充聚合准确率看不到的预测差异。</li>
+<li><strong>准备怎么说：</strong> 定义 <code>D_M(S)=mean_{v∈V_test} 1[argmax f_M(v)≠argmax f_R(v)]</code>；说明来自同请求端点；定义 <code>D_extra(s,b)=D_M(S_s,b)−mean_r D_M(S_r,b)</code>，每个D均与各自同请求Ret比较。预算交互是同一seed上 <code>D_extra(s,b2)−D_extra(s,b1)</code>；保留原始D与accuracy。</li>
+<li><strong>注意点／强调：</strong> D不是遗忘前后翻转率；D_extra不是GU两次预测的距离，也不是净遗忘误差。二者均不证明遗忘充分或失败。测试CE与分类macro-OvR AUC作补充效用诊断，不能混成隐私攻击指标。</li>
+</ol>
+</li>
+<li><strong>正文不另增指标示意图。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 通过F1端点和第6章实际数据解释上述量，避免另画无数据的“攻击成功”四象限。</li>
+<li><strong>示意与布局：</strong> 公式尽量单栏、符号统一；如保留指标小表，列“对象／参照／正值意义”，不把所有指标做成一张难读大表。</li>
+<li><strong>Caption 与关联：</strong> 若使用小表，脚注说明单位和signed语义，指回第3章图与起点定义，并在F2/F3的轴标签复用同一术语。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-9">第5章：Experimental Design（实验设计）</h2>
+<p>本章职责：让读者知道哪些结果来自同一协议、有哪些重复，以及实现与训练依据覆盖什么。建议五个短段，T1作为核心设置表；有效性细节下放附录A。</p>
+<ol>
+<li><p><strong>第一段（E-P1）：数据、目标任务和三个互补模块。</strong></p>
+<ol>
+<li><strong>第一小部分：共同实验背景。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 固定数据、任务和目标模型范围。</li>
+<li><strong>准备怎么说：</strong> 写Cora/CiteSeer/PubMed节点分类、固定split、GCN目标设置；指出分片GU使用相应GCN集成。具体数据规模、预处理和训练参数由配置生成附录表。</li>
+<li><strong>注意点／强调：</strong> 不能写成已完成多目标backbone泛化；同一split上的十训练seed不代表十个独立数据划分。</li>
+</ol>
+</li>
+<li><strong>第二小部分：每个模块负责回答什么。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 将机制广度、联合seed重复和预算变化分开。</li>
+<li><strong>准备怎么说：</strong> 011负责固定10%的完整机制，079负责十个联合训练／请求生成seed及四种选点来源，080负责两个数据集的多预算研究。</li>
+<li><strong>注意点／强调：</strong> 080与新011/079的分片协议不同；不把三个模块合成一条曲线或一个总样本数。</li>
+</ol>
+</li>
+<li><strong>表 T1：实验模块与协议。</strong>
+<ol>
+<li><p><strong>内容与组织：</strong> 每行一个模块，列数据／预算、选择机制或来源、训练seed数、请求重复、分片协议、结果职责。</p>
+</li>
+<li><p><strong>示意与布局：</strong> 建议双栏宽三行，列宽优先给重复层级与协议；长run ID、SHA和配置清单放复现附录。内容基线如下：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>模块</th>
+<th>数据／预算</th>
+<th style="text-align: right;">训练seed</th>
+<th>请求与范围</th>
+<th>协议／职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>EXP-011/e11r1</td>
+<td>三数据集；10%</td>
+<td style="text-align: right;">3</td>
+<td>Random×10；IM×3；含PageRank及三RR规模；请求复用关系按身份表</td>
+<td>新分片损失、300轮；GNNDelete暂不采纳；机制广度</td>
+</tr>
+<tr>
+<td>EXP-079/e79r6</td>
+<td>三数据集；10%</td>
+<td style="text-align: right;">10个联合运行</td>
+<td>两IF选集随seed变化；Random三份、Degree一份跨seed复用；四source</td>
+<td>新分片协议；GNNDelete暂不采纳；完整直接对照与来源</td>
+</tr>
+<tr>
+<td>EXP-080</td>
+<td>Cora/CiteSeer；5%–50%网格</td>
+<td style="text-align: right;">3个联合运行</td>
+<td>五策略；IM×3；每预算一份Random/Degree跨seed复用；R-point随seed变化</td>
+<td>B采用GIF/IDEA/MEGU；旧分片单列历史；GNNDelete暂不采纳</td>
+</tr>
+</tbody>
+</table></div>
+</li>
+<li><p><strong>Caption 与关联：</strong> 强调重复先在训练seed内汇总，011/079公共条件不累加为13独立seed；080的PubMed未覆盖，Cora50%分片端点不可行。若列1,449/2,520/2,016等数量，称配置／输出条目数，不称独立样本量。第6章每张图引用所属模块。</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（E-P2）：实际方法实现和冻结配置。</strong></p>
+<ol>
+<li><strong>第一小部分：标注变体与共同参照。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 让方法名称对应本实验实际运行的实现。</li>
+<li><strong>准备怎么说：</strong> 旧广度矩阵采用GIF、IDEA、MEGU、GraphEraser、GraphRevoker，其中GraphRevoker标GPA+optimal变体；旧GNNDelete隔离。新EXP-084的GNNDelete单列为validation选模的限定重算，不能拼接旧矩阵。说明共同full-graph Ret与方法自身Before；参数表列Original/Ret终轮3000、分片300及MEGU更新与C&amp;S的职责，不要求所有算法相同epoch。</li>
+<li><strong>注意点／强调：</strong> 不把变体结果当作原论文完整方法的判决；分片算法与full-graph参照的架构差异要在结果解释中保留。</li>
+</ol>
+</li>
+<li><strong>第二小部分：数值配置与近重复输出。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 区分实现可信度与科学正确性。</li>
+<li><strong>准备怎么说：</strong> 简述参数在正式比较前冻结；说明当前profile中GIF/IDEA的相关输出近重合，原始方法结果保留、整体模式几何只算一个坐标。</li>
+<li><strong>注意点／强调：</strong> 近重合只适用于当前配置与指标，不说明算法等价；数值稳定不证明遗忘正确。旧／新协议同时改变损失与训练轮数，不能归因给单一因素。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（E-P3）：统计单位、误差线和探索性解释。</strong></p>
+<ol>
+<li><strong>第一小部分：层级汇总。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 避免把选点抽样、预算格子或相关方法当作独立重复。</li>
+<li><strong>准备怎么说：</strong> 明确“请求draw→同seed内均值→逐seed配对→跨seed汇总”；011/080为n=3，079为n=10。079每dataset/source的R-point、D-full各有十个不同Selection随seed改变，Degree一个、Random三个跨seed复用；因此n=10是所用联合生成程序的重复，不能解释成固定S的纯目标训练方差。</li>
+<li><strong>注意点／强调：</strong> 不把请求draw或相关source/预算格子当独立重复。固定S训练随机性、固定目标下请求随机性、联合程序seed重复是三个不同estimand；当前区间不将它们分离。跨零不等于等效。</li>
+</ol>
+</li>
+<li><strong>第二小部分：不同统计图的定义。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 防止误差线和检验含义混用。</li>
+<li><strong>准备怎么说：</strong> 011/079用点态95% t区间，080曲线为三个联合运行均值±SD。新A固定两条直接差，各用97.5%双侧t区间构成同时95%区间；五seed确认与原十seed分开，并要求至少4/5同seed双向成立。交互和CE仅作补充。旧来源margin暂停采纳，不能借新A恢复。</li>
+<li><strong>注意点／强调：</strong> 点态区间不能概括为整表显著；SD不是CI；不能基于三个seed给出强总体结论。既有事后案例应标为解释性／探索性，不冒充预注册假设。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第四段（E-P4）：复现与结果采用状态。</strong></p>
+<ol>
+<li><strong>第一小部分：论文读者能核查什么。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 将图中数值追溯到配置、请求和输出。</li>
+<li><strong>准备怎么说：</strong> 正文给匿名材料入口及内容范围；附录给执行版本、split、配置、Selection/Output/同请求Retrain映射、图表生成步骤。</li>
+<li><strong>注意点／强调：</strong> 本地状态为新批次分析待科学审阅，不能因写入提纲而改变。内部审查用EXP编号与身份；投稿文字用读者可理解的模块名，完整身份放匿名材料，清除个人路径与内部管理备注。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第五段（E-P5）：已有有效性控制及其覆盖。</strong></p>
+<ol>
+<li><strong>第一小部分：数值更新确实发生，但仍需限定解释。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 避免把小效用变化直接归因为零更新，也避免将校准当成遗忘认证。</li>
+<li><strong>准备怎么说：</strong> 062/065–068覆盖四个固定checkpoint profile及84格验证，包含HVP、shifted残差、非退化、三个独立Random请求、T100/200/400和部分两图no-update。T100 GIF相对参数L2的四组checkpoint均值约1.38e−4至2.56e−4，预测有非零变化；具体范围见附录A。</li>
+<li><strong>注意点／强调：</strong> 固定训练seed42、Random10%校准不覆盖所有战略请求／高预算。shifted系统收敛不等于原系统收敛；MEGU的Before为原GCN、After含C&amp;S，no-update必须匹配后处理。</li>
+</ol>
+</li>
+<li><strong>第二小部分：训练预算与方法版本。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 给300轮与checkpoint选择真实依据，并界定080哪些部分可比较。</li>
+<li><strong>准备怎么说：</strong> 078提供baseline轨迹／checkpoint来源；082已有Cora CPU与CiteSeer/PubMed GPU诊断，后两数据集corrected臂300→3000验证变化在±0.901 pp内。080与079共同10%切片非分片＋Ret有90/90相同Output，两分片各18项均不同。</li>
+<li><strong>注意点／强调：</strong> 082以seed42为主，未证明所有seed最优；083是运行gate。共同Output是复用而非独立重复，不证明其他预算全部身份相同；080的旧分片范围必须标注，不能笼统弱化全部非分片证据。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-10">第6章·6.0：Results — 请求差异的前置支撑</h2>
+<p>本节职责：在解释模型响应前确认请求的选集与空间几何确实不同。控制为两个短段，T2可移附录；不增加第四个主RQ。</p>
+<ol>
+<li><p><strong>第一段（R0-P1）：source定义与数值近似怎样改变选集。</strong></p>
+<ol>
+<li><strong>第一小部分：请求差异。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> R-point/D-full并非两个名称对应同一组删除节点。</li>
+<li><strong>准备怎么说：</strong> 引用当前选集对照：10%时Common@k约为Cora37.9%、CiteSeer51.6%、PubMed65.7%；定义同大小选集的Common@k为交集数除以k。</li>
+<li><strong>注意点／强调：</strong> 必须绑定该选集实验的checkpoint、候选池、预算和seed，不能自动冒充e79r6的重新计算结果；选集不同不证明机制因果独立。</li>
+</ol>
+</li>
+<li><strong>第二小部分：近似比较的有限结论。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 在当前实现范围内，source变化与曲率方向替换对选集的影响量级不同。</li>
+<li><strong>准备怎么说：</strong> 补充P-point/R-point与P-graph/D-full的选集重合超过99%，同时交代last-layer、T=20、scale=25、damping=0.01（shift λ=0.25）的有限求解配置。</li>
+<li><strong>注意点／强调：</strong> 高重合不是评分准确性、普遍无需曲率或GU端点等价的证据；该结论限定为当前配置的选集观察。第4章解释目标，附录B给完整参数矩阵。</li>
+</ol>
+</li>
+<li><strong>可选表 T2：选集重合对照。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 三行数据集，三列成对比较：R-point/D-full、P-point/R-point、P-graph/D-full；在表头写10%预算。</li>
+<li><strong>示意与布局：</strong> 单栏紧凑表，均值与SD从原选集表生成。若版面紧，正文保留一句带数值结论，表放附录B，不挤压F3和T3。</li>
+<li><strong>Caption 与关联：</strong> 定义Common@k、训练seed数及数值配置，声明比较对象为选集；连接第4章source定义与第6.1节端点评价。不能把T2标题写成“攻击有效性消融”。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（R0-P2）：请求使多少测试节点处于近距离范围？</strong></p>
+<ol>
+<li><strong>第一小部分：补充选集重合以外的图结构。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 将传播导向选择与损失导向选择落到可观察的请求几何上。</li>
+<li><strong>准备怎么说：</strong> e11r1/10%中，IM-RR65536两跳测试覆盖在Cora/CiteSeer/PubMed为83.52/59.81/86.49%，R-point为53.32/37.34/57.75%。Random和Degree同时给出，Degree在部分一跳条件覆盖更高。</li>
+<li><strong>注意点／强调：</strong> 距离是原图无向多源最短路；这是几何覆盖，不是IC扩散概率。按请求去重方法坐标，抽样先在训练seed内平均，n=3；不以方法坐标重复分母增加样本量；GNNDelete输出隔离不改变由同一Selection决定的请求几何，但其预测分歧不能借此恢复采纳。</li>
+</ol>
+</li>
+<li><strong>表 T2的几何补充／附录B表 B2。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 五策略×三数据集，列1-hop、≤2-hop、&gt;3-hop测试节点占比；完整八设置留CSV。主文只留核心两跳比较及Degree反例，表格下放以控制篇幅。</li>
+<li><strong>示意与布局：</strong> 分数据集的紧凑表或100%堆叠条，距离带从近到远固定排序；不可将≤2-hop与单独1-hop同放可加总堆叠。</li>
+<li><strong>Caption 与关联：</strong> 标明原图、无向距离、&gt;3含不可达、测试节点分母及请求平均方式；与Q1-P4／附录C的条件距离带分歧关联，强调覆盖广度与带内响应强度分开。</li>
+</ol>
+</li>
+<li><strong>第二小部分：同节点预算下的删除负荷——待补统计。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 区分相同k与相同删边、类别监督及局部覆盖。</li>
+<li><strong>准备怎么说：</strong> 对B主例的冻结Selection统计移除的唯一incident edges、各类别删除／保留训练数及相关方法局部mask覆盖；绑定原图／retained图身份。优先直接计算现有选集，不新增训练。</li>
+<li><strong>注意点／强调：</strong> 请求组成可以是策略的作用路径，不能一律称混杂；没有匹配控制，不将响应差归因为独立于结构／类别的损失定义效应。这些统计尚未完成。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-11">第6章·6.1：Q1 — What changes under strategic deletion requests?</h2>
+<p>本节职责：回答策略请求改变了哪些端点，以及不同参照为何可能改变结论。建议四段，F2负责广度，F1负责具体配对解释。</p>
+<ol>
+<li><p><strong>第一段（Q1-P1）：先呈现完整的固定预算机制视野。</strong></p>
+<ol>
+<li><strong>第一小部分：原始端点。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 读者先看到模型实际表现，再看差分。</li>
+<li><strong>准备怎么说：</strong> 用e11r1三数据集、10%预算、当前可采用五GU及Ret，展示Random、Degree、PageRank、IM代表配置、R-point、D-full的原始accuracy与相对Random损失。GNNDelete数值不进入当前主图，完整原表在审计材料保留且标暂停采纳。</li>
+<li><strong>注意点／强调：</strong> 这里的完整指方法与主机制覆盖；另外两个RR规模放附录并明确说明，不能称主图展示全部八设置。</li>
+</ol>
+</li>
+<li><strong>第二小部分：Random相对变化。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 将方法起点差异与选点增量分开观察。</li>
+<li><strong>准备怎么说：</strong> 对照F2下排 <code>A_M</code>，挑两个由图支持的差异解释，不按所有格子平均值排序；明确IM已包含在同一矩阵，而不是仅在参数附录中出现。</li>
+<li><strong>注意点／强调：</strong> 颜色代表均值，不能自动称为统计显著；n=3使小差异的解释受限，配对区间在表或附录中可查。</li>
+</ol>
+</li>
+<li><strong>插图 F2：固定10%下的完整机制对照。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 主图三列数据集，各为六策略×六端点（Ret＋五GU）的A矩阵；原始accuracy全表在附录C，正文同时给主案例端点，不能只留差分。GNNDelete不填数值进入主热图，排除原因在方法范围表交代。</li>
+<li><strong>示意与布局：</strong> 单排三面板共享pp色标；列为Ret/GIF/IDEA/MEGU/GraphEraser/GraphRevoker*，行包含Random、Degree、PageRank、IM-RR65536、R-point、D-full。保留重复方法标记；原始U表不再与热图叠成六个微小面板。</li>
+<li><strong>Caption 与关联：</strong> 写e11r1、10%、n=3、Random十次与IM三次先seed内平均、A正值意义及实现范围；完整原值／八设置／区间在附录C。方法排除由独立有效性审查决定，不能根据效果大小选择坐标。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（Q1-P2）：完整请求对照与当前证据门槛。</strong></p>
+<ol>
+<li><strong>第一小部分：直接策略差，而非代理准确性。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 在同一数据集／来源／实现内描述两个请求构造的实际端点关系。</li>
+<li><strong>准备怎么说：</strong> 对可采用方法列D-full−R-point的GU和Ret accuracy差，分别判断同向、反向或不确定；只有两条差有充分方向证据时才称确定反序。完整家族在附录E，不能由负交互单独推出相反排序。</li>
+<li><strong>注意点／强调：</strong> 原F-A已隔离，不在此引用其数值。当前不以另一后验显著格子替代主例；本段的角色是完整比较，不能宣称已验证代理分数忠实性或普遍排序失败。</li>
+</ol>
+</li>
+<li><strong>第二小部分：新A的探索与独立确认。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 分开展示已正确重算的关系与预定确认对它的检验。</li>
+<li><strong>准备怎么说：</strong> 十seed面板报告ΔR=+0.849、ΔG=−6.494 pp及两条同时区间；确认面板使用1701/1709/1721/1733/1741，完整报告五个seed及是否满足双区间和4/5规则。用Degree的原始端点界定请求对的局部性，不补入未重算Random。</li>
+<li><strong>注意点／强调：</strong> 原十seed是探索案例修复，不是新独立复现；五seed功效有限，失败也必须报告，不追加seed直到显著。30个新GU只恢复本范围，不恢复旧72条件的发生率。</li>
+</ol>
+</li>
+<li><strong>第三小部分：A自身的解释控制。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 确定这对请求中的GU、Original、Ret分别怎样变化，以及观察是否依赖评价图。</li>
+<li><strong>准备怎么说：</strong> 同一十seed×R-point/D-full共20对，先报告O/G/R五类关系与真值，再比较同权重原图和retained图；给请求删边和类别组成。GNNDelete两个删除掩码固定为Output保存值，不能换图后重算。先做seed42两对技术gate，再无条件完成20对。</li>
+<li><strong>注意点／强调：</strong> B的GIF/MEGU控制不能代替A；原图复现失败必须处理，换图效应消失则限定原图。组成统计是描述作用路径，没有因果匹配就不称排除全部结构因素。</li>
+</ol>
+</li>
+<li><strong>插图 F2-A：完整请求对、确认和解释。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 上排探索十seed和确认五seed的Ret/GU配对差，Degree原值小表；下排20对O/G/R真值关系及两图对照，必要时将细分真值移补充表。</li>
+<li><strong>示意与布局：</strong> 两列对应探索／确认，不跨列连接seed；差值图零线明确，两模型采用不同形状。解释面板按请求分组，各自显示Ret纠错／损失和GU纠错／损失，避免仅画总分歧。</li>
+<li><strong>Caption 与关联：</strong> 标明30个新GU、30个匹配Ret、五seed另15+15、20个解释对；样本单位是联合seed，节点数不是推断样本数。所有未通过／不确定条件可见，不把gate重复计入独立样本。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（Q1-P3）：用补充案例区分效用损失与有符号相对响应。</strong></p>
+<ol>
+<li><strong>第一小部分：保留旧PubMed案例的解释价值。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 说明可采用分片实现中观察到的GU/Ret响应关系。</li>
+<li><strong>准备怎么说：</strong> e79r6/PubMed/GCN/10%中Random→R-point使Ret降约2.032 pp、GraphEraser降0.969 pp、GraphRevoker*降1.315 pp；两GU的E分别为−1.063 [−1.593,−0.533]与−0.717 [−1.344,−0.090] pp。正文一短句，详细端点与区间可放附录C。</li>
+<li><strong>注意点／强调：</strong> 这是归因工具的应用，不再承担主新颖性；负E不能推出绝对差或D更小。分片和共享单GCN重训之间保留架构差异。</li>
+</ol>
+</li>
+<li><strong>第二小部分：同一请求的其他响应。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 保留反向和不确定条件。</li>
+<li><strong>准备怎么说：</strong> CiteSeer/GraphEraser的R-point−Random为+0.756 [0.212,1.300] pp，与PubMed的负值方向不同；该比较仍有数据集与方法范围。Degree和其他可采用方法见完整矩阵。</li>
+<li><strong>注意点／强调：</strong> GU高于Random不是防御成功；011/079重叠条件不能累加为13个独立seed。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第四段（Q1-P4）：分歧发生在哪里，以及Q1回答的边界。</strong></p>
+<ol>
+<li><strong>第一小部分：空间覆盖与带内分歧并不一致。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 使用已完成Hop证据，把结构范围与预测响应强度分开。</li>
+<li><strong>准备怎么说：</strong> e11r1/Cora/10%中，R-point的GIF/MEGU一跳D为26.87/21.59%，&gt;3-hop约0.25%；IM对应一跳3.63/4.53%，远处约0。联系R0的IM更广两跳覆盖，表明更广覆盖不自动对应更大带内D。</li>
+<li><strong>注意点／强调：</strong> GraphEraser在R-point/IM远处仍有9.86/14.54%的D，GraphRevoker为18.63/14.08%；PubMed部分MEGU远处高于近处。这些反例同段交代。不同selector的分组成员／分母不同，不能宣称因果机制或全方法局部分歧规律。另给可采用GraphRevoker变体的组成警示：R-point/IM一跳D为33.522/26.498%，整体D却为22.263/24.867%；一跳顺序不能代替整体顺序。</li>
+</ol>
+</li>
+<li><strong>第二小部分：回答Q1并引向预算。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 固定预算得到的是具体请求–端点关系及其范围。</li>
+<li><strong>准备怎么说：</strong> 用两句总结可采用方法中的请求响应依赖具体条件，结构覆盖、带内分歧和整体D须分别观察；再提出预算改变后这些关系怎样变化。Hop全图放附录C，不增加主图数量。</li>
+<li><strong>注意点／强调：</strong> Hop D是GU–Ret，不是GU–Original collateral damage；旧PubMed小D增量仍在补充表中，不能夸大为严重损害。尚未完成的三端点、两评价图核验保持明确缺口。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-12">第6章·6.2：Q2 — How do strategy–method responses vary with deletion budget?</h2>
+<p>本节职责：回答请求策略在同预算下增加了多少预测分歧，以及这种增量怎样随预算改变。普通accuracy–D分离作为已知背景；新的论证由完整策略对照和预算交互承担。建议五段。</p>
+<ol>
+<li><p><strong>第一段（Q2-P1）：定义策略特定的预算问题。</strong></p>
+<ol>
+<li><strong>第一小部分：从原始预算曲线进入。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 避免把所有随预算上升的D都归因于某种策略。</li>
+<li><strong>准备怎么说：</strong> 先看R-point及Random各自的GU–Ret分歧，再看同预算差D_extra；比较D_extra在5%→33%的变化。预算点为5%、7.5%、10%、15%、22%、33%、50%，原始accuracy始终可查。</li>
+<li><strong>注意点／强调：</strong> Random自身也随预算变化；D_extra不是真实遗忘误差，不能消除所有混杂。差分含各自Retrain，不是两个GU预测之间的距离。</li>
+</ol>
+</li>
+<li><strong>第二小部分：模块与方法版本范围。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 使080的优点与局限精确可见。</li>
+<li><strong>准备怎么说：</strong> 两数据集、五策略、三训练seed，IM三抽样先seed内平均，Random/Degree每预算单请求跨训练seed复用；当前主发现由非分片结果承担，旧分片结果以历史协议标注保留。</li>
+<li><strong>注意点／强调：</strong> 不把079新10%点插入曲线；非分片共同10%的Output相同不证明全预算都等价。Cora50%分片点不可行，留空断线，不能补零。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（Q2-P2）：F-B——同预算请求策略给出不同的额外分歧。</strong></p>
+<ol>
+<li><strong>第一小部分：先比较策略，再比较预算。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 提供相对最近benchmark更具体的新增关系。</li>
+<li><strong>准备怎么说：</strong> CiteSeer/33%下，GIF的Degree/D-full/IM/R-point D_extra为−1.902/+1.552/+0.350/+14.615 pp；MEGU为−2.302/+3.554/+0.234/+14.815 pp。R-point与Degree方向不同；原始D及accuracy并列，GIF/IDEA近重合只计一类模式。</li>
+<li><strong>注意点／强调：</strong> 这些是n=3描述性均值，不能将全表颜色称为显著；选中一个大差值并不建立普遍最强策略。</li>
+</ol>
+</li>
+<li><strong>第二小部分：预算交互的配对效应。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 将R-point额外D与Random的共同预算变化区分。</li>
+<li><strong>准备怎么说：</strong> CiteSeer 5%→33%的R-point D_extra变化：GIF +14.064±2.308 pp、MEGU +15.015±2.605 pp（均值±训练seed样本SD），三个seed各自均正；点态t区间为[8.330,19.798]、[8.544,21.486]。同范围原始D约+20.02/+18.72 pp，accuracy约−0.50/+0.05 pp，作为上下文。</li>
+<li><strong>注意点／强调：</strong> 差中之差逐seed先算后汇总；区间不替代独立确认或全家族校正，accuracy近稳不是统计等效。近邻已报道普通accuracy–fidelity分离，创新叙述只能落在策略特定关系。</li>
+</ol>
+</li>
+<li><strong>第三小部分：把对应Retrain的实际变化放在同一处。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 不让D_extra遮蔽Retrain随请求和预算发生的明显变化。</li>
+<li><strong>准备怎么说：</strong> 以紧凑端点表并列CiteSeer 5%→33%的accuracy：R-point下Ret 75.275→64.715、GIF 74.875→74.374、MEGU 74.224→74.274；Random下Ret 74.775→73.173、GIF 74.525→74.675、MEGU 73.824→73.624；Degree下Ret 75.175→75.526。数字均为三训练seed均值，单位%。</li>
+<li><strong>注意点／强调：</strong> 这里Ret在R-point下下降约10.561 pp，是解释的关键而非噪声。GU与Ret的效用差异不能确定逐节点谁在移动，仍需Original三端点诊断；不能把更大D_extra直接写成GU预测被破坏或遗忘失败。</li>
+</ol>
+</li>
+<li><strong>插图 F3：相对两个基线的完整预算关系。</strong>
+<ol>
+<li><strong>内容与组织：</strong> Cora/CiteSeer两面板各画GIF与MEGU的七预算点，分别给R-point−Random和R-point−Degree的D差；IDEA近重合另标，不增加一份独立曲线。旁边紧邻Q2-P2的GU/Ret原始accuracy及D端点表。完整五策略／历史分片曲线入附录D，不把GNNDelete放入主图。</li>
+<li><strong>示意与布局：</strong> 主体单排两面板，每面板四条曲线：颜色区分GIF/MEGU，线型区分两个基线，零线明确；三seed点或±SD不遮曲线。33%全策略对照用紧凑表，避免再叠两排热图与多重图例。</li>
+<li><strong>Caption 与关联：</strong> 写080、三个联合实验seed、原图评价、请求复用关系；Random只是本实验单份请求，不是随机请求期望。D差用pp、原始D用%。七点完整展示，5→33%是探索性端点对照，不声称全程单调；Ret端点表属于主证据，不能缩成不可读脚注。</li>
+</ol>
+</li>
+<li><strong>第四小部分：不依赖单Random曲线的直接Degree对照。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 检查同一预算关系是否仅由所选Random曲线决定。</li>
+<li><strong>准备怎么说：</strong> 定义K(b)=D(R-point,b)−D(Degree,b)，逐seed算K(33%)−K(5%)。CiteSeer GIF/MEGU为+15.065±4.508、+16.216±2.553 pp；Cora为+6.704±1.654、+4.982±0.976 pp，均3/3正。来自第二轮完整复算，原值及历史方法反例保留。</li>
+<li><strong>注意点／强调：</strong> 这避免了依赖某条Random曲线，但仍是固定Degree、当前实现与联合seed流程的描述；不等于随机期望、因果效应、独立确认或Ret质量已验证。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（Q2-P3）：范围与版本反例。</strong></p>
+<ol>
+<li><strong>第一小部分：方法与数据集范围。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 不把GIF/MEGU的条件性关系扩展成所有GU的规律。</li>
+<li><strong>准备怎么说：</strong> 并列两数据集的效应量，明确GIF/IDEA近重合、MEGU含C&amp;S；当前证据涵盖少数有效实例，不能称普遍漏洞。GNNDelete的旧正／负D_extra均暂停采纳，不拿其负值继续充当有效反例。</li>
+<li><strong>注意点／强调：</strong> 同样的有效性规则作用于有利和不利结果；不能只删除支持主张的受影响值却保留其反例。</li>
+</ol>
+</li>
+<li><strong>第二小部分：历史分片范围。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 完整保留历史预算结果，同时说明其不是修正后的方法表现。</li>
+<li><strong>准备怎么说：</strong> 080旧GraphRevoker在Cora的R-point−Degree D差5→33%反而变化−6.458±5.056 pp，3/3负；同批CiteSeer则为正。明确旧实现／变体，详细曲线放附录，不能将其当当前分片复现。</li>
+<li><strong>注意点／强调：</strong> 这说明不能给整个历史矩阵统一方向，但不证明新分片的预算行为。想写当前分片范围，需要预先定条件的协议桥接。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第四段（Q2-P4）：IM与请求组成的有限解释。</strong></p>
+<ol>
+<li><strong>第一小部分：保留传播策略的实际对照。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 不因选IF主例而让IM只剩方法背景。</li>
+<li><strong>准备怎么说：</strong> CiteSeer/33%时IM-RR65536相对Random的D在GIF/MEGU约+0.350/+0.234 pp，对应R-point约+14.615/+14.815 pp；结合R0的几何覆盖表说明这些请求不同。完整七预算与三draw均保留。</li>
+<li><strong>注意点／强调：</strong> 原Cora/GNNDelete的IM方向转向退出当前论证，不能当作已验证机制；IM这里仅指RR65536/p=0.1实例，小D_extra不等于遗忘正确。</li>
+</ol>
+</li>
+<li><strong>第二小部分：相同k之外的删除负荷。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 避免将所有端点差归于损失定义本身。</li>
+<li><strong>准备怎么说：</strong> 本轮复算CiteSeer33%的一跳覆盖：R-point 37.688%、Random43.844%、Degree58.559%；三跳内分别71.972%、79.580%、75.676%，每请求666个test节点。较大D没有伴随更广的此类几何覆盖。远端再补唯一incident-edge删除数、类别删除／保留监督及方法mask覆盖。</li>
+<li><strong>注意点／强调：</strong> Hop覆盖已核验，删边量与类别组成尚未完成。覆盖不能解释为因果控制、传播强度或相同测试子集；等k不等于等删边量或等类别损失。组成也可能是策略作用路径，不应先机械消除再解释。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第五段（Q2-P5）：可证伪的有限回答。</strong></p>
+<ol>
+<li><strong>第一小部分：回答本实验中的策略预算问题。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 把“条件不同响应不同”收紧成可核查命题。</li>
+<li><strong>准备怎么说：</strong> 在当前两数据集GIF/MEGU实例中，R-point相对指定Random与Degree的D差从5%到33%增大；完整七点、原始端点与版本反例限定这一回答。若新请求重复或合规Ret质量诊断改变关系，须相应收窄。</li>
+<li><strong>注意点／强调：</strong> 当前为事后描述，不冒充预注册假设；不推出全程单调、所有GU或新split规律。B1/B2不是两份独立证据。</li>
+</ol>
+</li>
+<li><strong>第二小部分：来源条件作为边界检验。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 区分预算模块和来源模块的解释责任。</li>
+<li><strong>准备怎么说：</strong> 转入e79r6的可采用方法，在10%预算检查四种选点来源下的直接请求关系；不沿用原F-A或其受影响的模式margin。</li>
+<li><strong>注意点／强调：</strong> 来源不是目标backbone，更不是额外四份独立复现；请求与source训练共同改变。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-13">第6章·6.3：Q3 — Which responses persist across selection-model sources?</h2>
+<p>本节职责：作为有限边界分析，检查可采用方法的直接请求效果怎样随选点来源改变。建议三个短段与紧凑表T3；不再让依赖GNNDelete的模式统计承担贡献。</p>
+<ol>
+<li><p><strong>第一段（Q3-P1）：固定目标设置，改变请求生成来源。</strong></p>
+<ol>
+<li><strong>第一小部分：精确控制与随机单位。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 让读者知道source比较固定了什么、改变了什么。</li>
+<li><strong>准备怎么说：</strong> e79r6、10%、固定split与目标设置，GCN/SGC/GAT/GIN分别构造R-point/D-full；每source/策略有十个不同Selection随seed变化，Degree/Random参照复用。当前GNNDelete行排除主分析。</li>
+<li><strong>注意点／强调：</strong> 这是联合选点／训练流程的来源比较，不是固定请求的训练敏感性，不是四target泛化。说明实际信息权限，GCN-source不等于分片集成白盒。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（Q3-P2）：逐方法直接关系与完整范围。</strong></p>
+<ol>
+<li><strong>第一小部分：一个可采用的条件性观察。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 用易懂的原始效应回答哪些方向保留。</li>
+<li><strong>准备怎么说：</strong> PubMed/GraphEraser/R-point相对Random accuracy在GCN/SGC/GAT/GIN来源分别为−0.969/−0.421/−1.306/−0.695 pp，点态区间均低于零；同表保留D-full、Degree、其他数据集与可采用方法，不能只展示此一行。</li>
+<li><strong>注意点／强调：</strong> 四个方向一致不等于来源间差异显著；数据共享参照，不能当四次独立确认。Cora/MEGU等潜在反序未自动替换原F-A，完整家族用于范围而非挑新故事。</li>
+</ol>
+</li>
+<li><strong>第二小部分：直接差和交互分别定义。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 避免用负交互代替可靠的端点反序。</li>
+<li><strong>准备怎么说：</strong> 先给Δ_M=U_M(D-full)−U_M(R-point)、Δ_R同理，再给Δ_M−Δ_R；区间与符号分开。报告全部事后比较范围和不确定格，只有条件支持时才陈述局部方向。</li>
+<li><strong>注意点／强调：</strong> 去掉IDEA重复与排除GNNDelete有效性问题属于不同操作；不能把排除后有利的统计重新宣称预设主分析。</li>
+</ol>
+</li>
+<li><strong>表 T3与补充图 E1：来源直接比较。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 主文表按数据集／可采用方法汇总四source的方向、效应范围与重要反例；完整点态区间图放附录E，旧F4上下两排不再作为第四幅大主图。</li>
+<li><strong>示意与布局：</strong> 主文小表优先可读，不用星号堆叠显著性；附录三数据集分面、方法纵轴、pp横轴、source错开点位，先原始策略差，再有需要才给交互表。</li>
+<li><strong>Caption 与关联：</strong> 写十个联合运行、固定split、source角色、共享参照、点态未校正区间及方法采用范围；单独链接排除审计。不将原GNNDelete主导的margin当稳健性发现。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（Q3-P3）：有限回答及未验证的外推。</strong></p>
+<ol>
+<li><strong>第一小部分：可保留方向与未建立判断。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 给来源问题一个可检查但克制的回答。</li>
+<li><strong>准备怎么说：</strong> 在命名的PubMed/GraphEraser/R-point条件中方向保留；其他条件按完整表逐项界定。当前来源材料支持范围检查，尚未建立普遍指纹或对新目标的预测规则。</li>
+<li><strong>注意点／强调：</strong> 不能把区间跨零写成没有影响。原10.108 pp² margin依赖被隔离GNNDelete，只留内部历史审计，不进投稿论证；有效性修复后才能决定是否重算及是否有必要使用。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-14">第7章：Discussion and Limitations（讨论与限制）</h2>
+<p>本章职责：说明这些观察改变了什么判断，并具体界定不能回答的问题。建议三段。</p>
+<ol>
+<li><p><strong>第一段（D-P1）：对请求审计和结果报告的含义。</strong></p>
+<ol>
+<li><strong>第一小部分：研究者应怎样解释一次请求。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 将B1/B2落实到具体评估判断。</li>
+<li><strong>准备怎么说：</strong> 依次保留GU／Retrain原始端点、Random相对增量和D；用直接请求对照说明同预算下的响应差异，用两基线预算对照说明普通预算变化与策略关系不同；几何覆盖与带内分歧也分别报告。</li>
+<li><strong>注意点／强调：</strong> 不把这一报告建议升格为充分的遗忘认证；不重复各图全部数值。</li>
+</ol>
+</li>
+<li><strong>第二小部分：对方法和策略比较的含义。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 说明为什么结论必须带方法、数据集、预算、来源范围。</li>
+<li><strong>准备怎么说：</strong> 引用Degree直接对照、版本边界与source条件，提出按请求生成程序和有效性范围报告；暂停依赖GNNDelete的转向与margin叙事。</li>
+<li><strong>注意点／强调：</strong> 不能给出统一“学习型≫IF型≫分片型”的脆弱性层级；历史技能文档中的该表述不作为当前结论。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（D-P2）：机制解释与替代解释。</strong></p>
+<ol>
+<li><strong>第一小部分：观察允许怎样的解释。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 区分结果关系与因果机制。</li>
+<li><strong>准备怎么说：</strong> 对B1/B2的D差增加，区分GU实际移动、Ret自身移动和两者方向关系；已有Random10%校准显示非零更新，但不足以解释战略主例。Hop分层是相关性证据，分片远处D还包含架构／训练差异。</li>
+<li><strong>注意点／强调：</strong> 使用“与……一致／需要进一步区分”，不直接宣称模型拒绝遗忘、遗忘过度或某模块导致失败。</li>
+</ol>
+</li>
+<li><strong>第二小部分：哪些最小诊断可以区分解释。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 使限制具有可检验性。</li>
+<li><strong>准备怎么说：</strong> 优先对B组54引用补Original–GU、Original–Ret、GU–Ret、真值正确性和两图推理，MEGU匹配no-update C&amp;S；A组须先解决test选模及新缓存身份，不能用旧三角认证其有效。具体输入、分组和失败分支见最小验证方案；只有声明超出自然重训噪声时才补固定S的R–R。</li>
+<li><strong>注意点／强调：</strong> 本轮已完成已有metrics的复算与局部校准核验，复算正确不等于训练协议有效。尚未完成战略主例的三端点／两图补算；缺口不能写成已闭合，也不能把已做no-update笼统说成不存在；若未完成，结论严格限定原图协议。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（D-P3）：外推范围、伦理与复现边界。</strong></p>
+<ol>
+<li><strong>第一小部分：实验外推限制。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 明确结果适用的任务、数据和实现。</li>
+<li><strong>准备怎么说：</strong> 简要列明citation graphs、固定split、目标GCN／集成、节点删除、原图评价和保留特征行；补充080旧分片实现、单Random请求和缺失端点；014/056仅支持selector规模可运行性，不支持大图GU效果。</li>
+<li><strong>注意点／强调：</strong> 不用一句“未来扩展更多数据集”掩盖这些边界；主文前面已明确的设置，这里只解释其对外推的影响。</li>
+</ol>
+</li>
+<li><strong>第二小部分：现实权限与潜在滥用。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 区分受约束实验与真实请求权限，并说明研究目的。</li>
+<li><strong>准备怎么说：</strong> 写全候选池压力测试的现实限制，说明研究用于理解请求敏感性及改进评估；复现材料按匿名要求提供。</li>
+<li><strong>注意点／强调：</strong> 不声称部署防御或法律合规，不虚构伦理审查／批准。update-detection与分类AUC均不能充当隐私保证；正文无需为此追加一条未经支持的隐私主线。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-15">第8章：Conclusion（结论）</h2>
+<p>本章职责：用一个短段回答文章主问题，不再引入新结果或新指标。</p>
+<ol>
+<li><strong>第一段（C-P1）：三句完成结论。</strong>
+<ol>
+<li><strong>第一小部分：回答Q1。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 请求选择改变效用与相对重训响应，二者不能互相替代。</li>
+<li><strong>准备怎么说：</strong> 首句重述已有候选节点上的请求比较，回答可采用实例的策略特定响应；原排序交叉未恢复证据前不写结论。</li>
+<li><strong>注意点／强调：</strong> 不在结论突然扩大到所有图遗忘算法或实际部署。</li>
+</ol>
+</li>
+<li><strong>第二小部分：回答Q2与Q3。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 预算和选点来源改变响应关系，结论存在具体边界。</li>
+<li><strong>准备怎么说：</strong> 第二句概括请求策略改变同预算额外分歧及其预算响应；第三句限定方法、来源与图评价条件。accuracy–D分离只作背景，不再重复为新增贡献。</li>
+<li><strong>注意点／强调：</strong> 不声称攻击普遍成功、不承诺完整遗忘评估，也不以未来工作列表收尾。结论不配新图。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-16">附录A：Implementation and Reproducibility（实现与复现）</h2>
+<p>本附录职责：补足可复算细节，不能承担主文遗漏的核心语义。</p>
+<ol>
+<li><p><strong>第一段（A-P1）：数据、图操作与方法配置。</strong></p>
+<ol>
+<li><strong>第一小部分：配置闭环。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 让读者重建每个模块的训练、请求和评价条件。</li>
+<li><strong>准备怎么说：</strong> 将数据规模、split seed、训练seed、候选池、预算取整、模型／优化器／轮数、原图评价、GraphRevoker*变体整理成表；区分selector与GU内部数值参数。</li>
+<li><strong>注意点／强调：</strong> 所有数值从所选批次配置生成；未核对项标待填，不能从旧315格表直接继承。新旧分片协议单独列行。</li>
+</ol>
+</li>
+<li><strong>表 A1：配置及身份映射。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 纸内放影响解释的参数；材料中附完整run/config/split/Selection/Output/对应Retrain身份表。</li>
+<li><strong>示意与布局：</strong> 纸内两块表：共同设置与模块差异；机器字段较长的身份映射使用CSV，避免挤成小字号页面。</li>
+<li><strong>Caption 与关联：</strong> 明确哪个模块适用哪组设置，并回指T1及第3章语义；旧协议不能通过统一表头被隐藏。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（A-P2）：字段语义与复算入口。</strong></p>
+<ol>
+<li><strong>第一小部分：实现字段到论文术语的映射。</strong>
+<ol>
+<li><p><strong>核心目标（要说什么）：</strong> 防止代码历史名称进入论文后改变含义。</p>
+</li>
+<li><p><strong>准备怎么说：</strong> 以当前联合分析CSV为准，写明下表；代码字段不作为产品式流程出现在主文。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>当前分析字段</th>
+<th>论文对象</th>
+<th>单位／注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>after</code></td>
+<td>删后accuracy，即本文的端点U</td>
+<td>已为%；不要再乘100</td>
+</tr>
+<tr>
+<td><code>before</code></td>
+<td>方法自身删前accuracy</td>
+<td>与canonical起点分开</td>
+</tr>
+<tr>
+<td><code>U</code></td>
+<td><code>before−after</code>，本文写作L</td>
+<td>pp；不是本文端点U</td>
+</tr>
+<tr>
+<td><code>G</code></td>
+<td><code>Retrain after−GU after</code></td>
+<td>有符号pp</td>
+</tr>
+<tr>
+<td><code>flip</code></td>
+<td>GU与同请求Retrain预测分歧D</td>
+<td>%；不是删前后翻转</td>
+</tr>
+<tr>
+<td><code>after_minus_random</code></td>
+<td><code>Selected−Random = −A</code></td>
+<td>pp；符号与A相反</td>
+</tr>
+<tr>
+<td><code>G_minus_random</code></td>
+<td>E</td>
+<td>有符号pp</td>
+</tr>
+<tr>
+<td><code>flip_minus_random</code></td>
+<td>相对Random的D变化</td>
+<td>pp</td>
+</tr>
+</tbody>
+</table></div>
+</li>
+<li><p><strong>注意点／强调：</strong> 映射仅对当前分析文件有效，其他原始JSON的比例／百分数单位要逐字段核对。历史<code>f1</code>键在当前单标签argmax协议中对应accuracy，不擅自解释成macro-F1。</p>
+</li>
+</ol>
+</li>
+<li><strong>第二小部分：复算与完整性。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 说明图表可由已核验输出重建。</li>
+<li><strong>准备怎么说：</strong> 给匿名生成命令、输入哈希及配对检查；说明来源分析复用统计函数但输入为e79r6，不读取旧叙事。</li>
+<li><strong>注意点／强调：</strong> 论文引用材料路径保持匿名；内部科学审阅状态与复算成功分开。源文件可运行不自动说明论断被科学接受。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（A-P3）：数值、no-update与训练预算的证据表。</strong></p>
+<ol>
+<li><strong>第一小部分：数值与非退化控制。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 使E-P5中的实现可信度有可检查的范围。</li>
+<li><strong>准备怎么说：</strong> 表A2分四个checkpoint profile：Cora H16/H64、CiteSeer H64、PubMed H64；列独立Random10%请求、T100/200/400、参数写回、shifted残差、相对参数L2、logit变化和Original→GU标签变化。T100 GIF全节点平均翻转约0.369/0.431/0.321/0.093%，且写回误差为0；失败059保留。</li>
+<li><strong>注意点／强调：</strong> 全节点Before→GU翻转不同于测试GU–Ret D；shifted残差最大约3.486e−7，原系统残差仍约0.1965–0.5559，不能写原方程已解。固定seed42校准不证明全部训练seed／高预算有效，IDEA当前噪声配置不建立认证遗忘保证。</li>
+</ol>
+</li>
+<li><strong>第二小部分：训练和checkpoint依据。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 解释300轮的选择及其有限支持。</li>
+<li><strong>准备怎么说：</strong> 078列正式checkpoint与候选checkpoint的区别；082列Cora CPU及CiteSeer/PubMed GPU轨迹、旧／修正聚合损失、warm/cold聚合臂，按validation比较300与3000轮。后两数据集12轨迹×4臂×8轮数=384指标行，corrected臂变化在±0.901 pp内。</li>
+<li><strong>注意点／强调：</strong> 不用test选择训练轮数，不把384行当384个独立seed；300轮的限定采用不等于全局最优。083的六格gate只是实现可运行证据。</li>
+</ol>
+</li>
+<li><strong>第三小部分：主例B的Retrain参考质量——轨迹缺口与定向诊断。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 区分删后数据变化与有限训练／选模规则对Ret下降的影响。</li>
+<li><strong>准备怎么说：</strong> 当前Ret训练链没有保存所需validation轨迹；其最终train loss也没有成为正式Output证据。为CiteSeer33%、seed42、R-point/Random/Degree三个冻结请求准备同配置pilot，预先指定终轮3000与validation最优两种口径。优化敏感触发完整三seed；若B作为核心且解释Ret的数据响应，即使pilot没有触发也完成三seed×三策略敏感性检查，不能以单seed宣布全部参考充分。</li>
+<li><strong>注意点／强调：</strong> 078的原模型、082的分片诊断不证明这些retained Retrain充分；不得按test选择参考模型。CPU复算的Ret CE增加0.3813±0.1259只是观测，不证明训练不足。新增训练诊断尚未完成。</li>
+</ol>
+</li>
+<li><strong>表 A2：有效性控制与覆盖缺口。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 行为数值校准、no-update、baseline来源、分片训练、正式gate；列实验条件、观察、可排除解释、仍未覆盖。标明062/065–068、078、082、083身份，正式稿用科学对象替代内部编号。</li>
+<li><strong>示意与布局：</strong> 单张紧凑表，纸内只留核心结论／边界，详细曲线与原生日志放匿名材料；不把控制表写成软件测试清单。</li>
+<li><strong>Caption 与关联：</strong> 明确全部控制是局部范围；与E-P5及讨论D-P2关联，不声称通过这些控制就能认证遗忘。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第四段（A-P4）：战略主案例的三端点与两图核验——待完成。</strong></p>
+<ol>
+<li><strong>第一小部分：将现有控制接到新A/B的确切条件。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 判断GU接近Original、Ret移动及评价图各自对主例的影响。</li>
+<li><strong>准备怎么说：</strong> 优先按<a href="../review/2026-10-24-self-audit/VALIDATION_COHORTS.json">第一轮清单</a>的B组54引用，复用远端预测／权重生成三种D、五类三者标签关系，并在每类中给O/G/R相对真值的正确／错误计数和概率距离；同一权重在两图评价，MEGU匹配C&amp;S。A组须先按第二轮行动表修复重新生成，旧输出仅作故障诊断。</li>
+<li><strong>注意点／强调：</strong> EXP-085第一层只覆盖既有预测的三端点、真值和组成；两图、匹配C&amp;S须作为后续控制另交付、预算和运行，不能把第一层成功写成全部完成。五类相等关系必须联查真值；checkpoint缺失时明确失败，不隐式重训。固定请求R–R、目标backbone或新split是另一验证层次。</li>
+</ol>
+</li>
+<li><strong>图 A1的条件性预留。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 完成后按主例分面，先三端点原值，再列切换评价图的配对变化及MEGU匹配后处理对照；没完成则不生成伪结果图。</li>
+<li><strong>示意与布局：</strong> 两列为原图／删除后图，行是同一请求／方法；使用相同测试节点和坐标，显示逐seed结果，不将不同来源混成一组。</li>
+<li><strong>Caption 与关联：</strong> 绑定Output、Original checkpoint、图身份与有效seed数；报告效应保留、减弱或反转。若结论受评价语义支配，必须同步调整摘要和主图解释，不能只藏在附录。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-17">附录B：Request Mechanisms and Approximations（请求机制与近似）</h2>
+<ol>
+<li><p><strong>第一段（B-P1）：IM与IF的必要实现细节。</strong></p>
+<ol>
+<li><strong>第一小部分：IM的估计与选择。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 解释IC、RR集合和覆盖贪心之间的关系。</li>
+<li><strong>准备怎么说：</strong> 写RR采样估计式、root取样范围、候选seed限制、有向边处理、传播概率、样本量、选择seed和tie-breaking。</li>
+<li><strong>注意点／强调：</strong> 理论目标与有限采样结果分开；没有相同预算和硬件的计时证据时不写加速倍数。</li>
+</ol>
+</li>
+<li><strong>第二小部分：IF源、方向与求解。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 让读者理解R-point/D-full及Hessian-free对照到底替换什么。</li>
+<li><strong>准备怎么说：</strong> 给source公式、sum/mean损失约定、参数子空间、邻域、正号删除方向、有限shifted迭代以及参数；P-point/P-graph明确为方向替换对照。</li>
+<li><strong>注意点／强调：</strong> 有限输出不等于收敛；D-full不等于全参数／全邻域；不移植原论文不适用的保证。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（B-P2）：选集、参数与历史支撑的使用范围。</strong></p>
+<ol>
+<li><strong>第一小部分：支撑机制区分。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 补足T2的全预算Common@k、Jaccard或完整排名分析。</li>
+<li><strong>准备怎么说：</strong> 每项指标给实际输入与分母；选集表与完整排名相关各自提供证据，不从选集重合推算排名相关。</li>
+<li><strong>注意点／强调：</strong> EXP-032 Retrain-only仅说明重训端点；EXP-053单训练seed配置诊断不替代新011的GU比较。</li>
+</ol>
+</li>
+<li><strong>图／表 B1：配置敏感性。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 选集source／曲率对照与IM三RR规模分成两块，分别回答机制差异与估计配置敏感性。</li>
+<li><strong>示意与布局：</strong> 紧凑表优先；完整候选池／预算图放材料，不把不同训练协议的结果连线。</li>
+<li><strong>Caption 与关联：</strong> 写实验身份、seed层级与比较对象；与第4章和6.0关联，不用“已验证攻击机制”标题。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（B-P3）：真实规模上的请求构造成本。</strong></p>
+<ol>
+<li><strong>第一小部分：区分已完成selector与未完成GU验证。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 充分使用已完成的大图资产，准确界定可扩展性主张。</li>
+<li><strong>准备怎么说：</strong> ogbn-arxiv有169,343节点、118,540候选节点、预算k=5,927。014已完成Random/Degree/R-point且选集唯一合法；R-point cell约324.512s，含48.060s模型准备＋276.452s选择。056的IM-RR1024真实MISS selector约366.55s，进程约380.39s，5秒采样内存峰值约7.59 GiB。</li>
+<li><strong>注意点／强调：</strong> 014的IM-RR65536仍是运行中快照，D-full未提交；不写已完成。056与014配置／版本不同，不能推导加速比；这些没有大图GU端点。</li>
+</ol>
+</li>
+<li><strong>表 B3：阶段成本与可运行范围。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 行为已有Random、Degree、R-point、IM-RR1024；列图／候选规模、k、实际配置、模型准备、selector时间、进程时间、内存采样、Selection验证。未记录字段留缺失，不能填0。</li>
+<li><strong>示意与布局：</strong> 分配置块，明确014 Random/Degree cell分别约2.601/4.642s，而两者合并job为54s；R-point job为364s，不能将job墙钟当纯选择耗时。</li>
+<li><strong>Caption 与关联：</strong> 注明计时边界、硬件、缓存MISS/HIT、RR规模、代码与运行身份；回指威胁模型中选择器的实际成本，不承担论文第4个主RQ或真实Web部署证明。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-18">附录C：Full Fixed-budget Results（固定预算全量结果）</h2>
+<ol>
+<li><p><strong>第一段（C-A1）：011与079的完整端点。</strong></p>
+<ol>
+<li><strong>第一小部分：补足主图未展示的条件。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 让所有方法、策略、数据集和来源结果可被核查。</li>
+<li><strong>准备怎么说：</strong> 011列全部八设置，079列四source及结构／随机基线；当前可采用方法分别给accuracy、CE、分类AUC、G、D和对应配对变化。GNNDelete旧行保留在内部审计，不进入科学结果图册。</li>
+<li><strong>注意点／强调：</strong> 按模块分表，不能平均成一张大表；GIF/IDEA原始方法结果保留；CE和分类AUC与隐私诊断清晰分开。</li>
+</ol>
+</li>
+<li><strong>表／图 C1–C2：全量面板与配对差。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 纸内优先保留影响主结论的反例／区间；完整表进入可下载CSV与图册。</li>
+<li><strong>示意与布局：</strong> 按数据集分页或分面，原值与差值分组，不把不同尺度指标共享色标。</li>
+<li><strong>Caption 与关联：</strong> 各自标e11r1/e79r6、n=3/n=10、请求平均及点态区间；主文F1/F2指向具体面板，不能只链接一个无定位的目录。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（C-A2）：方法起点和协议差异。</strong></p>
+<ol>
+<li><strong>第一小部分：分解仅用于解释。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 解释canonical起点、方法自身Before、Random响应和选点增量各自贡献。</li>
+<li><strong>准备怎么说：</strong> 如主文确实需要，给同一批次的一个完整分解案例；新旧协议对照明确同时变化损失与训练轮数。</li>
+<li><strong>注意点／强调：</strong> 历史旧表不补新批次缺项，不用旧结论覆盖新结果；没有因果隔离时不写“修复X导致全部变化”。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第三段（C-A3）：完整空间分层与分母。</strong></p>
+<ol>
+<li><strong>第一小部分：让主文局部示例接受完整面板检查。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 检验覆盖几何、近处响应与远处背景，而不只展示最显著一格。</li>
+<li><strong>准备怎么说：</strong> 原始库存有5,124个GU–Ret配对、20,496条距离带记录；GNNDelete预测行暂停采纳。对当前可采用方法按模块分别展示1/2/3/&gt;3-hop的nodes、disagreements和rate；每个请求内分层分子、分母相加还原整体D，再等权平均draw及seed；不能用平均节点份额乘平均带内率重建整体。请求等权率与合并节点的pooled rate分开命名。</li>
+<li><strong>注意点／强调：</strong> 这些是覆盖条目数，含模块间复用，不是独立科学样本。&gt;3包括不可达，测试节点不含被删训练节点；跨selector分组成员不同。</li>
+</ol>
+</li>
+<li><strong>图 C3：距离带分歧与请求几何。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 三数据集×四个可采用去重方法坐标的完整近／远剖面，策略颜色固定；旁边给各距离带节点比例。GIF/IDEA完整原表都保留，079四source与080全预算进入材料图册。</li>
+<li><strong>示意与布局：</strong> 纸内紧凑近／远表优先，完整1/2/3/&gt;3折线剖面下放；不得只放Cora/GIF，必须同时保留分片远处背景及PubMed MEGU反例。不同模块分开分页。</li>
+<li><strong>Caption 与关联：</strong> 明确GU–Ret的argmax D、原图无向距离、分母、seed层级与080旧分片版本。不能命名为GU–Original collateral damage；当前没有hop×实际shard assignment交叉统计，不能据方法名归因分区机制。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第四段（C-A4）：已有update-detection诊断及其边界。</strong></p>
+<ol>
+<li><strong>第一小部分：正确报告已计算与缺失。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 不遗漏已有诊断，也不将其提升成未验证的隐私结论。</li>
+<li><strong>准备怎么说：</strong> 原始库存5,124个GU结果有computed AUC、861个Ret缺原预测；其中GNNDelete行目前仅属可追溯旧输出，不能作为独立测试证据。说明分数为原／更新概率向量的L2变化，selected节点作正、test节点作负，按min数量各取前n个。</li>
+<li><strong>注意点／强调：</strong> 这是特定更新检测协议，不是随机匹配MIA、完整隐私风险或认证遗忘。不要因Ret缺before声称全方法缺失；若不服务主问题，只在复现材料完整提供，无需占主文篇幅。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-19">附录D：Full Budget Results（预算全量结果）</h2>
+<ol>
+<li><p><strong>第一段（D-A1）：五策略与全部GU的预算曲线。</strong></p>
+<ol>
+<li><strong>第一小部分：主图案例的完整上下文。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 让读者检查F3的R-point／IM案例是否依赖选择性展示。</li>
+<li><strong>准备怎么说：</strong> Random、Degree、R-point、D-full、IM每行一个策略，两列数据集；对可采用方法分别组织accuracy、A、E、原始D与D_extra图册，另给5%→33%配对交互和逐seed表。GNNDelete暂停进入论文，080旧分片独立标注历史协议。</li>
+<li><strong>注意点／强调：</strong> 同图跨数据集尺度一致；若跨策略面板尺度不同，caption明确不能只比视觉斜率。Retrain与自身D=0只作定义参照。</li>
+</ol>
+</li>
+<li><strong>图 D1：全策略预算图谱。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 纸内保留紧凑总览和关键反例；高密度逐seed图提供在材料中。</li>
+<li><strong>示意与布局：</strong> 5行×2列按指标拆成多页材料，避免把40个面板压进论文一页；不可行点统一留空、断线。</li>
+<li><strong>Caption 与关联：</strong> 逐方法标明旧分片协议、n=3、±SD、IM重复、单Random／Degree请求复用及缺失范围；回指第6.2节具体论点。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（D-A2）：请求抽样与嵌套预算敏感性。</strong></p>
+<ol>
+<li><strong>第一小部分：均值掩盖的波动。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 展示IM三次请求的离散程度和预算间依赖。</li>
+<li><strong>准备怎么说：</strong> 用 <code>im_draw_contrasts.csv</code>、<code>im_draw_ranges.csv</code> 报告固定训练seed内的抽样范围，并解释嵌套节点前缀关系。</li>
+<li><strong>注意点／强调：</strong> 旧Cora/GNNDelete的15.13 pp draw极差暂不作科学例子；对可采用方法保留全draw范围，而不只选大波动格。这些组合不是9个独立训练seed。无PubMed预算证据，不以缺失补零。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-20">附录E：Source Comparisons and Statistics（来源比较与统计）</h2>
+<ol>
+<li><p><strong>第一段（E-A1）：完整直接对照与有效性范围。</strong></p>
+<ol>
+<li><strong>第一小部分：补足T3的全部家族。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 使主文来源范围和例子能接受完整比较的检查。</li>
+<li><strong>准备怎么说：</strong> 逐数据集、可采用方法、source列Selected−Random、Selected−Degree、D-full−R-point及GU−Ret交互，保留原值、逐seed差和点态区间；说明事后搜索包含哪些对照，而不是只列命中条件。</li>
+<li><strong>注意点／强调：</strong> 原72条件/45个均值交叉及六个双端区间异号格是旧输出的内部审计，不是可用主表的发生率；排除GNNDelete后需按实际采用范围重新生成，不能沿用旧分母。</li>
+</ol>
+</li>
+<li><strong>图 E1：直接来源差的完整区间图。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 三数据集按可采用方法分面，四source全保留，原始策略差与Ret差分别显示；必要交互单独表，不把两种判据混成显著性星号。</li>
+<li><strong>示意与布局：</strong> 方法纵轴、pp横轴、零线和source点位清晰；正文T3给范围与反例，完整图放附录或匿名图册，不恢复旧F4两排密集主图。</li>
+<li><strong>Caption 与关联：</strong> 十个联合运行、固定split、共享端点、点态未校正区间、不同请求随seed变化和方法采用范围必须可见。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p><strong>第二段（E-A2）：推断范围与待验证分支。</strong></p>
+<ol>
+<li><strong>第一小部分：描述、推断与机制分开。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 避免完整表的数量制造总体推断印象。</li>
+<li><strong>准备怎么说：</strong> 区分有限suite的方向计数、联合程序不确定性、固定请求噪声及跨split泛化；若使用多重校正，只用于明确的比较家族。原margin分析因依赖GNNDelete暂停进入论文，保留内部材料供追溯。</li>
+<li><strong>注意点／强调：</strong> 不能靠删掉受影响坐标后挑一个正区间宣布新发现；新科学主张需明确选择规则和有效证据，测试集选模问题也不会因换指标得到修复。</li>
+</ol>
+</li>
+<li><strong>第二小部分：如果恢复原F-A。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 明确恢复所需结果而非保留旧叙事。</li>
+<li><strong>准备怎么说：</strong> 只有合规选模、新生成身份、预先固定条件的重跑完成后，重新计算A及完整来源／基线范围；报告是否保留原方向、量级与不确定性，并重新决定其主文地位。</li>
+<li><strong>注意点／强调：</strong> 六个诊断更新不能恢复原十seed结论；三十个R-point/D-full/Degree更新也不恢复所有Random/source/预算结果。旧值不拼接到新表。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="pw-doc-section-21">段落—图表—证据对应表</h2>
+<p>下表是写作定位，不替代实验台账。原始 CSV 中保留全部方法；<strong>论文采用时必须执行旧GNNDelete隔离／新084单列、080旧分片单列、GIF/IDEA近重复不重复计证据这三条规则</strong>。原始库存条目数不等于采用后的样本数。新结果不能继承旧批次的接受状态。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>段落／图表</th>
+<th>使用的证据</th>
+<th>取值或筛选规则</th>
+<th>最容易写错的地方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>新A；候选I-P3、Q1-P2、F2-A</td>
+<td><a href="../../self/research/experiments/drafts/round3-execution-prep/e84r1/REPORT.html">084新端点与配对差</a>、<a href="../../self/research/experiments/drafts/round3-execution-prep/e84r1/DECISION.json">采用决定</a></td>
+<td>新十seed／三策略／60端点；五新seed及20对解释控制另批绑定，不合并冒充独立确认</td>
+<td>当前只是恢复候选；121返回文件＋30GU checkpoint通过不等于解释闭合或Weak Accept</td>
+</tr>
+<tr>
+<td>I-P3、Q2-P2；F1</td>
+<td><a href="../../self/research/analyses/EXP-080/full-20261021/selector_gu_curve_values.csv">080原始端点</a>、<a href="../review/2026-10-24-self-audit/analysis/budget_random_contrasts.csv">同Random对照</a></td>
+<td>CiteSeer、33%、GIF/MEGU/Ret；R-point、Degree及Random原始accuracy与D</td>
+<td>当前F1不再使用Cora/GNNDelete排序交叉；原值必须说明Ret自身移动，D不是GU自身预测破坏。</td>
+</tr>
+<tr>
+<td>Q1-P1；F2</td>
+<td><a href="../../self/research/analyses/EXP-011_EXP-079/EXP011_REPORT.html">011图册</a>、<a href="../../self/research/analyses/EXP-011_EXP-079/seed_values.csv">seed均值</a>、<a href="../../self/research/analyses/EXP-011_EXP-079/summary.csv">汇总</a></td>
+<td>e11r1；六代表设置、三数据集、Ret＋五个可采用GU；附录完整八设置</td>
+<td>原图册尚含GNNDelete，不能直接复制；请求重复不增加联合运行数；IM、Degree和方法变体必须可见。</td>
+</tr>
+<tr>
+<td>Q1-P2；附录E</td>
+<td><a href="../review/2026-10-24-self-audit/analysis/source_strategy_contrasts.csv">直接策略对照</a>、<a href="../review/2026-10-24-self-audit/analysis/source_strategy_seed_contrasts.csv">逐seed对照</a>、<a href="../review/2026-10-24-round2/analysis_reviewer/family_endpoint_intervals.csv">端点区间核对</a></td>
+<td>可采用方法的D-full−R-point两端点差及完整来源范围</td>
+<td>原72条件等计数仅是旧输出审计；排除GNNDelete后按采用范围重新生成，不事后挑一格顶替原F-A。</td>
+</tr>
+<tr>
+<td>Q1-P3；附录C</td>
+<td><a href="../../self/research/analyses/EXP-011_EXP-079/REPORT.md">011/079联合报告</a>、<a href="../../self/research/analyses/EXP-011_EXP-079/paired_vs_random.csv">配对区间</a></td>
+<td>e79r6、PubMed分片实例、GCN-source、10%；after、G、flip分别读</td>
+<td>原signed gap案例只作解释；负E不意味着D下降；分片与full-graph Ret的架构不同。</td>
+</tr>
+<tr>
+<td>R0-P1；T2、附录B</td>
+<td><a href="../../report/paper/overleaf/sections/appendix.tex">现稿选集附录</a>、<a href="../../self/research/analyses/AAGU-032-AAGU-053-3000-only-paper-analysis-20260923.md">032/053支撑</a></td>
+<td>Common@k及原生参数／checkpoint绑定，各分析保持原身份</td>
+<td>有限单点评分、静态top-k与集合目标分开；GU校准不证明selector的IF近似准确。</td>
+</tr>
+<tr>
+<td>R0-P2、Q1-P4；附录B/C</td>
+<td><a href="../review/2026-10-24-self-audit/inventory/HOP_REPORT.html">Hop审查</a>、<a href="../review/2026-10-24-self-audit/inventory/request_geometry_summary.csv">几何表</a>、<a href="../review/2026-10-24-self-audit/inventory/hop_summary.csv">距离带汇总</a>、<a href="../review/2026-10-24-round2/analysis_reviewer/hop_composition_example.csv">组成反例</a></td>
+<td>几何按请求去重；带内D只采用未隔离的方法；请求内重建整体后再平均</td>
+<td>图距离不是IC spread；GU–Ret D不是GU–Original collateral；同名距离带成员不同，不能用平均权重乘平均率重建。</td>
+</tr>
+<tr>
+<td>Q2-P1至P5；F3</td>
+<td><a href="../../self/research/analyses/EXP-080/full-20261021/selector_gu_curve_values.csv">080原曲线</a>、<a href="../review/2026-10-24-self-audit/analysis/budget_random_seed_contrasts.csv">同Random逐seed对照</a>、<a href="../review/2026-10-24-self-audit/analysis/budget_interactions.csv">预算交互</a>、<a href="../review/2026-10-24-round2/analysis_reviewer/rpoint_degree_budget_summary.csv">Degree直接对照</a></td>
+<td>主图GIF/MEGU，七预算点、两个基线；全采用范围及历史分片另表</td>
+<td>单Random不代表请求分布期望；n=3均值±SD；Degree差中的Random抵消不证明因果或独立确认。</td>
+</tr>
+<tr>
+<td>Q3-P1至P3；T3、附录E1</td>
+<td><a href="../review/2026-10-24-self-audit/analysis/source_strategy_contrasts.csv">直接策略对照</a>、<a href="../review/2026-10-24-self-audit/analysis/gu_retrain_strategy_interactions.csv">GU–Ret交互</a>、<a href="../../self/research/analyses/EXP-011_EXP-079/paired_vs_random.csv">Random配对</a>、<a href="../review/2026-10-24-round2/analysis_reviewer/selection_identity_counts.csv">Selection身份计数</a></td>
+<td>e79r6四source、可采用方法；主文范围表，完整区间移附录</td>
+<td>四source不是四目标backbone；n=10为联合选点／训练程序；margin含受影响方法，暂停使用。</td>
+</tr>
+<tr>
+<td>E-P5、附录A</td>
+<td><a href="../review/2026-10-24-self-audit/validity/VALIDITY.html">有效性审查</a>、<a href="../review/2026-10-24-self-audit/validity/calibration_summary.json">校准汇总</a>、<a href="../review/2026-10-24-self-audit/inventory/EXP082_validation_audit.json">082复算</a>、<a href="../review/2026-10-24-self-audit/analysis/common_condition_output_identity.csv">共同身份核对</a></td>
+<td>固定checkpoint／Random10%校准；分片300轮依据；共同10%身份范围</td>
+<td>原始90/90身份包括暂停采用的GNNDelete，仅证明复用关系；校准不保证主例或Ret质量，Output复用不是独立重复。</td>
+</tr>
+<tr>
+<td>附录B成本</td>
+<td><a href="../review/2026-10-24-self-audit/inventory/INVENTORY.html">实验库存</a>、<a href="../review/2026-10-24-self-audit/inventory/EXP014_collected_selector_audit.json">014选集核验</a></td>
+<td>014已收集Random/Degree/R-point；056实际RR1024 MISS</td>
+<td>运行中IM65536或未提交D-full不写完成；不同配置不能计算加速比；selector成本不是GU大图效果。</td>
+</tr>
+<tr>
+<td>A-P4；待补诊断</td>
+<td><a href="../review/2026-10-24-self-audit/VALIDATION_COHORTS.json">第一轮历史清单</a>、<a href="../review/2026-10-24-round2/REPORT.html">当前行动表</a></td>
+<td>优先B组54引用及相应Original；增加五类关系内真值正确性；A组先修复重算</td>
+<td>114是原始引用总数，不是当前可直接执行的完整证据；三端点／两图尚未计算，权重可用性须核对。</td>
+</tr>
+<tr>
+<td>GNNDelete证据采纳门槛</td>
+<td><a href="../review/2026-10-24-round2/EXPERIMENT_REVIEW.html">实验审稿E1</a></td>
+<td>六个确切Output已绑定原始MISS生成；原主例30项隔离，其他GNN支持行待范围审计</td>
+<td>当前源码问题已绑定原输出；修复必须新生成身份，旧V2证据不改写，六个诊断更新不恢复十seed结论。</td>
+</tr>
+<tr>
+<td>CPU复算与审查输入</td>
+<td><a href="../review/2026-10-24-self-audit/analysis/claim_audit.py">第一轮程序</a>、<a href="../review/2026-10-24-self-audit/analysis/independent_validation.json">第一轮独立检查</a>、<a href="../review/2026-10-24-round2/analysis_reviewer/recheck.py">第二轮程序</a>、<a href="../review/2026-10-24-round2/analysis_reviewer/checks.json">第二轮检查</a>、<a href="../review/2026-10-24-round2/REVIEW_INPUT.json">冻结审稿输入</a></td>
+<td>哈希绑定原始分析输入，保留旧输出与当前采纳范围的区别</td>
+<td>复算正确不等于训练有效；三类模拟审查不是真实会议评审或科学接受。</td>
+</tr>
+</tbody>
+</table></div>
+<p>Q3-P2的具体写作候选，均为e79r6的Selected−Random accuracy，单位pp，区间为十个联合选点／训练运行上的点态95% t区间；本表不声称完成全表多重比较校正：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>数据集／方法／策略</th>
+<th>source</th>
+<th style="text-align: right;">均值</th>
+<th>区间</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PubMed / GraphEraser / R-point</td>
+<td>GCN</td>
+<td style="text-align: right;">−0.969</td>
+<td>[−1.236, −0.701]</td>
+</tr>
+<tr>
+<td>同上</td>
+<td>SGC</td>
+<td style="text-align: right;">−0.421</td>
+<td>[−0.573, −0.269]</td>
+</tr>
+<tr>
+<td>同上</td>
+<td>GAT</td>
+<td style="text-align: right;">−1.306</td>
+<td>[−1.722, −0.889]</td>
+</tr>
+<tr>
+<td>同上</td>
+<td>GIN</td>
+<td style="text-align: right;">−0.695</td>
+<td>[−0.842, −0.547]</td>
+</tr>
+</tbody>
+</table></div>
+<p>与第一稿衔接时的材料准备顺序：先通过当前采纳门槛，再将F1–F3／T1/T3绑定到可采用数据，再完成具体图形与caption；随后写Results和Experimental Design，再写Method/Problem，最后根据确定的发现写Introduction/Abstract及讨论。图表最终绘制须使用统计绘图工具输出可导出PDF/SVG，不能用生成式示意图代替实测结果。</p>
+<h2 id="pw-doc-section-22">审查重点与仍需准备的材料</h2>
+<ol>
+<li><strong>论证选择：</strong> 旧F-A隔离，新A十seed候选成立；五seed确认及自身控制决定核心地位。B1/B2是一条响应论证的两个层次，贡献强度仍待判断。普通accuracy–D分离不是新增发现；不从其他格子事后换主例。</li>
+<li><strong>权限与语义：</strong> 全训练候选池压力测试、移除监督／incident edges而保留特征行、原图评价，应按第3章准确表述；如果作者希望更强现实部署结论，需要另有证据。</li>
+<li><strong>证据采用：</strong> 新011/079与080分模块，按方法标注080旧分片；原始结果、Degree反例、GraphRevoker变体与GIF/IDEA近重合如实保留；共同Output不重复计样本。</li>
+<li><strong>版面选择：</strong> F1可采用原始端点、F2固定预算机制、F3两个基线预算关系，加T1设置和T3来源范围；旧F4移附录E1，margin暂不采纳。Hop、成本与校准细表下放。附录A–E按总页数压缩，完整图册进匿名材料。详细提纲是写作约束，不意味着每个小部分都要扩成一段长文。</li>
+<li><strong>现有数据的整理项：</strong> 生成最终F1–F3、T1/T3与匿名参数表；统一accuracy／drop／D字段及符号；为需要正式跨source显著性结论的句子绑定相应配对检验家族。以上属于已有证据的整理，不是已经完成的图表。</li>
+<li><strong>仍需补强的解释：</strong> GNNDelete修复与限定重算已通过；继续新A五seed确认及20对三端点／两图，B54引用诊断及Ret九条轨迹。B gate已执行但当前回传接口需修复，不能采用未接受结果。若声称超出自然噪声或目标backbone泛化，分别补固定S的R–R或目标模型验证，不能靠更强措辞替代。</li>
+<li><strong>写作放行条件：</strong> 按执行协议判断A恢复／减弱／消失及B的解释；主图依完整对照取舍。提纲审查通过也不自动启动正文，须冻结有效证据包，由理论、实验、分析三类复审均判Weak Accept或以上且主审同意，记录writing_gate=pass后才开始第一版英文正文。目前为not_met。</li>
+</ol>
+<p>沿用的相关工作定位入口：<a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/a89d228d9489814b98050a1f7b43ccdd-Paper-Conference.pdf">ICLR2026 GU benchmark</a>、<a href="https://arxiv.org/abs/2603.18570">Attack by Unlearning</a>、<a href="https://arxiv.org/html/2610.04310v1">Modeling Deletion Requests</a>。近邻原文核验沿用第一轮，见<a href="../review/2026-10-24-self-audit/positioning/CRITIQUE.html">近邻定位审查</a>。正式英文引用仍需按原文及BibTeX元数据核对。</p>
+<p>工作区入口：<a href="../README.md">README</a>、<a href="../latex/ENVIRONMENT.html">本地LaTeX环境</a>、<a href="../latex/main.tex">模板自检主文件</a>、<a href="../../output/paper-review-20261024/sync-manifest.json">Overleaf同步清单</a>。本轮已完成正式A重算及其CPU分析，其他阶段状态见执行报告；没有生成第一版英文科研正文。</p>
+<footer>Source: OUTLINE.v6.md<br>SHA-256: e0d602751bb9194ec05036ab7a94297fe19c38fc1a6b88fe3778c7cd7024ac2b<br>使用 paper_writing/tools/render-docs.ps1 重建此页面。</footer></main></div></body></html>

@@ -1,0 +1,38 @@
+{
+  "source_csv": "self\\research\\experiments\\drafts\\round3-b-diagnostics\\e85r1\\endpoints.csv",
+  "source_sha256": "1ea053e68e1eafddbfbd92c6e295f6a64167732894297a5e21918c962b197a60",
+  "analysis_checks_sha256": "955edf08a0ff11eaf2d21227c6d764d18e698bee72fcfa59976135e37025e77e",
+  "matrix": {
+    "methods": [
+      "GIF",
+      "MEGU"
+    ],
+    "selectors": [
+      "r_point",
+      "random",
+      "degree"
+    ],
+    "budgets": [
+      0.05,
+      0.33
+    ],
+    "seeds": [
+      42,
+      212,
+      2024
+    ]
+  },
+  "accuracy_errors": "sample SD across the three joint seeds",
+  "truth_bars": "equal-seed mean count / fixed N=666; black dots show each seed total D",
+  "checks": [
+    {
+      "method": "GIF",
+      "stack_reconstructs_all_D": true
+    },
+    {
+      "method": "MEGU",
+      "stack_reconstructs_all_D": true
+    }
+  ],
+  "scope": "first-layer original evaluation graph; MEGU published postprocessing; no claim that graph/CS/training-quality controls pass"
+}

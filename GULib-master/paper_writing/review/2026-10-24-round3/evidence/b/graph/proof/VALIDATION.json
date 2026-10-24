@@ -1,0 +1,169 @@
+{
+  "status": "private_full_width_copy_proof_passed; original_assets_have_small_font_risk",
+  "baseline": {
+    "pdf_sha256": "1b0749dc18ebee9fcb6d8da6887c6b21bf01bc45cdc53739a884b2ddaa750820",
+    "page_count": 3,
+    "pages": [
+      {
+        "page": 1,
+        "size_pdf_pt": [
+          612,
+          792
+        ],
+        "plot_horizontal_font_pdf_pt_counts": {
+          "6.74": 116,
+          "8.087": 164
+        },
+        "plot_min_font_pdf_pt": 6.74,
+        "out_of_page_glyph_count": 0,
+        "png_pixels": [
+          1700,
+          2200
+        ],
+        "page_png_sha256": "94722e66ea3f7ef17be0337b6084924419c2be093bb0d0dacdbe50228bd4c6e2",
+        "actually_viewed_with_view_image": true
+      },
+      {
+        "page": 2,
+        "size_pdf_pt": [
+          612,
+          792
+        ],
+        "plot_horizontal_font_pdf_pt_counts": {
+          "6.426": 369,
+          "7.711": 156
+        },
+        "plot_min_font_pdf_pt": 6.426,
+        "out_of_page_glyph_count": 0,
+        "png_pixels": [
+          1700,
+          2200
+        ],
+        "page_png_sha256": "1cf3854af8f445955fc93fce07dad24b9fc4636f693418e699bd8d9bdd88b687",
+        "actually_viewed_with_view_image": true
+      },
+      {
+        "page": 3,
+        "size_pdf_pt": [
+          612,
+          792
+        ],
+        "plot_horizontal_font_pdf_pt_counts": {
+          "6.426": 248,
+          "7.711": 96
+        },
+        "plot_min_font_pdf_pt": 6.426,
+        "out_of_page_glyph_count": 0,
+        "png_pixels": [
+          1700,
+          2200
+        ],
+        "page_png_sha256": "75ba68f50b7af31044e93929f18ac16179433210ea1e4d6a2cf3bdf8921c823f",
+        "actually_viewed_with_view_image": true
+      }
+    ],
+    "textwidth_tex_pt": 506.295,
+    "columnwidth_tex_pt": 241.14749,
+    "textheight_tex_pt": 626.0,
+    "overfull_count": 0,
+    "underfull_count": 0,
+    "undefined_reference_count": 0,
+    "tex_error_count": 0,
+    "acmart_warnings": [
+      "ACM keywords are mandatory for papers over two pages.",
+      "ACM reference format is mandatory ",
+      "CCS concepts are mandatory for papers over two pages."
+    ]
+  },
+  "final": {
+    "pdf_sha256": "c77353c376b2da02253e52c16f0fe161f82c97475ec9e9cb37cef7bb4c387064",
+    "page_count": 3,
+    "pages": [
+      {
+        "page": 1,
+        "size_pdf_pt": [
+          612,
+          792
+        ],
+        "plot_horizontal_font_pdf_pt_counts": {
+          "8.5": 116,
+          "9.5": 102,
+          "10.5": 44
+        },
+        "plot_min_font_pdf_pt": 8.5,
+        "out_of_page_glyph_count": 0,
+        "png_pixels": [
+          1700,
+          2200
+        ],
+        "page_png_sha256": "795f695ddbf381886d9059eea040e2958daade398bfac1b43a5c83426c88d2d2",
+        "actually_viewed_with_view_image": true
+      },
+      {
+        "page": 2,
+        "size_pdf_pt": [
+          612,
+          792
+        ],
+        "plot_horizontal_font_pdf_pt_counts": {
+          "8.5": 369,
+          "9.5": 82,
+          "10.5": 46
+        },
+        "plot_min_font_pdf_pt": 8.5,
+        "out_of_page_glyph_count": 0,
+        "png_pixels": [
+          1700,
+          2200
+        ],
+        "page_png_sha256": "f58f4730b0a6b961455129f6827e4ec769dbf8ef4743cc8c7c5265a141693fd9",
+        "actually_viewed_with_view_image": true
+      },
+      {
+        "page": 3,
+        "size_pdf_pt": [
+          612,
+          792
+        ],
+        "plot_horizontal_font_pdf_pt_counts": {
+          "8.5": 214,
+          "9.5": 28,
+          "10.5": 43
+        },
+        "plot_min_font_pdf_pt": 8.5,
+        "out_of_page_glyph_count": 0,
+        "png_pixels": [
+          1700,
+          2200
+        ],
+        "page_png_sha256": "218869521799a8238810b839b124a4b40cb7c718b0d7ff2e7d616701d1fae10b",
+        "actually_viewed_with_view_image": true
+      }
+    ],
+    "textwidth_tex_pt": 506.295,
+    "columnwidth_tex_pt": 241.14749,
+    "textheight_tex_pt": 626.0,
+    "overfull_count": 0,
+    "underfull_count": 0,
+    "undefined_reference_count": 0,
+    "tex_error_count": 0,
+    "acmart_warnings": [
+      "ACM keywords are mandatory for papers over two pages.",
+      "ACM reference format is mandatory ",
+      "CCS concepts are mandatory for papers over two pages."
+    ]
+  },
+  "native_editor_compile": {
+    "kind": "success",
+    "message": "The current source compiled successfully with the desktop editor's compiler."
+  },
+  "all_baseline_and_final_pages_actually_viewed": true,
+  "scientific_sources_unchanged": true,
+  "bound_source_file_count": 17,
+  "original_generator_and_original_figures_modified": false,
+  "canonical_or_overleaf_modified": false,
+  "single_column_tested": false,
+  "whole_manuscript_pagination_tested": false,
+  "grayscale_or_physical_paper_print_tested": false,
+  "writing_gate": "not_met; no change from figure proof"
+}

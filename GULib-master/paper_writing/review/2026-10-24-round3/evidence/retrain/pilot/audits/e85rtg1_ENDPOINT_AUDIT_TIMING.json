@@ -1,0 +1,13 @@
+{
+  "started_at": "2026-10-24T01:17:23.093038+00:00",
+  "finished_at": "2026-10-24T01:17:55.784548+00:00",
+  "elapsed_seconds": 32.68800000000192,
+  "exit_code": 0,
+  "job_id": "exp085-20261024-e85rtg1",
+  "execution_sha": "b3481f571880b0ee1a631f87277f6209501dad8b",
+  "run_sha256": "e6d89f0de519cd262913f38a1c836a16a0a5ef2f1282b9f4595f15b43ff876fe",
+  "stdout_sha256": "770481ccb58b52c873f24a34514c52675dcaf4978a17c02e8d5521b2a59e5e89",
+  "raw_stdout_preserved": true,
+  "command": "cd /autodl-fs/data/OpenGU/GULib-master && /root/miniconda3/bin/python -B paper_writing/protocol/exp085/audit_ret_endpoints.py --repo-root /autodl-fs/data/OpenGU/GULib-master --run results/runs/exp085-response-diagnostics/e85rtg1/run.json --run-sha256 e6d89f0de519cd262913f38a1c836a16a0a5ef2f1282b9f4595f15b43ff876fe --expected-commit b3481f571880b0ee1a631f87277f6209501dad8b --frozen-manifest paper_writing/protocol/exp085/RET_EXECUTION_FREEZE.json --frozen-sha256 f60a324c74a7918b66c92e2b1b21f85b13d6af4baea95c70b21d7602f2d01e69",
+  "scope": "Read-only endpoint audit; excluded from GPU job runtime"
+}
