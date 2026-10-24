@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-gif160-graph
+runner: experiment
+config_path: experiments/configs/exp087/metrics_gif160_graph.yaml
+config_sha256: ba99b55489165f5f0eeeba9700362725b52b5ff5501e67b14c00a046c46fa492
+configuration_fingerprint: 2c12a3476c473b371424943923e9a13f3540a00b40e6d70f7aed32920efd61ef
+run_identity:
+  experiment_id: exp087-gif160-graph
+  run_id: e87fg1
+timeout_seconds: 21600
+logical_cells: 160
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
