@@ -77,6 +77,34 @@ restore exact identity and query/observation/provenance behavior, not algorithms
 Only those reviewed sources are included; mere presence in an inventory is not
 an equivalence proof. Detailed actual read evidence is in the canonical Report.
 
+## Ordinary Retrain reference instrumentation
+
+AAGU-122 adds the exact GCN 2-layer/64-channel/dropout-.5 source
+`0069c204390f24d2fe6e388a20e56593aee6cf27d3b8ef5ae44d2f6f08c77123`
+to the existing Retrain prediction group. The registered historical source
+`31e847b58a5d6ab4aea6bb542b9a3765191b27ccd7344f65d45312e1dc2f07f0`
+was reconstructed from Git revisions `2e1ebac8` and `da33a19a` in memory.
+No historical checkout or experiment was executed.
+
+The review covers ordinary Retrain only: no `reference` instance and no Observer.
+The retained graph, seeded initialization, optimizer/updates, model forward and
+saved Output construction are unchanged. Specializing the added reference branch
+to absent and the training callback to its default `None` yields the identical
+historical AST for the adapter and training loop. Fourteen source comparisons
+and the original producer reconstruction are retained in the canonical
+[source proof](../.workblock/items/AAGU-122/evidence/ordinary-source-proof.json).
+The cache checks use synthetic persisted Outputs in temporary stores; they do
+not train a model, forward it, or rerun any experiment.
+
+All other Recipe fields remain exact, including dataset/split, Selection,
+training seed/settings, model and deletion semantics. A reference-policy field
+cannot be removed or replaced by source substitution. Completed deterministic
+reference runs remain run-owned and uncached; no configuration, trace, endpoint
+or result is modified, and ordinary cached Outputs gain no invented trace.
+The existing query order, provenance and invalid/corrupt-candidate rejection
+continue to apply. Restart consumers to load the reviewed registry; this local
+candidate does not update an active SSH checkout.
+
 ## GNNDelete mask optimization
 
 AAGU-099 replaces the per-deleted-node `[2, E]` comparison list and stack with

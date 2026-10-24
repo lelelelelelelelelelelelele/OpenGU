@@ -128,11 +128,15 @@
         },
         {
           "source_fingerprint": "31e847b58a5d6ab4aea6bb542b9a3765191b27ccd7344f65d45312e1dc2f07f0"
+        },
+        {
+          "source_fingerprint": "0069c204390f24d2fe6e388a20e56593aee6cf27d3b8ef5ae44d2f6f08c77123"
         }
       ],
-      "reason": "Reviewed Observer/provenance/query-only changes and unused factory branches; calculation and all non-source Recipe fields remain unchanged.",
+      "reason": "Reviewed Observer/provenance/query-only changes, unused factory branches, and AAGU-122 ordinary Retrain with reference absent and Observer disabled. Ordinary calculation and all non-source Recipe fields remain unchanged; this does not provide missing reference traces or equate numerical reference policies.",
       "evidence": [
-        "docs/cache-source-identity.md#reviewed-sources"
+        "docs/cache-source-identity.md#reviewed-sources",
+        "docs/cache-source-identity.md#ordinary-retrain-reference-instrumentation"
       ]
     },
     {
