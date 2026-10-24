@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp089-calibration-s73001
+runner: experiment
+config_path: experiments/configs/exp089/calibration_seed73001.yaml
+config_sha256: 03032f13e2bc86977996e9754be4e2856473ad503d0bcde0a99d789c7f1b7d3c
+configuration_fingerprint: 09054cf383c27238ef3b79ce667a1342e14eaa9ad051c388e07901306bb77b5f
+run_identity:
+  experiment_id: exp089-calibration-s73001
+  run_id: e89a01
+timeout_seconds: 600
+logical_cells: 1
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

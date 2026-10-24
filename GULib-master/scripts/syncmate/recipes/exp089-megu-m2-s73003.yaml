@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp089-megu-m2-s73003
+runner: experiment
+config_path: experiments/configs/exp089/m2_seed73003.yaml
+config_sha256: bbb0c02c5b634f955b024a7bd2863dc7a3bb341c84b182524c76568e6316ffb1
+configuration_fingerprint: ede29cf23b32cf084253093acccf8a4cf73735b40c2316484bd184f72250cbc1
+run_identity:
+  experiment_id: exp089-megu-m2-s73003
+  run_id: e89m202
+timeout_seconds: 1800
+logical_cells: 6
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

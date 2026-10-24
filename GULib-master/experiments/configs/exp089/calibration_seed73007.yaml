@@ -1,0 +1,39 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp089-calibration-s73007
+stage: unlearning
+dataset_refs:
+- citeseer_seed2025.yaml
+selector_refs:
+- random.yaml
+unlearning_refs:
+- ../exp087/full/seed73007/gif.yaml
+parameter_profile_ref: gif_idea_fixed_pt.yaml
+matrix: cartesian_product
+random_selector_seeds:
+- 44
+budget_ratios:
+- 0.05
+return_scores: false
+execution:
+  gu_cache:
+    GIF: disabled
+observers:
+- name: hessian_calibration
+  methods:
+  - GIF
+  parameters:
+    probe_seed: 173
+    lanczos_seeds:
+    - 173
+    - 941
+    lanczos_steps: 80
+- name: linear_solver_trace
+  methods:
+  - GIF
+  parameters:
+    every_n_steps: 10
+    include_initial: true
+- name: same_graph_change
+  methods:
+  - GIF
