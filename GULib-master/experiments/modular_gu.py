@@ -58,6 +58,11 @@ def gif_node(args, model, data, nodes, runtime_root, observer=None):
 
 
 def retrain_node(args, model, data, nodes, runtime_root, observer=None):
+    if 'reference' in args['instance']:
+        from experiments.ret_reference_training import train_reference
+        trained, seconds, _ = train_reference(args['instance'], data, nodes, args['dataset_name'],
+            observer=observer, asset_root=runtime_root/'reference_assets', dataset_root=args['dataset_root'])
+        return trained, seconds
     if observer is not None:
         raise ValueError('method does not provide Observer events')
     from unlearning.unlearning_methods.Retrain.retrain import run_retrain
@@ -131,7 +136,10 @@ def _gu_producer(method, model_config):
         functions += [etr.training_graph, etr.influence_nodes, etr.seed_subgraph,
                       etr.edit_subgraphs, etr.gradient_information, etr.erase, etr.rectify, etr.run_etr]
     elif method == 'Retrain':
-        functions += [run_retrain, train_supervised]
+        from experiments.ret_reference_training import train_reference
+        from experiments.observers.ret_reference import RetReferenceTrace
+        from experiments.ret_reference_policy import configure_for_experiment
+        functions += [run_retrain, train_supervised, train_reference, RetReferenceTrace, configure_for_experiment]
     else:
         raise ValueError('unsupported independent method: ' + method)
     import inspect
@@ -161,11 +169,17 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
     identity = {'dataset_input': dataset_input, 'target': target, 'pairing': pairing_identity(instance, data, selection.selected_nodes),
         'selection': {k: getattr(selection, k) for k in ('artifact_id', 'recipe_hash', 'content_hash')},
         'graph_fingerprint': inputs.graph_fingerprint, 'producer_version': producer.to_dict()}
+    if 'reference' in instance:
+        if instance['method'] != 'Retrain' or gu_cache != 'disabled' or observer is None:
+            raise ValueError('new Ret reference requires uncached observed execution')
+        from experiments.ret_reference_training import reference_identity
+        identity['reference'] = reference_identity(instance, data, selection.selected_nodes)
+        identity['pairing']['training_graph_identity'] = identity['reference']['training_graph_identity']
     request = FormalArtifactRequest(ArtifactType.PREDICTION,
         ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **identity}), producer)
     if gu_cache not in ('reuse', 'disabled'):
         raise ValueError('unknown GU cache policy')
-    if observer is not None and instance['method'] not in ('GIF', 'IDEA'):
+    if observer is not None and instance['method'] not in ('GIF', 'IDEA', 'Retrain'):
         raise ValueError('method does not provide Observer events')
     if gu_cache == 'disabled' and output_path is None:
         raise ValueError('uncached execution requires run output_path')
@@ -177,7 +191,7 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
     if not hit:
         args = runtime_defaults()
         args.update(instance['parameters'])
-        args.update(instance=instance, dataset_name=dataset_name,
+        args.update(instance=instance, dataset_name=dataset_name, dataset_root=Path(dataset_root),
             base_model='GCN' if instance['model']['architecture'].endswith('GCNNet') else 'SGC',
             downstream_task='node', unlearn_task='node', unlearning_methods=instance['method'],
             num_epochs=instance['training']['epochs'], num_runs=1, run_update_detection_auc=False,
@@ -211,7 +225,7 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
             observer(dict(method=instance['method'], phase='unlearning_start', step=None,
                           values=dict(model=model, graphs=graphs)))
         with seeded_execution(instance['training']['seed']):
-            kwargs = {'observer': observer} if instance['method'] in ('GIF', 'IDEA') else {}
+            kwargs = {'observer': observer} if instance['method'] in ('GIF', 'IDEA', 'Retrain') else {}
             output_model, seconds = GU_METHODS[instance['method']](args, model, working, list(selection.selected_nodes), runtime_path, **kwargs)
         if observer is not None:
             observer(dict(method=instance['method'], phase='unlearning_end', step=None,

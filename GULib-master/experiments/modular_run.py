@@ -97,6 +97,8 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     if not isinstance(context, ExecutionContext):
         raise ConfigurationError(
             'execution context must be supplied by the experiment entry')
+    from experiments.ret_reference_policy import configure_for_experiment
+    configure_for_experiment(config)
     if config['stage'] == 'selector' and config['evaluations']:
         raise ConfigurationError('the current modular consumer evaluates GU results only')
     for evaluation in config['evaluations']:
@@ -185,9 +187,10 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                             or payload['pairing']['model']['architecture'] != cell['conditions']['model']
                             or payload['pairing']['training']['seed'] != cell['conditions']['seed']):
                         raise ConfigurationError('metrics source conditions differ from remote output')
-                    portable[matches[0]['data_identity']['split_hash']].append((reference, payload, None, cell['conditions']))
+                    original_checkpoint = cell.get('cache_provenance', {}).get('original_checkpoint')
+                    portable[matches[0]['data_identity']['split_hash']].append((reference, payload, None, cell['conditions'], original_checkpoint))
                     summary['metric_sources'][cell['cell_id']] = {'output': reference,
-                        'selection_document': document['selection.json'],
+                        'selection_document': document['selection.json'], 'original_checkpoint': original_checkpoint,
                         'source': cell.get('source', {'experiment_id': previous['experiment_id'], 'run_id': previous['run_id']})}
                     fact['metrics'] = {'inputs_verified': 1}
             notify_event(notify, 'progress', position=position, current=source_index + 1, total=total)
@@ -196,7 +199,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
             total = len(config['evaluations'])
             notify_event(notify, 'progress', position=position, current=0, total=total)
             for evaluation_index, item in enumerate(config['evaluations']):
-                result = evaluate_modular(item, [{'output':v[0], 'conditions':v[3]} for v in portable[datasets[index]['data_identity']['split_hash']]], store_root=store_root, data=data,
+                result = evaluate_modular(item, [{'output':v[0], 'conditions':v[3], 'original_checkpoint':v[4]} for v in portable[datasets[index]['data_identity']['split_hash']]], store_root=store_root, data=data,
                     dataset_root=dataset_root, audit=audit, checkpoint_root=checkpoint_root, device=context.request_device)
                 summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
                 notify_event(notify, 'progress', position=position, current=evaluation_index + 1, total=total)
@@ -217,6 +220,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     from experiments.prepared_models import PreparedModels
     from experiments.output_lookup import OutputLookup
     prepared = PreparedModels(prepare_model)
+    reference_only = any('reference' in item for item in config['unlearnings'])
     outputs = OutputLookup(checkpoint_root, store_root, directory)
     declaration_order = {}
     for batch_index, batch in enumerate(ordered_batches):
@@ -244,7 +248,8 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                 if 'model' in item:
                     with audit.phase('model_prepare'):
                         model, checkpoints, observation = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
-                        checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
+                        checkpoint_root=checkpoint_root, device=device, reference_directory=directory,
+                        **({'fail_if_training':True} if reference_only else {}))
                 if item['method'] in IM_METHODS:
                     from experiments.modular_im import resolve_im
                     from experiments.modular_rr import resolve_rr
@@ -254,6 +259,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                     resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
                         model=model, checkpoints=checkpoints, selectors=[item], include_scores=config.get('return_scores',False),
                         model_config=item.get('model'), training=item.get('training'),
+                        fail_if_score_called=reference_only, fail_if_selection_called=reference_only,
                         dataset_inputs=inputs,dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'])[item['method']]
                 reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
                 loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,

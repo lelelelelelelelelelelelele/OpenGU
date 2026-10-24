@@ -39,6 +39,8 @@ def main(argv=None, *, notify=None):
                     raise ValueError('execution requires --run-id')
                 from experiments.modular_config import load_experiment, configuration_fingerprint
                 config = load_experiment(args.config)
+                from experiments.ret_reference_policy import configure_for_experiment
+                configure_for_experiment(config)
                 if args.syncmate:
                     if args.device is not None or notify is not None:
                         raise ValueError('--syncmate owns its device and notification callback')

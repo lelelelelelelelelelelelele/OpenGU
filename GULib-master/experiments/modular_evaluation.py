@@ -128,7 +128,7 @@ def _formula_functions(case):
     return [flip_metrics, exact_retrain, flip_hop, hop_groups, retrain_pairing_matches]
 
 
-def _measure(instance, reference, output, pair=None, *, method_evaluation=None, checkpoint_root=None, device=None):
+def _measure(instance, reference, output, pair=None, *, method_evaluation=None, checkpoint_root=None, device=None, original_checkpoint=None):
     from experiments.measurement_formulas import utility_metrics, retrain_gap, flip_metrics, method_values
     from experiments.implementation_identity import implementation_fingerprint
     identity = dict(case=instance['case'], metrics=sorted(instance['metrics']),
@@ -149,7 +149,10 @@ def _measure(instance, reference, output, pair=None, *, method_evaluation=None, 
         identity['method_evaluation'] = protocol
     elif case == GRAPH_CASE:
         from experiments.response_graph_sensitivity import graph_sensitivity
-        values, protocol = graph_sensitivity(output, pair[1], checkpoint_root=checkpoint_root, device=device)
+        values, protocol = graph_sensitivity(output, pair[1], checkpoint_root=checkpoint_root, device=device,
+                                            original_checkpoint=original_checkpoint)
+        if original_checkpoint is not None:
+            identity['external_original'] = {k:original_checkpoint[k] for k in ('file_sha256','state_hash','effective_identity')}
         identity.update(retrain_output=pair[0], protocol=protocol)
     elif case == 'post_unlearning_response_diagnostics':
         from experiments.response_diagnostics import response_diagnostics
@@ -200,6 +203,14 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
     references = [(row.get('unlearning', row.get('output', row)), row.get('retrain'), row.get('conditions')) for row in unlearning_rows]
     method_evaluations = {canonical_sha256(row.get('unlearning', row.get('output', row))): row['evaluation']
                           for row in unlearning_rows if instance['case'] == 'post_method_metrics' and 'evaluation' in row}
+    originals = {}
+    for row in unlearning_rows:
+        ref = row.get('unlearning', row.get('output', row))
+        receipt = row.get('original_checkpoint')
+        key = canonical_sha256(ref)
+        if key in originals and originals[key] != receipt:
+            raise ConfigurationError('conflicting Original checkpoint receipts for exact Output')
+        originals[key] = receipt
     descriptors = []
     for reference, paired_reference, conditions in references:
         input_conditions = conditions or dict(scope='experiment', experiment_id=audit.experiment_id if audit else 'evaluation',
@@ -258,8 +269,12 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
                 output = value if in_memory else read(reference)
                 baseline = None if pair is None else (pair[0], pair[1] if hasattr(pair[1],'identity') else read(pair[0]))
                 with phase(audit, 'metric_formula'):
-                    return _measure(instance, reference, output, baseline, checkpoint_root=checkpoint_root, device=device)
-            if in_memory or (pair and pair[0].get('storage') == 'run'):
+                    return _measure(instance, reference, output, baseline, checkpoint_root=checkpoint_root, device=device,
+                                    original_checkpoint=originals.get(canonical_sha256(reference)))
+            # External weights are read and checked on every graph diagnostic invocation.
+            external_original = full and any(identity['pairing']['training'].get(k) is None
+                for k in ('epochs','optimizer','lr','weight_decay','scheduler'))
+            if in_memory or (pair and pair[0].get('storage') == 'run') or external_original:
                 measured, cache = produce(), None
             else:
                 with phase(audit, 'evaluation_request_prepare'):

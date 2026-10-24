@@ -134,8 +134,12 @@ def acceptance_payload(profile, definition, context):
                     from experiments.modular_evaluation import CASES, is_paired_evaluation
                     expected_metrics = []
                     if config['stage'] == 'retrain_diagnostics':
-                        from experiments.retrain_diagnostics import METRICS
-                        expected_metrics = [('retrain_validation_trace', METRICS)]
+                        if config.get('ret_reference'):
+                            from experiments.ret_reference_training import METRICS
+                            expected_metrics = [('ret_reference_trace', METRICS)]
+                        else:
+                            from experiments.retrain_diagnostics import METRICS
+                            expected_metrics = [('retrain_validation_trace', METRICS)]
                     if config['stage'] == 'unlearning':
                         expected_metrics = [('method', set(CASES['post_method_metrics']['metrics'])),
                             ('utility', {'f1_before', 'f1_after', 'f1_drop', 'f1_drop_ratio'})]
