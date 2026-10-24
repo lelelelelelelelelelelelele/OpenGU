@@ -12,9 +12,16 @@ from experiments.node_deletion import retrain_pairing_matches
 
 
 from experiments.response_diagnostics import METRICS as RESPONSE_METRICS
+from experiments.response_graph_sensitivity import CASE as GRAPH_CASE, METRICS as GRAPH_METRICS
 
 
 CASES = {
+    GRAPH_CASE: {
+        'metrics': GRAPH_METRICS,
+        'required_inputs': ('method_output', 'exact_retrain_same_selection', 'saved_weights', 'exact_original_checkpoint'),
+        'consumers': ('modular_v1',),
+        'producer_version': 'fixed-weight-graph-cs-diagnostics-v1',
+    },
     'post_unlearning_response_diagnostics': {
         'metrics': RESPONSE_METRICS,
         'required_inputs': ('method_output', 'exact_retrain_same_selection', 'persisted_original_predictions', 'bound_original_graph'),
@@ -95,6 +102,18 @@ def _formula_functions(case):
     from experiments.measurement_formulas import utility_metrics, retrain_gap, flip_metrics
     from experiments.output_metrics import method_metrics, update_detection
     from experiments.unlearning_outputs import utility
+    if case == GRAPH_CASE:
+        from experiments.response_graph_sensitivity import graph_sensitivity, restore_original, reproduction_policy
+        from experiments.unlearning_outputs import load_output, restore_model
+        from experiments.modular_model import create_model
+        from experiments.modular_megu import megu_logits
+        from task.MEGUTrainer import MEGUTrainer
+        from model.base_gnn.gcn import GCNNet
+        from model.base_gnn.deletion import GCNDelete, DeletionLayer
+        from experiments.node_deletion import retained_graph
+        from utils.target_checkpoint import load_cached_weights
+        return [graph_sensitivity, restore_original, reproduction_policy, load_output, restore_model,
+                create_model, GCNNet, GCNDelete, DeletionLayer, megu_logits, MEGUTrainer.correct_and_smooth, retained_graph, load_cached_weights]
     if case == 'post_unlearning_response_diagnostics':
         from experiments.response_diagnostics import response_diagnostics, prediction_triangle, cross_entropy, request_composition
         from experiments.flip_hop_metrics import exact_retrain, hop_groups
@@ -109,7 +128,7 @@ def _formula_functions(case):
     return [flip_metrics, exact_retrain, flip_hop, hop_groups, retrain_pairing_matches]
 
 
-def _measure(instance, reference, output, pair=None, *, method_evaluation=None):
+def _measure(instance, reference, output, pair=None, *, method_evaluation=None, checkpoint_root=None, device=None):
     from experiments.measurement_formulas import utility_metrics, retrain_gap, flip_metrics, method_values
     from experiments.implementation_identity import implementation_fingerprint
     identity = dict(case=instance['case'], metrics=sorted(instance['metrics']),
@@ -128,6 +147,10 @@ def _measure(instance, reference, output, pair=None, *, method_evaluation=None):
                 raise ConfigurationError('method evaluation receipt does not match current Output and protocol')
             values = method_evaluation['metrics']
         identity['method_evaluation'] = protocol
+    elif case == GRAPH_CASE:
+        from experiments.response_graph_sensitivity import graph_sensitivity
+        values, protocol = graph_sensitivity(output, pair[1], checkpoint_root=checkpoint_root, device=device)
+        identity.update(retrain_output=pair[0], protocol=protocol)
     elif case == 'post_unlearning_response_diagnostics':
         from experiments.response_diagnostics import response_diagnostics
         values, protocol = response_diagnostics(output, pair[1])
@@ -154,20 +177,24 @@ def _pair(instance, identity, candidates):
 
 
 def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verified_outputs=(), dataset_root=None, audit=None,
-                     retrain_rows=(), loaded_outputs=None):
+                     retrain_rows=(), loaded_outputs=None, checkpoint_root=None, device=None):
     from contextlib import nullcontext
     from experiments.evaluation_cache import describe_output, evaluation_request, cached_measurements, phase
-    from experiments.unlearning_outputs import load_metric_output
+    from experiments.unlearning_outputs import load_metric_output, load_output
     from experiments.execution_audit import cache_fact
     require_consumer(instance, 'modular_v1')
+    full = instance['case'] == GRAPH_CASE
+    if full and (checkpoint_root is None or device is None):
+        raise ConfigurationError('graph diagnostics requires explicit checkpoint root and execution device')
     # Explicit already-verified in-memory inputs remain a computation consumer.
     # Ordinary YAML uses exact references so its HIT can precede Output loading.
     loaded = {} if loaded_outputs is None else loaded_outputs
     def read(ref):
-        key = canonical_sha256(ref)
+        key = ('full', canonical_sha256(ref)) if full else canonical_sha256(ref)
         if key not in loaded:
             with phase(audit, 'evaluation_inputs'):
-                loaded[key] = load_metric_output(ref, store_root, data=data, dataset_root=dataset_root)
+                reader = load_output if full else load_metric_output
+                loaded[key] = reader(ref, store_root, data=data, dataset_root=dataset_root)
         return loaded[key]
     supplied = [(ref,value,pair,None) for ref,value,pair in verified_outputs]
     references = [(row.get('unlearning', row.get('output', row)), row.get('retrain'), row.get('conditions')) for row in unlearning_rows]
@@ -231,7 +258,7 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verifi
                 output = value if in_memory else read(reference)
                 baseline = None if pair is None else (pair[0], pair[1] if hasattr(pair[1],'identity') else read(pair[0]))
                 with phase(audit, 'metric_formula'):
-                    return _measure(instance, reference, output, baseline)
+                    return _measure(instance, reference, output, baseline, checkpoint_root=checkpoint_root, device=device)
             if in_memory or (pair and pair[0].get('storage') == 'run'):
                 measured, cache = produce(), None
             else:

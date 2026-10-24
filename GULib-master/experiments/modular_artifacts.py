@@ -245,7 +245,7 @@ def export_outputs(summary, *, config, context, run):
                             cell['timing'][label + '_access_seconds'] = cache['access_seconds']
                             cell['producer_called'][label] = cache['producer_called']
                         item = {'stage': evaluation['effective_config']['case'], 'values': measured['metrics']}
-                        if evaluation['effective_config']['case'] in ('post_unlearning_flip_hop', 'post_unlearning_response_diagnostics'):
+                        if evaluation['effective_config']['case'] in ('post_unlearning_flip_hop', 'post_unlearning_response_diagnostics', 'post_unlearning_response_graph_sensitivity'):
                             item.update(evaluation_receipt_id=measured['evaluation_receipt_id'],
                                         identity=measured['identity'])
                         if 'retrain_output' in measured['identity']:
@@ -365,7 +365,7 @@ def read_run(path, expected_sha256):
                 raise ValueError('invalid metrics document')
             for row in values['metrics.json']['rows']:
                 allowed = {'stage', 'values', 'baseline_output'}
-                if row.get('stage') in ('post_unlearning_flip_hop', 'post_unlearning_response_diagnostics'):
+                if row.get('stage') in ('post_unlearning_flip_hop', 'post_unlearning_response_diagnostics', 'post_unlearning_response_graph_sensitivity'):
                     from cache_v2 import canonical_sha256
                     allowed |= {'evaluation_receipt_id', 'identity'}
                     identity = row.get('identity', {})

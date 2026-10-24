@@ -194,7 +194,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
             notify_event(notify, 'progress', position=position, current=0, total=total)
             for evaluation_index, item in enumerate(config['evaluations']):
                 result = evaluate_modular(item, [{'output':v[0], 'conditions':v[3]} for v in portable[datasets[index]['data_identity']['split_hash']]], store_root=store_root, data=data,
-                    dataset_root=dataset_root, audit=audit)
+                    dataset_root=dataset_root, audit=audit, checkpoint_root=checkpoint_root, device=context.request_device)
                 summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
                 notify_event(notify, 'progress', position=position, current=evaluation_index + 1, total=total)
         summary['selector_producer_called'] = False
