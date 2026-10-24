@@ -68,6 +68,40 @@ def verify():
             assert math.isclose(statistics.stdev(values), float(row[metric + '_std']), abs_tol=1e-9)
             checked += 1
     assert checked == 455
+    by_seed = {(r['selector'], r['method'], float(r['ratio']), r['seed']): r for r in seeds}
+    utility_losses = []
+    for method in ['Retrain', 'GNNDelete', 'GraphEraser', 'GraphRevoker']:
+        loss = {'method': method}
+        for ratio in [.33, .5]:
+            values = [float(by_seed[('random', method, ratio, seed)]['accuracy'])
+                      - float(by_seed[('r_point', method, ratio, seed)]['accuracy'])
+                      for seed in ['42', '212', '2024']]
+            loss[str(ratio)] = statistics.mean(values)
+        utility_losses.append(loss)
+    with (OUT / 'disagreement_increment_seed_values.csv').open(encoding='utf-8', newline='') as stream:
+        increments = list(csv.DictReader(stream))
+    assert len(increments) == 504
+    increment_groups = defaultdict(list)
+    increment_keys = set()
+    for row in increments:
+        selector, method, ratio, seed = row['selector'], row['method'], float(row['ratio']), row['seed']
+        assert selector in ['degree', 'r_point', 'gt_full', 'im_rr_greedy']
+        assert method in ['GIF', 'IDEA', 'MEGU', 'GNNDelete', 'GraphEraser', 'GraphRevoker']
+        key = selector, method, ratio, seed
+        assert key not in increment_keys
+        increment_keys.add(key)
+        value = float(by_seed[key]['disagreement'])
+        baseline = float(by_seed[('random', method, ratio, seed)]['disagreement'])
+        for column, expected in [('disagreement_selector', value), ('disagreement_random', baseline),
+                                 ('delta_disagreement_pp', value-baseline)]:
+            assert math.isclose(float(row[column]), expected, abs_tol=1e-9), (key, column)
+        increment_groups[(selector, method, ratio)].append(value-baseline)
+    assert len(increment_groups) == 168 and all(len(v) == 3 for v in increment_groups.values())
+    negative_means = sum(statistics.mean(v) < 0 for v in increment_groups.values())
+    assert negative_means == 62
+    band_min = min(statistics.mean(v)-statistics.stdev(v) for v in increment_groups.values())
+    band_max = max(statistics.mean(v)+statistics.stdev(v) for v in increment_groups.values())
+    assert -6 < band_min < 0 < band_max < 38
     changes = []
     for selector, method in [('r_point', 'GIF'), ('r_point', 'IDEA'), ('r_point', 'MEGU'),
                              ('im_rr_greedy', 'GIF'), ('im_rr_greedy', 'MEGU')]:
@@ -85,6 +119,8 @@ def verify():
                               'paired_change_min': min(delta)}
         changes.append(change)
     md = REPORT.read_text(encoding='utf-8')
+    for loss in utility_losses:
+        assert f"| {loss['method']} | {loss['0.33']:+.2f} | {loss['0.5']:+.2f} |" in md
     # Confirm the report table values are the independently reconstructed values.
     names = {'r_point': 'R-point', 'im_rr_greedy': 'IM-RR'}
     for row in changes:
@@ -94,18 +130,24 @@ def verify():
         assert line in md, line
     english = md.split('## 与论文正文一致的英文段落\n\n', 1)[1].split('\n## ', 1)[0].strip()
     paper = PAPER.read_text(encoding='utf-8')
-    paper_text = paper.split('\\subsection{Utility stability can coexist with increasing prediction disagreement}\n', 1)[1].split('\\begin{figure*}', 1)[0].strip()
-    paper_text = paper_text.replace('Figure~\\ref{fig:exp080-budget-response}', 'Figure 4').replace('\\%', '%').replace('$-0.23$', '−0.23')
+    paper_text = paper.split('\\subsection{Selector effects persist with method-dependent GU responses}\n', 1)[1].split('\\begin{figure*}', 1)[0].strip()
+    paper_text = paper_text.replace('Figure~\\ref{fig:exp080-budget-response}', 'Figure 4').replace('\\%', '%')
     assert ' '.join(english.split()) == ' '.join(paper_text.split()), 'Paper/report prose differs'
     for link in re.findall(r'\]\(([^)]+)\)', md):
         if '://' not in link and not link.startswith('#') and link not in ['fig4.png', 'verification.json']:
             assert (OUT / link.split('#')[0]).exists(), link
     paths = [DATA / p for p in ['cells.csv', 'seed_values.csv', 'condition_summary.csv', 'verification.json']]
     paths += [REPORT, PAPER, FIGURE, ROOT / 'scripts/plot_exp080_selector_response.py']
+    paths += [ROOT / 'scripts/plot_exp080_disagreement_increment.py',
+              OUT / 'disagreement_increment_seed_values.csv', OUT / 'disagreement_increment.pdf']
     record = json.loads((ROOT / 'self/research/analyses/EXP-080.json').read_text(encoding='utf-8'))
     return {'scope': 'EXP-080 CiteSeer figure adoption; 5 selectors, 7 methods, 7 ratios, 3 training seeds',
             'raw_cells': len(raw), 'seed_aggregated_rows': len(seeds), 'matched_request_groups': len(requests),
             'verified_mean_sd_points': checked, 'paired_changes': changes, 'paper_report_prose_identical': True,
+            'r_point_extra_utility_losses_vs_random': utility_losses,
+            'supplement': {'paired_seed_differences': len(increments), 'mean_sd_points': len(increment_groups),
+                           'negative_mean_points': negative_means, 'mean_minus_sd_min': band_min,
+                           'mean_plus_sd_max': band_max},
             'execution_sources': [{'run_id': run, 'execution_sha': sha} for run, sha in
                                   sorted({(r['run_id'], r['execution_sha']) for r in raw})],
             'scientific_decision_at_build': record['decision']['state'],
@@ -129,12 +171,14 @@ def main():
     subprocess.run(['pdftoppm', '-singlefile', '-r', '200', '-png', str(FIGURE), str(OUT / 'fig4')], check=True)
     render = mistune.create_markdown(plugins=['table'])
     body = render(REPORT.read_text(encoding='utf-8'))
-    data_url = 'data:image/png;base64,' + base64.b64encode((OUT / 'fig4.png').read_bytes()).decode('ascii')
-    body = body.replace('src="fig4.png"', 'src="' + data_url + '"')
+    for name in ['fig4.png', 'disagreement_increment.png']:
+        data_url = 'data:image/png;base64,' + base64.b64encode((OUT / name).read_bytes()).decode('ascii')
+        body = body.replace('src="' + name + '"', 'src="' + data_url + '"')
     css = 'body{max-width:1120px;margin:42px auto;padding:0 28px;color:#202b36;font:16px/1.7 system-ui,sans-serif}h1{font-size:30px;line-height:1.3}h2{font-size:22px;margin-top:36px}img{width:100%;height:auto}table{border-collapse:collapse;display:block;overflow:auto;font-size:14px}th,td{padding:9px 13px;border-bottom:1px solid #dfe5ea;text-align:left;white-space:nowrap}th{background:#eff4f6}a{color:#146c83}code{font-size:.9em;background:#f3f5f7;padding:2px 4px}p{margin:14px 0}@media(max-width:650px){body{padding:0 15px;margin:22px auto}h1{font-size:25px}}'
     document = '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + html.escape('Fig. 4 · EXP-080 论文采用与归档') + '</title><style>' + css + '</style><main>' + body + '</main></html>\n'
     (OUT / 'REPORT.html').write_bytes(document.encode('utf-8'))
-    facts['output_sha256'] = {name: digest(OUT / name) for name in ['REPORT.html', 'fig4.png']}
+    facts['output_sha256'] = {name: digest(OUT / name) for name in
+                              ['REPORT.html', 'fig4.png', 'disagreement_increment.png']}
     manifest.write_bytes((json.dumps(facts, ensure_ascii=False, indent=2) + '\n').encode('utf-8'))
     print('PASS: 1,029 cells, 147 matched requests, 455 mean/SD points; paper prose and Markdown/HTML snapshot saved.')
 

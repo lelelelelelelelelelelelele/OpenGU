@@ -27,6 +27,7 @@ Thumbs.db
 !/report/paper/overleaf/figures/citeseer_selector_responses.pdf
 !/report/paper/overleaf/figures/pubmed_request_patterns.pdf
 !/report/paper/overleaf/figures/teaser-framework-draft.pdf
+!/report/paper/figures/exp080-ratio-response-20261025/disagreement_increment.pdf
 
 # Runtime logs (timestamped, large, regenerable)
 log/

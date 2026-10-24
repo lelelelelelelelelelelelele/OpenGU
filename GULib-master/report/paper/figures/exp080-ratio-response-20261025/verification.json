@@ -97,6 +97,35 @@
     }
   ],
   "paper_report_prose_identical": true,
+  "r_point_extra_utility_losses_vs_random": [
+    {
+      "method": "Retrain",
+      "0.33": 8.45845845845845,
+      "0.5": 21.171171171171167
+    },
+    {
+      "method": "GNNDelete",
+      "0.33": 7.607607607607609,
+      "0.5": 10.810810810810812
+    },
+    {
+      "method": "GraphEraser",
+      "0.33": 11.561561561561566,
+      "0.5": 25.675675675675677
+    },
+    {
+      "method": "GraphRevoker",
+      "0.33": 16.366366366366368,
+      "0.5": 26.826826826826828
+    }
+  ],
+  "supplement": {
+    "paired_seed_differences": 504,
+    "mean_sd_points": 168,
+    "negative_mean_points": 62,
+    "mean_minus_sd_min": -4.830049341963104,
+    "mean_plus_sd_max": 35.97143383517526
+  },
   "execution_sources": [
     {
       "run_id": "e80r305",
@@ -114,13 +143,17 @@
     "self/research/analyses/EXP-080/full-20261021/seed_values.csv": "be58ebf12caf315f022abd718b8614dff9b562845120b14f0204b74cf332af2d",
     "self/research/analyses/EXP-080/full-20261021/condition_summary.csv": "f0300bf0ff8ca8c3e7e2833d153e7db58c2c13e1e47ed881e788fecf5b908b52",
     "self/research/analyses/EXP-080/full-20261021/verification.json": "3715d2ca63dc0448a0dc3c616c10f5634cf87621118d837760799f8ba5dcf0ff",
-    "report/paper/figures/exp080-ratio-response-20261025/REPORT.md": "2fff0914408d6a70ae9d189cdc97400feeed8d288f5b22273c84d7723c02e7f5",
-    "report/paper/overleaf/sections/results.tex": "078145c84b719242aea61adc12416e10bf58a8e9f73ac560b3bb54a415e646d7",
+    "report/paper/figures/exp080-ratio-response-20261025/REPORT.md": "a177441673d65cebb71d961c3de7dfebf9987929de97081a508b4e1eb84327a7",
+    "report/paper/overleaf/sections/results.tex": "d633310691e574c130cb2b175ee3ba1c1d4d16de603e25aa86c48ed4b0139cee",
     "report/paper/overleaf/figures/citeseer_selector_responses.pdf": "2b7b7263fc585301e98892c4e1343eac52c764c40f167312ef761f3d58483a44",
-    "scripts/plot_exp080_selector_response.py": "f995c1f9667ea0d2b0d404378f1915128f3a77058076bf39d32ac693322c07bf"
+    "scripts/plot_exp080_selector_response.py": "f995c1f9667ea0d2b0d404378f1915128f3a77058076bf39d32ac693322c07bf",
+    "scripts/plot_exp080_disagreement_increment.py": "293311be6f9034f32fe33b9bfef0f523ecd336d5bd7153158c5bbee2c55ca1e6",
+    "report/paper/figures/exp080-ratio-response-20261025/disagreement_increment_seed_values.csv": "9baa253db8d23fb086a53c06352ff79f691f87cab0d7fdc8048b05be47fa7e90",
+    "report/paper/figures/exp080-ratio-response-20261025/disagreement_increment.pdf": "f8581c361468f228fbb60bba0672adaaa5b22010fa9af4194c8444dbbcdabc85"
   },
   "output_sha256": {
-    "REPORT.html": "a21c6a684fd1a41dfd4a2bcace62638cba239f05d9d71aa3b419022ef794ee7f",
-    "fig4.png": "94150b51f4e8bee6375707c13797f38844cf9403b947d953f7477ffd44b20f8b"
+    "REPORT.html": "8b2b86722fbb91be7ee4dd383980af499aa5e20828c96d2561f7a5d5d4a773ec",
+    "fig4.png": "94150b51f4e8bee6375707c13797f38844cf9403b947d953f7477ffd44b20f8b",
+    "disagreement_increment.png": "c0b5d9dd5394758806384bd35a607873774062621c345b6a67a978b0b67117bb"
   }
 }
