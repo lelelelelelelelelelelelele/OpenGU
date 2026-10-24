@@ -520,6 +520,8 @@ def load_experiment(path):
         result[kind + 's'] = [load_instance(ref_path, kind) for ref_path in paths]
         result['configuration_sources'][kind + 's'] = [configuration_sources(ref_path, item)
             for ref_path, item in zip(paths, result[kind + 's'])]
+    if value['stage'] != 'metrics' and any(item['case'] == 'post_unlearning_response_graph_sensitivity' for item in result.get('evaluations', [])):
+        raise ConfigurationError('graph sensitivity diagnostics belongs to the explicit Metrics stage')
     from experiments.observers import observer_specs, validate_capabilities
     execution = value.get('execution', {})
     fields(execution, {'gu_cache'}, (), 'execution')

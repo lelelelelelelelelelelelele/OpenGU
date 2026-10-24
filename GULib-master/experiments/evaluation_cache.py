@@ -39,6 +39,9 @@ def describe_output(reference, store_root, *, dataset_input=None):
 def metric_environment(case):
     import numpy as np
     result = {'numpy': np.__version__}
+    if case == 'post_unlearning_response_graph_sensitivity':
+        import torch, torch_geometric
+        result.update(torch=str(torch.__version__), torch_geometric=str(torch_geometric.__version__))
     if case in ('method_and_utility', 'post_method_metrics'):
         import sklearn, torch
         result.update(sklearn=sklearn.__version__, torch=torch.__version__)
