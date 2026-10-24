@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-ret-extra-last5
+runner: experiment
+config_path: experiments/configs/exp087/retrain_extra_last5.yaml
+config_sha256: 936fef4f67762c2a98384ccfb9b6e2168250c70f59bcb0e590a004b7b1eb4b00
+configuration_fingerprint: 94067595203364d75bab1bf7434fa51428e9ebbb49f25891a090a08101fa7a5c
+run_identity:
+  experiment_id: exp087-ret-extra-last5
+  run_id: e87x2
+timeout_seconds: 18000
+logical_cells: 120
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

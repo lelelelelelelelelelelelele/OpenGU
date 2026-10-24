@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp086-references
+runner: experiment
+config_path: experiments/configs/exp086/references.yaml
+config_sha256: 73f281dd1ea9f989d48534be5568fc3af7217a95a0c7ca5142efd384c363e6a1
+configuration_fingerprint: 54b6b2117ccece8d41aed596979b9229a58de55360ab6908f81b603a35f90d82
+run_identity:
+  experiment_id: exp086-ret-reference-audit
+  run_id: e86r1
+timeout_seconds: 14400
+logical_cells: 72
+stage: retrain_diagnostics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

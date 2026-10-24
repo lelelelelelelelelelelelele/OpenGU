@@ -1,0 +1,14 @@
+kind: unlearning
+schema_version: 1
+method: Retrain
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  epochs: 3000
+reference:
+  policy: ret-deterministic-v1
+  arm: topology_only
+deletion:
+  evaluation_graph: original

@@ -1,0 +1,27 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp087-ret-gate
+stage: unlearning
+dataset_refs:
+- citeseer_seed2025.yaml
+selector_refs:
+- r_point.yaml
+- class_matched_r_point_44.yaml
+matrix: cartesian_product
+seeds:
+- 73001
+budget_ratios:
+- 0.33
+return_scores: false
+unlearning_refs:
+- ./unlearning/retrain_joint.yaml
+- ./unlearning/retrain_supervision_only.yaml
+- ./unlearning/retrain_topology_only.yaml
+- ./unlearning/retrain_none.yaml
+execution:
+  gu_cache:
+    Retrain: disabled
+observers:
+- name: ret_reference_trace
+  methods:
+  - Retrain

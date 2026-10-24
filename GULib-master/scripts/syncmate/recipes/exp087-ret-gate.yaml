@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-ret-gate
+runner: experiment
+config_path: experiments/configs/exp087/retrain_gate.yaml
+config_sha256: 0fa4c2c030b0cb7c0fd9148c06fd5518b197ba01873aae8263ffa8a442086fc0
+configuration_fingerprint: 8490dc9153af73bad5adb8d9fbdbb01b943e9013aa5517d3dec95bf9d411dd93
+run_identity:
+  experiment_id: exp087-ret-gate
+  run_id: e87rg1
+timeout_seconds: 1800
+logical_cells: 8
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

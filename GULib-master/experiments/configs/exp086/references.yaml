@@ -1,0 +1,37 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp086-ret-reference-audit
+stage: retrain_diagnostics
+dataset_refs:
+- citeseer.yaml
+matrix: cartesian_product
+output_inputs:
+- run: ../../../results/runs/exp080-cc-base/e80r305/run.json
+  sha256: c3749e44045e0b770c95ceea066c68d1892c9a99d57377dd286f61c863ab7582
+  cell_ids:
+  - 53b91669ebec01f91ec9
+  - 2df4c0c8551683e24778
+  - 8a229a757be83e78a9cb
+  - 75f233089c59f824a6f8
+  - 97526b2fbc3d9cdcd548
+  - b1a39ba3565cff37b320
+  - 123de7c423fd34b3db81
+  - bd6137ab022731edd9bc
+  - 5afa64277650576ca183
+  - 522e010d9c272ed9e523
+  - 4f9ee797e24efbb5ff29
+  - 917ed6e49df69d14d477
+  - 7bf980727ab1d4044e5c
+  - ac7a72e0aa31078d78a1
+  - 55c2b1f562c00ea3c04e
+  - 265acfe7212440d325c7
+  - d1d6c5c805fa80b4b45a
+  - 6bd99a88154fa077e390
+ret_reference:
+  policy: ret-deterministic-v1
+  mode: reference
+  arms:
+  - joint
+  - supervision_only
+  - topology_only
+  - none

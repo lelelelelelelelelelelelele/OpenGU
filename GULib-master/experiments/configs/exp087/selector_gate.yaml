@@ -1,0 +1,15 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp087-selector-gate
+stage: selector
+dataset_refs:
+- citeseer_seed2025.yaml
+selector_refs:
+- r_point.yaml
+- class_matched_r_point_44.yaml
+matrix: cartesian_product
+seeds:
+- 73001
+budget_ratios:
+- 0.33
+return_scores: true
