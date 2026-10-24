@@ -429,3 +429,27 @@ def test_gnndelete_wrong_saved_mask_cannot_pass_original_reproduction(gnndelete_
     output=gnndelete_output['outputs'][0]
     output.auxiliary['deletion2_mask']=np.zeros_like(output.auxiliary['deletion2_mask'])
     with pytest.raises(ValueError,match='GNNDelete: reproduction failed'):measure(gnndelete_output)
+
+
+@pytest.mark.parametrize('method_index,expected_calls',[(0,9),(1,15)])
+def test_by_label_preserves_global_values_and_forward_count(graph_outputs,monkeypatch,method_index,expected_calls,record_property):
+    import experiments.response_graph_sensitivity as module
+    from model.base_gnn.gcn import GCNNet
+    calls=[]
+    hook=torch.nn.modules.module.register_module_forward_pre_hook(
+        lambda model,args: calls.append(type(model).__name__) if isinstance(model,GCNNet) else None)
+    try:
+        values,protocol=measure(graph_outputs,method_index)
+        assert len(calls)==expected_calls
+        for graph,triangles in protocol['by_label'].items():
+            for name,rows in triangles.items():
+                prefix=graph+'_graph_'+name+'_'
+                assert all(sum(r[k[len(prefix):]] for r in rows)==v
+                    for k,v in values.items() if k.startswith(prefix) and k.endswith('_count'))
+        calls.clear()
+        monkeypatch.setattr(module,'prediction_by_label',lambda *args:[])
+        original_values,_=measure(graph_outputs,method_index)
+        assert original_values==values and len(calls)==expected_calls
+    finally:hook.remove()
+    record_property('by_label_invariance',json.dumps(dict(method=('GIF','MEGU')[method_index],
+        forward_calls=expected_calls,global_values_unchanged=True,per_label_counts_recover_global=True)))

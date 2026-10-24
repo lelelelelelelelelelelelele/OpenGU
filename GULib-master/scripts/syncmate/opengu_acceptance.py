@@ -146,6 +146,11 @@ def acceptance_payload(profile, definition, context):
                     expected_metrics += [(e['case'], set(e['metrics'])) for e in config['evaluations']
                         if conditions['method'] != 'Retrain' or not is_paired_evaluation(e)]
                     measured = document['metrics.json']['rows']
+                    for row in measured:
+                        if row['stage'] == 'post_unlearning_ret_endpoint_sensitivity':
+                            descriptor = row['identity']['ret_endpoints']['input']
+                            if descriptor not in config.get('ret_endpoint_inputs', []):
+                                raise ValueError('Ret endpoint input differs from registered configuration')
                     if (len(measured) != len(expected_metrics) or any(
                             r['stage'] != stage or set(r['values']) != names
                             for r, (stage, names) in zip(measured, expected_metrics))):

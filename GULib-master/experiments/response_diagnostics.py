@@ -73,6 +73,23 @@ def prediction_triangle(original, gu, retrain, labels):
     return result
 
 
+def prediction_by_label(original, gu, retrain, labels):
+    """Complete per-label triangles; empty classes retain zero counts/null rates."""
+    arrays = [np.asarray(a) for a in (original, gu, retrain)]
+    y = np.asarray(labels)
+    total = prediction_triangle(*arrays, y)
+    rows = [dict(class_id=c, **prediction_triangle(*(a[y == c] for a in arrays), y[y == c]))
+            for c in range(arrays[0].shape[1])]
+    for key, value in total.items():
+        if key.endswith('_count') and sum(row[key] for row in rows) != value:
+            raise ConfigurationError('per-label response counts do not recover global counts')
+        if key.endswith(('_accuracy', '_cross_entropy', '_disagreement')) and total['node_count']:
+            weighted = sum(row[key] * row['node_count'] for row in rows if row['node_count']) / total['node_count']
+            if not np.isclose(weighted, value, rtol=1e-12, atol=1e-12):
+                raise ConfigurationError('per-label response rates do not recover global values')
+    return rows
+
+
 def request_composition(arrays, mask):
     y = np.asarray(arrays['y'])
     train = np.asarray(arrays['train_mask'], dtype=bool)

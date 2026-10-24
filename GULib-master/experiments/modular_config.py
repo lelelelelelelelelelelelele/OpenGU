@@ -427,7 +427,7 @@ def load_experiment(path):
     fields(value, required | {'round',
         'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
         'seeds', 'random_selector_seeds', 'budget_ratios', 'im_selector_seeds', 'return_scores',
-        'execution', 'observers', 'parameter_profile_ref', 'ret_reference'},
+        'execution', 'observers', 'parameter_profile_ref', 'ret_reference', 'ret_endpoint_inputs'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
@@ -537,6 +537,14 @@ def load_experiment(path):
         result[kind + 's'] = [load_instance(ref_path, kind) for ref_path in paths]
         result['configuration_sources'][kind + 's'] = [configuration_sources(ref_path, item)
             for ref_path, item in zip(paths, result[kind + 's'])]
+    from experiments.ret_endpoint_metrics import CASE as ENDPOINT_CASE, validate_inputs
+    endpoint_case = any(item['case'] == ENDPOINT_CASE for item in result.get('evaluations', []))
+    if endpoint_case:
+        if value['stage'] != 'metrics':
+            raise ConfigurationError('Ret endpoint sensitivity belongs to the explicit Metrics stage')
+        validate_inputs(value.get('ret_endpoint_inputs'))
+    elif 'ret_endpoint_inputs' in value:
+        raise ConfigurationError('ret_endpoint_inputs requires the Ret endpoint sensitivity case')
     if value['stage'] != 'metrics' and any(item['case'] == 'post_unlearning_response_graph_sensitivity' for item in result.get('evaluations', [])):
         raise ConfigurationError('graph sensitivity diagnostics belongs to the explicit Metrics stage')
     from experiments.observers import observer_specs, validate_capabilities
