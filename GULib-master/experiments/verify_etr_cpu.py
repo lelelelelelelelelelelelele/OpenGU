@@ -1,4 +1,4 @@
-"""Reproducible local ETR parity check against pinned, unmodified benchmark files.
+"""Reproducible local ETR parity check against pinned benchmark with explicit eval-gradient adjustment.
 
 All outputs belong to --root (a new disposable directory). This is software
 verification, never a formal experiment or a performance reproduction.
@@ -6,6 +6,7 @@ verification, never a formal experiment or a performance reproduction.
 import argparse
 import copy
 import importlib.util
+import inspect
 import json
 import logging
 from pathlib import Path
@@ -14,6 +15,7 @@ import shutil
 import subprocess
 import sys
 import time
+import textwrap
 import types
 
 import numpy as np
@@ -134,7 +136,7 @@ def cli(root, selector, run_id, dry=False):
 
 
 def reference_run(root, refs, model, data, nodes, label, parameters):
-    """Run original pipeline request + original trainer, with device/path-only bindings."""
+    """Run pinned pipeline/trainer with eval-gradient and device/path bindings."""
     from experiments.modular_model import runtime_defaults
     from attack.cache_identity import seeded_execution
     runtime_defaults()
@@ -145,6 +147,13 @@ def reference_run(root, refs, model, data, nodes, label, parameters):
     trainer_module = load_module(package.__name__+'.trainer', refs/'ETRTrainer.py')
     pipeline_module = load_module(package.__name__+'.pipeline', refs/'etr_pipeline.py')
     trainer_module.device = torch.device('cpu')
+    # Intentional semantic adjustment: the benchmark GCN enables Dropout,
+    # while the original author GCN comments it out. Keep its gradient math.
+    source = textwrap.dedent(inspect.getsource(trainer_module.ETRTrainer._grad_and_info))
+    assert source.count('model.train()') == 1
+    namespace = dict(vars(trainer_module))
+    exec(source.replace('model.train()', 'model.eval()'), namespace)
+    trainer_module.ETRTrainer._grad_and_info = namespace['_grad_and_info']
     pipeline_module.unlearning_path = str(root/(label+'-request'))
     np.savetxt(pipeline_module.unlearning_path+'_0_nodes_'+str(len(nodes))+'.txt', nodes, fmt='%d')
     args = dict(parameters, unlearn_task='node', device='cpu', num_unlearned_nodes=len(nodes))
@@ -262,7 +271,7 @@ def main():
     diff = subprocess.check_output(['git', 'diff', '--binary', 'HEAD'], cwd=ROOT)
     (root/'source.patch').write_bytes(diff)
     write_json(root/'protocol.json', dict(atol=ATOL, rtol=RTOL, reference_commit=REFERENCE_SHA,
-        reference_files=REFERENCE_FILES, source_commit=sha, source_patch_sha256=sha256_file(root/'source.patch'),
+        reference_files=REFERENCE_FILES, reference_adjustment='all four _grad_and_info calls use eval; autograd retained', source_commit=sha, source_patch_sha256=sha256_file(root/'source.patch'),
         torch=torch.__version__, training_seed=42, split_seed=2024, ratios={'random': .1, 'degree': .05},
         budget_denominator='persisted training nodes', evaluation_graph='original', level='verification'))
     torch.set_num_threads(1)
