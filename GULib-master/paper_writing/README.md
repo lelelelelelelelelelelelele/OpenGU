@@ -1,9 +1,9 @@
 # WWW27 本地写作工作区
 
-本目录用于提纲审查、证据修复和后续论文写作。2026-10-24：详细提纲v7保留102组逐段写作安排。A五个新seed未达到冻结确认标准，已降为探索；B完成预测真值、两图与C&S控制；Ret pilot三条新旧终轮均不一致，按冻结规则暂停其余六条。第一版科研正文须等有效证据包经理论、实验、分析三类复审均达到Weak Accept或以上，并由主审认可后才开始，当前门槛未达到。
+本目录用于提纲审查、证据修复和后续论文写作。2026-10-24：详细提纲v8整合三类复审及勘误，保留102组逐段写作安排。A五个新seed未达到冻结确认标准，已降为探索；B完成预测真值、两图与C&S控制；Ret pilot三条新旧终轮均不一致，按冻结规则暂停其余六条。第一版科研正文须等有效证据包经理论、实验、分析三类复审均达到Weak Accept或以上，并由主审认可后才开始，当前门槛未达到。
 
-- [OUTLINE.md](outline/OUTLINE.md)：本轮待审提纲的可编辑源文件；每段列目标、写法与关键边界，每幅主图列内容、布局和caption要素。
-- [OUTLINE.html](outline/OUTLINE.html)：由同一提纲生成的阅读版。
+- [当前提纲v8](outline/OUTLINE.v8.html)／[可编辑源](outline/OUTLINE.v8.md)：本轮三类复审后的逐段安排。OUTLINE.md为v7冻结审查原件，保持原字节。
+- [完整论文数据包](data_package/2026-10-24/START_HERE.html)：全实验、设计、数据字典、结果、采用边界及可独立接手的本地快照。
 - [v7审后勘误](outline/OUTLINE_REVIEW_ADDENDUM.html)：更正四处残留的待补状态，与冻结v7一同阅读；不更改科学判定。
 - [第三轮执行协议](protocol/ROUND3_EXECUTION_PROTOCOL.html)：固定范围、判断与停止规则、A/B分支和正式写作门槛；[可编辑源](protocol/ROUND3_EXECUTION_PROTOCOL.md)。
 - [第三轮执行报告](review/2026-10-24-round3/REPORT.html)：实际完成的CPU分析／代码验证、正式GPU执行状态、预算和下一步；[可编辑源](review/2026-10-24-round3/REPORT.md)。
