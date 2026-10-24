@@ -23,6 +23,10 @@ Thumbs.db
 # Local paper previews are not deployment inputs.
 /output/pdf/
 
+# Local Overleaf transfer bundles, downloaded text and verification screenshots.
+# Reviewed manuscript sources and analysis archives live under report/paper/.
+/output/overleaf-sync-*/
+
 # Manuscript inputs; the full-document previews above remain device-local.
 !/report/paper/overleaf/figures/citeseer_selector_responses.pdf
 !/report/paper/overleaf/figures/pubmed_request_patterns.pdf
