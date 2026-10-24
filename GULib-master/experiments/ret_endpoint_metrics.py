@@ -48,9 +48,13 @@ def endpoint_sources(config):
     """Plan from checksum-bound light documents; do not load remote heavy assets."""
     from experiments.modular_artifacts import read_run
     result = []
+    runs = {}
     for spec in validate_inputs(config['ret_endpoint_inputs']):
         path = Path(config['source_directory']) / spec['run']
-        run, documents = read_run(path, spec['sha256'])
+        run_key = (path.resolve(), spec['sha256'])
+        if run_key not in runs:
+            runs[run_key] = read_run(path, spec['sha256'])
+        run, documents = runs[run_key]
         matched = [(c, d) for c, d in zip(run['cells'], documents) if c['cell_id'] == spec['cell_id']]
         if len(matched) != 1 or matched[0][0]['conditions']['method'] != 'Retrain':
             raise ConfigurationError('Ret endpoint must identify exactly one Ret cell')
