@@ -7,7 +7,7 @@ import torch
 from cache_v2 import ArtifactResolver, ArtifactType, ProducerVersion
 from cache_v2.errors import CacheResolutionError
 from cache_v2.index import CacheIndex
-from experiments.c_target_v1.core import stable_ranking
+from experiments.c_target_v1.core import stable_ranking, ids_hash
 from experiments.c_target_v1.score_store import ScoreBundlePayload, ScoreBundleStore
 from experiments.implementation_identity import implementation_fingerprint
 from experiments.selection_budget_planner import materialize_budget_selection
@@ -15,6 +15,7 @@ from experiments.selection_inputs import make_dataset_selection_inputs
 from experiments.target_direct_v1.methods import Computations, METHODS, resolve_parameters
 from experiments.target_direct_v1.recipe import build_recipe, SCORE_BUDGET_SEMANTICS
 from utils.target_checkpoint import data_identity
+from experiments.target_direct_v1.class_matching import METHOD as CLASS_MATCHED, source_parameters
 
 
 def project_ranking(ranking, k):
@@ -43,17 +44,33 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
         name, budget = instance['method'], instance['budget']
         params = resolve_parameters(name, instance.get('parameters'))
         k = budget['k']
+        source = None
+        if name == CLASS_MATCHED:
+            # Use the same real R-point producer, exact Store and model/seed identity.
+            # Its complete Score ranking is budget-independent; no V2 payload is hand-written.
+            source = resolve_methods(store_root=store_root, data=data, dataset_name=dataset_name,
+                model=model, checkpoints=checkpoints,
+                selectors=[{'method': 'r_point', 'parameters': source_parameters(params), 'budget': budget}],
+                include_scores=True, model_config=model_config, training=training,
+                fail_if_score_called=fail_if_score_called, fail_if_selection_called=fail_if_selection_called,
+                dataset_inputs=inputs, dataset_identity=identity)['r_point']
         recipe, producer = build_recipe(name=name, computations=c, parameters=params,
-                                       model_config=model_config, training=training, dataset_identity=identity)
+            model_config=model_config, training=training, dataset_identity=identity,
+            source_score=None if source is None else source['score'])
         store = ScoreBundleStore(store_root, producer_version=producer, index=index)
 
         def compute():
             started = time.perf_counter()
-            scores = METHODS[name](c, params).detach().cpu().to(torch.float64)
+            kwargs = {} if source is None else {'source_ranking': source['ranking']}
+            scores = METHODS[name](c, params, **kwargs).detach().cpu().to(torch.float64)
             candidates = c.candidates.cpu().tolist()
             ranking = stable_ranking(candidates, scores)
+            metadata = {'method': name, 'compute_seconds': time.perf_counter() - started}
+            if source is not None:
+                metadata['source_r_point'] = {**recipe.fields['source_r_point'],
+                    'full_ranking_hash': ids_hash(source['ranking'])}
             return ScoreBundlePayload.build(candidates, {name: scores.tolist()}, {name: ranking},
-                {'method': name, 'compute_seconds': time.perf_counter() - started})
+                metadata)
 
         score = None
         access_seconds = 0.0
@@ -84,7 +101,8 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
         score_access_before_selection = access_seconds
         started = time.perf_counter()
         materialized = materialize_budget_selection(
-            store_root=store_root, dataset=inputs, strategy=name, selector_seed=0,
+            store_root=store_root, dataset=inputs, strategy=name,
+            selector_seed=params['matching_seed'] if name == CLASS_MATCHED else 0,
             budgets=(k,), producer_version=selection_producer,
             algorithm_version='target-direct-method-prefix-v1',
             parameters={'prefix_stable': True, 'budget': budget,
@@ -113,4 +131,8 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
             'selection': materialized.to_manifest(store_root), 'selection_seconds': selection_seconds}
         if include_scores:
             results[key].update(scores=list(score.payload.scores[name]), ranking=list(score.payload.rankings[name]))
+        if source is not None:
+            results[key]['source_r_point'] = {**recipe.fields['source_r_point'],
+                'full_ranking_hash': ids_hash(source['ranking']),
+                'score_hit': source['score']['hit'], 'producer_called': source['score']['producer_called']}
     return results
