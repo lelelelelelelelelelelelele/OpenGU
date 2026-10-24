@@ -1,6 +1,7 @@
 """Strict lightweight trace validation and read-only endpoint loading; no forward."""
 import json
 import math
+import struct
 
 from cache_v2 import canonical_sha256
 from experiments.ret_reference_policy import ARMS, DETERMINISTIC, OBSERVED
@@ -84,6 +85,21 @@ def validate_trace(document, trace, reference, cell):
     return diagnostics
 
 
+def _accuracy_matches(saved, correct_count, total_count):
+    """Require the same integer count and at most two float64 rounding steps."""
+    if (isinstance(saved, bool) or not isinstance(saved, (int, float))
+            or not math.isfinite(saved) or not 0 <= saved <= 1
+            or total_count <= 0 or not 0 <= correct_count <= total_count):
+        return False
+    if round(saved * total_count) != correct_count:
+        return False
+    canonical = correct_count / total_count
+    # Nonnegative IEEE-754 encodings are ordered; this also handles 0 and 1
+    # without widening the bound near powers of two.
+    bits = lambda value: struct.unpack('>Q', struct.pack('>d', abs(float(value))))[0]
+    return abs(bits(saved) - bits(canonical)) <= 2
+
+
 def load_endpoints(run_path, run_sha256, cell_id, *, dataset_root, store_root):
     """Consume exact run/Output plus hashed weights and logits; never train or forward."""
     import numpy as np
@@ -125,7 +141,10 @@ def load_endpoints(run_path, run_sha256, cell_id, *, dataset_root, store_root):
                     raise ValueError('Ret endpoint logits shape/nonfinite mismatch')
                 from experiments.observers.retrain_validation import classification
                 measured = classification(torch.tensor(logits),torch.tensor(resolved.arrays['y']),torch.tensor(resolved.arrays['test_mask']))
-                if measured['accuracy'] != probe['test']['accuracy'] or not math.isclose(
+                mask = resolved.arrays['test_mask']
+                correct_count = int(np.count_nonzero(logits[mask].argmax(1) == resolved.arrays['y'][mask]))
+                total_count = int(np.count_nonzero(mask))
+                if not _accuracy_matches(probe['test']['accuracy'], correct_count, total_count) or not math.isclose(
                         measured['cross_entropy'],probe['test']['cross_entropy'],rel_tol=1e-6,abs_tol=1e-5):
                     raise ValueError('Ret endpoint saved metrics disagree with bound labels/logits')
                 predictions[graph] = logits
