@@ -23,6 +23,11 @@ Thumbs.db
 # Local paper previews are not deployment inputs.
 /output/pdf/
 
+# Manuscript inputs; the full-document previews above remain device-local.
+!/report/paper/overleaf/figures/citeseer_selector_responses.pdf
+!/report/paper/overleaf/figures/pubmed_request_patterns.pdf
+!/report/paper/overleaf/figures/teaser-framework-draft.pdf
+
 # Runtime logs (timestamped, large, regenerable)
 log/
 logs/
