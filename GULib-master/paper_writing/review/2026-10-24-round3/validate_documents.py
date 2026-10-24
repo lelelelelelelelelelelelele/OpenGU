@@ -25,7 +25,7 @@ class Page(HTMLParser):
             self.source_hash = attrs['content']
 
 sources = [WRITING / x for x in (
-    'outline/OUTLINE.md', 'outline/OUTLINE.v4.md',
+    'outline/OUTLINE.md', 'outline/OUTLINE.v4.md', 'outline/OUTLINE.v5.md',
     'protocol/ROUND3_EXECUTION_PROTOCOL.md', 'README.md',
     'review/2026-10-24-round3/REPORT.md')]
 errors, checked = [], []
@@ -60,7 +60,7 @@ for source in sources:
 outline = sources[0].read_text(encoding='utf-8')
 counts = {s: outline.count(s) for s in (
     '**核心目标（要说什么）：**', '**准备怎么说：**', '**注意点／强调：**')}
-if len(set(counts.values())) != 1 or '详细提纲 v5' not in outline:
+if len(set(counts.values())) != 1 or '详细提纲 v6' not in outline:
     errors.append('outline version or per-paragraph fields do not agree')
 freeze = json.loads((WRITING / 'protocol/PROTOCOL_FREEZE.json').read_text(encoding='utf-8-sig'))
 if freeze['sha256'] != sha256((WRITING / 'protocol/ROUND3_EXECUTION_PROTOCOL.md').read_bytes()).hexdigest():

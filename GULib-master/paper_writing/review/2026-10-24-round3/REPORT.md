@@ -1,66 +1,59 @@
-# 第三轮：执行计划、已完成工作与写作门槛
+# 第三轮：正式执行、候选发现与写作门槛
 
-2026-10-24 08:01（Asia/Shanghai）。本报告为本轮可审查快照；运行实时状态由Work Plan中的EXP-084、EXP-085维护。
+2026-10-24 08:34（Asia/Shanghai）快照。实时状态由 Work Plan 的 EXP-084／EXP-085 维护。
 
-**当前判断：writing_gate=not_met。** 第二轮指出的测试集选模已有通过CPU验证的修复候选，但尚无修复后的正式科学结果；B尚缺三端点归因、两评价图、匹配后处理及Ret参考质量的完整证据。因此目前不能诚实地将论文评为Weak Accept，也没有开始英文科研正文。
+**当前判断：writing_gate=not_met。** GNNDelete 的验证集选模修复已合并部署，原十 seed 的限定重算已可信完成，顺序交叉通过预定恢复判据。但五个新 seed 的独立确认、A自身解释、B解释控制及Ret质量尚未闭合，不能将论文评为Weak Accept。尚未开始英文科研正文。
 
-## 执行协议已经明确
+## 已执行的科学结果
 
-[协议阅读版](../../protocol/ROUND3_EXECUTION_PROTOCOL.html)／[Markdown源](../../protocol/ROUND3_EXECUTION_PROTOCOL.md)规定了范围、指标、缺失条件处理和停止规则。[冻结记录](../../protocol/PROTOCOL_FREEZE.json)保存开跑前文件SHA；后续运行需绑定这一版本，改变范围先修订。
+A固定为Cora、SGC-source、10%预算、R-point／D-full／Degree、十个原联合seed。正式技术gate运行123秒，主矩阵416秒；六个GU重复条件精确复用，独立新GU共30个，匹配Ret30个。累计作业执行539秒，不含排队、准备和回传；实际缓存命中不能反过来改写开跑前18100秒全MISS预算。
 
-写作放行须同时满足有效性、具体贡献、证据强度、解释与边界、可写性五项，并由理论、实验、分析三类模拟审稿分别给出Weak Accept或以上，主审逐项认可。不是平均分，不把完成实验、显著结果或代码验收当成科学接受。
+主矩阵121份返回文件通过正式验收。逐GU取证验证30个Output确实导出validation选择的checkpoint，含原图模型状态、运行身份和生成来源；审计producer调用为0、缓存索引不变。主矩阵24个GU MISS、6个gate GU HIT、30个Ret HIT，均精确绑定。
 
-A的gate仅检查执行有效性。技术通过后，完整十seed范围无论方向好坏均执行；恢复方向固定为Ret的D-full−R-point accuracy为正、GNNDelete为负。两端点同时区间满足预定方向后，才进入五个新联合seed的确认；确认标准与失败分支已经固定，不逐步加seed追求显著。A若成为核心，还需自身条件下的三端点／两图解释。
+| D-full−R-point | 配对均值（pp） | 样本SD（pp） | 两条主要差的同时95%区间 |
+| --- | ---: | ---: | --- |
+| Retrain accuracy | +0.848708 | 0.663523 | [+0.285328,+1.412089] |
+| GNNDelete accuracy | −6.494465 | 3.100509 | [−9.127030,−3.861900] |
 
-B先复用已有54引用完成三端点与组成，再执行同权重两图、MEGU四端点C&S控制和Ret质量诊断。三端点诊断完成不等于全部解释闭合。新增Random draw只作有限敏感性，不冒称请求分布的一般规律。
+十个seed均为同seed双向交叉。每条主要差使用97.5%双侧t区间组成Bonferroni同时95%区间；普通95%区间、逐seed和原值也保留。CE差为Ret −0.022276、GU +0.203553，仅作次要检查。此结果是固定split上联合请求／训练程序的候选关系，不是普遍规律或独立确认。
 
-## 实际已经完成的工作
+证据：[A分析报告](../../../self/research/experiments/drafts/round3-execution-prep/e84r1/REPORT.html)、[决定与哈希](../../../self/research/experiments/drafts/round3-execution-prep/e84r1/DECISION.json)、[逐seed](../../../self/research/experiments/drafts/round3-execution-prep/e84r1/paired_contrasts.csv)、[全部端点](../../../self/research/experiments/drafts/round3-execution-prep/e84r1/endpoints.csv)。执行SHA为eb5e0d79950cf983bbe14b85c63961ce68ab7b0e。旧GNNDelete输出仍隔离，不能与新结果拼表；本批不恢复其他source、Random、其他预算或数据集。
 
-| 项目 | 已完成的事实 | 尚未支持什么 |
-| --- | --- | --- |
-| GNNDelete修复AAGU-107 | 候选02206948262699bf523d4dadbb1ab2e0ae977a64；139项CPU回归通过，真实三seed测试标签扰动不改变验证轨迹、best或输出；validation可影响选择；旧Output不等价命中；已合并6fe3392并推送 | 不证明原排序交叉恢复，不是正式GPU重算 |
-| A输入冻结 | 30请求坐标、21个不同Selection、30个匹配Ret；120个返回文件哈希通过；12/60端点真实dry-run通过 | 远端当前资产与新producer的精确查找仍须运行前审计 |
-| B已有结果CPU分析 | 54不同Output、18请求×seed组、10不同Selection、36 GU–Ret对；217项输入／返回哈希断言通过；9/9预算请求严格嵌套 | 没有把本地统计冒称新的远端预测或两图实验 |
-| B诊断实现AAGU-108 | 第一层候选3db791a6经116项聚焦回归、11项提交后验证；与107组合38项通过；已合并de948fbe并推送 | 未部署，未形成正式54引用的新增指标结果；两图/C&S不在本候选内 |
-| 论文方案 | [详细提纲v5](../../outline/OUTLINE.html)已更新；按A恢复、B独立成立、证据不足三种分支安排主文 | 不提前填入预期结果，不保证最终审稿达到Weak Accept |
+## 当前阻塞与正在完成的开发
 
-用户已明确接受107的具体候选，并授权本轮后续必要开发由主任务验证、验收后合并部署。主任务据具体候选和组合检查接受108第一层实现；科学写作门槛保持独立。107合并准备曾发现启动投影缺失Remote target，核验既有origin/main后补齐；本轮研究材料保存提交后恢复合并。组合测试首次因系统pytest临时目录不可访问出现17项fixture错误；保留日志，在新建workspace临时目录重跑未改动的测试后38项通过。
+B第一层技术gate已在远端完成，2个GU诊断、3个既有引用，用时61秒。后台observer先因旧parser拒绝cell_ids；当前版本collector完成5文件校验后，项目验收又暴露expected_cells声明缺失。因此B结果当前仍不可采用，完整36对尚未启动。
 
-另有明确的取证要求：默认collector不收runtime的model_best.pt，不能因此判断逐cell的epoch／选模阶段已核验。补充只读脚本将run/cell的Output recipe_hash与runtime checkpoint、保存权重、选模元信息绑定；取证不成功时A技术gate不得科学放行，不修改V2旧Artifact。
+修复已纳入AAGU-109，由真实配置→CLI→收集验收测试覆盖，随后对同一已完成任务重新收集。不重跑GPU，不手工改可信索引，不绕过验收。原失败状态和日志保留。
 
-## 新CPU分析怎样改变下一步
+AAGU-109同时实现固定保存权重的两评价图、MEGU匹配C&S，以及A所需GNNDelete保存掩码检查；仍待最终候选审查。AAGU-110在隔离树实现显式Ret验证轨迹，真实CPU训练证明观察不改变权重与RNG；最终候选及组合验证尚待完成。必要开发按用户授权由根任务验收、合并和部署，科学结论独立审查。
 
-以下均为CiteSeer、5%→33%、R-point、三个联合seed的配对变化，均值±样本SD：
+107／108已接受、合并、推送、部署，受管工作树与临时运行目录已清理，永久验证证据保留；这只完成实现交付，不自动接受论文。
 
-| 端点 | accuracy变化（pp） | CE变化 |
-| --- | ---: | ---: |
-| Retrain | −10.561±2.790 | +0.3813±0.1259 |
-| GIF | −0.501±0.229 | +0.00244±0.00265 |
-| MEGU | +0.050±0.229 | −0.3508±0.3969 |
+## 协议与下一阶段
 
-MEGU包含C&S，因此CE差异尤其需要匹配后处理解释。Ret下降不能仅凭这张表归因为训练不足；现有Ret链没有保存所需validation轨迹，必须按协议作有边界的训练诊断。
+开跑前冻结的[执行协议](../../protocol/ROUND3_EXECUTION_PROTOCOL.html)与[冻结记录](../../protocol/PROTOCOL_FREEZE.json)保持原样。写作必须同时通过有效性V、具体贡献C、证据强度E、解释与边界I、可写性P，且理论／实验／分析三类模拟审稿均至少Weak Accept，根任务逐项认可。不能平均分或用运行成功代替科学判断。
 
-33%时R-point平均一跳测试覆盖37.688%，低于Random43.844%和Degree58.559%；三跳内分别71.972%、79.580%、75.676%，每请求666个test节点。较大GU–Ret分歧并未伴随更广的这些几何覆盖，但覆盖不是因果控制，不能据此断言传播机制。完整证据见[B分析报告](../../../self/research/experiments/drafts/round3-b-diagnostics/REPORT.html)及[逐请求覆盖](../../../self/research/experiments/drafts/round3-b-diagnostics/request_test_hop_coverage.csv)。
+| 接下来的步骤 | 固定范围与判据 | 全MISS串行预算 |
+| --- | --- | ---: |
+| A独立确认 | seed1701/1709/1721/1733/1741；三策略，15GU+15Ret；至少4/5同seed双向交叉且两同时区间完全位于预定方向 | 7025秒 |
+| A解释gate＋完整20对 | 原十seed×R-point/D-full；O/G/R真值、同权重两图、请求组成；先seed42两对，完整范围不按方向裁剪 | 600+1500=2100秒 |
+| B两图／C&S gate＋完整 | 同一54引用、36GU对；原图精确复现后才解释retained图；四端点固定pseudo-label、参数与mask | 600+2040=2640秒 |
+| Ret质量pilot＋补全 | CiteSeer33%三策略，先seed42，再补212/2024；3000轮retained图validation，best/final固定测试端点 | 420+660=1080秒 |
 
-## 已登记的运行范围与预算
+这些为待提交下一阶段的低置信工程预算，不是已发生耗时或承诺完成时间；每项须在开跑前完成配置、Recipe、版本和资产核验。详细分项与不变性条件见[下一阶段草案](../../../self/research/experiments/drafts/round3-execution-prep/NEXT_STAGE_PROTOCOL_DRAFT.html)。B第一层完整诊断仍沿用已冻结1680秒预算。
 
-| 实验 | 当前阶段 | 全MISS串行预算 | 执行状态 |
-| --- | --- | ---: | --- |
-| EXP-084 | gate 6 GU＋6 Ret，再完整30 GU＋30 Ret；重合6 GU精确复用，独立GU条件共30 | 4050＋14050＝18100秒，约5.03小时 | 配置与Recipe已准备；正式任务未提交 |
-| EXP-085 | 第一层3引用gate＋54引用完整诊断；有效GU诊断分别2/36，Ret不适用 | 2085秒，约34.75分钟 | 精确子集配置、Recipe与2/36输出dry-run通过；正式任务未提交 |
+确认seed已查现存62个远端运行声明／26221个单元，无五候选seed；唯一旧格式声明按cells[].training.seed核对后四项均42。此审计不覆盖已删除或没有manifest的历史；保留完整审计和补充解析，不把可见范围夸大为所有历史。确认集保持预定不变。
 
-预算为低置信工程估计，按全MISS串行计算，不扣HIT、不计并行收益或排队与回传，也不是完成上界。A确认、A解释控制、B两图/C&S及Ret诊断尚未包含在这两项数字中，必须在各阶段启动前另列完整预算与配置，不能以首阶段预算代表全部论文补强成本。
+先完成旧Original权重的全部推理控制，再部署可能改变训练身份的Ret观察实现。缺资产／原图不复现时停止该阶段并保留失败，不能隐式重训填补。若B作为核心，Ret九条轨迹全部完成，不因seed42无触发而跳过其他seed。
 
-运行定义：[EXP-084记录](../../../self/research/experiments/EXP-084.json)、[EXP-085记录](../../../self/research/experiments/EXP-085.json)。A准备与冻结输入见[执行准备报告](../../../self/research/experiments/drafts/round3-execution-prep/REPORT.html)。
+## 文章如何随结果改变
 
-远端此前由exp014-20261024-e14r4占用，控制端07:53:39观察到recipe_timeout终态；不能据此认定执行资源或Score锁已恢复。下一次部署与dispatch仍由登记安装动作和正式preflight检查，不能擅自清锁或重启其他任务。本轮正式GPU任务是否开始，以实际提交回执为准。
+[详细提纲v6](../../outline/OUTLINE.html)保留逐章逐段结构，增加新A的两阶段证据和20对解释面板。候选framing是：请求在重训上的效用顺序未必保留到近似更新，GU–Ret分歧还需判断是哪一个端点改变。这个表述必须由确认与解释支持，不能以更强措辞补不足。
 
-## 下一阶段顺序
+- A确认且解释闭合：以请求顺序交叉作主例，B解释预算下的响应与pipeline边界。
+- A未确认：保留探索及否定结果，撤其核心地位；B须独立证明超出普通accuracy–fidelity分离的具体认识。
+- 两条均不足：记录writing_gate=not_met，报告缺口，不增加seed追求接受评分。
 
-1. 完成本轮必要候选的审查、合并及配置提交，统一安装同一主线SHA；保留旧Output与失败记录。
-2. 审计A的固定Selection、原始checkpoint、Ret精确身份及新GNNDelete生成身份，缺失或错配即停。
-3. 运行EXP-084技术gate和EXP-085第一层gate，可信收集核验后才扩展完整预定范围。
-4. 依据协议进入解释控制、Ret质量及条件确认，不把中途观察当最终主张。
-5. 冻结证据包做三类复审。只有全部满足写作门槛才开始Results与Experimental Design，最后写Introduction和Abstract。
+最终证据包将把核心主张、数据、图表、反例和范围一一绑定，再进行三类复审。当前文档是执行与写作方案，不是正式第一稿。
 
-本报告和提纲的HTML从Markdown生成；文档检查核对内容哈希、链接及逐段结构。浏览器视觉检查尚未完成，不能把静态检查写成视觉验收。
+[执行进度快照](../../../self/research/experiments/drafts/round3-execution-prep/EXECUTION_PROGRESS.html)／[EXP-084](../../../self/research/experiments/EXP-084.json)／[EXP-085](../../../self/research/experiments/EXP-085.json)。本报告HTML由同一Markdown生成；静态哈希与链接检查不能冒称浏览器视觉验收。

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="source-sha256" content="3c30343bf2c0f4a316f80f3c58867b7fc5f0c3b0784696ad2ebbe661ad907077"><title>Auditing Strategic Deletion Requests in Graph Unlearning</title><style>:root{color-scheme:light;--ink:#24313e;--muted:#667382;--line:#d7e0e7;--accent:#175b80}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f2f5f7;color:var(--ink);font:16px/1.85 system-ui,'Microsoft YaHei',sans-serif}.layout{max-width:1440px;margin:auto;padding:34px 28px 90px;display:grid;grid-template-columns:235px minmax(0,1fr);gap:34px}nav{position:sticky;top:30px;align-self:start;font-size:13px}nav strong{display:block;font-size:17px;line-height:1.5;margin-bottom:14px}nav a{display:block;padding:8px 0;border-bottom:1px solid var(--line);color:var(--muted);text-decoration:none}.meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}main{min-width:0;padding:40px 46px;background:white;border:1px solid var(--line)}h1{font-size:29px;line-height:1.4;margin:0 0 24px}h2{font-size:22px;line-height:1.5;margin:42px 0 18px;padding-top:16px;border-top:2px solid #b5cbd7;scroll-margin-top:20px}h3{font-size:18px;margin:27px 0 12px}h4{font-size:16px;color:var(--accent);margin:22px 0 10px}p{margin:13px 0}li{margin:8px 0}a{color:var(--accent);text-underline-offset:3px}code{font-size:.87em;background:#edf2f6;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{padding:16px;background:#edf2f6;overflow:auto}pre code{padding:0;background:none;overflow-wrap:normal}blockquote{border-left:4px solid #b5cbd7;margin:20px 0;padding:1px 20px;color:#3b5263;background:#f5f8fa}.table-scroll{overflow:auto;margin:22px 0}table{border-collapse:collapse;min-width:610px;width:100%;font-size:14px;line-height:1.75}th,td{border:1px solid var(--line);padding:11px 13px;text-align:left;vertical-align:top}th{background:#eaf1f6}tr:nth-child(even) td{background:#f8fafb}img{max-width:100%;height:auto}footer{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}@media(max-width:960px){.layout{display:block;padding:16px}nav{position:static;margin:0 0 20px}nav a{display:inline-block;margin-right:14px}main{padding:25px 20px}h1{font-size:25px}}@media print{body{background:white}.layout{display:block;padding:0}nav{display:none}main{border:0;padding:0}h2,h3,h4{break-after:avoid}table{font-size:10px;min-width:0}a{color:inherit}}
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="source-sha256" content="47426869df6a7685f6b199e63fdda1f7c21adb8572282f1b4fd4c09bc332fe01"><title>Auditing Strategic Deletion Requests in Graph Unlearning</title><style>:root{color-scheme:light;--ink:#24313e;--muted:#667382;--line:#d7e0e7;--accent:#175b80}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f2f5f7;color:var(--ink);font:16px/1.85 system-ui,'Microsoft YaHei',sans-serif}.layout{max-width:1440px;margin:auto;padding:34px 28px 90px;display:grid;grid-template-columns:235px minmax(0,1fr);gap:34px}nav{position:sticky;top:30px;align-self:start;font-size:13px}nav strong{display:block;font-size:17px;line-height:1.5;margin-bottom:14px}nav a{display:block;padding:8px 0;border-bottom:1px solid var(--line);color:var(--muted);text-decoration:none}.meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}main{min-width:0;padding:40px 46px;background:white;border:1px solid var(--line)}h1{font-size:29px;line-height:1.4;margin:0 0 24px}h2{font-size:22px;line-height:1.5;margin:42px 0 18px;padding-top:16px;border-top:2px solid #b5cbd7;scroll-margin-top:20px}h3{font-size:18px;margin:27px 0 12px}h4{font-size:16px;color:var(--accent);margin:22px 0 10px}p{margin:13px 0}li{margin:8px 0}a{color:var(--accent);text-underline-offset:3px}code{font-size:.87em;background:#edf2f6;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{padding:16px;background:#edf2f6;overflow:auto}pre code{padding:0;background:none;overflow-wrap:normal}blockquote{border-left:4px solid #b5cbd7;margin:20px 0;padding:1px 20px;color:#3b5263;background:#f5f8fa}.table-scroll{overflow:auto;margin:22px 0}table{border-collapse:collapse;min-width:610px;width:100%;font-size:14px;line-height:1.75}th,td{border:1px solid var(--line);padding:11px 13px;text-align:left;vertical-align:top}th{background:#eaf1f6}tr:nth-child(even) td{background:#f8fafb}img{max-width:100%;height:auto}footer{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}@media(max-width:960px){.layout{display:block;padding:16px}nav{position:static;margin:0 0 20px}nav a{display:inline-block;margin-right:14px}main{padding:25px 20px}h1{font-size:25px}}@media print{body{background:white}.layout{display:block;padding:0}nav{display:none}main{border:0;padding:0}h2,h3,h4{break-after:avoid}table{font-size:10px;min-width:0}a{color:inherit}}
 nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-width:960px){nav{max-height:none;overflow:visible;padding-right:0}}</style></head>
 <body><div class="layout"><nav><strong>OpenGU · Paper Writing</strong><p class="meta">2026-10-24<br>由 Markdown 源文件生成</p><a href="#pw-doc-section-1">本轮执行与论文方案</a>
 <a href="#pw-doc-section-2">第二轮采纳决定与证据责任</a>
@@ -23,13 +23,14 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 <a href="#pw-doc-section-20">附录E：Source Comparisons and Statistics（来源比较与统计）</a>
 <a href="#pw-doc-section-21">段落—图表—证据对应表</a>
 <a href="#pw-doc-section-22">审查重点与仍需准备的材料</a><p><a href="OUTLINE.md">编辑用源文件</a></p></nav><main><h1 id="auditing-strategic-deletion-requests-in-graph-unlearning">Auditing Strategic Deletion Requests in Graph Unlearning</h1>
-<p>版本：详细提纲 v5 · 执行协议与条件式论文方案 · 2026-10-24（Asia/Shanghai）<br />
+<p>版本：详细提纲 v6 · 正式重算后的候选发现与确认路线 · 2026-10-24（Asia/Shanghai）
 用途：作者逐章、逐段审查；本文件是当前提纲的唯一编辑源，HTML 由它生成。<br />
-状态：原F-A继续隔离；GNNDelete修复候选已完成139项CPU回归，正式重算尚未形成可信结果。B的54引用、请求嵌套、CE和局部覆盖已完成CPU核验，远端响应诊断正在准备。写作门槛为三类复审均达到Weak Accept或以上且主审认可，目前未达到，不开始英文正文。见<a href="../protocol/ROUND3_EXECUTION_PROTOCOL.html">执行协议</a>及<a href="../review/2026-10-24-round3/REPORT.html">本轮执行报告</a>。</p>
-<p><strong>当前主问题：在固定候选池和预算下，不同删除请求构造怎样改变GU与同请求Retrain的响应；这种关系如何随预算和选点模型变化？</strong> 主文目前可组织的观察是非GNNDelete条件下的策略特定GU–Retrain分歧及预算关系，仍属受控、探索性实证。原“Cora/SGC请求排序交叉”因有效性缺陷停止承担贡献。</p>
+状态：旧F-A继续隔离；修复后的EXP-084已完成30个GNNDelete条件、匹配Ret、可信回传和实际checkpoint取证，十seed顺序交叉通过预定恢复判据，现为待独立确认的候选发现。B第一层技术gate已执行，回传验收接口正在修复，尚不可采用。五新seed确认与A/B解释控制仍待执行。写作门槛为三类复审均达到Weak Accept或以上且主审认可，目前未达到，不开始英文正文。见<a href="../protocol/ROUND3_EXECUTION_PROTOCOL.html">执行协议</a>及<a href="../review/2026-10-24-round3/REPORT.html">本轮执行报告</a>。</p>
+<p><strong>当前主问题：在固定候选池和预算下，不同删除请求构造怎样改变GU与同请求Retrain的响应；这种关系如何随预算和选点模型变化？</strong> 论文候选主线是“请求在重训上的效用顺序未必保留到近似更新，预测分歧还需辨认哪一个端点改变”。前半句有正确选模后的限定案例，后半句由B及后续控制检验。旧输出不能因新结果同方向而恢复；新增证据只覆盖明确重算范围。</p>
 <p>保留题目 <em>Auditing Strategic Deletion Requests in Graph Unlearning</em>。本文按经验研究组织，IM/IF为已有请求构造原则，直接策略对照为工具；不能靠更换术语或增加恒等式充当科学创新。近邻已报告普通accuracy–fidelity预算分离，新增价值仍需由策略直接对照、对照端点及有效性支持。</p>
 <h2 id="pw-doc-section-1">本轮执行与论文方案</h2>
-<p>本版保留逐章、逐段的目标／写法／注意点结构，但不预先写入尚未产生的结果。<a href="OUTLINE.v4.md">v4源文件</a>保留第二轮结束时的组织稿。下文B1/B2是当前可描述观察；A只有通过新生成、完整重算和独立确认，才可恢复为主发现。</p>
+<p>本版保留逐章、逐段的目标／写法／注意点结构，但不预先写入尚未产生的结果。<a href="OUTLINE.v4.md">v4源文件</a>保留第二轮结束稿，<a href="OUTLINE.v5.md">v5源文件</a>保留开跑前方案。A的正确选模与十seed重算已通过；五个新seed及自身解释控制通过后，才决定是否承担核心贡献。</p>
+<p><strong>新证据A（已可信、尚未确认）：</strong> Cora／SGC-source／10%，D-full−R-point accuracy：Ret为+0.849 pp，同时95%区间[+0.285,+1.412]；GNNDelete为−6.494 pp，区间[−9.127,−3.862]。这里两条分别使用97.5%双侧t区间，十个联合seed均呈预定双向交叉。CE差分别−0.0223与+0.2036，只作次要一致性检查。不能据此宣称普遍反序、模型选择有效性已覆盖全部历史结果，或论文已经Weak Accept。见<a href="../../self/research/experiments/drafts/round3-execution-prep/e84r1/REPORT.html">逐seed与完整端点</a>。</p>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -41,8 +42,8 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 <tbody>
 <tr>
 <td>EXP-084 gate及完整重算</td>
-<td>Cora/SGC-source/10%，R-point、D-full、Degree，十个原联合seed；30个新GNNDelete条件及匹配Ret。先做6 GU＋6 Ret技术gate</td>
-<td>gate只看实现与身份；完整结果决定Q1是否恢复请求顺序交叉。不得只报告有利seed或只用gate恢复结论</td>
+<td>已完成上述30个新GU条件与30个匹配Ret；121个文件校验、30个GU导出权重与validation checkpoint逐项一致</td>
+<td>已恢复限定候选关系，进入五新seed确认；不恢复Random、其他source或预算的旧GNNDelete结果</td>
 </tr>
 <tr>
 <td>A条件确认</td>
@@ -87,6 +88,12 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 <td>修复val/test语义，验证实际训练路径与新缓存身份，重跑预先固定的完整对照后重新判断</td>
 </tr>
 <tr>
+<td>新A：EXP-084的限定重算</td>
+<td>十seed候选关系成立，进入确认及解释控制；新旧输出分开</td>
+<td>可报告该固定split／source／预算下的两条直接差及同时区间</td>
+<td>五个预定新seed、20对自身解释控制和三类复审；不能扩展到未重算历史坐标</td>
+</tr>
+<tr>
 <td>B1：同预算策略直接分歧</td>
 <td>当前主观察，以GIF/MEGU及Ret原始端点呈现</td>
 <td>R-point、Random、Degree下的GU–Ret分歧不同；不等于GU预测破坏</td>
@@ -106,7 +113,7 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 </tr>
 </tbody>
 </table></div>
-<p>原F-A退出后，现有论证尚不足以宣称达到Weak Accept。不能从其他有利格子中事后更换“主发现”来规避缺陷。若修复重跑不保留原关系，必须据实放弃；若只保留B1/B2，需重新判断相对近邻的贡献是否足够。</p>
+<p>新A已通过正确选模后的十seed恢复判据，现有论证仍不足以宣称达到Weak Accept。不能从其他有利格子事后更换主发现；五seed确认未通过时，A依冻结规则降为探索性案例，不能因十seed显著而放宽标准。B必须接受独立的贡献与解释审查。</p>
 <p>首页用途落到一个受控问题：平台仅依赖Random请求评估更新方案时，会漏掉哪些特定请求条件下的行为差异？当前提供研究诊断依据，不承诺线上筛查阈值、请求拒绝规则、部署防御或法律合规。全训练候选池是平台侧权限上界压力测试，不是普通用户已有的天然控制权。</p>
 <p>原<a href="../review/2026-10-24-self-audit/VALIDATION_PLAN.html">114输出验证清单</a>保留为第一轮输入历史，不能直接按原计划消费其中A组受影响GU。第二轮优先级改为：先修复与重新生成A组所需GU证据；B组54个现有端点可按原身份推进三端点／两图诊断。具体分支与仍未完成的工作见<a href="../review/2026-10-24-round2/REPORT.html">第二轮行动表</a>。</p>
 <h2 id="pw-doc-section-3">阅读方式与篇幅约束</h2>
@@ -188,11 +195,11 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 <li><strong>注意点／强调：</strong> 不列出所有方法和实验数量；更换选点模型不写成更换目标模型，IM/IF 不称为本文发明的新算法。</li>
 </ol>
 </li>
-<li><strong>第三小部分：主观察B1——同预算的请求策略关系。</strong>
+<li><strong>第三小部分：候选主观察A——请求效用顺序交叉。</strong>
 <ol>
-<li><strong>核心目标（要说什么）：</strong> 对应同预算Random／Degree，具体请求构造产生不同的GU–Ret预测分歧。</li>
-<li><strong>准备怎么说：</strong> CiteSeer/33%下，R-point相对Random的D在GIF/MEGU约+14.615/+14.815 pp，Degree对应−1.902/−2.302 pp；明确这是三seed、所评估pipeline的描述性结果。摘要仅保留一组效应量，不塞完整表。</li>
-<li><strong>注意点／强调：</strong> 原F-A退出摘要；不会将测试集参与checkpoint选择的结果通过改名继续使用。D增量不是净遗忘误差，不把两种请求的分歧差当GU自身预测移动。</li>
+<li><strong>核心目标（要说什么）：</strong> 若确认与解释通过，用一个具体请求对说明重训上的效用排序不能直接替代近似更新上的排序。</li>
+<li><strong>准备怎么说：</strong> 摘要预留一组最终效应量及范围：新十seed中D-full相对R-point的Ret为+0.849 pp、GNNDelete为−6.494 pp；五新seed独立报告后，再选最清楚的一组数字。若未确认，本段改回B的受控策略关系，不能继续以A为确定发现。</li>
+<li><strong>注意点／强调：</strong> 新A仅覆盖Cora／SGC-source／10%／固定split；不能使用旧受污染值，也不能把确认与探索合并成15个独立确认seed。D增量与accuracy顺序属于不同对象。</li>
 </ol>
 </li>
 <li><strong>第四小部分：B2的预算范围与解释责任。</strong>
@@ -257,7 +264,7 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 <ol>
 <li><strong>核心目标（要说什么）：</strong> 让读者看到策略差异，同时看清GU与Ret各自表现。</li>
 <li><strong>准备怎么说：</strong> 080/CiteSeer/33%中，Degree→R-point的Ret accuracy为75.526%→64.715%；GIF为74.525%→74.374%，MEGU为74.725%→74.274%；GU–Ret D分别从8.108%→24.625%、7.808%→24.925%。这些是三训练seed均值，不能称验证了总体规律。</li>
-<li><strong>注意点／强调：</strong> 相应Ret变化很大，必须在同一图／段中可见；accuracy与D不确定逐节点谁改变。原GNNDelete案例不在引言出现，也不悄悄替换成另一个显著格子。</li>
+<li><strong>注意点／强调：</strong> 相应Ret变化很大，必须在同一图／段中可见；accuracy与D不确定逐节点谁改变。最终若A确认且解释闭合，本段主例改为新A，B例移到Q2开头；不能使用旧GNNDelete数值。</li>
 </ol>
 </li>
 <li><strong>第二小部分：给问题而非预先给因果答案。</strong>
@@ -269,7 +276,7 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 </li>
 <li><strong>插图 F1：请求流程与同预算原始端点。</strong>
 <ol>
-<li><p><strong>内容与组织：</strong> 左为候选池、选择器、S、GU/Ret分支；右为CiteSeer/33%、Degree与R-point的Ret/GIF/MEGU accuracy和两GU的D，图注提供Random参照及完整表位置。只使用当前未被E1隔离的方法。</p>
+<li><p><strong>内容与组织：</strong> 左为候选池、选择器、S、GU/Ret分支。若A确认，右侧用新A的R-point/D-full原始accuracy、Ret/GU两条配对差，探索与确认分面，Degree放邻近边界表；若A未确认，采用下方B端点布局。两种最终出口只选一种，不将所有诊断塞进teaser。</p>
 </li>
 <li><p><strong>示意与布局：</strong> 双栏宽约1/3流程＋2/3数据；右侧accuracy与D两个分面，各有独立轴、单位与清楚图例，不用双y轴。三seed点可见，均值不掩盖波动。</p>
 <pre><code class="language-text">请求生成 → S → GU / Ret         CiteSeer / 33% / n=3
@@ -278,7 +285,7 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
                                D：GIF / MEGU对各自同请求Ret
 </code></pre>
 </li>
-<li><p><strong>Caption 与关联：</strong> 写080、原图评价、三个联合实验seed、方法实现与所选两策略；accuracy和D均为%，策略差为pp。说明Ret是各自同请求端点，Random完整对照见Q2/F3；该图提出待解释现象，不承诺因果诊断已完成。</p>
+<li><p><strong>Caption 与关联：</strong> A版写正确validation选模、固定split、十seed探索／五seed确认分开及两个97.5%区间；B版写080、原图、三个联合seed及pipeline。accuracy与D为%，直接差为pp；Ret始终是同请求端点。图引用Q1/Q2中的解释控制，不承诺因果机制。</p>
 </li>
 </ol>
 </li>
@@ -314,7 +321,7 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 <li><strong>第二小部分：新增认识。</strong>
 <ol>
 <li><strong>核心目标（要说什么）：</strong> 让读者在引言结束前得到明确答案的预告。</li>
-<li><strong>准备怎么说：</strong> 主要认识围绕B1同预算策略关系及B2预算变化展开；它们属于一个实证论证链。完整机制／来源对照及实现审计提供证据质量，不为凑三项贡献强行分拆；原F-A重跑前不列贡献。</li>
+<li><strong>准备怎么说：</strong> 最终按证据陈述两个相连认识：经独立确认的请求效用顺序交叉，以及由三端点／评价图／后处理控制界定的预算响应分离。当前仅前者的十seed候选通过；不能把未完成检查写成发现。完整范围与实现审计提供证据质量，不另凑贡献数量。</li>
 <li><strong>注意点／强调：</strong> 不仅写“广泛实验发现异质性”；不以三数据集、六方法或运行数量代替发现本身。</li>
 </ol>
 </li>
@@ -619,7 +626,7 @@ E_M(S)             = G_M(S) − mean_r G_M(S_r)
 <li><strong>第一小部分：标注变体与共同参照。</strong>
 <ol>
 <li><strong>核心目标（要说什么）：</strong> 让方法名称对应本实验实际运行的实现。</li>
-<li><strong>准备怎么说：</strong> 原实验运行六GU；当前主分析采用GIF、IDEA、MEGU、GraphEraser、GraphRevoker，其中GraphRevoker标GPA+optimal变体。GNNDelete因checkpoint选择有效性暂停采纳，原输出保留审计。说明共同full-graph Ret与方法自身Before；参数表列Original/Ret终轮3000、分片300及MEGU更新与C&amp;S的不同职责和选模规则，不要求不同算法机械地相同epoch。</li>
+<li><strong>准备怎么说：</strong> 旧广度矩阵采用GIF、IDEA、MEGU、GraphEraser、GraphRevoker，其中GraphRevoker标GPA+optimal变体；旧GNNDelete隔离。新EXP-084的GNNDelete单列为validation选模的限定重算，不能拼接旧矩阵。说明共同full-graph Ret与方法自身Before；参数表列Original/Ret终轮3000、分片300及MEGU更新与C&amp;S的职责，不要求所有算法相同epoch。</li>
 <li><strong>注意点／强调：</strong> 不把变体结果当作原论文完整方法的判决；分片算法与full-graph参照的架构差异要在结果解释中保留。</li>
 </ol>
 </li>
@@ -644,7 +651,7 @@ E_M(S)             = G_M(S) − mean_r G_M(S_r)
 <li><strong>第二小部分：不同统计图的定义。</strong>
 <ol>
 <li><strong>核心目标（要说什么）：</strong> 防止误差线和检验含义混用。</li>
-<li><strong>准备怎么说：</strong> 011/079配对效用比较用点态95% t区间；080曲线为三个联合运行的均值±样本SD，本轮补算的配对交互按探索性报告。原来源margin因包含GNNDelete暂停采纳。多重比较如引用Holm结果，应明确比较家族。</li>
+<li><strong>准备怎么说：</strong> 011/079用点态95% t区间，080曲线为三个联合运行均值±SD。新A固定两条直接差，各用97.5%双侧t区间构成同时95%区间；五seed确认与原十seed分开，并要求至少4/5同seed双向成立。交互和CE仅作补充。旧来源margin暂停采纳，不能借新A恢复。</li>
 <li><strong>注意点／强调：</strong> 点态区间不能概括为整表显著；SD不是CI；不能基于三个seed给出强总体结论。既有事后案例应标为解释性／探索性，不冒充预注册假设。</li>
 </ol>
 </li>
@@ -771,11 +778,25 @@ E_M(S)             = G_M(S) − mean_r G_M(S_r)
 <li><strong>注意点／强调：</strong> 原F-A已隔离，不在此引用其数值。当前不以另一后验显著格子替代主例；本段的角色是完整比较，不能宣称已验证代理分数忠实性或普遍排序失败。</li>
 </ol>
 </li>
-<li><strong>第二小部分：待修复候选的恢复条件。</strong>
+<li><strong>第二小部分：新A的探索与独立确认。</strong>
 <ol>
-<li><strong>核心目标（要说什么）：</strong> 将写作计划与科学采用的条件分开。</li>
-<li><strong>准备怎么说：</strong> 内部写作状态记为原F-A待valid-only checkpoint修复及冻结范围重跑。若干净结果不保留反序则撤销；若保留才重新进入摘要／主图，且重新计算全部范围与区间。</li>
-<li><strong>注意点／强调：</strong> 这是一条作者工作约束，不将缺陷数值当普通baseline放进投稿主文。正式稿写清最终采用实现和质量检查；139项CPU回归只支持修复候选，不能代替正式重算。A若恢复主发现，还需协议固定的五个新联合seed确认；旧Output保持原身份，不通过手工改写缓存恢复。</li>
+<li><strong>核心目标（要说什么）：</strong> 分开展示已正确重算的关系与预定确认对它的检验。</li>
+<li><strong>准备怎么说：</strong> 十seed面板报告ΔR=+0.849、ΔG=−6.494 pp及两条同时区间；确认面板使用1701/1709/1721/1733/1741，完整报告五个seed及是否满足双区间和4/5规则。用Degree的原始端点界定请求对的局部性，不补入未重算Random。</li>
+<li><strong>注意点／强调：</strong> 原十seed是探索案例修复，不是新独立复现；五seed功效有限，失败也必须报告，不追加seed直到显著。30个新GU只恢复本范围，不恢复旧72条件的发生率。</li>
+</ol>
+</li>
+<li><strong>第三小部分：A自身的解释控制。</strong>
+<ol>
+<li><strong>核心目标（要说什么）：</strong> 确定这对请求中的GU、Original、Ret分别怎样变化，以及观察是否依赖评价图。</li>
+<li><strong>准备怎么说：</strong> 同一十seed×R-point/D-full共20对，先报告O/G/R五类关系与真值，再比较同权重原图和retained图；给请求删边和类别组成。GNNDelete两个删除掩码固定为Output保存值，不能换图后重算。先做seed42两对技术gate，再无条件完成20对。</li>
+<li><strong>注意点／强调：</strong> B的GIF/MEGU控制不能代替A；原图复现失败必须处理，换图效应消失则限定原图。组成统计是描述作用路径，没有因果匹配就不称排除全部结构因素。</li>
+</ol>
+</li>
+<li><strong>插图 F2-A：完整请求对、确认和解释。</strong>
+<ol>
+<li><strong>内容与组织：</strong> 上排探索十seed和确认五seed的Ret/GU配对差，Degree原值小表；下排20对O/G/R真值关系及两图对照，必要时将细分真值移补充表。</li>
+<li><strong>示意与布局：</strong> 两列对应探索／确认，不跨列连接seed；差值图零线明确，两模型采用不同形状。解释面板按请求分组，各自显示Ret纠错／损失和GU纠错／损失，避免仅画总分歧。</li>
+<li><strong>Caption 与关联：</strong> 标明30个新GU、30个匹配Ret、五seed另15+15、20个解释对；样本单位是联合seed，节点数不是推断样本数。所有未通过／不确定条件可见，不把gate重复计入独立样本。</li>
 </ol>
 </li>
 </ol>
@@ -1397,7 +1418,7 @@ E_M(S)             = G_M(S) − mean_r G_M(S_r)
 </li>
 </ol>
 <h2 id="pw-doc-section-21">段落—图表—证据对应表</h2>
-<p>下表是写作定位，不替代实验台账。原始 CSV 中保留全部方法；<strong>论文采用时必须执行GNNDelete暂停、080旧分片单列、GIF/IDEA近重复不重复计证据这三条规则</strong>。原始库存条目数不等于采用后的样本数。新结果不能继承旧批次的接受状态。</p>
+<p>下表是写作定位，不替代实验台账。原始 CSV 中保留全部方法；<strong>论文采用时必须执行旧GNNDelete隔离／新084单列、080旧分片单列、GIF/IDEA近重复不重复计证据这三条规则</strong>。原始库存条目数不等于采用后的样本数。新结果不能继承旧批次的接受状态。</p>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -1408,6 +1429,12 @@ E_M(S)             = G_M(S) − mean_r G_M(S_r)
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>新A；候选I-P3、Q1-P2、F2-A</td>
+<td><a href="../../self/research/experiments/drafts/round3-execution-prep/e84r1/REPORT.html">084新端点与配对差</a>、<a href="../../self/research/experiments/drafts/round3-execution-prep/e84r1/DECISION.json">采用决定</a></td>
+<td>新十seed／三策略／60端点；五新seed及20对解释控制另批绑定，不合并冒充独立确认</td>
+<td>当前只是恢复候选；121返回文件＋30GU checkpoint通过不等于解释闭合或Weak Accept</td>
+</tr>
 <tr>
 <td>I-P3、Q2-P2；F1</td>
 <td><a href="../../self/research/analyses/EXP-080/full-20261021/selector_gu_curve_values.csv">080原始端点</a>、<a href="../review/2026-10-24-self-audit/analysis/budget_random_contrasts.csv">同Random对照</a></td>
@@ -1528,14 +1555,14 @@ E_M(S)             = G_M(S) − mean_r G_M(S_r)
 <p>与第一稿衔接时的材料准备顺序：先通过当前采纳门槛，再将F1–F3／T1/T3绑定到可采用数据，再完成具体图形与caption；随后写Results和Experimental Design，再写Method/Problem，最后根据确定的发现写Introduction/Abstract及讨论。图表最终绘制须使用统计绘图工具输出可导出PDF/SVG，不能用生成式示意图代替实测结果。</p>
 <h2 id="pw-doc-section-22">审查重点与仍需准备的材料</h2>
 <ol>
-<li><strong>论证选择：</strong> 原F-A已隔离；B1/B2是当前一条主观察的两个层次，贡献强度仍待判断。旧accuracy–D分离不是新增发现；不从其他格子事后换一个主例掩盖问题。</li>
+<li><strong>论证选择：</strong> 旧F-A隔离，新A十seed候选成立；五seed确认及自身控制决定核心地位。B1/B2是一条响应论证的两个层次，贡献强度仍待判断。普通accuracy–D分离不是新增发现；不从其他格子事后换主例。</li>
 <li><strong>权限与语义：</strong> 全训练候选池压力测试、移除监督／incident edges而保留特征行、原图评价，应按第3章准确表述；如果作者希望更强现实部署结论，需要另有证据。</li>
 <li><strong>证据采用：</strong> 新011/079与080分模块，按方法标注080旧分片；原始结果、Degree反例、GraphRevoker变体与GIF/IDEA近重合如实保留；共同Output不重复计样本。</li>
 <li><strong>版面选择：</strong> F1可采用原始端点、F2固定预算机制、F3两个基线预算关系，加T1设置和T3来源范围；旧F4移附录E1，margin暂不采纳。Hop、成本与校准细表下放。附录A–E按总页数压缩，完整图册进匿名材料。详细提纲是写作约束，不意味着每个小部分都要扩成一段长文。</li>
 <li><strong>现有数据的整理项：</strong> 生成最终F1–F3、T1/T3与匿名参数表；统一accuracy／drop／D字段及符号；为需要正式跨source显著性结论的句子绑定相应配对检验家族。以上属于已有证据的整理，不是已经完成的图表。</li>
-<li><strong>仍需补强的解释：</strong> 先修复GNNDelete测试集选模和受影响生成身份；B的三端点／真值正确性／两图与MEGU匹配后处理尚未完成，优先复用B组输出。若要声称超出自然噪声或目标backbone泛化，分别补固定S的R–R或目标模型验证，不能靠更强措辞替代。</li>
+<li><strong>仍需补强的解释：</strong> GNNDelete修复与限定重算已通过；继续新A五seed确认及20对三端点／两图，B54引用诊断及Ret九条轨迹。B gate已执行但当前回传接口需修复，不能采用未接受结果。若声称超出自然噪声或目标backbone泛化，分别补固定S的R–R或目标模型验证，不能靠更强措辞替代。</li>
 <li><strong>写作放行条件：</strong> 按执行协议判断A恢复／减弱／消失及B的解释；主图依完整对照取舍。提纲审查通过也不自动启动正文，须冻结有效证据包，由理论、实验、分析三类复审均判Weak Accept或以上且主审同意，记录writing_gate=pass后才开始第一版英文正文。目前为not_met。</li>
 </ol>
 <p>沿用的相关工作定位入口：<a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/a89d228d9489814b98050a1f7b43ccdd-Paper-Conference.pdf">ICLR2026 GU benchmark</a>、<a href="https://arxiv.org/abs/2603.18570">Attack by Unlearning</a>、<a href="https://arxiv.org/html/2610.04310v1">Modeling Deletion Requests</a>。近邻原文核验沿用第一轮，见<a href="../review/2026-10-24-self-audit/positioning/CRITIQUE.html">近邻定位审查</a>。正式英文引用仍需按原文及BibTeX元数据核对。</p>
-<p>工作区入口：<a href="../README.md">README</a>、<a href="../latex/ENVIRONMENT.html">本地LaTeX环境</a>、<a href="../latex/main.tex">模板自检主文件</a>、<a href="../../output/paper-review-20261024/sync-manifest.json">Overleaf同步清单</a>。本轮完成提纲自审、已有实验CPU重分析及写作提纲修订；没有生成第一版英文科研正文。</p>
-<footer>Source: OUTLINE.md<br>SHA-256: 3c30343bf2c0f4a316f80f3c58867b7fc5f0c3b0784696ad2ebbe661ad907077<br>使用 paper_writing/tools/render-docs.ps1 重建此页面。</footer></main></div></body></html>
+<p>工作区入口：<a href="../README.md">README</a>、<a href="../latex/ENVIRONMENT.html">本地LaTeX环境</a>、<a href="../latex/main.tex">模板自检主文件</a>、<a href="../../output/paper-review-20261024/sync-manifest.json">Overleaf同步清单</a>。本轮已完成正式A重算及其CPU分析，其他阶段状态见执行报告；没有生成第一版英文科研正文。</p>
+<footer>Source: OUTLINE.md<br>SHA-256: 47426869df6a7685f6b199e63fdda1f7c21adb8572282f1b4fd4c09bc332fe01<br>使用 paper_writing/tools/render-docs.ps1 重建此页面。</footer></main></div></body></html>
