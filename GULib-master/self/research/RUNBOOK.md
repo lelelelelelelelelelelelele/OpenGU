@@ -44,7 +44,7 @@ GU 在 `reuse` 下先按当前输入和已有 checkpoint 元数据查找 Output�
 
 每次运行准备以一次同步为目标：先在本地备齐本阶段所需代码、实验配置、引用小表和全部 Recipe，完成审阅与相邻验证，并将完整交付落到同一主线目标版本，再统一同步一次。不得先同步代码、到提交前才补配置或 Recipe 而重复同步。同步完成并通过正式 preflight 后，直接按已授权顺序提交已准备好的运行。同一版本已同步就绪时不重复同步；依赖上游结果才能确定的后续阶段，在结果确定后独立备齐该阶段输入，再按同样流程处理。
 
-所有 SSH 代码同步，包括不伴随 Block 合并的独立同步，都使用 `.workblock/actions/install.json` 登记的安装动作；GitHub 获取须在同一临时 shell 中先启用学术加速，不临时绕过动作手写裸 fetch/pull。仅论文或文档编辑不主动触发 SSH 同步；下一次正式运行需要更新版本时再统一同步。已有任务占用 SSH 活跃检出时，任何提交（包括论文提交）都不得更新该检出；运行代码变更留在本地，待占用结束后部署。
+所有 SSH 代码同步，包括不伴随 Block 合并的独立同步，都使用 `.workblock/actions/install.json` 登记的安装动作；当前登记路线使用经 SHA-256、目标 ref 与前置提交校验的私有 Git bundle；正式基线为本地主线、已核验 bundle 目标与 SSH 主线同一完整 SHA。不得访问或推送公开 GitHub，不临时手写 fetch/pull，不重写 origin 引用；origin 保留真实历史值，不声称与私有版本相等。仅论文或文档编辑不主动触发 SSH 同步；下一次正式运行需要更新版本时再统一同步。已有任务占用 SSH 活跃检出时，任何提交（包括论文提交）都不得更新该检出；运行代码变更留在本地，待占用结束后部署。
 
 1. 确认实验记录允许的范围，审阅 `experiment.yaml` 及引用的小表，按 [experiments/AGENTS.md](../../experiments/AGENTS.md) 完成相邻验证。
 2. 按 [Recipe 命令说明](../../scripts/syncmate/README.md#independent-recipe-yaml) 使用 `recipe.py generate`，指定 recipe ID、新 run ID、超时、`--node gpu4090` 和 `--output scripts/syncmate/recipes/<id>.yaml`。命令从配置绑定的现存 Dataset/Split 自动取得节点数与候选数并直接生成可审阅 YAML；缺失或身份不符即报错，不手填计数、不下载原始数据。已有 YAML 保留；不为每次查看重新生成。
@@ -85,10 +85,10 @@ Agent 按确切 job_id 读取本地 controller、delivery 和 handoff 回执，�
 
 分析绑定具体运行/配置范围及报告，明确哪些结果被采用或排除。可先分析可信子集；不能把部分分析显示成全矩阵完成。记录计算或缓存命中、结果身份正确、结论支持范围三类事实。用户接受的是明确结论范围，不从Block accepted、校验PASS或程序退出推断。
 
-分析完成后，将所述范围、采用/排除理由、配置引用、实际运行 SHA、run ID、manifest/报告引用与科学决定保存在 `analyses/EXP-NNN.json`，检查通过后独立提交对应分析和报告。不要用分析提交 SHA 替换实际运行 SHA。批次仍在运行时可先保留草稿，避免提交推动本地 HEAD 后影响下一阶段的三端就绪检查；不得更新活跃任务的 SSH checkout。
+分析完成后，将所述范围、采用/排除理由、配置引用、实际运行 SHA、run ID、manifest/报告引用与科学决定保存在 `analyses/EXP-NNN.json`，检查通过后独立提交对应分析和报告。不要用分析提交 SHA 替换实际运行 SHA。批次仍在运行时可先保留草稿，避免提交推动本地 HEAD 后影响下一阶段的本地／bundle／SSH 版本就绪检查；不得更新活跃任务的 SSH checkout。
 
 ## 6. 更新总表
 
 更新实验阶段与下一步，将证据归入对应运行或科学决定，再运行 README.md 中的生成和检查命令。实验依赖及Block阻塞在前端可见；它们不会改变原Block，也不会自动提交下一项实验。
 
-运行中的状态更新和页面重建不做 commit。分析提交后，下一次正式运行前重新同步并核对三端 SHA。状态目录缺失时先取回维护副本，不用 Git 历史里的旧计划或已完成分析推断当前状态。
+运行中的状态更新和页面重建不做 commit。分析提交后，下一次正式运行前通过登记私有安装动作重新同步并核对本地／bundle／SSH 完整 SHA 与安装回执。状态目录缺失时先取回维护副本，不用 Git 历史里的旧计划或已完成分析推断当前状态。

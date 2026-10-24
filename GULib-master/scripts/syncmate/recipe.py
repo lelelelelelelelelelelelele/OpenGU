@@ -14,6 +14,7 @@ for directory in (ROOT, Path(__file__).resolve().parent):
 
 import yaml
 from opengu_recipes import RECIPE_DIRECTORY, assemble, generate, load_declaration
+from deployment_policy import deployment_policy, installation_receipt
 
 
 def git(root, *args):
@@ -28,6 +29,7 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
     from opengu_adapter import OpenGUProjectExtension
     from verify_core_dependency import verify_core_dependency
     root = Path(project_root).resolve()
+    policy = deployment_policy(root)
     declaration_path = root / RECIPE_DIRECTORY / (recipe_id + '.yaml')
     # A recipe argument is an ID, never an arbitrary filesystem path.
     from syncmate_core.contracts import JOB_ID_RE
@@ -38,7 +40,7 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
     if spec['id'] != recipe_id:
         raise ValueError('recipe filename/id mismatch')
     definition = assemble(spec, root)
-    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=True):
+    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=policy['require_origin_main']):
         device, warnings = devices.load_device(Path(device_file))
     peer = device.get('peers', {}).get(node_id)
     if not peer or peer.get('role') not in ('runner', 'runner+collector'):
@@ -46,6 +48,11 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
     sha = git(root, 'rev-parse', 'HEAD')
     branch = git(root, 'branch', '--show-current')
     errors = list(warnings)
+    receipt = None
+    try:
+        receipt = installation_receipt(root, sha, policy)
+    except (ValueError, OSError) as exc:
+        errors.append(str(exc))
     if git(root, 'status', '--porcelain', '--untracked-files=all'):
         errors.append('checkout has uncommitted files; commit the declaration and configuration before dispatch')
     if branch != 'main':
@@ -54,7 +61,7 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
     git(root, 'ls-files', '--error-unmatch', definition['config_path'])
     dependency = verify_core_dependency()
     errors.extend(dependency['errors'])
-    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=True):
+    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=policy['require_origin_main']):
         binding = recipes.runner_recipe_binding(definition)
         errors.extend(binding['errors'])
         landing = run_handoff.landing_for(node_id)
@@ -64,12 +71,7 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
         repository = git(root, 'remote', 'get-url', 'origin')
     except ValueError:
         repository = None
-        errors.append('origin repository is not configured')
-    try:
-        if git(root, 'rev-parse', 'refs/remotes/origin/main') != sha:
-            errors.append('local HEAD differs from origin/main')
-    except ValueError:
-        errors.append('origin/main is unavailable')
+
     return {'recipe': recipe_id, 'declaration': declaration_path.relative_to(root).as_posix(),
         'repository': repository, 'commit': sha, 'branch': branch,
         'config_path': definition['config_path'], 'config_sha256': definition['config_sha256'],
@@ -81,7 +83,8 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
         'local_receiving_root': str(root / landing),
         'collection': spec.get('outputs', {'layout': 'core-preflight'}),
         'expected_artifact_count': len(definition['expected_artifact_paths']),
-        'code_sync': 'Separate reviewed Git synchronization before dispatch; Core requires local/runner clean main at the same full commit. Dispatch does not copy dirty files or update code.',
+        'deployment_policy': policy, 'installation_receipt': receipt,
+        'code_sync': 'Registered private-bundle installation before dispatch; local/runner clean main must share the same full commit. Public origin alignment is not required. Dispatch never copies dirty files or updates code.',
         'local_checks_passed': not errors, 'errors': errors,
         'remote_checks': 'NOT OBSERVED: preview makes no remote connection; dispatch performs peer preflight and exact version checks.',
         'submitted': False}

@@ -153,5 +153,7 @@ def test_preview_resolves_device_and_outputs_without_submission(workspace):
     assert view['argv'][1:] == ['experiments/run.py', 'experiment.yaml', '--run-id', 'visible-run', '--syncmate']
     assert view['expected_artifact_count'] == len(assemble(load_declaration(path), root)['expected_artifact_paths'])
     assert view['remote_checks'].startswith('NOT OBSERVED')
-    assert not view['local_checks_passed']  # disposable repo has no origin
+    assert not view['local_checks_passed']
+    assert view['errors'] == ['exact private installation receipt is missing']
+    assert view['deployment_policy']['transport'] == 'private-bundle'
     assert before == {p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()}

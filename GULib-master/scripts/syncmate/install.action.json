@@ -2,15 +2,42 @@
   "schemaVersion": 1,
   "action": "install",
   "workingDirectory": ".",
-  "targets": ["ssh://autodl-opengu/autodl-fs/data/OpenGU", ".workblock/runtime/install"],
-  "preconditions": [],
-  "instruction": {"entry": ["E:/conda_package/envs/gnn/python.exe", "-B", "scripts/syncmate/install.py", "apply"]},
+  "targets": [
+    "ssh://autodl-opengu/autodl-fs/data/OpenGU",
+    ".workblock/runtime/install"
+  ],
+  "preconditions": [
+    "Use the reviewed private-bundle deployment policy; no public GitHub network or push. Installation receipt must bind target SHA, policy SHA and bundle SHA. The current successful runtime/install/<target>/receipt.json remains the execution credential. The closeout owner may archive and remove only superseded receipt directories after they no longer authorize runs; failed actions retain evidence for diagnosis. Temporary bundle directories are tool-owned and removed automatically. The persistent runner-install.log is preserved."
+  ],
+  "instruction": {
+    "entry": [
+      "E:/conda_package/envs/gnn/python.exe",
+      "-B",
+      "scripts/syncmate/install.py",
+      "apply"
+    ]
+  },
   "permissions": {
-    "write": ["ssh://autodl-opengu/autodl-fs/data/OpenGU", ".workblock/runtime/install"],
-    "delete": ["ssh://autodl-opengu/autodl-fs/data/OpenGU", ".workblock/runtime/install"],
-    "network": ["ssh://autodl-opengu", "https://github.com/lelelelelelelelelelelelele/OpenGU"]
+    "write": [
+      "ssh://autodl-opengu/autodl-fs/data/OpenGU",
+      ".workblock/runtime/install"
+    ],
+    "delete": [
+      "ssh://autodl-opengu/autodl-fs/data/OpenGU",
+      ".workblock/runtime/install"
+    ],
+    "network": [
+      "ssh://autodl-opengu"
+    ]
   },
   "secretRefs": [],
-  "readBack": {"entry": ["E:/conda_package/envs/gnn/python.exe", "-B", "scripts/syncmate/install.py", "receipt"]},
+  "readBack": {
+    "entry": [
+      "E:/conda_package/envs/gnn/python.exe",
+      "-B",
+      "scripts/syncmate/install.py",
+      "receipt"
+    ]
+  },
   "onFailure": "stop"
 }

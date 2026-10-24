@@ -1,10 +1,9 @@
 """Fixed SSH-side Git installation action. Receives data, never caller commands."""
 import base64
 import json
-import os
+import hashlib
 from pathlib import Path
 import re
-import signal
 import subprocess
 import sys
 import time
@@ -39,18 +38,19 @@ def check_paths(repo, old, target):
     return paths
 
 
-def accelerated_fetch(repo):
-    process = subprocess.Popen(['bash', '--noprofile', '--norc', '-c',
-        'test -f /etc/network_turbo && test ! -L /etc/network_turbo && test -r /etc/network_turbo && '
-        'source /etc/network_turbo >/dev/null 2>&1 && '
-        'GIT_TERMINAL_PROMPT=0 git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main'],
-        cwd=repo, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
-    try:
-        return process.wait(timeout=120)
-    except subprocess.TimeoutExpired:
-        os.killpg(process.pid, signal.SIGKILL)
-        process.wait()
-        return 124
+def origin_refs(repo):
+    return git(repo, 'for-each-ref', '--format=%(refname) %(objectname)', 'refs/remotes/origin/')
+
+
+def check_policy(repo, target, expected_hash):
+    raw = subprocess.check_output(['git', '-C', str(repo), 'show',
+                                   target + ':GULib-master/scripts/syncmate/deployment.json'])
+    expected = {'schema_version': 1, 'transport': 'private-bundle', 'require_origin_main': False}
+    value = json.loads(raw.decode('utf-8'))
+    canonical = json.dumps(value, sort_keys=True, separators=(',', ':')).encode('utf-8')
+    if (hashlib.sha256(canonical).hexdigest() != expected_hash or value != expected
+            or type(value.get('schema_version')) is not int or type(value.get('require_origin_main')) is not bool):
+        raise ValueError('target deployment policy mismatch')
 
 
 def install(request):
@@ -69,40 +69,46 @@ def install_checkout(project, request):
     target, old = request['target'], request['old']
     if any(not re.fullmatch('[0-9a-f]{40}', v) for v in (target, old)):
         raise ValueError('full Git identities required')
+    if request.get('transport') != 'private-bundle' or not re.fullmatch('[0-9a-f]{64}', request.get('policy_sha256') or ''):
+        raise ValueError('explicit private-bundle policy required')
+    before_origin = origin_refs(repo)
     if check_tree(repo) != old:
         raise ValueError('runner version changed since bundle preparation')
     if old == target:
-        return {'status': 'already_installed', 'target': target, 'head': old}
+        check_policy(repo, target, request['policy_sha256'])
+        return {'status': 'already_installed', 'target': target, 'head': old, 'project': str(project),
+                'transport': 'private-bundle', 'policy_sha256': request['policy_sha256'],
+                'origin_refs_unchanged': origin_refs(repo) == before_origin}
     sys.path.insert(0, str(project))
     # Installed Core must expose maintenance; no unsafe stop/kill fallback.
     from syncmate_core import context
     from syncmate_core.maintenance import installation
-    result = {'target': target, 'old': old, 'status': 'failed', 'runner_restored': False}
+    result = {'target': target, 'old': old, 'project': str(project), 'status': 'failed', 'runner_restored': False}
     with context.use(project):
         with installation() as state:
             result['runner_was_active'] = state['restart']
             check_tree(repo, old)
-            # Acceleration is always sourced before the FIRST network attempt.
-            fetch_code = accelerated_fetch(repo)
-            result['fetch_exit_code'] = fetch_code
-            if fetch_code == 0:
+            bundle = repo / '.git' / ('install-' + uuid.uuid4().hex + '.bundle')
+            try:
+                data = base64.b64decode(request['bundle'], validate=True)
+                if hashlib.sha256(data).hexdigest() != request.get('bundle_sha256'):
+                    raise ValueError('bundle SHA-256 mismatch')
+                bundle.write_bytes(data)
+                subprocess.run(['git', '-C', str(repo), 'bundle', 'verify', str(bundle)],
+                               check=True, capture_output=True)
+                heads = git(repo, 'bundle', 'list-heads', str(bundle)).splitlines()
+                if heads != [target + ' refs/heads/main']:
+                    raise ValueError('bundle target or advertised refs mismatch')
+                # Fetch only into FETCH_HEAD; never write public origin tracking refs.
+                subprocess.run(['git', '-C', str(repo), 'fetch', '--no-tags', str(bundle), 'refs/heads/main'],
+                               check=True, capture_output=True)
                 if git(repo, 'rev-parse', 'FETCH_HEAD') != target:
-                    raise ValueError('origin changed; refusing a different target')
-                result['transport'] = 'accelerated-git'
-            else:
-                bundle = repo / '.git' / ('install-' + uuid.uuid4().hex + '.bundle')
-                try:
-                    bundle.write_bytes(base64.b64decode(request['bundle'], validate=True))
-                    subprocess.run(['git', '-C', str(repo), 'bundle', 'verify', str(bundle)],
-                                   check=True, capture_output=True)
-                    subprocess.run(['git', '-C', str(repo), 'fetch', str(bundle),
-                                    'refs/heads/main:refs/remotes/origin/main'],
-                                   check=True, capture_output=True)
-                    if git(repo, 'rev-parse', 'FETCH_HEAD') != target:
-                        raise ValueError('bundle target mismatch')
-                finally:
-                    bundle.unlink(missing_ok=True)
-                result['transport'] = 'bundle'
+                    raise ValueError('bundle target mismatch')
+                check_policy(repo, target, request['policy_sha256'])
+            finally:
+                bundle.unlink(missing_ok=True)
+            result.update(transport='private-bundle', bundle_sha256=request['bundle_sha256'],
+                          policy_sha256=request['policy_sha256'])
             subprocess.run(['git', '-C', str(repo), 'merge-base', '--is-ancestor', old, target], check=True)
             paths = check_paths(repo, old, target)
             result['changed_paths'] = paths
@@ -115,7 +121,9 @@ def install_checkout(project, request):
                 file = repo / path
                 if path.endswith('.py') and file.is_file():
                     ast.parse(file.read_text(encoding='utf-8-sig'), filename=path)
-            result.update(head=target, status='installed')
+            if origin_refs(repo) != before_origin:
+                raise ValueError('origin tracking refs changed')
+            result.update(head=target, status='installed', origin_refs_unchanged=True)
         if state['restart']:
             log = project / '.syncmate/runner-install.log'
             with log.open('ab') as output:

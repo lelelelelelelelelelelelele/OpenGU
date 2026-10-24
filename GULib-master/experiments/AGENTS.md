@@ -83,14 +83,14 @@ Minimal gate 必须在正式 SSH 环境代表真实 lane，并与后续扩展保
 
 ## 7. 正式运行版本一致性与 SSH 边界
 
-本地用于代码与配置修改、CPU 测试、dry-run 和结果审阅；正式 GPU gate、矩阵、正式数据及运行态位于 SSH 活跃检出。实验所需代码、配置与 Recipe 已审阅并提交到主线后，再确认 `本地 main = origin/main = SSH 活跃检出 main = 同一已记录的完整 Git SHA`；存在开发 Block 依赖时，还须确认其所需交付已落地。
+本地用于代码与配置修改、CPU 测试、dry-run 和结果审阅；正式 GPU gate、矩阵、正式数据及运行态位于 SSH 活跃检出。实验所需代码、配置与 Recipe 已审阅并提交到主线后，通过登记的 private-bundle 安装动作确认 `本地 main = 已核验 bundle 目标 = SSH 活跃检出 main = 同一已记录的完整 Git SHA`；`origin/main` 保留公开远端的真实历史值，不要求相等，也不得重写来伪造一致；存在开发 Block 依赖时，还须确认其所需交付已落地。
 本地与 SSH tracked tree 必须干净，SSH 只使用唯一正式活跃检出。
 该要求只保证一次正式运行的代码与配置一致；它不是 cache key，也不要求清空缓存。
 Cache 命中仍由 Recipe、producer、数据、候选集合和依赖 Artifact 身份决定：语义身份未变时可跨无关提交精确复用，生产语义或输入身份变化时必须形成新 Recipe、MISS 或 fail-closed；专题显式绑定 Git SHA 时服从其契约。
 
 SSH 正式启动分两层：
 
-1. **共享 stage check**：三方 `main` 与完整 SHA 一致、tracked tree 干净、活跃检出正确、GPU 可用、运行路径归属明确；
+1. **共享 stage check**：本地 main、已核验 bundle 目标与 SSH main 的完整 SHA 一致，精确安装回执有效、tracked tree 干净、活跃检出正确、GPU 可用、运行路径归属明确；
 2. **实验专属 preflight**：配置或 Recipe、数据与划分、manifest、设备要求、已有产物和恢复条件符合本实验定义。
 
 恢复条件包括 ScoreBundle 写锁：Selector/GU 的项目 preflight 与实际执行入口在模型准备前只读检查共享 Cache 的 `.locks/score-*.lock`，现存活动、遗留或归属未知的锁均阻断新矩阵。超时强杀不能保证释放文件锁；runner 空闲或安装通过不代表 Cache 可续跑。具体恢复按实验 Runbook 和机器修复 Runbook，不自动删除锁或 Artifact。

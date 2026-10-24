@@ -43,12 +43,12 @@ def workspace(tables):
     paths = [p.relative_to(ROOT).as_posix() for directory in ('experiments', 'scripts', 'model', 'utils', 'attack', 'cache_v2', 'task', 'pipeline', 'unlearning', 'dataset') for p in (ROOT / directory).rglob('*') if p.is_file()] + [p.name for p in ROOT.glob('*.py')]
     for relative in filter(None, paths):
         source = ROOT / relative
-        if (source.suffix != '.py' and relative not in ('cache_v2/source_compatibility.json', 'scripts/syncmate/core_dependency.json') and not relative.startswith('model/properties/')) or relative.startswith('tests/') or not source.is_file():
+        if (source.suffix != '.py' and relative not in ('cache_v2/source_compatibility.json', 'scripts/syncmate/core_dependency.json', 'scripts/syncmate/deployment.json') and not relative.startswith('model/properties/')) or relative.startswith('tests/') or not source.is_file():
             continue
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
-    (root / '.gitignore').write_text('.syncmate/\nresults/\n__pycache__/\n*.pyc\ncollector/\n')
+    (root / '.gitignore').write_text('.syncmate/\n.workblock/runtime/\nresults/\n__pycache__/\n*.pyc\ncollector/\n')
     (root / '.syncmate').mkdir()
     write_yaml(root / '.syncmate/device.yaml', {
         'version': 1, 'device_id': 'temporary-cpu', 'role': 'runner',
