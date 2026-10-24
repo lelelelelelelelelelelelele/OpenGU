@@ -1,0 +1,7 @@
+# Round-three experiment contracts contain byte-bound SHA-256 references.
+# Keep their bytes stable across Windows authoring and Linux execution.
+experiments/configs/exp084/*.yaml text eol=lf
+experiments/configs/exp085/*.yaml text eol=lf
+experiments/configs/evaluations/post_unlearning_response_graph_sensitivity.yaml text eol=lf
+scripts/syncmate/recipes/exp084-*.yaml text eol=lf
+scripts/syncmate/recipes/exp085-*.yaml text eol=lf
