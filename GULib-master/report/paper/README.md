@@ -6,6 +6,8 @@
 - `RESUBMISSION_BLUEPRINT.md`、`sections/` 中既有草稿和阶段报告：历史背景或既有分析产物，不承担当前章节规划。生成器拥有的产物仍由原生成器维护。
 - 实验配置、数据、运行产物与验收证据继续由原位置拥有，OB 引用它们，不搬运或重写结果。
 
+当前 LaTeX Fig. 4 采用 EXP-080 的 CiteSeer 准确率与同请求 Retrain 预测不一致率两组比例图。其图形口径、论文段落、配对数值与解释边界统一保存在 [Fig. 4 论文采用与归档快照](figures/exp080-ratio-response-20261025/REPORT.md)（[HTML](figures/exp080-ratio-response-20261025/REPORT.html)）；该采用记录不改变 EXP-080 的科学接受状态。
+
 旧 outline 章节及索引已删除，不保留历史副本。
 
-本次仅调整写作组织，不更新科学结论、实验状态或 LaTeX 正文。历史审计记录中的旧路径保留为当时的事实记录。
+历史审计记录中的旧路径保留为当时的事实记录。

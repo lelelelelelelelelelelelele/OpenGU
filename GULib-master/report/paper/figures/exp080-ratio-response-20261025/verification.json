@@ -1,0 +1,126 @@
+{
+  "scope": "EXP-080 CiteSeer figure adoption; 5 selectors, 7 methods, 7 ratios, 3 training seeds",
+  "raw_cells": 1029,
+  "seed_aggregated_rows": 735,
+  "matched_request_groups": 147,
+  "verified_mean_sd_points": 455,
+  "paired_changes": [
+    {
+      "selector": "r_point",
+      "method": "GIF",
+      "accuracy": {
+        "at_10": 75.02502502502503,
+        "at_50": 74.42442442442443,
+        "paired_change_mean": -0.6006006006005956,
+        "paired_change_sample_sd": 0.5413740653849802,
+        "paired_change_min": -1.0510510510510471
+      },
+      "disagreement": {
+        "at_10": 7.407407407407407,
+        "at_50": 40.190190190190194,
+        "paired_change_mean": 32.78278278278278,
+        "paired_change_sample_sd": 7.477919673679933,
+        "paired_change_min": 25.825825825825827
+      }
+    },
+    {
+      "selector": "r_point",
+      "method": "IDEA",
+      "accuracy": {
+        "at_10": 75.02502502502503,
+        "at_50": 74.42442442442443,
+        "paired_change_mean": -0.6006006006005956,
+        "paired_change_sample_sd": 0.5413740653849802,
+        "paired_change_min": -1.0510510510510471
+      },
+      "disagreement": {
+        "at_10": 7.407407407407407,
+        "at_50": 40.190190190190194,
+        "paired_change_mean": 32.78278278278278,
+        "paired_change_sample_sd": 7.477919673679933,
+        "paired_change_min": 25.825825825825827
+      }
+    },
+    {
+      "selector": "r_point",
+      "method": "MEGU",
+      "accuracy": {
+        "at_10": 74.27427427427428,
+        "at_50": 74.22422422422423,
+        "paired_change_mean": -0.05005005005004648,
+        "paired_change_sample_sd": 0.4334461480402532,
+        "paired_change_min": -0.3003003003002931
+      },
+      "disagreement": {
+        "at_10": 9.20920920920921,
+        "at_50": 40.94094094094094,
+        "paired_change_mean": 31.73173173173173,
+        "paired_change_sample_sd": 8.495544501589087,
+        "paired_change_min": 24.024024024024023
+      }
+    },
+    {
+      "selector": "im_rr_greedy",
+      "method": "GIF",
+      "accuracy": {
+        "at_10": 74.74140807474141,
+        "at_50": 74.50784117450785,
+        "paired_change_mean": -0.23356690023355972,
+        "paired_change_sample_sd": 0.18948643129129003,
+        "paired_change_min": -0.4504504504504325
+      },
+      "disagreement": {
+        "at_10": 5.071738405071738,
+        "at_50": 14.981648314981648,
+        "paired_change_mean": 9.90990990990991,
+        "paired_change_sample_sd": 0.568459293873901,
+        "paired_change_min": 9.50950950950951
+      }
+    },
+    {
+      "selector": "im_rr_greedy",
+      "method": "MEGU",
+      "accuracy": {
+        "at_10": 74.55789122455789,
+        "at_50": 74.341007674341,
+        "paired_change_mean": -0.21688355021688702,
+        "paired_change_sample_sd": 0.1608884010843101,
+        "paired_change_min": -0.40040040040041447
+      },
+      "disagreement": {
+        "at_10": 6.022689356022689,
+        "at_50": 14.414414414414415,
+        "paired_change_mean": 8.391725058391724,
+        "paired_change_sample_sd": 0.10418748746076807,
+        "paired_change_min": 8.308308308308307
+      }
+    }
+  ],
+  "paper_report_prose_identical": true,
+  "execution_sources": [
+    {
+      "run_id": "e80r305",
+      "execution_sha": "a217daf5c67b485afed63c393b5e8bb23820b237"
+    },
+    {
+      "run_id": "e80r306",
+      "execution_sha": "8fb8169475b015ac4cc6dd1a61c6d26ee5ff7670"
+    }
+  ],
+  "scientific_decision_at_build": "not_requested",
+  "remote_raw_file_reaudit_performed": false,
+  "input_sha256": {
+    "self/research/analyses/EXP-080/full-20261021/cells.csv": "150a9d1e1580f44fb4b7c0c937df8ec8621a12ee138dbafa05eca0153136f2b7",
+    "self/research/analyses/EXP-080/full-20261021/seed_values.csv": "be58ebf12caf315f022abd718b8614dff9b562845120b14f0204b74cf332af2d",
+    "self/research/analyses/EXP-080/full-20261021/condition_summary.csv": "f0300bf0ff8ca8c3e7e2833d153e7db58c2c13e1e47ed881e788fecf5b908b52",
+    "self/research/analyses/EXP-080/full-20261021/verification.json": "3715d2ca63dc0448a0dc3c616c10f5634cf87621118d837760799f8ba5dcf0ff",
+    "report/paper/figures/exp080-ratio-response-20261025/REPORT.md": "2fff0914408d6a70ae9d189cdc97400feeed8d288f5b22273c84d7723c02e7f5",
+    "report/paper/overleaf/sections/results.tex": "078145c84b719242aea61adc12416e10bf58a8e9f73ac560b3bb54a415e646d7",
+    "report/paper/overleaf/figures/citeseer_selector_responses.pdf": "2b7b7263fc585301e98892c4e1343eac52c764c40f167312ef761f3d58483a44",
+    "scripts/plot_exp080_selector_response.py": "f995c1f9667ea0d2b0d404378f1915128f3a77058076bf39d32ac693322c07bf"
+  },
+  "output_sha256": {
+    "REPORT.html": "a21c6a684fd1a41dfd4a2bcace62638cba239f05d9d71aa3b419022ef794ee7f",
+    "fig4.png": "94150b51f4e8bee6375707c13797f38844cf9403b947d953f7477ffd44b20f8b"
+  }
+}
