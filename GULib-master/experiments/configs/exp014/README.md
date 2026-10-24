@@ -2,7 +2,7 @@
 
 The question is whether the existing selectors can generate valid deletion
 requests on ogbn-arxiv within practical time and memory limits. This preparation
-contains four submissions covering five selector conditions. Random and Degree
+initially contained four submissions covering five selector conditions. Random and Degree
 share a two-condition job; the other selectors retain independent jobs. It does not
 run GU, Retrain, downstream utility evaluation, or a multi-seed effect study.
 
@@ -27,9 +27,44 @@ unused model training seed. IM uses propagation probability 0.1 and RR-65536,
 matching that setting in the small-graph main table. The historical RR-1024
 result is background evidence, not evidence that RR-65536 will finish.
 
-These five selectors are the initial scope. PageRank, other RR counts,
-trajectory selectors and surrogate variants are not measured by these Recipes;
-the result must not be described as covering every project selector.
+These five selector types are the scope. The conditional RR cost declarations
+below extend IM's parameter measurements. PageRank, trajectory selectors and
+surrogate variants are not included; this is not every project selector.
+
+## Progressive RR cost measurements
+
+Only `rr_count` changes. The candidate pool, split, deletion budget, IM seed and
+propagation probability remain fixed. Reuse the verified historical RR-1024
+result (selector 366.55 seconds, process 380.39 seconds, original code SHA
+`e5a61494b63d0a403f1d88acff05184e6f446dd6`) with its environment and timing
+provenance labeled. Preserve the EXP-014 RR-65536 timeout as a failed attempt;
+neither existing result is scheduled for an automatic rerun.
+
+| RR count | Configuration | Recipe ID | Run ID | Scheduling role |
+| --- | --- | --- | --- | --- |
+| 4096 | `rr4096.yaml` | `exp014-rr4096-r1` | `e14c1` | First new measurement |
+| 8192 | `rr8192.yaml` | `exp014-rr8192-r1` | `e14c2` | Conditional intermediate tier |
+| 16384 | `rr16384.yaml` | `exp014-rr16384-r1` | `e14c3` | Expansion after 4096 |
+| 32768 | `rr32768.yaml` | `exp014-rr32768-r1` | `e14c4` | Conditional further expansion |
+
+After the currently authorized ETR batch releases the checkout, run the
+independent D-full job, then start IM at RR-4096. Use real producer timings to
+decide whether to proceed to RR-16384 or first measure RR-8192. RR-32768 runs
+only if the observed costs leave reasonable headroom. This table is a set of
+reviewed candidates, not an unconditional four-job batch.
+
+Each RR job has a 7200-second whole-job cap. After a timeout/resource failure,
+or a completed job taking at least 6480 seconds (90% of the cap), record the
+outcome and stop IM expansion. The runner retains the full 7200-second cap for
+a running job; the 6480-second threshold is not an early-kill instruction.
+Scheduling estimates are disclosed heuristics, not measured costs or bounds.
+Stopping IM does not cancel other independent Recipes, including D-full.
+
+These four IM caps sum to at most eight job-hours plus termination overhead;
+that sum is a spending ceiling, not a completion estimate. The user explicitly
+authorized this bounded exploration without a pre-run cold completion forecast.
+Do not replace a missing estimate with a timeout value. Report cache reuse
+separately and do not remove cache content to manufacture cold measurements.
 
 ## Timing and acceptance
 
@@ -71,10 +106,11 @@ R-point, IM-RR65536 and D-full each have a user-approved 7200-second
 (two-hour) whole-job timeout, including any required model preparation. Their
 combined serial cap is six job-hours. The combined Random/Degree job retains
 its 21600-second timeout. These are spending caps, not completion estimates;
-termination overhead is additional. There is no automatic batch submission or
-retry. Before any GPU launch, record an evidence-based all-MISS serial estimate
-for the agreed full scope in Work Plan, check the required gate, synchronize the
-reviewed version and pass formal preflight. This preparation does not launch jobs.
+termination overhead is additional. Submit jobs individually and do not retry
+failed attempts automatically. The user waived the pre-run cold completion
+forecast for this bounded exploration; keep the estimate unknown instead of
+substituting a cap. Review the declarations, synchronize through the registered
+installation action and pass formal preflight before execution.
 
 Successful execution still requires trusted collection and validation of the
 selected node count, uniqueness, candidate membership and exact input/artifact

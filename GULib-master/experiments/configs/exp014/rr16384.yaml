@@ -1,0 +1,15 @@
+# EXP-014: independent RR cost tier; cache-aware timing.
+kind: experiment
+schema_version: 1
+stage: selector
+dataset_refs:
+- ogbn-arxiv.yaml
+matrix: cartesian_product
+budget_ratios:
+- 0.05
+return_scores: false
+experiment_id: exp014-selector-rr16384
+selector_refs:
+- rr_16384.yaml
+im_selector_seeds:
+- 11
