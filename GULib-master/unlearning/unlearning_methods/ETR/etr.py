@@ -73,26 +73,33 @@ def gradient_information(model, graph, *, seed_loss):
                  for name, p in model.named_parameters()}
     if not all(torch.isfinite(g).all() for g in gradients.values()):
         raise ValueError('ETR produced non-finite edit gradients')
-    return gradients, {name: grad.pow(2) for name, grad in gradients.items()}
+    # Promote before the first square: nonzero float32 gradients may square to zero.
+    return gradients, {name: grad.to(torch.float64).pow(2) for name, grad in gradients.items()}
 
 
 def erase(model, all_importance, forgotten_importance, influenced_importance, ratio):
     with torch.no_grad():
         for name, parameter in model.named_parameters():
-            original = all_importance[name]
-            forgotten = forgotten_importance[name]
-            influenced = influenced_importance[name]
+            # Keep every Erase intermediate wide, including products before division.
+            original = all_importance[name].to(torch.float64)
+            forgotten = forgotten_importance[name].to(torch.float64)
+            influenced = influenced_importance[name].to(torch.float64)
+            if not all(torch.isfinite(value).all() and (value >= 0).all()
+                       for value in (original, forgotten, influenced)):
+                raise ValueError('ETR importance must be finite and nonnegative: ' + name)
             b1 = torch.min(torch.nan_to_num(original / forgotten, nan=1.0), torch.ones_like(original))
             b2 = torch.min(torch.nan_to_num(original.pow(2) / (forgotten * influenced), nan=1.0),
                            torch.ones_like(original))
             q1, q2 = torch.quantile(b1, ratio), torch.quantile(b2, ratio)
+            if not torch.isfinite(q1) or not torch.isfinite(q2):
+                raise ValueError('ETR erase quantile is non-finite: ' + name)
             if q1 <= 0 or q2 <= 0:
                 raise ValueError('ETR erase quantile is zero; parameter edit is undefined: ' + name)
             loc1 = b1 <= q1
             loc2 = b2 <= q2
             loc2[loc1] = False
-            parameter[loc1] = parameter[loc1].mul(b1[loc1] / q1)
-            parameter[loc2] = parameter[loc2].mul(b2[loc2] / q2)
+            parameter[loc1] = parameter[loc1].mul(b1[loc1] / q1).to(parameter.dtype)
+            parameter[loc2] = parameter[loc2].mul(b2[loc2] / q2).to(parameter.dtype)
 
 
 def rectify(model, grad_all, grad_forget, grad_influenced, grad_after,
