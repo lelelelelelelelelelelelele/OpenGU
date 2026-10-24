@@ -143,5 +143,15 @@
     "kind": "experiment",
     "note": "既有Output的精确子集响应诊断；第一层不含两图或C&S控制，运行状态由EXP-085拥有。",
     "owner": "EXP-085"
+  },
+  "exp086": {
+    "kind": "experiment",
+    "note": "Ret训练观察与严格重复性审计；协议、依赖、运行及验收状态由EXP-086拥有。",
+    "owner": "EXP-086"
+  },
+  "exp087": {
+    "kind": "experiment",
+    "note": "独立split/seed的受控Ret分解与类匹配删除请求；范围、阶段门禁及运行状态由EXP-087拥有。",
+    "owner": "EXP-087"
   }
 }
