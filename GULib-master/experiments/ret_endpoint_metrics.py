@@ -111,10 +111,12 @@ def validate_pair(gu, endpoint, loaded):
     if lt != rt:
         raise ConfigurationError('Ret endpoint training/seed differs from GU')
     a, b = gu.arrays, ret.arrays
-    for key in ('selected_nodes', 'y', 'train_mask', 'val_mask', 'test_mask', 'edge_index', 'evaluation_edge_index'):
+    for key in ('selected_nodes', 'y', 'train_mask', 'test_mask', 'edge_index', 'evaluation_edge_index'):
         if not np.array_equal(a[key], b[key]):
             raise ConfigurationError('Ret endpoint bound arrays differ: ' + key)
-    data = Data(**{k: torch.tensor(a[k]) for k in ('x', 'y', 'edge_index', 'train_mask', 'val_mask', 'test_mask')})
+    # The light GU view binds features/validation mask by data_identity; the
+    # resolved Ret view carries those same verified arrays for graph checking.
+    data = Data(**{k: torch.tensor(b[k]) for k in ('x', 'y', 'edge_index', 'train_mask', 'val_mask', 'test_mask')})
     trained, validation = training_graph(data, a['selected_nodes'], endpoint['input']['arm'])
     execution = endpoint['replay']['identity']
     if (execution['training_graph_identity'] != data_identity(trained)
