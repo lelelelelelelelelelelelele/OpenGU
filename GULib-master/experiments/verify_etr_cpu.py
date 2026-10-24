@@ -1,4 +1,4 @@
-"""Reproducible local ETR parity check against pinned benchmark with explicit eval-gradient adjustment.
+"""Reproducible local ETR parity check against pinned benchmark with explicit eval/float64-intermediate adjustments.
 
 All outputs belong to --root (a new disposable directory). This is software
 verification, never a formal experiment or a performance reproduction.
@@ -136,7 +136,7 @@ def cli(root, selector, run_id, dry=False):
 
 
 def reference_run(root, refs, model, data, nodes, label, parameters):
-    """Run pinned pipeline/trainer with eval-gradient and device/path bindings."""
+    """Run pinned pipeline/trainer with eval/float64-intermediate and device/path bindings."""
     from experiments.modular_model import runtime_defaults
     from attack.cache_identity import seeded_execution
     runtime_defaults()
@@ -152,8 +152,19 @@ def reference_run(root, refs, model, data, nodes, label, parameters):
     source = textwrap.dedent(inspect.getsource(trainer_module.ETRTrainer._grad_and_info))
     assert source.count('model.train()') == 1
     namespace = dict(vars(trainer_module))
-    exec(source.replace('model.train()', 'model.eval()'), namespace)
+    source = source.replace('model.train()', 'model.eval()')
+    source = source.replace('parameter_importance = self._zerolike(model)',
+        'parameter_importance = {name: value.to(torch.float64) for name, value in self._zerolike(model).items()}')
+    source = source.replace('p.grad.data.clone().pow(2)', 'p.grad.data.clone().to(torch.float64).pow(2)')
+    exec(source, namespace)
     trainer_module.ETRTrainer._grad_and_info = namespace['_grad_and_info']
+    erase_source = textwrap.dedent(inspect.getsource(trainer_module.ETRTrainer._modify_weight))
+    for mask, value, quantile in [('loc1', 'b1', 'q1'), ('loc2', 'b2', 'q2')]:
+        update = 'p[{0}].mul({1}[{0}] / {2})'.format(mask, value, quantile)
+        assert erase_source.count(update) == 1
+        erase_source = erase_source.replace(update, update + '.to(p.dtype)')
+    exec(erase_source, namespace)
+    trainer_module.ETRTrainer._modify_weight = namespace['_modify_weight']
     pipeline_module.unlearning_path = str(root/(label+'-request'))
     np.savetxt(pipeline_module.unlearning_path+'_0_nodes_'+str(len(nodes))+'.txt', nodes, fmt='%d')
     args = dict(parameters, unlearn_task='node', device='cpu', num_unlearned_nodes=len(nodes))
@@ -271,7 +282,7 @@ def main():
     diff = subprocess.check_output(['git', 'diff', '--binary', 'HEAD'], cwd=ROOT)
     (root/'source.patch').write_bytes(diff)
     write_json(root/'protocol.json', dict(atol=ATOL, rtol=RTOL, reference_commit=REFERENCE_SHA,
-        reference_files=REFERENCE_FILES, reference_adjustment='all four _grad_and_info calls use eval; autograd retained', source_commit=sha, source_patch_sha256=sha256_file(root/'source.patch'),
+        reference_files=REFERENCE_FILES, reference_adjustment='all four _grad_and_info calls use eval; importance/Erase intermediates float64; final weights original dtype; autograd retained', source_commit=sha, source_patch_sha256=sha256_file(root/'source.patch'),
         torch=torch.__version__, training_seed=42, split_seed=2024, ratios={'random': .1, 'degree': .05},
         budget_denominator='persisted training nodes', evaluation_graph='original', level='verification'))
     torch.set_num_threads(1)

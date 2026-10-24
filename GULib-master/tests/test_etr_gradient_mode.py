@@ -29,7 +29,7 @@ def test_edit_gradients_disable_dropout_and_keep_autograd():
         gradients, importance = gradient_information(model, graph, seed_loss=seed_loss)
         assert not model.training
         assert all(torch.count_nonzero(g) > 0 and torch.isfinite(g).all() for g in gradients.values())
-        assert all(torch.equal(importance[n], g.square()) for n, g in gradients.items())
+        assert all(torch.equal(importance[n], g.to(torch.float64).square()) for n, g in gradients.items())
         torch.rand(31)
         repeated, _ = gradient_information(model.train(), graph, seed_loss=seed_loss)
         assert all(torch.equal(gradients[n], g) for n, g in repeated.items())
