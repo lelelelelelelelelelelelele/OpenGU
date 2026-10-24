@@ -50,7 +50,7 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
     errors = list(warnings)
     receipt = None
     try:
-        receipt = installation_receipt(root, sha, policy)
+        receipt = installation_receipt(root, node_id, sha, policy, peer=peer)
     except (ValueError, OSError) as exc:
         errors.append(str(exc))
     if git(root, 'status', '--porcelain', '--untracked-files=all'):

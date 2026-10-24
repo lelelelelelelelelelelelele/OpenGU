@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from scripts.syncmate import install_remote as installer
 from syncmate_core import context, maintenance, queue
+from scripts.syncmate.deployment_policy import PRIVATE_POLICY, deployment_policy, installation_receipt, receipt_path, validate_peer, validate_receipt
 
 
 def git(root, *args):
@@ -37,7 +38,7 @@ def checkout(tmp_path):
     old = git(source, 'rev-parse', 'HEAD')
     (project / 'run.py').write_text('value = 2\n')
     policy = project / 'scripts/syncmate/deployment.json'
-    policy.write_text(json.dumps({'schema_version': 1, 'transport': 'private-bundle', 'require_origin_main': False}), encoding='utf-8')
+    policy.write_text(json.dumps(PRIVATE_POLICY), encoding='utf-8')
     git(source, 'add', str(policy))
     git(source, 'commit', '-am', 'target')
     target = git(source, 'rev-parse', 'HEAD')
@@ -46,7 +47,7 @@ def checkout(tmp_path):
     protected = remote / 'GULib-master/data/cache.bin'
     protected.parent.mkdir()
     protected.write_bytes(b'untouched-cache')
-    return remote / 'GULib-master', {'old': old, 'target': target,
+    return remote / 'GULib-master', {'old': old, 'target': target, 'node': 'gpu4090', 'ssh': 'autodl-opengu',
         'bundle': base64.b64encode(bundle.read_bytes()).decode(),
         'bundle_sha256': hashlib.sha256(bundle.read_bytes()).hexdigest(),
         'transport': 'private-bundle', 'policy_sha256': hashlib.sha256(json.dumps(json.loads(policy.read_text(encoding='utf-8')), sort_keys=True, separators=(',', ':')).encode()).hexdigest()}, protected
@@ -194,9 +195,11 @@ def test_divergent_private_bundle_cannot_replace_main(checkout, tmp_path):
 
 
 @pytest.mark.parametrize('change', [
-    {'schema_version': True, 'transport': 'private-bundle', 'require_origin_main': False},
-    {'schema_version': 1, 'transport': 'private-bundle', 'require_origin_main': True},
-    {'schema_version': 1, 'transport': 'other', 'require_origin_main': False},
+    {**PRIVATE_POLICY, 'schema_version': True},
+    {**PRIVATE_POLICY, 'schema_version': 1},
+    {**PRIVATE_POLICY, 'require_origin_main': True},
+    {**PRIVATE_POLICY, 'transport': 'other'},
+    {**PRIVATE_POLICY, 'targets': {}},
 ])
 def test_unreviewed_policy_is_rejected(tmp_path, change):
     from scripts.syncmate.deployment_policy import deployment_policy
@@ -215,20 +218,20 @@ def test_unreviewed_policy_is_rejected(tmp_path, change):
 ])
 def test_mismatched_receipt_is_rejected(change):
     from scripts.syncmate.deployment_policy import validate_receipt
-    policy = {'transport': 'private-bundle', 'sha256': 'c'*64}
-    receipt = {'target': 'a'*40, 'head': 'a'*40, 'status': 'installed',
+    policy = {**PRIVATE_POLICY, 'sha256': 'c'*64}
+    receipt = {'node': 'gpu4090', 'ssh': 'autodl-opengu', 'target': 'a'*40, 'head': 'a'*40, 'status': 'installed',
         'project': '/autodl-fs/data/OpenGU/GULib-master', 'transport': 'private-bundle',
         'policy_sha256': 'c'*64, 'origin_refs_unchanged': True, 'bundle_sha256': 'd'*64}
-    validate_receipt(receipt, 'a'*40, policy, bundle_sha256='d'*64)
+    validate_receipt(receipt, 'gpu4090', 'a'*40, policy, bundle_sha256='d'*64)
     with pytest.raises(ValueError):
-        validate_receipt({**receipt, **change}, 'a'*40, policy, bundle_sha256='d'*64)
+        validate_receipt({**receipt, **change}, 'gpu4090', 'a'*40, policy, bundle_sha256='d'*64)
 
 
 def test_private_policy_identity_survives_windows_checkout_endings(tmp_path):
     from scripts.syncmate.deployment_policy import deployment_policy
     path = tmp_path / 'scripts/syncmate/deployment.json'
     path.parent.mkdir(parents=True)
-    raw = json.dumps({'schema_version': 1, 'transport': 'private-bundle', 'require_origin_main': False}, indent=2).encode()
+    raw = json.dumps(PRIVATE_POLICY, indent=2).encode()
     path.write_bytes(raw)
     expected = deployment_policy(tmp_path)
     path.write_bytes(raw.replace(b'\n', b'\r\n'))
@@ -238,4 +241,154 @@ def test_private_policy_identity_survives_windows_checkout_endings(tmp_path):
 def test_receipt_must_be_a_mapping():
     from scripts.syncmate.deployment_policy import validate_receipt
     with pytest.raises(ValueError, match='must be an object'):
-        validate_receipt([], 'a'*40, {'transport': 'private-bundle', 'sha256': 'c'*64})
+        validate_receipt([], 'gpu4090', 'a'*40, {**PRIVATE_POLICY, 'sha256': 'c'*64})
+
+
+def initialization_request(checkout, tmp_path):
+    _, request, _ = checkout
+    source = tmp_path / 'source'
+    bundle = tmp_path / 'initial.bundle'
+    git(source, 'bundle', 'create', str(bundle), 'refs/heads/main')
+    data = bundle.read_bytes()
+    return {**request, 'old': None, 'action': 'initialize', 'node': 'gpu4090-2', 'ssh': 'autodl-opengu-2',
+            'bundle': base64.b64encode(data).decode(), 'bundle_sha256': hashlib.sha256(data).hexdigest()}
+
+
+def test_fresh_private_initialization_creates_only_code_and_runner_identity(checkout, tmp_path):
+    request = initialization_request(checkout, tmp_path)
+    project = tmp_path / 'fresh/GULib-master'
+    result = installer.initialize_checkout(project, request)
+    assert result['status'] == 'initialized' and result['node'] == 'gpu4090-2'
+    assert result['head'] == request['target'] and result['runner_started'] is False
+    assert git(project.parent, 'branch', '--show-current') == 'main'
+    assert git(project.parent, 'rev-parse', 'HEAD') == request['target']
+    assert git(project.parent, 'remote') == ''
+    assert installer.origin_refs(project.parent) == ''
+    import yaml
+    from syncmate_core import devices
+    with context.use(project):
+        device, warnings = devices.load_device(project / '.syncmate/device.yaml')
+    assert not warnings and device['device_id'] == 'gpu4090-2'
+    assert device['role'] == 'runner' and device['execution_device'] == 'cuda:0'
+    assert list((project / '.syncmate').iterdir()) == [project / '.syncmate/device.yaml']
+    assert not (project / 'data').exists() and not (project / 'results').exists()
+    assert git(project.parent, 'status', '--porcelain=v1', '-uall') == ''
+    assert not list((project.parent / '.git').glob('install-*.bundle'))
+    before = (project / 'run.py').read_bytes()
+    with pytest.raises(ValueError, match='new absent'):
+        installer.initialize_checkout(project, request)
+    assert (project / 'run.py').read_bytes() == before
+
+
+@pytest.mark.parametrize('kind', ['empty_directory', 'populated_directory', 'file'])
+def test_initialization_never_reuses_an_existing_target(checkout, tmp_path, kind):
+    request = initialization_request(checkout, tmp_path)
+    repo = tmp_path / 'occupied'
+    if kind == 'file':
+        repo.write_bytes(b'owned')
+    else:
+        repo.mkdir()
+        if kind == 'populated_directory':
+            (repo / 'owner').write_bytes(b'owned')
+    before = repo.read_bytes() if kind == 'file' else sorted(p.name for p in repo.iterdir())
+    with pytest.raises(ValueError, match='new absent'):
+        installer.initialize_checkout(repo / 'GULib-master', request)
+    assert (repo.read_bytes() if kind == 'file' else sorted(p.name for p in repo.iterdir())) == before
+
+
+def test_initialization_rejects_symlink_ancestor(checkout, tmp_path):
+    request = initialization_request(checkout, tmp_path)
+    real = tmp_path / 'real'
+    real.mkdir()
+    linked = tmp_path / 'linked'
+    try:
+        linked.symlink_to(real, target_is_directory=True)
+    except OSError:
+        pytest.skip('host does not permit creation of a symlink fixture')
+    with pytest.raises(ValueError, match='symlinks'):
+        installer.initialize_checkout(linked / 'fresh/GULib-master', request)
+    assert not list(real.iterdir())
+
+
+@pytest.mark.parametrize('condition', ['wrong_digest', 'incremental_bundle'])
+def test_initialization_rejects_bad_or_non_self_contained_bundle(checkout, tmp_path, condition):
+    request = initialization_request(checkout, tmp_path)
+    if condition == 'wrong_digest':
+        request['bundle_sha256'] = '0'*64
+    else:
+        # Existing update bundle has prerequisites and cannot initialize a new repo.
+        request.update(bundle=checkout[1]['bundle'], bundle_sha256=checkout[1]['bundle_sha256'])
+    project = tmp_path / 'failed/GULib-master'
+    with pytest.raises((ValueError, subprocess.CalledProcessError)):
+        installer.initialize_checkout(project, request)
+    assert not project.exists()
+    assert (project.parent / '.git').is_dir()  # Truthful partial failure, no silent retry.
+    assert not list((project.parent / '.git').glob('install-*.bundle'))
+
+
+def test_initialization_refuses_tracked_runtime_payload(checkout, tmp_path):
+    source = tmp_path / 'source'
+    payload = source / 'GULib-master/data/forbidden.bin'
+    payload.parent.mkdir()
+    payload.write_bytes(b'not-code')
+    git(source, 'add', '-f', str(payload))
+    git(source, 'commit', '-m', 'forbidden runtime payload')
+    request = initialization_request(checkout, tmp_path)
+    request['target'] = git(source, 'rev-parse', 'HEAD')
+    with pytest.raises(ValueError, match='runtime payload'):
+        installer.initialize_checkout(tmp_path / 'fresh/GULib-master', request)
+    assert not (tmp_path / 'fresh/GULib-master').exists()
+
+
+@pytest.mark.parametrize('change', [
+    {'node': 'unknown'}, {'ssh': 'autodl-opengu'},
+    {'project': '/autodl-fs/data/OpenGU/GULib-master'},
+    {'project': '/autodl-fs/data/OpenGU-2/../OpenGU/GULib-master'},
+])
+def test_remote_entry_rejects_node_alias_path_mismatch_before_git(change, monkeypatch):
+    request = {'node': 'gpu4090-2', 'ssh': 'autodl-opengu-2',
+               'project': '/autodl-fs/data/OpenGU-2/GULib-master', **change}
+    def forbidden(*args):
+        raise AssertionError('invalid address reached Git')
+    monkeypatch.setattr(installer, 'git', forbidden)
+    with pytest.raises(ValueError, match='registered SSH node'):
+        installer.install(request)
+
+
+def test_same_sha_receipt_cannot_authorize_the_other_node(tmp_path):
+    import shutil
+    path = tmp_path / 'scripts/syncmate/deployment.json'
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(PRIVATE_POLICY), encoding='utf-8')
+    policy = deployment_policy(tmp_path)
+    sha = 'a'*40
+    old = policy['targets']['gpu4090']
+    receipt = {'node': 'gpu4090', 'ssh': old['ssh'], 'project': old['repo_path'],
+        'target': sha, 'head': sha, 'status': 'installed', 'transport': 'private-bundle',
+        'policy_sha256': policy['sha256'], 'bundle_sha256': 'd'*64, 'origin_refs_unchanged': True}
+    original = receipt_path(tmp_path, 'gpu4090', sha, policy)
+    original.parent.mkdir(parents=True)
+    original.write_text(json.dumps(receipt), encoding='utf-8')
+    peer = {'role': 'runner', 'transport': 'ssh', **policy['targets']['gpu4090-2']}
+    with pytest.raises(ValueError, match='receipt is missing'):
+        installation_receipt(tmp_path, 'gpu4090-2', sha, policy, peer=peer)
+    wrong = receipt_path(tmp_path, 'gpu4090-2', sha, policy)
+    wrong.parent.mkdir(parents=True)
+    shutil.copyfile(original, wrong)
+    with pytest.raises(ValueError, match='receipt is not successful'):
+        installation_receipt(tmp_path, 'gpu4090-2', sha, policy, peer=peer)
+    assert installation_receipt(tmp_path, 'gpu4090', sha, policy,
+        peer={'role': 'runner', 'transport': 'ssh', **old})['node'] == 'gpu4090'
+
+
+@pytest.mark.parametrize('key', ['ssh', 'repo_path'])
+def test_selected_peer_cannot_route_new_node_to_old_address(key):
+    policy = {**PRIVATE_POLICY, 'sha256': 'c'*64}
+    peer = {'role': 'runner', 'transport': 'ssh', **policy['targets']['gpu4090-2']}
+    peer[key] = policy['targets']['gpu4090'][key]
+    with pytest.raises(ValueError, match='alias and project'):
+        validate_peer(peer, 'gpu4090-2', policy)
+
+
+def test_standalone_remote_allowlist_matches_reviewed_policy():
+    assert installer.PRIVATE_POLICY == PRIVATE_POLICY

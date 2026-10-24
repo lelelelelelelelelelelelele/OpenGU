@@ -11,7 +11,7 @@ for directory in (PROJECT_ROOT, Path(__file__).resolve().parent):
         sys.path.insert(0, str(directory))
 
 from syncmate_core.cli import main as core_main, build_parser
-from syncmate_core import context
+from syncmate_core import context, devices
 from opengu_adapter import OpenGUProjectExtension
 from deployment_policy import deployment_policy, installation_receipt
 
@@ -31,7 +31,11 @@ def main(argv=None):
         import subprocess
         target = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
         try:
-            installation_receipt(root, target, policy)
+            device, warnings = devices.load_device(args.config)
+            if warnings:
+                raise ValueError('; '.join(warnings))
+            peer = device.get('peers', {}).get(args.node_id)
+            installation_receipt(root, args.node_id, target, policy, peer=peer)
         except (ValueError, OSError) as exc:
             print(json.dumps({'status': 'blocked', 'errors': [str(exc)]}))
             return 1
