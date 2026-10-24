@@ -1,0 +1,17 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp087-gu-gate
+stage: unlearning
+dataset_refs:
+- citeseer_seed2025.yaml
+selector_refs:
+- ./gate/r_point_seed73001.yaml
+- ./gate/class_matched_r_point44_seed73001.yaml
+unlearning_refs:
+- ./gate/gif_none_final_seed73001.yaml
+- ./gate/megu_none_final_seed73001.yaml
+parameter_profile_ref: gif_idea_fixed_pt.yaml
+matrix: cartesian_product
+budget_ratios:
+- 0.33
+return_scores: false

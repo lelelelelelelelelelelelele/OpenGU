@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-gu-gate
+runner: experiment
+config_path: experiments/configs/exp087/gu_gate.yaml
+config_sha256: 67536ba0c1dbb52af01bc6e3c80b4d5ede7245e769ade2bc407c7a1b069dfbcb
+configuration_fingerprint: 0ee5b7c78cf0adc53f72a37ff04bce852a3abf3e30d8608dbb9e0bbde0548628
+run_identity:
+  experiment_id: exp087-gu-gate
+  run_id: e87ug1
+timeout_seconds: 1800
+logical_cells: 4
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
