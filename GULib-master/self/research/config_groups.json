@@ -133,5 +133,15 @@
     "owner": "EXP-014",
     "kind": "experiment",
     "note": "ogbn-arxiv 选点可运行性配置目录；仅登记归属，配置准备与执行状态以 EXP-014 当前记录为准。"
+  },
+  "exp084": {
+    "kind": "experiment",
+    "note": "GNNDelete validation选模修复后的冻结请求复算；范围、运行与科学判断由EXP-084拥有。",
+    "owner": "EXP-084"
+  },
+  "exp085": {
+    "kind": "experiment",
+    "note": "既有Output的精确子集响应诊断；第一层不含两图或C&S控制，运行状态由EXP-085拥有。",
+    "owner": "EXP-085"
   }
 }

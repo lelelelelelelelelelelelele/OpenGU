@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="source-sha256" content="2bf7335a4f4ec12f8cd7d72c3006783131eaef1aa78cf939952aef5c9acc8014"><title>第三轮：执行计划、已完成工作与写作门槛</title><style>:root{color-scheme:light;--ink:#24313e;--muted:#667382;--line:#d7e0e7;--accent:#175b80}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f2f5f7;color:var(--ink);font:16px/1.85 system-ui,'Microsoft YaHei',sans-serif}.layout{max-width:1440px;margin:auto;padding:34px 28px 90px;display:grid;grid-template-columns:235px minmax(0,1fr);gap:34px}nav{position:sticky;top:30px;align-self:start;font-size:13px}nav strong{display:block;font-size:17px;line-height:1.5;margin-bottom:14px}nav a{display:block;padding:8px 0;border-bottom:1px solid var(--line);color:var(--muted);text-decoration:none}.meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}main{min-width:0;padding:40px 46px;background:white;border:1px solid var(--line)}h1{font-size:29px;line-height:1.4;margin:0 0 24px}h2{font-size:22px;line-height:1.5;margin:42px 0 18px;padding-top:16px;border-top:2px solid #b5cbd7;scroll-margin-top:20px}h3{font-size:18px;margin:27px 0 12px}h4{font-size:16px;color:var(--accent);margin:22px 0 10px}p{margin:13px 0}li{margin:8px 0}a{color:var(--accent);text-underline-offset:3px}code{font-size:.87em;background:#edf2f6;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{padding:16px;background:#edf2f6;overflow:auto}pre code{padding:0;background:none;overflow-wrap:normal}blockquote{border-left:4px solid #b5cbd7;margin:20px 0;padding:1px 20px;color:#3b5263;background:#f5f8fa}.table-scroll{overflow:auto;margin:22px 0}table{border-collapse:collapse;min-width:610px;width:100%;font-size:14px;line-height:1.75}th,td{border:1px solid var(--line);padding:11px 13px;text-align:left;vertical-align:top}th{background:#eaf1f6}tr:nth-child(even) td{background:#f8fafb}img{max-width:100%;height:auto}footer{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}@media(max-width:960px){.layout{display:block;padding:16px}nav{position:static;margin:0 0 20px}nav a{display:inline-block;margin-right:14px}main{padding:25px 20px}h1{font-size:25px}}@media print{body{background:white}.layout{display:block;padding:0}nav{display:none}main{border:0;padding:0}h2,h3,h4{break-after:avoid}table{font-size:10px;min-width:0}a{color:inherit}}
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="source-sha256" content="72594dbef5f32b4d0cddc7258ee0d6eba995069df44c08fdcddc1c35a1110f1b"><title>第三轮：执行计划、已完成工作与写作门槛</title><style>:root{color-scheme:light;--ink:#24313e;--muted:#667382;--line:#d7e0e7;--accent:#175b80}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f2f5f7;color:var(--ink);font:16px/1.85 system-ui,'Microsoft YaHei',sans-serif}.layout{max-width:1440px;margin:auto;padding:34px 28px 90px;display:grid;grid-template-columns:235px minmax(0,1fr);gap:34px}nav{position:sticky;top:30px;align-self:start;font-size:13px}nav strong{display:block;font-size:17px;line-height:1.5;margin-bottom:14px}nav a{display:block;padding:8px 0;border-bottom:1px solid var(--line);color:var(--muted);text-decoration:none}.meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}main{min-width:0;padding:40px 46px;background:white;border:1px solid var(--line)}h1{font-size:29px;line-height:1.4;margin:0 0 24px}h2{font-size:22px;line-height:1.5;margin:42px 0 18px;padding-top:16px;border-top:2px solid #b5cbd7;scroll-margin-top:20px}h3{font-size:18px;margin:27px 0 12px}h4{font-size:16px;color:var(--accent);margin:22px 0 10px}p{margin:13px 0}li{margin:8px 0}a{color:var(--accent);text-underline-offset:3px}code{font-size:.87em;background:#edf2f6;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{padding:16px;background:#edf2f6;overflow:auto}pre code{padding:0;background:none;overflow-wrap:normal}blockquote{border-left:4px solid #b5cbd7;margin:20px 0;padding:1px 20px;color:#3b5263;background:#f5f8fa}.table-scroll{overflow:auto;margin:22px 0}table{border-collapse:collapse;min-width:610px;width:100%;font-size:14px;line-height:1.75}th,td{border:1px solid var(--line);padding:11px 13px;text-align:left;vertical-align:top}th{background:#eaf1f6}tr:nth-child(even) td{background:#f8fafb}img{max-width:100%;height:auto}footer{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}@media(max-width:960px){.layout{display:block;padding:16px}nav{position:static;margin:0 0 20px}nav a{display:inline-block;margin-right:14px}main{padding:25px 20px}h1{font-size:25px}}@media print{body{background:white}.layout{display:block;padding:0}nav{display:none}main{border:0;padding:0}h2,h3,h4{break-after:avoid}table{font-size:10px;min-width:0}a{color:inherit}}
 nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-width:960px){nav{max-height:none;overflow:visible;padding-right:0}}</style></head>
 <body><div class="layout"><nav><strong>OpenGU · Paper Writing</strong><p class="meta">2026-10-24<br>由 Markdown 源文件生成</p><a href="#pw-doc-section-1">执行协议已经明确</a>
 <a href="#pw-doc-section-2">实际已经完成的工作</a>
 <a href="#pw-doc-section-3">新CPU分析怎样改变下一步</a>
 <a href="#pw-doc-section-4">已登记的运行范围与预算</a>
 <a href="#pw-doc-section-5">下一阶段顺序</a><p><a href="REPORT.md">编辑用源文件</a></p></nav><main><h1 id="section">第三轮：执行计划、已完成工作与写作门槛</h1>
-<p>2026-10-24（Asia/Shanghai）。本报告为本轮可审查快照；运行实时状态由Work Plan中的EXP-084、EXP-085维护。</p>
+<p>2026-10-24 08:01（Asia/Shanghai）。本报告为本轮可审查快照；运行实时状态由Work Plan中的EXP-084、EXP-085维护。</p>
 <p><strong>当前判断：writing_gate=not_met。</strong> 第二轮指出的测试集选模已有通过CPU验证的修复候选，但尚无修复后的正式科学结果；B尚缺三端点归因、两评价图、匹配后处理及Ret参考质量的完整证据。因此目前不能诚实地将论文评为Weak Accept，也没有开始英文科研正文。</p>
 <h2 id="pw-doc-section-1">执行协议已经明确</h2>
 <p><a href="../../protocol/ROUND3_EXECUTION_PROTOCOL.html">协议阅读版</a>／<a href="../../protocol/ROUND3_EXECUTION_PROTOCOL.md">Markdown源</a>规定了范围、指标、缺失条件处理和停止规则。<a href="../../protocol/PROTOCOL_FREEZE.json">冻结记录</a>保存开跑前文件SHA；后续运行需绑定这一版本，改变范围先修订。</p>
@@ -25,7 +25,7 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 <tbody>
 <tr>
 <td>GNNDelete修复AAGU-107</td>
-<td>候选02206948262699bf523d4dadbb1ab2e0ae977a64；139项CPU回归通过，真实三seed测试标签扰动不改变验证轨迹、best或输出；validation可影响选择；旧Output不等价命中</td>
+<td>候选02206948262699bf523d4dadbb1ab2e0ae977a64；139项CPU回归通过，真实三seed测试标签扰动不改变验证轨迹、best或输出；validation可影响选择；旧Output不等价命中；已合并6fe3392并推送</td>
 <td>不证明原排序交叉恢复，不是正式GPU重算</td>
 </tr>
 <tr>
@@ -40,8 +40,8 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 </tr>
 <tr>
 <td>B诊断实现AAGU-108</td>
-<td>三端点与真值计数、请求组成和精确cell子集接口正在收尾验证</td>
-<td>未部署，未形成正式54引用的新增指标结果</td>
+<td>第一层候选3db791a6经116项聚焦回归、11项提交后验证；与107组合38项通过；已合并de948fbe并推送</td>
+<td>未部署，未形成正式54引用的新增指标结果；两图/C&amp;S不在本候选内</td>
 </tr>
 <tr>
 <td>论文方案</td>
@@ -50,7 +50,8 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 </tr>
 </tbody>
 </table></div>
-<p>用户已明确接受107的具体候选，并授权本轮后续必要开发由主任务验证、验收后合并部署。开发合并仍要检查具体候选与组合影响；科学写作门槛保持独立。107合并准备曾发现启动投影缺失Remote target，核验既有origin/main后补齐；随后因本轮未提交的研究材料停止，材料保留，未强制清理工作区。</p>
+<p>用户已明确接受107的具体候选，并授权本轮后续必要开发由主任务验证、验收后合并部署。主任务据具体候选和组合检查接受108第一层实现；科学写作门槛保持独立。107合并准备曾发现启动投影缺失Remote target，核验既有origin/main后补齐；本轮研究材料保存提交后恢复合并。组合测试首次因系统pytest临时目录不可访问出现17项fixture错误；保留日志，在新建workspace临时目录重跑未改动的测试后38项通过。</p>
+<p>另有明确的取证要求：默认collector不收runtime的model_best.pt，不能因此判断逐cell的epoch／选模阶段已核验。补充只读脚本将run/cell的Output recipe_hash与runtime checkpoint、保存权重、选模元信息绑定；取证不成功时A技术gate不得科学放行，不修改V2旧Artifact。</p>
 <h2 id="pw-doc-section-3">新CPU分析怎样改变下一步</h2>
 <p>以下均为CiteSeer、5%→33%、R-point、三个联合seed的配对变化，均值±样本SD：</p>
 <div class="table-scroll"><table>
@@ -102,7 +103,7 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 <td>EXP-085</td>
 <td>第一层3引用gate＋54引用完整诊断；有效GU诊断分别2/36，Ret不适用</td>
 <td style="text-align: right;">2085秒，约34.75分钟</td>
-<td>精确子集配置准备中；正式任务未提交</td>
+<td>精确子集配置、Recipe与2/36输出dry-run通过；正式任务未提交</td>
 </tr>
 </tbody>
 </table></div>
@@ -118,4 +119,4 @@ nav{max-height:calc(100vh - 60px);overflow-y:auto;padding-right:8px}@media(max-w
 <li>冻结证据包做三类复审。只有全部满足写作门槛才开始Results与Experimental Design，最后写Introduction和Abstract。</li>
 </ol>
 <p>本报告和提纲的HTML从Markdown生成；文档检查核对内容哈希、链接及逐段结构。浏览器视觉检查尚未完成，不能把静态检查写成视觉验收。</p>
-<footer>Source: REPORT.md<br>SHA-256: 2bf7335a4f4ec12f8cd7d72c3006783131eaef1aa78cf939952aef5c9acc8014<br>使用 paper_writing/tools/render-docs.ps1 重建此页面。</footer></main></div></body></html>
+<footer>Source: REPORT.md<br>SHA-256: 72594dbef5f32b4d0cddc7258ee0d6eba995069df44c08fdcddc1c35a1110f1b<br>使用 paper_writing/tools/render-docs.ps1 重建此页面。</footer></main></div></body></html>
