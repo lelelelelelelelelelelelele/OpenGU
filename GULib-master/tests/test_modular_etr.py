@@ -32,15 +32,36 @@ def test_etr_real_output_and_parameter_identity(tables, monkeypatch, evaluation_
     write_yaml(root / 'retrain.yaml', retrain)
     write_yaml(root / 'paired.yaml', dict(kind='evaluation', schema_version=1,
         case='post_unlearning_utility_and_retrain_gap'))
+    from unlearning.unlearning_methods.ETR import etr as kernel
+    gradients = []
+    original_gradient = kernel.gradient_information
+
+    def record_gradient(model, graph, **kwargs):
+        rng = torch.random.get_rng_state().clone()
+        value = original_gradient(model, graph, **kwargs)
+        assert not model.training and torch.is_grad_enabled()
+        assert torch.equal(rng, torch.random.get_rng_state())
+        gradients.append(value)
+        return value
+
+    monkeypatch.setattr(kernel, 'gradient_information', record_gradient)
     observed = []
     original = modular_etr.run_etr
 
     def observe(model, data, nodes, **kwargs):
         before = {k: v.clone() for k, v in model.state_dict().items()}
+        before_mode = model.training
+        gradient_count = len(gradients)
         stages = {}
         edited, seconds = original(model, data, nodes, trace=lambda stage, m: stages.update(
             {stage: {k: v.clone() for k, v in m.state_dict().items()}}), **kwargs)
         assert all(torch.equal(v, before[k]) for k, v in model.state_dict().items())
+        assert model.training == before_mode
+        assert len(gradients) == gradient_count + 4
+        # Editing must be independent of the RNG position used for training.
+        torch.rand(23)
+        repeated, _ = original(model, data, nodes, **kwargs)
+        assert all(torch.equal(v, repeated.state_dict()[k]) for k, v in edited.state_dict().items())
         assert set(stages) == {'erase', 'rectify'}
         observed.append((list(nodes), kwargs, stages))
         return edited, seconds
@@ -53,6 +74,7 @@ def test_etr_real_output_and_parameter_identity(tables, monkeypatch, evaluation_
     cold_etr = next(r for r in cold['unlearning'] if r['target']['method'] == 'ETR')
     warm_etr = next(r for r in warm['unlearning'] if r['target']['method'] == 'ETR')
     assert not cold_etr['hit'] and warm_etr['hit'] and len(observed) == 1
+    assert len(gradients) == 8  # Four passes each; the warm path performs none.
     data, _ = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
     payload = load_output(cold_etr['output'], root/'results/cache_v2', data=data, dataset_root=root)
     assert payload.arrays['selected_nodes'].tolist() == observed[0][0]

@@ -59,7 +59,9 @@ def edit_subgraphs(data, nodes):
 
 
 def gradient_information(model, graph, *, seed_loss):
-    model.train()
+    # Compare data gradients without independently sampled Dropout masks.
+    # eval() preserves autograd; training of the original model is unaffected.
+    model.eval()
     model.zero_grad(set_to_none=True)
     output = model(graph.x, graph.edge_index)
     indices = graph.mapping if seed_loss else graph.train_mask
