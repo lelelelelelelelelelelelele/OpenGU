@@ -18,6 +18,8 @@ from utils.target_checkpoint import data_identity
 from experiments.target_direct_v1.class_matching import METHOD as CLASS_MATCHED, source_parameters
 
 
+from experiments.target_direct_v1 import overlap_profile
+
 def project_ranking(ranking, k):
     return ranking[:k]
 
@@ -45,6 +47,7 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
         params = resolve_parameters(name, instance.get('parameters'))
         k = budget['k']
         source = None
+        matched = None
         if name == CLASS_MATCHED:
             # Use the same real R-point producer, exact Store and model/seed identity.
             # Its complete Score ranking is budget-independent; no V2 payload is hand-written.
@@ -54,14 +57,29 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
                 include_scores=True, model_config=model_config, training=training,
                 fail_if_score_called=fail_if_score_called, fail_if_selection_called=fail_if_selection_called,
                 dataset_inputs=inputs, dataset_identity=identity)['r_point']
+        if name == overlap_profile.METHOD:
+            # Both prepared parents must HIT even on O's ordinary cold path.
+            matched_params = overlap_profile.source_parameters(params)
+            parents = resolve_methods(store_root=store_root, data=data, dataset_name=dataset_name,
+                model=model, checkpoints=checkpoints,
+                selectors=[{'method': 'r_point', 'parameters': source_parameters(matched_params), 'budget': budget},
+                    {'method': CLASS_MATCHED, 'parameters': matched_params, 'budget': budget}],
+                include_scores=True, model_config=model_config, training=training,
+                fail_if_score_called=True, fail_if_selection_called=True,
+                dataset_inputs=inputs, dataset_identity=identity)
+            source, matched = parents['r_point'], parents[CLASS_MATCHED]
         recipe, producer = build_recipe(name=name, computations=c, parameters=params,
             model_config=model_config, training=training, dataset_identity=identity,
-            source_score=None if source is None else source['score'])
+            source_score=None if source is None else source['score'],
+            matched_score=None if matched is None else matched['score'])
         store = ScoreBundleStore(store_root, producer_version=producer, index=index)
 
         def compute():
             started = time.perf_counter()
             kwargs = {} if source is None else {'source_ranking': source['ranking']}
+            if matched is not None:
+                kwargs.update(matched_ranking=matched['ranking'], source_identity=recipe.fields['source_r_point'],
+                              matched_identity=recipe.fields['source_class_matched'])
             scores = METHODS[name](c, params, **kwargs).detach().cpu().to(torch.float64)
             candidates = c.candidates.cpu().tolist()
             ranking = stable_ranking(candidates, scores)
@@ -69,6 +87,9 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
             if source is not None:
                 metadata['source_r_point'] = {**recipe.fields['source_r_point'],
                     'full_ranking_hash': ids_hash(source['ranking'])}
+            if matched is not None:
+                metadata['source_class_matched'] = {**recipe.fields['source_class_matched'],
+                    'full_ranking_hash': ids_hash(matched['ranking'])}
             return ScoreBundlePayload.build(candidates, {name: scores.tolist()}, {name: ranking},
                 metadata)
 
@@ -102,7 +123,8 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
         started = time.perf_counter()
         materialized = materialize_budget_selection(
             store_root=store_root, dataset=inputs, strategy=name,
-            selector_seed=params['matching_seed'] if name == CLASS_MATCHED else 0,
+            selector_seed=(params['overlap_seed'] if name == overlap_profile.METHOD
+                           else params['matching_seed'] if name == CLASS_MATCHED else 0),
             budgets=(k,), producer_version=selection_producer,
             algorithm_version='target-direct-method-prefix-v1',
             parameters={'prefix_stable': True, 'budget': budget,
@@ -135,4 +157,8 @@ def resolve_methods(*, store_root, data, dataset_name, model, checkpoints, selec
             results[key]['source_r_point'] = {**recipe.fields['source_r_point'],
                 'full_ranking_hash': ids_hash(source['ranking']),
                 'score_hit': source['score']['hit'], 'producer_called': source['score']['producer_called']}
+        if matched is not None:
+            results[key]['source_class_matched'] = {**recipe.fields['source_class_matched'],
+                'full_ranking_hash': ids_hash(matched['ranking']),
+                'score_hit': matched['score']['hit'], 'producer_called': matched['score']['producer_called']}
     return results

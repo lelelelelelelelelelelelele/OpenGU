@@ -14,11 +14,12 @@ from experiments.target_direct_v1.scoring import (
     hutchinson_parameter_change_scores, weighted_checkpoint_scores,
 )
 from experiments.target_direct_v1.class_matching import METHOD as CLASS_MATCHED, score_class_matched
+from experiments.target_direct_v1.overlap_profile import METHOD as OVERLAP_PROFILE, score_overlap, validate_profile_counts
 
 
 SCORE_NAMES = (
     'a_grad_norm', 'b_param_hutch', 'degree', 'gt_full', 'gt_simple',
-    'p_graph', 'p_point', 'p_simple', 'r_point', 'class_matched_r_point', 'random', 'pagerank',
+    'p_graph', 'p_point', 'p_simple', 'r_point', 'class_matched_r_point', OVERLAP_PROFILE, 'random', 'pagerank',
     'tracin_cp_graph_3', 'tracin_cp_graph_6', 'tracin_cp_point_3',
     'tracin_cp_point_6', 'tracin_cp_simple_3', 'tracin_cp_simple_6',
 )
@@ -26,7 +27,7 @@ LISSA_DEFAULTS = {'iterations': 20, 'scale': 25.0, 'damp': 0.01}
 HESSIAN_LOSS = {'type': 'cross_entropy', 'source': 'train_mask', 'reduction': 'mean'}
 TARGET_LOSS = {'type': 'cross_entropy', 'source': 'validation_mask', 'reduction': 'mean'}
 GRAPH_METHODS = frozenset({'p_graph', 'p_simple', 'gt_full', 'gt_simple'})
-IHVP_METHODS = frozenset({'b_param_hutch', 'r_point', CLASS_MATCHED, 'gt_full', 'gt_simple'})
+IHVP_METHODS = frozenset({'b_param_hutch', 'r_point', CLASS_MATCHED, OVERLAP_PROFILE, 'gt_full', 'gt_simple'})
 
 
 def uses_model(name):
@@ -58,8 +59,10 @@ def parameter_defaults(name):
         value['pagerank_alpha'] = 0.85
     if name == 'random':
         value['seed'] = 104245
-    if name == CLASS_MATCHED:
+    if name in (CLASS_MATCHED, OVERLAP_PROFILE):
         value['matching_seed'] = -1  # Explicit per-instance draw required.
+    if name == OVERLAP_PROFILE:
+        value.update(overlap_seed=-1, profile_counts=[])
     if name.startswith('tracin_cp_'):
         value['checkpoint_view'] = 'cp3' if name.endswith('_3') else 'cp_all'
         value['checkpoint_steps'] = []
@@ -85,8 +88,12 @@ def resolve_parameters(name, supplied=None):
         raise ConfigurationError('invalid Hutchinson settings')
     if params.get('affected_hops', 1) <= 0 or params.get('seed', 0) < 0:
         raise ConfigurationError('invalid hops/seed')
-    if name == CLASS_MATCHED and not 0 <= params['matching_seed'] < 2**63:
+    if name in (CLASS_MATCHED, OVERLAP_PROFILE) and not 0 <= params['matching_seed'] < 2**63:
         raise ConfigurationError('matching_seed must be explicitly supplied in [0, 2**63)')
+    if name == OVERLAP_PROFILE:
+        if not 0 <= params['overlap_seed'] < 2**63:
+            raise ConfigurationError('overlap_seed must be explicitly supplied in [0, 2**63)')
+        validate_profile_counts(params['profile_counts'])
     if 'checkpoint_view' in params:
         choice(params['checkpoint_view'], ('cp3', 'cp_all'), 'checkpoint_view')
         steps = params['checkpoint_steps']
@@ -207,7 +214,7 @@ def score_trajectory(c, p, *, source):
 
 
 METHODS = {'pagerank': score_pagerank, 'degree': score_degree, 'random': score_random, 'a_grad_norm': score_a,
-           'b_param_hutch': score_b, 'r_point': score_r, CLASS_MATCHED: score_class_matched, 'p_point': score_point}
+           'b_param_hutch': score_b, 'r_point': score_r, CLASS_MATCHED: score_class_matched, OVERLAP_PROFILE: score_overlap, 'p_point': score_point}
 METHODS.update({name: partial(score_graph, name=name) for name in GRAPH_METHODS})
 METHODS.update({name: partial(score_trajectory, source=name.split('_')[2])
                 for name in SCORE_NAMES if name.startswith('tracin_cp_')})
