@@ -123,6 +123,9 @@ def assemble(spec, project_root=ROOT):
             if len(config['datasets']) != len(spec['expected_datasets']):
                 raise ValueError('recipe dataset count differs from experiment')
             paths = (summary,) + output_paths(summary, config)
+            if config['stage'] == 'metrics':
+                from experiments.modular_artifacts import planned_cells
+                definition['expected_cells'] = planned_cells(config)
             definition.update(expected_artifact_paths=paths, progress_plan=progress_plan(config),
                 collector_artifact_names=tuple(sorted({Path(p).name for p in paths})),
                 collector_profile='modular-output-v1', collector_acceptance=True,

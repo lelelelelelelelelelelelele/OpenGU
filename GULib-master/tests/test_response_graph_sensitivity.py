@@ -298,3 +298,134 @@ def test_restore_rejects_dtype_conversion_of_saved_state(graph_outputs):
     f['outputs'][0].state['convs.1.bias']=f['outputs'][0].state['convs.1.bias'].astype(np.float64)
     with pytest.raises(ValueError,match='restored Output weights differ'):
         measure(f)
+
+@pytest.fixture
+def gnndelete_output(graph_outputs):
+    from cache_v2 import ArtifactRecipe
+    from cache_v2.unlearning_output import OUTPUT_CONTRACT
+    from experiments.artifact_producer import FormalArtifactRequest,store_formal_artifact
+    from cache_v2 import ArtifactType
+    from experiments.modular_config import load_instance
+    from experiments.modular_gu import gu_producer
+    from experiments.modular_model import runtime_defaults
+    from experiments.unlearning_outputs import build_output,output_reference,load_output
+    from model.base_gnn.deletion import GCNDelete
+    from utils.target_checkpoint import sha256_file
+    f=graph_outputs; root=f['root']; data=f['data']
+    common=dict(kind='unlearning',schema_version=1,model=dict(architecture='OpenGU.GCNNet',hidden_channels=4),training=dict(epochs=3))
+    write_yaml(root/'GNNDelete.yaml',dict(common,method='GNNDelete'))
+    instance=load_instance(root/'GNNDelete.yaml','unlearning')
+    args=runtime_defaults();args.update(gcn_num_layers=2,gcn_hidden=4,out_dim=2,base_model='GCN',dataset_name='cpu_fixture',downstream_task='node')
+    first=torch.zeros(data.num_nodes,dtype=torch.bool);first[[9,15]]=True
+    second=torch.zeros_like(first);second[[15,16]]=True
+    model=GCNDelete(args,3,2,mask_1hop=first,mask_2hop=second).eval()
+    missing,unexpected=model.load_state_dict(f['original'].state_dict(),strict=False)
+    assert set(missing)=={'deletion1.deletion_weight','deletion2.deletion_weight'} and not unexpected
+    with torch.no_grad():
+        model.deletion1.deletion_weight.copy_(torch.eye(4))
+        model.deletion2.deletion_weight.copy_(torch.tensor([[0.,1.],[1.,0.]]))
+        before=f['original'](data.x,data.edge_index);after=model(data.x,data.edge_index)
+    producer=gu_producer('GNNDelete',instance['model'])
+    identity=copy.deepcopy(f['outputs'][0].identity)
+    identity['target']=dict(method='GNNDelete',parameters=instance['parameters'],checkpoint_state_hash=identity['target']['checkpoint_state_hash'])
+    identity['producer_version']=producer.to_dict()
+    payload=build_output(identity,model,after,before)
+    recipe=ArtifactRecipe({'artifact_contract':OUTPUT_CONTRACT,**identity})
+    stored=store_formal_artifact(root/'results/cache_v2',FormalArtifactRequest(ArtifactType.PREDICTION,recipe,producer),payload)
+    reference=output_reference(stored,recipe.recipe_hash)
+    source=json.loads(Path(f['sources'][0]['run']).read_text(encoding='utf-8'))
+    source['run_id']='GNNDelete';cell=source['cells'][0]
+    cell.update(cell_id='GNNDelete',path='cells/GNNDelete',output=reference)
+    cell['conditions']['method']='GNNDelete'
+    folder=root/'source-GNNDelete';directory=folder/'cells/GNNDelete';directory.mkdir(parents=True)
+    selection=json.loads((root/'source-GIF/cells/GIF/selection.json').read_text(encoding='utf-8'))
+    selection['cell_id']='GNNDelete';path=directory/'selection.json';path.write_text(json.dumps(selection),encoding='utf-8')
+    cell['files']['selection.json']['sha256']=sha256_file(path)
+    path=folder/'run.json';path.write_text(json.dumps(source),encoding='utf-8')
+    result=dict(f)
+    result['outputs']=[load_output(reference,root/'results/cache_v2',dataset_root=root),f['outputs'][1],f['outputs'][2]]
+    result['sources']=[dict(run=str(path),sha256=sha256_file(path),cell_ids=['GNNDelete']),f['sources'][2]]
+    result['gnndelete_model']=model
+    return result
+
+
+def test_gnndelete_saved_masks_two_graphs_and_response_export(gnndelete_output,tables,monkeypatch,record_property):
+    from model.base_gnn.deletion import GCNDelete
+    from experiments.response_diagnostics import RELATIONS,CORRECTNESS
+    from experiments.modular_artifacts import read_run
+    f=gnndelete_output; observed=[]; actual=GCNDelete.forward
+    def observe(model,x,edges,*args,**kwargs):
+        assert model.deletion1.mask.device==x.device==model.deletion2.mask.device
+        assert np.array_equal(model.deletion1.mask.cpu().numpy(),f['outputs'][0].auxiliary['deletion1_mask'])
+        assert np.array_equal(model.deletion2.mask.cpu().numpy(),f['outputs'][0].auxiliary['deletion2_mask'])
+        observed.append(edges.shape[1])
+        return actual(model,x,edges,*args,**kwargs)
+    monkeypatch.setattr(GCNDelete,'forward',functools.wraps(actual)(observe))
+    write_yaml(f['root']/'response.yaml',dict(kind='evaluation',schema_version=1,case='post_unlearning_response_diagnostics'))
+    result=run(tables,'gnn-two-graph',stage='metrics',selector_refs=[],output_inputs=f['sources'],evaluation_refs=['response.yaml','graph-eval.yaml'])
+    assert len(result['evaluations'])==2
+    for evaluation in result['evaluations']:
+        assert len(evaluation['rows'])==len(evaluation['not_applicable'])==1
+    response=result['evaluations'][0]['rows'][0]['metrics']
+    row=result['evaluations'][1]['rows'][0];values=row['metrics'];protocol=row['identity']['protocol']
+    assert response['selected_node_count']==1 and response['retained_train_count']==9
+    assert observed==[f['data'].edge_index.shape[1],f['outputs'][0].arrays['training_edge_index'].shape[1],f['data'].edge_index.shape[1]]
+    assert protocol['cs']=={'status':'not_applicable'}
+    assert protocol['deletion_masks']['source']=='saved_output_auxiliary'
+    assert protocol['deletion_masks']['masks']['deletion1']['count']==2
+    assert protocol['deletion_masks']['masks']['deletion2']['count']==2
+    assert protocol['reproduction_observations']['GNNDelete']['changed_labels']==0
+    for graph in ('original','retained'):
+        prefix=graph+'_graph_raw_'
+        assert sum(values[prefix+r+'_count'] for r in RELATIONS)==5
+        for i,name in enumerate(('original','gu','retrain')):
+            correct=sum(values[prefix+r+'_correct_'+bits+'_count'] for r in RELATIONS for bits in CORRECTNESS if bits[i]=='1')
+            assert correct/5==values[prefix+name+'_accuracy']
+        mismatch=sum(values[prefix+r+'_count'] for r in ('original_gu_equal','original_retrain_equal','all_different'))
+        assert mismatch==values[prefix+'gu_retrain_disagreement_count']
+        assert all(v is None for k,v in values.items() if k.startswith(graph+'_graph_') and ('matched_cs_' in k or 'no_update_cs_' in k or 'updated_cs_' in k or '_vs_no_update_cs_' in k or '_vs_updated_cs_' in k))
+    assert values['updated_raw_graph_disagreement_count']>0
+    saved_path=f['root']/'results/runs/gnn-two-graph/gnn-two-graph/run.json'
+    saved,docs=read_run(saved_path,hashlib.sha256(saved_path.read_bytes()).hexdigest())
+    assert len(saved['cells'])==1 and len(docs[0]['metrics.json']['rows'])==2
+    record_property('gnndelete_graph_counterexample',json.dumps({k:values[k] for k in ('updated_raw_graph_disagreement_count','original_graph_raw_gu_accuracy','retained_graph_raw_gu_accuracy','original_graph_raw_gu_retrain_disagreement_count','retained_graph_raw_gu_retrain_disagreement_count')}))
+
+
+@pytest.mark.parametrize('fault',['missing','integer','wrong_shape'])
+def test_gnndelete_bad_saved_masks_fail_before_forward(gnndelete_output,monkeypatch,fault):
+    import experiments.response_graph_sensitivity as module
+    output=gnndelete_output['outputs'][0]
+    if fault=='missing':del output.auxiliary['deletion1_mask']
+    elif fault=='integer':output.auxiliary['deletion1_mask']=output.auxiliary['deletion1_mask'].astype(np.int64)
+    else:output.auxiliary['deletion1_mask']=np.zeros(1,dtype=bool)
+    monkeypatch.setattr(module,'restore_original',lambda *a,**k:pytest.fail('invalid mask reached model restoration'))
+    with pytest.raises(ValueError,match='saved boolean node mask'):measure(gnndelete_output)
+
+
+def test_gnndelete_original_mismatch_stops_before_retained(gnndelete_output,monkeypatch):
+    from model.base_gnn.deletion import GCNDelete
+    f=gnndelete_output;f['outputs'][0].arrays['logits']=f['outputs'][0].arrays['logits'][:,::-1].copy()+.1
+    actual=GCNDelete.forward;edges=[]
+    def observe(model,x,e,*a,**kw):
+        edges.append(e.shape[1]);return actual(model,x,e,*a,**kw)
+    monkeypatch.setattr(GCNDelete,'forward',observe)
+    with pytest.raises(ValueError,match='GNNDelete: reproduction failed'):measure(f)
+    assert edges==[f['data'].edge_index.shape[1]]
+
+
+def test_gnndelete_mask_mutation_on_retained_is_rejected(gnndelete_output,monkeypatch):
+    from model.base_gnn.deletion import GCNDelete
+    f=gnndelete_output;actual=GCNDelete.forward;calls=[]
+    def corrupt(model,x,e,*a,**kw):
+        result=actual(model,x,e,*a,**kw);calls.append(e.shape[1])
+        if len(calls)==2:model.deletion1.mask[0]=~model.deletion1.mask[0]
+        return result
+    monkeypatch.setattr(GCNDelete,'forward',corrupt)
+    with pytest.raises(ValueError,match='changed saved deletion mask'):measure(f)
+    assert len(calls)==2
+
+
+def test_gnndelete_wrong_saved_mask_cannot_pass_original_reproduction(gnndelete_output):
+    output=gnndelete_output['outputs'][0]
+    output.auxiliary['deletion2_mask']=np.zeros_like(output.auxiliary['deletion2_mask'])
+    with pytest.raises(ValueError,match='GNNDelete: reproduction failed'):measure(gnndelete_output)

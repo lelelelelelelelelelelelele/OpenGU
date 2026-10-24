@@ -103,15 +103,38 @@ def _state(model):
     return state_hash(model.state_dict())
 
 
+def _saved_deletion_masks(output):
+    masks={}
+    for name in ('deletion1','deletion2'):
+        value=np.asarray(output.auxiliary.get(name+'_mask'))
+        if value.dtype!=np.bool_ or value.shape!=output.arrays['y'].shape:
+            raise ConfigurationError('GNNDelete requires saved boolean node mask: '+name)
+        masks[name]=value.copy()
+    return masks
+
+
+def _raw_logits(model,graph,deletion_masks=None):
+    def check_masks():
+        for name,expected in (deletion_masks or {}).items():
+            actual=getattr(model,name).mask
+            if (actual.device!=graph.x.device or actual.dtype!=torch.bool
+                    or not np.array_equal(_array(actual),expected)):
+                raise ConfigurationError('GNNDelete changed saved deletion mask/device: '+name)
+    check_masks()
+    result=_array(model.eval()(graph.x,graph.edge_index))
+    check_masks()
+    return result
+
+
 def graph_sensitivity(output,retrain,*,checkpoint_root,device):
     """Original reproduction is a hard gate before changing evaluation edges."""
     if checkpoint_root is None or device is None:
         raise ConfigurationError('graph diagnostics requires explicit checkpoint root and execution device')
     method=output.identity['target']['method']
     binding=output.identity['pairing']
-    if (method not in ('GIF','MEGU') or binding['model']['architecture']!='OpenGU.GCNNet'
+    if (method not in ('GIF','MEGU','GNNDelete') or binding['model']['architecture']!='OpenGU.GCNNet'
             or binding['deletion']['evaluation_graph']!='original'):
-        raise ConfigurationError('graph diagnostics supports original-evaluated GCN GIF/MEGU with matched Retrain only')
+        raise ConfigurationError('graph diagnostics supports original-evaluated GCN GIF/MEGU/GNNDelete with matched Retrain only')
     original_metrics,first_protocol=response_diagnostics(output,retrain)
     a=output.arrays
     mask=a['test_mask'].copy()
@@ -124,8 +147,13 @@ def graph_sensitivity(output,retrain,*,checkpoint_root,device):
         raise ConfigurationError('diagnostic graph identities differ from bound Output')
     if method=='MEGU' and 'megu_pseudo_labels' not in output.auxiliary:
         raise ConfigurationError('MEGU requires saved pseudo-labels; cannot regenerate')
+    deletion_masks=_saved_deletion_masks(output) if method=='GNNDelete' else None
     original,checkpoint=restore_original(output,graphs['original'],checkpoint_root,device)
     models=dict(no_update_raw=original,updated_raw=restore_model(output).to(device),retrain_raw=restore_model(retrain).to(device))
+    if deletion_masks is not None:
+        # DeletionLayer.mask is an ordinary attribute, so Module.to does not move it.
+        for name,saved in deletion_masks.items():
+            getattr(models['updated_raw'],name).mask=torch.tensor(saved,device=device)
     states={k:_state(model) for k,model in models.items()}
     for endpoint,payload in (('updated_raw',output),('retrain_raw',retrain)):
         expected_state=state_hash({k:torch.tensor(v) for k,v in payload.state.items()})
@@ -146,7 +174,7 @@ def graph_sensitivity(output,retrain,*,checkpoint_root,device):
     checks={}
     for graph_name,graph in graphs.items():
         with torch.no_grad():
-            current={k:_array(model.eval()(graph.x,graph.edge_index)) for k,model in models.items()}
+            current={k:_raw_logits(model,graph,deletion_masks if k=='updated_raw' else None) for k,model in models.items()}
             if method=='MEGU':
                 for endpoint,model in (('no_update_cs',original),('updated_cs',models['updated_raw'])):
                     current[endpoint]=_array(megu_logits(model,graph,graphs['retained'].train_mask,output.identity['target']['parameters']))
@@ -188,7 +216,7 @@ def graph_sensitivity(output,retrain,*,checkpoint_root,device):
     # A second original forward exposes graph-state caches or input mutation.
     with torch.no_grad():
         for endpoint,model in models.items():
-            checks['roundtrip_'+endpoint]=reproduce(outputs['original'][endpoint],_array(model(graphs['original'].x,graphs['original'].edge_index)),endpoint+' graph roundtrip')
+            checks['roundtrip_'+endpoint]=reproduce(outputs['original'][endpoint],_raw_logits(model,graphs['original'],deletion_masks if endpoint=='updated_raw' else None),endpoint+' graph roundtrip')
         if method=='MEGU':
             for endpoint,model in (('no_update_cs',original),('updated_cs',models['updated_raw'])):
                 checks['roundtrip_'+endpoint]=reproduce(outputs['original'][endpoint],_array(megu_logits(model,graphs['original'],graphs['retained'].train_mask,output.identity['target']['parameters'])),endpoint+' graph roundtrip',probabilities=True)
@@ -207,6 +235,11 @@ def graph_sensitivity(output,retrain,*,checkpoint_root,device):
         reproduction_policy=reproduction_policy(),reproduction_observations=checks,
         evaluation_mask='unchanged_test_mask_excluding_selected',
         observed_execution=dict(device_type=torch.device(device).type,cuda_version=torch.version.cuda),
+        deletion_masks=(dict(status='applicable',source='saved_output_auxiliary',
+            graph_policy='fixed_across_original_retained_and_roundtrip',model='GCNDelete',
+            masks={name:dict(sha256=tensor_hash(torch.tensor(value)),count=int(value.sum()))
+                   for name,value in deletion_masks.items()}) if deletion_masks is not None
+                   else dict(status='not_applicable')),
         cs=(dict(status='applicable',pseudo_label_source='saved_original_original_graph_argmax',
             pseudo_labels_sha256=tensor_hash(torch.tensor(pseudo)),anchors='saved_pseudo_labels_on_retained_train_mask',
             parameters=output.identity['target']['parameters'],correction_layers=80,smoothing_layers=80,

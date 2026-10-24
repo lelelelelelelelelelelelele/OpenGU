@@ -109,10 +109,11 @@ def _formula_functions(case):
         from experiments.modular_megu import megu_logits
         from task.MEGUTrainer import MEGUTrainer
         from model.base_gnn.gcn import GCNNet
+        from model.base_gnn.deletion import GCNDelete, DeletionLayer
         from experiments.node_deletion import retained_graph
         from utils.target_checkpoint import load_cached_weights
         return [graph_sensitivity, restore_original, reproduction_policy, load_output, restore_model,
-                create_model, GCNNet, megu_logits, MEGUTrainer.correct_and_smooth, retained_graph, load_cached_weights]
+                create_model, GCNNet, GCNDelete, DeletionLayer, megu_logits, MEGUTrainer.correct_and_smooth, retained_graph, load_cached_weights]
     if case == 'post_unlearning_response_diagnostics':
         from experiments.response_diagnostics import response_diagnostics, prediction_triangle, cross_entropy, request_composition
         from experiments.flip_hop_metrics import exact_retrain, hop_groups
