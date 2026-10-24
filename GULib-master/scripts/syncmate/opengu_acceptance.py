@@ -78,7 +78,7 @@ def acceptance_payload(profile, definition, context):
         root = Path(context['project_root']).resolve()
         try:
             from experiments.modular_artifacts import read_run, planned_cells
-            from experiments.modular_config import load_experiment, configuration_fingerprint, resolve_budget
+            from experiments.modular_config import load_experiment, configuration_fingerprint, resolve_budget, dataset_binding
             for remote, entry in by_remote.items():
                 path = _safe_project_path(root, entry.get('local_path'))
                 if path is None or _sha256(path) != entry['sha256']:
@@ -103,7 +103,14 @@ def acceptance_payload(profile, definition, context):
                 if any(cell[key] != expected[key] for key in ('cell_id', 'path', 'conditions')):
                     raise ValueError('result cell conditions differ from configured matrix')
                 conditions = cell['conditions']
-                counts = definition['expected_datasets'][conditions['dataset_index']]
+                if config['stage'] == 'metrics':
+                    matching = [i for i in range(len(config['datasets']))
+                                if dataset_binding(config, i)['dataset_fingerprint'] == conditions['dataset_fingerprint']]
+                    if len(matching) != 1:
+                        raise ValueError('Metrics Dataset fingerprint must match exactly one configured Dataset')
+                    counts = definition['expected_datasets'][matching[0]]
+                else:
+                    counts = definition['expected_datasets'][conditions['dataset_index']]
                 selection = document['selection.json']
                 if (selection['requested_k'] != resolve_budget(conditions['budget'], counts['candidate_count'])['k']
                         or any(n >= counts['num_nodes'] for n in selection['selected_nodes'])):
