@@ -95,7 +95,7 @@ def acceptance_payload(profile, definition, context):
             if configuration_fingerprint(config_path) != definition['configuration_fingerprint']:
                 raise ValueError('collector reviewed configuration changed')
             config = load_experiment(config_path)
-            expected_cells = (definition['expected_cells'] if config['stage'] == 'metrics' else planned_cells(config))
+            expected_cells = (definition['expected_cells'] if config['stage'] in ('metrics', 'retrain_diagnostics') else planned_cells(config))
             if len(run['cells']) != len(expected_cells):
                 raise ValueError('collected cell count differs from registration')
             actual_paths = [run_remote]
@@ -103,7 +103,15 @@ def acceptance_payload(profile, definition, context):
                 if any(cell[key] != expected[key] for key in ('cell_id', 'path', 'conditions')):
                     raise ValueError('result cell conditions differ from configured matrix')
                 conditions = cell['conditions']
-                counts = definition['expected_datasets'][conditions['dataset_index']]
+                dataset_index = conditions['dataset_index']
+                if config['stage'] == 'retrain_diagnostics':
+                    from experiments.modular_config import dataset_binding
+                    matches = [i for i in range(len(config['datasets']))
+                               if dataset_binding(config, i)['dataset_fingerprint'] == conditions['dataset_fingerprint']]
+                    if len(matches) != 1:
+                        raise ValueError('Ret diagnostic source Dataset does not uniquely match registration')
+                    dataset_index = matches[0]
+                counts = definition['expected_datasets'][dataset_index]
                 selection = document['selection.json']
                 if (selection['requested_k'] != resolve_budget(conditions['budget'], counts['candidate_count'])['k']
                         or any(n >= counts['num_nodes'] for n in selection['selected_nodes'])):
@@ -126,6 +134,9 @@ def acceptance_payload(profile, definition, context):
                 if 'metrics.json' in document:
                     from experiments.modular_evaluation import CASES, is_paired_evaluation
                     expected_metrics = []
+                    if config['stage'] == 'retrain_diagnostics':
+                        from experiments.retrain_diagnostics import METRICS
+                        expected_metrics = [('retrain_validation_trace', METRICS)]
                     if config['stage'] == 'unlearning':
                         expected_metrics = [('method', set(CASES['post_method_metrics']['metrics'])),
                             ('utility', {'f1_before', 'f1_after', 'f1_drop', 'f1_drop_ratio'})]

@@ -14,7 +14,7 @@ def _modular_preflight(definition, config_path):
     if plan['experiment_id'] != definition['run_identity']['experiment_id']:
         errors.append('experiment identity differs from registration')
     recovery = {'ready': True, 'locks': [], 'errors': []}
-    if plan['stage'] != 'metrics':
+    if plan['stage'] not in ('metrics', 'retrain_diagnostics'):
         from syncmate_core.context import current
         from experiments.cache_locks import score_lock_preflight
         recovery = score_lock_preflight(current().root / 'results' / 'cache_v2')

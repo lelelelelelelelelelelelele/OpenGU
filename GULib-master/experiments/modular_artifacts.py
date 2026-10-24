@@ -60,10 +60,15 @@ def planned_cells(config):
     from experiments.modular_config import experiment_batches, selector_entries, unlearning_entries
     from experiments.modular_evaluation import is_paired_evaluation
     cells = []
-    if config['stage'] == 'metrics':
+    if config['stage'] in ('metrics', 'retrain_diagnostics'):
         for source in config['output_inputs']:
             run, _ = read_run(Path(config['source_directory']) / source['run'], source['sha256'])
             for cell in metric_source_cells(run, source):
+                if config['stage'] == 'retrain_diagnostics':
+                    if run['stage'] != 'unlearning' or cell['conditions']['method'] != 'Retrain':
+                        raise ValueError('Ret diagnostics require original unlearning-stage Retrain Outputs')
+                    cells.append({key: cell[key] for key in ('cell_id', 'path', 'conditions')})
+                    continue
                 if cell.get('output') and (cell['conditions']['method'] != 'Retrain' or any(
                         not is_paired_evaluation(e) for e in config['evaluations'])):
                     cells.append({key: cell[key] for key in ('cell_id', 'path', 'conditions')})
@@ -293,7 +298,7 @@ def read_run(path, expected_sha256):
     run = json.loads(path.read_text(encoding='utf-8'))
     if set(run) != {'experiment_id', 'run_id', 'generated_at', 'commit', 'config_path', 'stage', 'status', 'cells'}:
         raise ValueError('unexpected run fields')
-    if run['status'] != 'completed' or run['stage'] not in ('selector', 'unlearning', 'metrics'):
+    if run['status'] != 'completed' or run['stage'] not in ('selector', 'unlearning', 'metrics', 'retrain_diagnostics'):
         raise ValueError('run is not completed')
     seen = set()
     documents = []
@@ -332,7 +337,10 @@ def read_run(path, expected_sha256):
                 raise ValueError('Observer reference identity mismatch')
             from cache_v2 import ArtifactRecipe
             from cache_v2.unlearning_output import OUTPUT_CONTRACT
-            if ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **identity['output_identity']}).recipe_hash != cell['output']['recipe_hash']:
+            if run['stage'] == 'retrain_diagnostics':
+                from experiments.retrain_diagnostics import validate_observer_reference
+                validate_observer_reference(identity, cell, reference)
+            elif ArtifactRecipe({'artifact_contract': OUTPUT_CONTRACT, **identity['output_identity']}).recipe_hash != cell['output']['recipe_hash']:
                 raise ValueError('Observer does not bind cell Output')
             required.update(expected)
         if set(cell['files']) != required:

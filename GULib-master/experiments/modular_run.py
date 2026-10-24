@@ -80,10 +80,10 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     plan = _plan_summary(config)
     plan['batches'] = [{**_plan_summary(batch), 'matrix_values': batch['matrix_values']} for batch in batches]
     plan['logical_cells'] = sum(
-        len(batch.get('output_inputs', [])) if batch['stage'] == 'metrics' else
+        len(batch.get('output_inputs', [])) if batch['stage'] in ('metrics', 'retrain_diagnostics') else
         len(unlearning_entries(batch)) if batch['stage'] == 'unlearning' else len(selector_entries(batch))
         for batch in batches)
-    if config['stage'] == 'metrics' and all(v.get('run') and v.get('sha256') for v in config['output_inputs']):
+    if config['stage'] in ('metrics', 'retrain_diagnostics') and all(v.get('run') and v.get('sha256') for v in config['output_inputs']):
         from experiments.modular_artifacts import planned_cells
         plan['logical_cells'] = len(planned_cells(config))
     plan['configuration_fingerprint'] = configuration_fingerprint(path)
@@ -101,14 +101,14 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
         raise ConfigurationError('the current modular consumer evaluates GU results only')
     for evaluation in config['evaluations']:
         require_consumer(evaluation, 'modular_v1')
-    if config['stage'] == 'metrics' and any(not v.get('run') or not v.get('sha256') for v in config['output_inputs']):
+    if config['stage'] in ('metrics', 'retrain_diagnostics') and any(not v.get('run') or not v.get('sha256') for v in config['output_inputs']):
         raise ConfigurationError('metrics requires bound run.json paths and checksums')
     directory = Path(config['source_directory'])
     # Import-time OpenGU CLI belongs to the execution adapter, not its caller's argv.
     runtime_defaults()
     from attack.cache_identity import resolve_store_root
     store_root = resolve_store_root(context.store_root)
-    if config['stage'] != 'metrics':
+    if config['stage'] not in ('metrics', 'retrain_diagnostics'):
         from experiments.cache_locks import require_score_locks_clear
         require_score_locks_clear(store_root)
     checkpoint_root = context.checkpoint_root
@@ -150,6 +150,9 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
         'effective_unlearning': [item for batch in batches for item in batch['unlearnings']],
         'execution_receipt': context.receipt(), 'datasets': datasets,
         'selectors': [], 'unlearning': [], 'evaluations': []}
+    if config['stage'] == 'retrain_diagnostics':
+        from experiments.retrain_diagnostics import execute_retrain_diagnostics
+        return execute_retrain_diagnostics(config, context, datasets, loaded_data, summary, run_state, audit, notify)
     if config['stage'] == 'metrics':
         from experiments.modular_artifacts import read_run, metric_source_cells
         from experiments.evaluation_cache import describe_output

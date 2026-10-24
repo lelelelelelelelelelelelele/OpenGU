@@ -424,9 +424,9 @@ def load_experiment(path):
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
-    choice(value['stage'], ('selector', 'unlearning', 'metrics'), 'stage')
+    choice(value['stage'], ('selector', 'unlearning', 'metrics', 'retrain_diagnostics'), 'stage')
     choice(value['matrix'], ('cartesian_product',), 'matrix')
-    if value['stage'] != 'metrics' and not value.get('selector_refs'):
+    if value['stage'] in ('selector', 'unlearning') and not value.get('selector_refs'):
         raise ConfigurationError('selector_refs is required for selector and unlearning stages')
     if value['stage'] == 'selector' and value.get('unlearning_refs'):
         raise ConfigurationError('selector stage needs selector_refs and no GU inputs')
@@ -437,15 +437,20 @@ def load_experiment(path):
             raise ConfigurationError('metrics stage requires output_inputs and evaluation_refs')
         if any(value.get(key) for key in ('selector_refs', 'unlearning_refs')):
             raise ConfigurationError('metrics stage consumes only explicit output references')
+    elif value['stage'] == 'retrain_diagnostics':
+        if not value.get('output_inputs') or any(value.get(k) for k in ('selector_refs', 'unlearning_refs', 'evaluation_refs', 'observers', 'execution')):
+            raise ConfigurationError('retrain_diagnostics requires only exact output_inputs; its observer and training protocol are fixed')
     elif 'output_inputs' in value:
-        raise ConfigurationError('output_inputs belongs to the metrics stage')
+        raise ConfigurationError('output_inputs belongs to a source-consuming stage')
     if type(value.get('return_scores', False)) is not bool:
         raise ConfigurationError('return_scores must be boolean')
-    if value['stage'] == 'metrics':
+    if value['stage'] in ('metrics', 'retrain_diagnostics'):
         if value.get('return_scores'):
             raise ConfigurationError('metrics does not generate scores')
         for source in value['output_inputs']:
             fields(source, {'run', 'sha256', 'cell_ids'}, {'run', 'sha256'}, 'metrics input')
+            if value['stage'] == 'retrain_diagnostics' and 'cell_ids' not in source:
+                raise ConfigurationError('retrain_diagnostics requires exact cell_ids')
             if 'cell_ids' in source:
                 ids = source['cell_ids']
                 if (not isinstance(ids, list) or not ids or any(not isinstance(v, str) or not v for v in ids)
@@ -545,6 +550,8 @@ def load_experiment(path):
         if len({spec['name'] for spec in specs}) != len(specs):
             raise ConfigurationError('duplicate observer for method')
         validate_capabilities(method, specs, policies.get(method, 'reuse'))
+    if value['stage'] == 'retrain_diagnostics':
+        result['observers'] = [{'methods': ['Retrain'], 'instance': {'name': 'retrain_validation_trace', 'parameters': {}}}]
     result['source_directory'] = str(path.parent)
     # Validate matrix axes while parsing, including during the ordinary dry-run.
     validate_repeats(result)
@@ -557,8 +564,8 @@ def validate_repeats(config):
         if field not in config:
             continue
         values = config[field]
-        if config['stage'] == 'metrics':
-            raise ConfigurationError('metrics consumes fixed outputs and cannot declare repeat axes')
+        if config['stage'] in ('metrics', 'retrain_diagnostics'):
+            raise ConfigurationError('source-consuming stages cannot declare repeat axes')
         if not isinstance(values, list) or not values:
             raise ConfigurationError(field + ' must be a nonempty list')
         for value in values:

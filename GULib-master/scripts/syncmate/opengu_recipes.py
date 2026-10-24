@@ -76,7 +76,7 @@ def validate_declaration(spec):
         if spec['outputs'] != {'root': OUTPUT_ROOT, 'layout': layout, 'files': files}:
             raise ValueError('outputs must match the ordinary executor layout and collection rules')
         if runner == 'experiment':
-            if spec['stage'] not in ('selector', 'unlearning', 'metrics') or not isinstance(spec['expected_datasets'], list) or not spec['expected_datasets']:
+            if spec['stage'] not in ('selector', 'unlearning', 'metrics', 'retrain_diagnostics') or not isinstance(spec['expected_datasets'], list) or not spec['expected_datasets']:
                 raise ValueError('invalid experiment stage or dataset counts')
             for counts in spec['expected_datasets']:
                 _fields(counts, {'num_nodes', 'candidate_count'})
@@ -123,6 +123,9 @@ def assemble(spec, project_root=ROOT):
             if len(config['datasets']) != len(spec['expected_datasets']):
                 raise ValueError('recipe dataset count differs from experiment')
             paths = (summary,) + output_paths(summary, config)
+            if config['stage'] == 'retrain_diagnostics':
+                from experiments.modular_artifacts import planned_cells
+                definition['expected_cells'] = planned_cells(config)
             definition.update(expected_artifact_paths=paths, progress_plan=progress_plan(config),
                 collector_artifact_names=tuple(sorted({Path(p).name for p in paths})),
                 collector_profile='modular-output-v1', collector_acceptance=True,

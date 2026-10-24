@@ -66,6 +66,7 @@ def _derive_state(events: Sequence[Mapping[str, Any]]) -> str:
             return "legacy-skip" if "legacy" in reason.lower() else "complete (cached)"
 
     for stage, label in (
+        ("retrain_diagnostics", "retrain-diagnosed"),
         ("evaluation", "evaluated"),
         ("collateral", "collateral"),
         ("attack", "attack-only"),
@@ -85,7 +86,7 @@ def _stage_summary(events: Sequence[Mapping[str, Any]]) -> str:
         latest_by_stage[str(event.get("stage"))] = str(event.get("state"))
     return ", ".join(
         "{0}={1}".format(stage, latest_by_stage[stage])
-        for stage in ("selection", "attack", "collateral", "evaluation", "run")
+        for stage in ("selection", "attack", "collateral", "evaluation", "retrain_diagnostics", "run")
         if stage in latest_by_stage
     ) or "-"
 

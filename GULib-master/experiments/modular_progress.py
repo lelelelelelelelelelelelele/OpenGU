@@ -50,7 +50,11 @@ def progress_steps(config):
         name = dataset['dataset']['name']
         steps.append({'position': {'stage': 'data', 'dataset_index': index},
                       'label': '准备数据：' + name, 'total': 1})
-    if config['stage'] == 'metrics':
+    if config['stage'] == 'retrain_diagnostics':
+        from experiments.modular_artifacts import planned_cells
+        steps.extend([{'position': {'stage': 'retrain_inputs'}, 'label': 'Verify exact Ret inputs', 'total': 1},
+                      {'position': {'stage': 'retrain_diagnostics'}, 'label': 'Ret validation diagnostics', 'total': len(planned_cells(config))}])
+    elif config['stage'] == 'metrics':
         steps.append({'position': {'stage': 'metric_inputs'},
                       'label': 'Read metric inputs', 'total': len(config['output_inputs'])})
     else:
