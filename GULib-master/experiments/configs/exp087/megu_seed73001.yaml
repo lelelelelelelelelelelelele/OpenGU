@@ -1,0 +1,24 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp087-megu-s73001
+stage: unlearning
+dataset_refs:
+- citeseer_seed2025.yaml
+selector_refs:
+- ./full/seed73001/selector_S.yaml
+- degree.yaml
+- ./full/seed73001/selector_M44.yaml
+- ./full/seed73001/selector_M55.yaml
+- ./full/seed73001/selector_M66.yaml
+- random.yaml
+unlearning_refs:
+- ./full/seed73001/megu.yaml
+matrix: cartesian_product
+random_selector_seeds:
+- 44
+- 55
+- 66
+budget_ratios:
+- 0.05
+- 0.33
+return_scores: false
