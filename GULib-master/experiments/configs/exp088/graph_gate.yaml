@@ -1,0 +1,18 @@
+kind: experiment
+schema_version: 1
+stage: metrics
+matrix: cartesian_product
+experiment_id: exp088-graph-gate
+dataset_refs:
+- citeseer_seed2025.yaml
+output_inputs:
+- run: ../../../results/runs/exp088-gu-gate/e88ug1/run.json
+  sha256: 487218eeed1bd230ea5a8c172cb4e6dfda3db09f4f580a867df7c30e534d0ebf
+  cell_ids:
+  - 0849daa48ef02cefd826
+- run: ../../../results/runs/exp088-ret-gate/e88rg1/run.json
+  sha256: 2a1c292eff0dd43d4c6b6a7e763945e6f56dd444dc6c6d52161592014489ccdd
+  cell_ids:
+  - a1c4d9f90abee722dcd1
+evaluation_refs:
+- post_unlearning_response_graph_sensitivity.yaml

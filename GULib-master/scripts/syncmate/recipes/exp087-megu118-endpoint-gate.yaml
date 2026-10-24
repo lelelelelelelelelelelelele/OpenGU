@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-megu118-endpoint-gate
+runner: experiment
+config_path: experiments/configs/exp087/metrics_megu118_endpoint_gate.yaml
+config_sha256: cdb9f802ad9a9f91dd75ad32282bba4f5be96b3849e21bec566c5d4515728b8d
+configuration_fingerprint: 4d7de0cc1bd134bf3c5d72ecc7b61e37d11d6bbb7f5202cf2bc68186bc5ef838
+run_identity:
+  experiment_id: exp087-megu118-endpoint-gate
+  run_id: e87med1
+timeout_seconds: 1800
+logical_cells: 2
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

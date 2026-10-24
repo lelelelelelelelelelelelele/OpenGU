@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp088-endpoint-gate
+runner: experiment
+config_path: experiments/configs/exp088/endpoint_gate.yaml
+config_sha256: 4ad5802bcc4b52f26aa3a6cf6820060f761fb5fa78710502a6d6bf8187946299
+configuration_fingerprint: f955179eb82247480844ae8fa05509a9bc2083762e71cdbfa46f66dc083ceea0
+run_identity:
+  experiment_id: exp088-endpoint-gate
+  run_id: e88eg1
+timeout_seconds: 1800
+logical_cells: 1
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

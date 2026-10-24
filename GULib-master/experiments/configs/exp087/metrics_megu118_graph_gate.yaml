@@ -1,0 +1,20 @@
+kind: experiment
+schema_version: 1
+stage: metrics
+matrix: cartesian_product
+experiment_id: exp087-megu118-graph-gate
+dataset_refs:
+- citeseer_seed2025.yaml
+output_inputs:
+- run: ../../../results/runs/exp087-megu118-gate/e87mg1/run.json
+  sha256: 2d0431f73ce0fe53c76ac2957314b0fa5130cd1b0d49eba104dac042d776d9fe
+  cell_ids:
+  - 55255bc5f8b57e218106
+  - ddb37bcfeab3a0f50212
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_ids:
+  - e803c4c87eae6e7fd359
+  - 1a3bfe5130f68eaf37cb
+evaluation_refs:
+- post_unlearning_response_graph_sensitivity.yaml

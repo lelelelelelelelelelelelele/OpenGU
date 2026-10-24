@@ -1,0 +1,441 @@
+kind: experiment
+schema_version: 1
+stage: metrics
+matrix: cartesian_product
+experiment_id: exp087-gif160-endpoint-supervision
+dataset_refs:
+- citeseer_seed2025.yaml
+output_inputs:
+- run: ../../../results/runs/exp087-gif-s73001/e87f01/run.json
+  sha256: 2876afb5765300207f6ae14f8845c6ae53008d05438c2f5775d4cdc8d8564775
+  cell_ids:
+  - 1beb58d2fdb90d612a03
+  - 2fa9f0cea02f857b45c1
+  - 7a6de051a0a4fbf4f4bf
+  - 447939f4fbb888b901be
+- run: ../../../results/runs/exp087-gif-s73003/e87f02/run.json
+  sha256: 0b30f62e7ac20c479559e560fec19cbf982c538e978973eb673f2c1b69130705
+  cell_ids:
+  - 443dbc965c738c1d661f
+  - 4cd63f280158e7315b48
+  - 16381a0e8ae70b9f94dc
+  - c8a9c6394674380ee4d1
+- run: ../../../results/runs/exp087-gif-s73007/e87f03/run.json
+  sha256: cfff473915d75c78ec0fef1bf5c5349ac0a96c134612c128dd6fe6739e59fde7
+  cell_ids:
+  - 38a05a6b9d11cb3a6905
+  - ce4f4f41cc49009f767a
+  - fc38aa13fb84ccec5403
+  - e80522c3b71976021922
+- run: ../../../results/runs/exp087-gif-s73009/e87f04/run.json
+  sha256: 90df135c9d45c9306a4ff53922e14ec0229b80f51b874095af8ca00302a6e540
+  cell_ids:
+  - 606eddfe56535e9d6924
+  - 2c23c91f3bda05ff4c82
+  - 341080672fde3a218cfe
+  - 3f32fb5abca63efe1113
+- run: ../../../results/runs/exp087-gif-s73013/e87f05/run.json
+  sha256: e294f8fb279d7d87920dcb2857725826c16aead7d859112c60c5acff8387839a
+  cell_ids:
+  - a5c589124247298aefca
+  - 14b5442723da61eb3792
+  - 0fce70b163516d2bafd1
+  - 97915c666ac729abacb2
+- run: ../../../results/runs/exp087-gif-s73019/e87f06/run.json
+  sha256: 4fbd6bbf8cc67efb18c94896901ece9437285e4022ebea343a5520f9d73ec437
+  cell_ids:
+  - ddd3d46a6f143989be86
+  - e66724759919ebd5f437
+  - 787f5b51aedab9f48bd0
+  - 15b33479f390e57e7c54
+- run: ../../../results/runs/exp087-gif-s73021/e87f07/run.json
+  sha256: 009a2d270484c4363ddd90849b55bb59e5e9f0873a64d0f6dd8cb5caabc26781
+  cell_ids:
+  - 1d2a401a5bc6a0df9fa9
+  - e8605e6bf8ff908a5e85
+  - c148b58cb36c6dd2f8b4
+  - 21e6b425ca4d0f8e1cb2
+- run: ../../../results/runs/exp087-gif-s73027/e87f08/run.json
+  sha256: 36dfcce60a16b8f811669411f97958918473b246a04d6e19bf01a221a5f007e9
+  cell_ids:
+  - 8832395ed20827d1f1fc
+  - d85d47e611974c5494b9
+  - c8e83f6241818090d127
+  - f275c95c0c5a136ae128
+- run: ../../../results/runs/exp087-gif-s73033/e87f09/run.json
+  sha256: 22e4551dc060fb75629d937527231bfdf32108cfd1edc5f58463f2208ca2c2d4
+  cell_ids:
+  - dd28525f9b86e5e23057
+  - eb45f953b06c16f8b6e3
+  - cacd47b8a1aac7ed1f0f
+  - 73206cb6d5fada3063a8
+- run: ../../../results/runs/exp087-gif-s73039/e87f10/run.json
+  sha256: e3d92fad2c9bbdc1f0998ca604b77fafdbe3569e5e30f06a7de9ebbbd90ad3bf
+  cell_ids:
+  - 2764ffd7bae31ea06856
+  - 7be17d9acc29285b6796
+  - 1b5b682267b80a8e98b7
+  - fdf031122a1602c6ccbb
+ret_endpoint_inputs:
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: fefc74f820bfdf847558
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: bc57f3bc64ffa975ab90
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: 1bc7eeaf90e63bec0e29
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: 9a86ec5e70abffd654fc
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: 5a06175111ec41dd5dc0
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: b7915164e0b5b69fa878
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: cb05068f1cb72a2e3742
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: fc932da3291194f08a35
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: 401a663a69fec623c696
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: d8f1106f12dff1cfa241
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: b7d60d3991ac793661fb
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: 1719139207d56911a231
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: 390c9a93c8cd714122c9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: 6ecfe4f064d0a4b91c08
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: f101782d92a2c263b841
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: e4527e823ebf1d0630a3
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: 982e928580532a47075b
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: 36ffa7230b85fd3acc8f
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: 508b2fed23fa3d611f9a
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-first5/e87x1/run.json
+  sha256: bebb8ae493ff26b00ef6f1eb6b48317686a3542aeb5c7835daecd0d59168f2f0
+  cell_id: a6476e73a9d42f0f05a9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 85a2245741f683deaa59
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 7af58a816d1c09dc7f78
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: db37421df1aff5203a87
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 63645a7ac1a577f96a13
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 4b9546dc341fabc8220e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: a0481dc1ea006a832351
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: c14cfd0844fd25b13dce
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 29fb878ce5f2a6a7bd43
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 48148c07ef6cf644a50e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 497cc49666187d40bf01
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 908e89f65161221ea192
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 27765790792b44ce3b26
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 6a52cb898450242fdf7b
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: d766a26256298a2150e0
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 2808c5c59e2719155d29
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 29f3f48ff70d1d652f56
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: c6af3d0f3f91c5e88432
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 9c30553737667d47656d
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: 8e686aa1000d1e57a3b5
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-extra-last5/e87x2/run.json
+  sha256: 8696a736ab774411e58aa278c5b109ea831cff2271da972fb616f2c78754a9a9
+  cell_id: eedbdcc75ae98a045f6e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: supervision_only
+  endpoints:
+  - final
+  - best
+evaluation_refs:
+- post_unlearning_ret_endpoint_sensitivity.yaml

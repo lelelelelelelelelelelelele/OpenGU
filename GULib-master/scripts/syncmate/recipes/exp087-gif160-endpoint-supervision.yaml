@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-gif160-endpoint-supervision
+runner: experiment
+config_path: experiments/configs/exp087/metrics_gif160_endpoint_supervision.yaml
+config_sha256: cd81953c0f1ae195c25a39fd1bb2a0a762d7cde00bcfbddb71d714d04b2acea2
+configuration_fingerprint: 3f4ea1398253c84293adc1d8218a5b1e2992bdbde069a55f3a897535f1bb82cc
+run_identity:
+  experiment_id: exp087-gif160-endpoint-supervision
+  run_id: e87fs1
+timeout_seconds: 1800
+logical_cells: 40
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
