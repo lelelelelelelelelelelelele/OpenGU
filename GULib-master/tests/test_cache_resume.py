@@ -19,8 +19,8 @@ def store(tmp_path):
         producer_version=ProducerVersion('test-v1', _sha('producer')), lock_timeout_seconds=0)
 
 
-@pytest.mark.parametrize('error, expected', [(None, 'active'),
-    (ProcessLookupError(), 'orphan'), (PermissionError(), 'unknown'), (OSError(), 'unknown')])
+@pytest.mark.parametrize('error, expected', [(None, 'local_pid_visible'),
+    (ProcessLookupError(), 'local_pid_not_visible'), (PermissionError(), 'unknown'), (OSError(), 'unknown')])
 def test_posix_owner_probe_never_sends_a_signal(monkeypatch, error, expected):
     import experiments.cache_locks as locks
     def kill(pid, signal):
@@ -77,7 +77,7 @@ def test_locally_invisible_writer_releases_lock_then_reader_hits(tmp_path, monke
         assert release.wait(2)
         return payload
     inspect = locks.inspect_score_lock
-    monkeypatch.setattr(locks, 'owner_status', lambda pid: 'orphan')
+    monkeypatch.setattr(locks, 'owner_status', lambda pid: 'local_pid_not_visible')
     def invisible(path):
         result = inspect(path)
         contended.set()
@@ -104,9 +104,9 @@ def test_unreleased_foreign_pid_lock_times_out_and_remains_unchanged(tmp_path, m
     s.initialize()
     path = tmp_path / '.locks' / ('score-' + recipe.recipe_hash + '.lock')
     path.write_bytes(b'54496')
-    monkeypatch.setattr(locks, 'owner_status', lambda pid: 'orphan')
+    monkeypatch.setattr(locks, 'owner_status', lambda pid: 'local_pid_not_visible')
     started = time.monotonic()
-    with pytest.raises(CacheResolutionError, match='timed out waiting.*54496'):
+    with pytest.raises(CacheResolutionError, match='timed out waiting.*54496, local_pid_not_visible'):
         s.get_or_compute(recipe, lambda: pytest.fail('lock was not acquired'))
     assert .04 <= time.monotonic()-started < 2
     assert path.read_bytes() == b'54496'

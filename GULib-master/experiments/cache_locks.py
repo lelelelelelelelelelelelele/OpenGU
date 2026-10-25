@@ -1,22 +1,23 @@
-"""Read-only owner diagnostics for an individual ScoreBundle entry lock."""
+"""Local PID observations for a ScoreBundle lock, not owner liveness proof."""
 from pathlib import Path
 import os
 import stat
 
 
 def owner_status(pid):
+    """Visibility in this PID namespace cannot establish the lock owner's liveness."""
     if pid == os.getpid():
-        return 'active'
-    # os.kill(pid, 0) is a liveness probe on POSIX, not on Windows.
+        return 'local_pid_visible'
+    # Signal zero observes only this POSIX PID namespace; Windows differs.
     if os.name != 'posix':
         return 'unknown'
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
-        return 'orphan'
+        return 'local_pid_not_visible'
     except OSError:
         return 'unknown'
-    return 'active'
+    return 'local_pid_visible'
 
 
 def inspect_score_lock(path):
