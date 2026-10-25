@@ -96,6 +96,13 @@ configuration reference and existing SHA/fingerprint, run identity, timeout,
 dataset counts, and compact output rules. `opengu_recipes.py` only validates and
 assembles these declarations; there is no Python experiment registration table.
 
+This directory is the current submission list. Retire declarations whose run
+identity has already been used, whose replacement is current, or whose planned
+branch is explicitly no longer required. Keep running/queued tasks and unresolved
+plans. Historical jobs retain their frozen source commit, handoff and scientific
+declaration; reading or collecting them does not require restoring old Recipes
+to the current list. A rerun needs a newly reviewed declaration and unused run ID.
+
 Generate an ordinary recipe from a real configuration (PowerShell):
 
 ```powershell
@@ -1453,22 +1460,12 @@ Reports older than 24 hours are flagged by `doctor` as stale.
 
 ### Ordinary experiment receipts (AAGU-034)
 
-`opengu-aagu031-stage-s-v2` registers the current AAGU-015 eight-group Selector
-table at `experiments/configs/aagu031/stage_s.yaml`: 72 conditions across three
-datasets, run ID `aagu031-stage-s-v2`, one Selector summary, and a 21600-second
-subprocess limit. The summary carries the existing score/ranking and selection
-evidence. Registration binds the reviewed YAML and referenced configuration
-fingerprints; it does not submit a job or authorize formal execution.
-
 Recipe file hashes use Core's `sha256_recipe_config` (normalized LF text), not
-raw Windows file bytes. The extension v2 registration has been corrected to
-this rule; its scientific configuration fingerprint and matrix are unchanged.
+raw Windows file bytes. Registration binds the reviewed YAML and referenced
+configuration fingerprints; it does not submit a job or authorize execution.
 
 The current recipe calls `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v2 --syncmate`.
-The repaired 007 registration uses a new run identity to preserve the previous
-unaccepted batch. `opengu-aagu032-v1` binds the existing 42-cell Cora D-full
-comparison YAML, run ID `aagu032-v1`, 169 artifacts and a 21600-second limit.
-Its execution is conditional on successful 007 collection and metric checks.
+The 007 registration uses a distinct run identity to preserve its previous batch.
 The same parser, in-memory expansion and execution kernel serve dry-run and
 local CPU verification. The registration binds both the top YAML hash and the
 complete referenced configuration fingerprint, plus run identity and the exact
