@@ -28,9 +28,9 @@
 
 ### 中断后的缓存恢复条件
 
-队列空闲、runner 锁释放和安装成功，只证明各自检查覆盖的条件。强制超时、进程被杀或主机重启后，ScoreBundle 的文件锁可能留下，必须在任何模型准备前检查执行端 `results/cache_v2/.locks/score-*.lock`。普通 Selector/GU 的项目 preflight 和实际执行入口均调用同一只读检查；Metrics 阶段不生产 Score，因此不检查该写锁。
+队列空闲、runner 锁释放和安装成功，只证明各自检查覆盖的条件。共享 Cache 不在启动时扫描任意 Score 锁并拒绝整个矩阵；实际访问沿用按条目锁、取得锁后的 HIT 复查、索引事务和完整性／身份冲突保护。HIT 不重新生产或覆盖 payload。
 
-检查返回精确路径、PID 和 `active / orphan / unknown`。任何现存锁都阻断新矩阵：活动锁等待原任务结束；已确认 owner 不存在的锁走 [机器恢复流程](../../scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md#scorebundle-遗留锁恢复)；内容损坏、权限不足、PID 复用或跨主机归属不清时不能自动判定可删除。检查只读锁控制文件，不扫描缓存 payload，不以锁年龄自动删除文件。安装回执和此前的预览不能替代启动时检查。
+条目锁等待超时保留原 job、失败日志和锁，不自动重试或删除；获授权的再次提交使用新运行身份。锁归属、缓存损坏或内容冲突须按[机器恢复流程](../../scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md#scorebundle-遗留锁恢复)核对，不能仅因本容器看不到某 PID 就判定其他节点 owner 已不存在，也不一概视为重跑即可解决。保留实际失败与诊断证据，不改写原作业身份。
 
 GU 在 `reuse` 下先按当前输入和已有 checkpoint 元数据查找 Output，HIT 不构造 GU 模型、不加载初始权重或 ensemble；MISS 才进入原计算路径并校验实际权重。元数据引用标记为 `verification=metadata_only`，不冒充权重文件校验；没有可信 sidecar 的外部 PT 仍须读取状态以确定身份。模型型 Selector 的准备不在此跳过范围。
 

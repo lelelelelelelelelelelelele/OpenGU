@@ -13,16 +13,22 @@ def _modular_preflight(definition, config_path):
         errors.append('expanded conditions differ from registration')
     if plan['experiment_id'] != definition['run_identity']['experiment_id']:
         errors.append('experiment identity differs from registration')
-    recovery = {'ready': True, 'locks': [], 'errors': []}
-    if plan['stage'] not in ('metrics', 'retrain_diagnostics'):
-        from syncmate_core.context import current
-        from experiments.cache_locks import score_lock_preflight
-        recovery = score_lock_preflight(current().root / 'results' / 'cache_v2')
-        errors.extend(recovery['errors'])
-    return {'ready': not errors, 'errors': errors, 'cache_recovery': recovery}
+    return {'ready': not errors, 'errors': errors}
 
 
 _PREFLIGHT_HANDLERS = {'modular-project-v1': _modular_preflight}
+
+
+def bind_execution_node(definition, node_id):
+    """Bind only execution argv; reviewed Recipe and scientific identity stay fixed."""
+    from syncmate_core.context import validate_node_id
+    node_id = validate_node_id(node_id)
+    argv = tuple(definition['argv'])
+    if argv[1] == 'scripts/syncmate/syncmate.py':
+        argv = argv[:2] + ('--node-id', node_id) + argv[2:]
+    else:
+        argv += ('--node-id', node_id)
+    return {**definition, 'argv': argv}
 
 
 class OpenGUProjectExtension:
@@ -39,7 +45,10 @@ class OpenGUProjectExtension:
 
     def resolve_recipe(self, project_root: Path, recipe_id: str) -> Mapping[str, Any]:
         import opengu_recipes as recipes_module
-        return recipes_module.resolve_recipe(project_root, recipe_id)
+        definition = recipes_module.resolve_recipe(project_root, recipe_id)
+        from syncmate_core.context import current
+        node_id = current().node_id
+        return bind_execution_node(definition, node_id) if node_id is not None else definition
 
     def artifact_names(
         self,

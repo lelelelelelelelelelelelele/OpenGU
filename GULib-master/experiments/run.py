@@ -24,6 +24,7 @@ def main(argv=None, *, notify=None):
     parser.add_argument('--run-id')
     parser.add_argument('--device', help='explicit native device: cpu, cuda, or cuda:N')
     parser.add_argument('--syncmate', action='store_true', help='enable the optional SyncMate adapter')
+    parser.add_argument('--node-id', help='explicit SyncMate execution node')
     parser.add_argument('--device-config', type=Path, help='SyncMate device file; requires --syncmate')
     args = parser.parse_args(argv)
     try:
@@ -31,7 +32,7 @@ def main(argv=None, *, notify=None):
             from experiments.modular_run import execute
             if args.dry_run:
                 if any((args.verification_root, args.run_id, args.device,
-                        args.syncmate, args.device_config, notify is not None)):
+                        args.syncmate, args.device_config, args.node_id, notify is not None)):
                     raise ValueError('dry-run has no execution context')
                 result = execute(args.config, dry_run=True)
             else:
@@ -46,12 +47,12 @@ def main(argv=None, *, notify=None):
                         raise ValueError('--syncmate owns its device and notification callback')
                     from scripts.syncmate.opengu_execution import device_context, make_notify
                     context = device_context(config['experiment_id'], run_id=args.run_id,
-                        device_file=args.device_config or ROOT / '.syncmate/device.yaml',
+                        device_file=args.device_config or ROOT / '.syncmate/device.yaml', node_id=args.node_id,
                         verification_root=args.verification_root)
                     notify = make_notify(config, context, config_path=args.config)
                 else:
-                    if args.device_config is not None:
-                        raise ValueError('--device-config requires --syncmate')
+                    if args.device_config is not None or args.node_id is not None:
+                        raise ValueError('--device-config/--node-id require --syncmate')
                     from experiments.modular_execution import native_context
                     context = native_context(config['experiment_id'], run_id=args.run_id,
                         request_device=args.device, verification_root=args.verification_root)
@@ -75,7 +76,7 @@ def main(argv=None, *, notify=None):
                     config_fingerprint=fingerprint, git_sha=context.source_git_sha,
                     cell_id=cell_id, run_id=new_run_id(cell_id), attempt=attempt,
                     metadata={'execution_run_id': context.run_id, 'level': context.level,
-                              'config_path': str(args.config.resolve())},
+                              'config_path': str(args.config.resolve()), 'node_id': context.node_id},
                     event_path=event_path, status_md_path=journal / 'auto_report.md',
                     status_html_path=journal / 'auto_report.html')
                 started = perf_counter()

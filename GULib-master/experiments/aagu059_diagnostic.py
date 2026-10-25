@@ -134,6 +134,7 @@ def main():
     parser.add_argument('--run-id', required=True)
     parser.add_argument('--device', help='explicit native CUDA device')
     parser.add_argument('--syncmate', action='store_true')
+    parser.add_argument('--node-id', help='explicit SyncMate execution node')
     parser.add_argument('--device-config', type=Path)
     args = parser.parse_args()
     # Legacy config.py parses process argv on first import during data/model loading.
@@ -162,10 +163,10 @@ def main():
             raise ValueError('--syncmate owns its device')
         from scripts.syncmate.opengu_execution import device_context
         context = device_context(config['experiment_id'], run_id=args.run_id,
-            device_file=args.device_config or ROOT / '.syncmate/device.yaml')
+            device_file=args.device_config or ROOT / '.syncmate/device.yaml', node_id=args.node_id)
     else:
-        if args.device_config is not None:
-            raise ValueError('--device-config requires --syncmate')
+        if args.device_config is not None or args.node_id is not None:
+            raise ValueError('--device-config/--node-id require --syncmate')
         from experiments.modular_execution import native_context
         context = native_context(config['experiment_id'], run_id=args.run_id, request_device=args.device)
     if subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=ROOT,text=True).strip():

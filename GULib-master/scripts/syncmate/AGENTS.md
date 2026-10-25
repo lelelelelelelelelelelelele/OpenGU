@@ -4,7 +4,7 @@ This directory contains the repository-local companion tool for experiment synch
 
 ## Boundaries
 
-- SyncMate is a companion protocol, not a distributed system. Its optional `runner-agent serve` is a bounded single-runner poller with one local lock and one concurrent job, not a general scheduler or remote shell.
+- SyncMate is a companion protocol, not a distributed system. Its optional `runner-agent serve` is a bounded single-runner poller with one explicit node queue/lock and one concurrent job per node, not a general scheduler or remote shell.
 - Do not change experiment semantics, training code, research claims, matrices, or result schemas from this directory unless the user explicitly asks.
 - Tracked project files stay identical across devices. Device identity and generated synchronization evidence belong under untracked `.syncmate/`.
 - Runner nodes do not communicate with one another; collectors pull from runners.
@@ -26,7 +26,7 @@ Do not add generic destructive remote cleanup or execute an unconfirmed repair. 
 - Raw returned artifacts land under `results/runs/`; trusted state exists only after checksum verification into `.syncmate/artifact_index.json`.
 - Generic manual collection defaults to `attack.json`, `collateral.json`, and `_meta.json`. Recipe-driven collection follows its saved output contract. Ordinary modular experiments declare `run.json` plus cell-level `metrics.json`, `selection.json`, and optional existing `scores.npz`. Inputs and model/prediction payloads stay remote; metrics regeneration creates a new run and the local results projection selects its latest matching cells.
 - `.syncmate/device.yaml` is the only intentional per-device setup difference and remains untracked.
-- Integrated execution explicitly selects `--syncmate`; its adapter consumes Core's device reader and the file's `execution_device`. Native execution uses the project-owned `--device` input and never loads this directory or Core. Both paths enforce the same project device/root policy. Do not add GPU models, device defaults, queue inspection or a second execution stage to adapters.
+- Integrated execution explicitly selects `--syncmate`; its adapter consumes Core's device reader and the file's `execution_device`, with explicit `--node-id` passed from the ProjectExtension into execution receipts. Shared checkout/data/Cache/task outputs stay common; `.syncmate/runner_queues/<node>/` owns node queues and execution locks. Native execution uses the project-owned `--device` input and never loads this directory or Core. Both paths enforce the same project device/root policy. Do not add GPU models, device defaults, queue inspection or a second execution stage to adapters.
 - Progress plans come from the project's actual ordered batch/stage schedule. The executor emits optional generic position/counter notifications; this directory maps them to Core. Runtime publishing errors are observational; explicit integration setup errors fail without silently selecting native mode.
 - SSH peer definitions may declare `python_executable`; generated and executed remote SyncMate commands must use it instead of assuming the login-shell `PATH`.
 - Generated local handoff and evidence files stay under `.syncmate/`; do not promote them to tracked experiment facts.

@@ -1,22 +1,23 @@
-"""Read-only recovery checks for host-local ScoreBundle lock files."""
+"""Local PID observations for a ScoreBundle lock, not owner liveness proof."""
 from pathlib import Path
 import os
 import stat
 
 
 def owner_status(pid):
+    """Visibility in this PID namespace cannot establish the lock owner's liveness."""
     if pid == os.getpid():
-        return 'active'
-    # os.kill(pid, 0) is a liveness probe on POSIX, not on Windows.
+        return 'local_pid_visible'
+    # Signal zero observes only this POSIX PID namespace; Windows differs.
     if os.name != 'posix':
         return 'unknown'
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
-        return 'orphan'
+        return 'local_pid_not_visible'
     except OSError:
         return 'unknown'
-    return 'active'
+    return 'local_pid_visible'
 
 
 def inspect_score_lock(path):
@@ -36,28 +37,3 @@ def inspect_score_lock(path):
     except (OSError, UnicodeError, ValueError):
         pass
     return result
-
-
-def score_lock_preflight(store_root):
-    """Only control files are inspected; no payload scan or automatic deletion."""
-    folder = Path(store_root) / '.locks'
-    if folder.is_symlink():
-        return {'ready': False, 'locks': [], 'errors': ['ScoreBundle lock directory is a symlink: ' + str(folder)]}
-    if folder.exists() and not folder.is_dir():
-        return {'ready': False, 'locks': [], 'errors': ['ScoreBundle lock directory is not a directory: ' + str(folder)]}
-    locks = []
-    if folder.exists():
-        for path in sorted(folder.glob('score-*.lock')):
-            item = inspect_score_lock(path)
-            if item['status'] != 'absent':
-                locks.append(item)
-    errors = ['ScoreBundle lock {status}: {path} (PID {owner_pid}); resolve recovery before starting'.format(**item)
-              for item in locks]
-    return {'ready': not errors, 'locks': locks, 'errors': errors}
-
-
-def require_score_locks_clear(store_root):
-    from cache_v2.errors import CacheResolutionError
-    result = score_lock_preflight(store_root)
-    if not result['ready']:
-        raise CacheResolutionError('; '.join(result['errors']))

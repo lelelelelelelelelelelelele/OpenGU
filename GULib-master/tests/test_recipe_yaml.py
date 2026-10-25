@@ -141,19 +141,19 @@ def test_preview_resolves_device_and_outputs_without_submission(workspace):
     sha = commit(root)
     device_file = root / '.syncmate/device.yaml'
     device = yaml.safe_load(device_file.read_text())
-    device['peers'] = {'cpu-runner': build_peer_config('runner', None, str(root), transport='local')}
+    device['peers'] = {'gpu4090-2': build_peer_config('runner', 'autodl-opengu-2', '/autodl-fs/data/OpenGU/GULib-master', python_executable='/root/miniconda3/bin/python')}
     device_file.write_text(yaml.safe_dump(device))
     before = {p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()}
-    view = preview('visible', 'cpu-runner', device_file, root)
+    view = preview('visible', 'gpu4090-2', device_file, root)
     assert view['commit'] == sha and view['submitted'] is False
     assert view['config_path'] == 'experiment.yaml'
-    assert view['remote_workdir'] == str(root)
+    assert view['remote_workdir'] == '/autodl-fs/data/OpenGU/GULib-master'
     assert view['remote_result_roots'] == ['results/runs/contract/visible-run']
-    assert view['local_receiving_root'] == str(root / 'results/runs/cpu-runner')
-    assert view['argv'][1:] == ['experiments/run.py', 'experiment.yaml', '--run-id', 'visible-run', '--syncmate']
+    assert view['local_receiving_root'] == str(root / 'results/runs/gpu4090-2')
+    assert view['argv'][1:] == ['experiments/run.py', 'experiment.yaml', '--run-id', 'visible-run', '--syncmate', '--node-id', 'gpu4090-2']
     assert view['expected_artifact_count'] == len(assemble(load_declaration(path), root)['expected_artifact_paths'])
     assert view['remote_checks'].startswith('NOT OBSERVED')
     assert not view['local_checks_passed']
-    assert view['errors'] == ['exact private installation receipt is missing']
+    assert view['errors'] == ['exact node private installation receipt is missing']
     assert view['deployment_policy']['transport'] == 'private-bundle'
     assert before == {p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()}

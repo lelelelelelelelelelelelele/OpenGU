@@ -33,7 +33,7 @@
 
 普通 `kind: experiment` 表通过非空 `dataset_refs` 列表绑定一个或多个独立 Dataset/Split（单数据集也用列表），引用 `configs/datasets/`、`selectors/`、`unlearning/`、`evaluations/` 公共实例。通用解析器拒绝旧字段和未知字段。大表只允许覆盖训练 `seeds`、Random抽样 `random_selector_seeds`、IM抽样 `im_selector_seeds` 与 `budget_ratios`，优先级为大表显式值、小表填写值、方法默认值；Random和IM轴各自仅展开对应Selector，不相互交叉，执行时记录有效值与来源，源文件保持不变。
 
-配置检查与实际执行都使用 `run.py → modular_config → modular_run`。本地dry-run命令为 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run`。原生执行使用 `run.py <config.yaml> --run-id <id> --device <cpu/cuda/cuda:N>`；不读取 Core 或接入目录。SyncMate 注册在同一命令追加 `--syncmate`，由适配组件读取 Core 解析的 `.syncmate/device.yaml` 中 `execution_device` 与 `repo_path`；不得同时传 `--device`。两路共用同一执行器，没有专用 stage 或第二次 YAML 生成。设备缺失或不可用即拒绝；正式执行仍要求活跃 runner checkout 与可用 CUDA。Core 按 peer 配置选择 SSH 目录及解释器，处理版本绑定、队列与回传。隔离验证另需显式 `--verification-root <temporary-root>`，输入资产须在根内；接入模式中该根须等于设备配置的 `repo_path`，可用 `--device-config <temporary-device.yaml>` 指定临时设备文件。不能以本地验证代替正式 SSH/GPU 证据。
+配置检查与实际执行都使用 `run.py → modular_config → modular_run`。本地dry-run命令为 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run`。原生执行使用 `run.py <config.yaml> --run-id <id> --device <cpu/cuda/cuda:N>`；不读取 Core 或接入目录。SyncMate 注册在同一命令追加 `--syncmate --node-id <node>`，由适配组件读取 Core 解析的 `.syncmate/device.yaml` 中 `execution_device` 与 `repo_path`；不得同时传 `--device`。两路共用同一执行器，没有专用 stage 或第二次 YAML 生成。设备缺失或不可用即拒绝；正式执行仍要求活跃 runner checkout 与可用 CUDA。Core 按 peer 配置选择 SSH 目录及解释器，处理版本绑定、队列与回传。隔离验证另需显式 `--verification-root <temporary-root>`，输入资产须在根内；接入模式中该根须等于设备配置的 `repo_path`，可用 `--device-config <temporary-device.yaml>` 指定临时设备文件。不能以本地验证代替正式 SSH/GPU 证据。
 
 数据/划分由公共小表及其真实manifest拥有，模型训练seed和Random抽样seed不改变split。不同合法划分使用不同实例与持久化资产，不自动物化缺失数据。旧formal-v2配置已退役，其原文仅保留在历史配置档案中；当前科学范围以Work Plan实验记录及普通组合表为准；旧WorkItem仅作历史定义或开发来源。
 
@@ -53,7 +53,7 @@ Selection 生产回调的 `compute_seconds` 记录真实回调 wall，可能包�
 
 结果布局由 `experiments/modular_layout.py` 与 `experiments/modular_artifacts.py` 拥有，唯一内容合同见 [结果回传合同](../docs/experiment-result-return-contract.md)。每次运行保存 run.json 和 cells 下的 Metrics、Selection、可选已有评分；不复制 Cache payload 或收集正式输入。配置按 commit + 仓库内 YAML 路径定位。声明、实际结果与收集索引必须一致；收集通过 SyncMate 校验后才进入项目核验，命令成功或 dry-run 不是科研接受。
 
-普通执行自动将真实 Selector、GU 和评价的 started/completed/failed 追加到 `results/runtime/modular/_journal/auto_report.events.jsonl`。事实逐条 fsync；运行中不重建 Markdown/HTML，Recipe 入口 `experiments/run.py` 在追加 completed 或可捕获的 failed 终态后生成一次可读报告。直接调用模块执行器只写逐项事件。终态页面生成计入完整进程 wall，不计入条目计时或终态事件写入前已采样的 run wall。条目绑定有效条件、实际 Cache 来源、指标及本次 wall time；独占阶段时间互不重复相加，余量不代表零。`compute_seconds` 保留 producer 语义，不表示 HIT 访问耗时。独立 Metrics 的输入校验与公式评价分别标识，不能把输入校验完成数当作完整指标条目数。硬终止不能写末尾事件，已 fsync 的条目保留；在执行端用 `python -m scripts.syncmate.opengu_audit --job-id <exact-id>` 消费已结束失败 Core 任务的精确身份，追加失败终态并重建页面。它不提交、重试任务，不猜测中断阶段耗时，不自动纠正历史任务。
+普通执行自动将真实 Selector、GU 和评价的 started/completed/failed 追加到 `results/runtime/modular/_journal/auto_report.events.jsonl`。事实逐条 fsync；运行中不重建 Markdown/HTML，Recipe 入口 `experiments/run.py` 在追加 completed 或可捕获的 failed 终态后生成一次可读报告。直接调用模块执行器只写逐项事件。终态页面生成计入完整进程 wall，不计入条目计时或终态事件写入前已采样的 run wall。条目绑定有效条件、实际 Cache 来源、指标及本次 wall time；独占阶段时间互不重复相加，余量不代表零。`compute_seconds` 保留 producer 语义，不表示 HIT 访问耗时。独立 Metrics 的输入校验与公式评价分别标识，不能把输入校验完成数当作完整指标条目数。硬终止不能写末尾事件，已 fsync 的条目保留；在执行端用 `python -m scripts.syncmate.opengu_audit --node-id <node> --job-id <exact-id>` 消费已结束失败 Core 任务的精确身份，追加失败终态并重建页面。它不提交、重试任务，不猜测中断阶段耗时，不自动纠正历史任务。
 
 基础方法指标、utility 和配置选择的配对评价使用现有 Cache V2 Evaluation。先用登记的 Output、Selection、Dataset/Split 身份及评价协议、公式和数值库版本查询；HIT 只读取指标 JSON 和索引元数据，不打开预测 NPZ／头、绑定图或 checkpoint，不重算上游文件或数据摘要。引用身份、索引状态和冲突仍须匹配；闲置上游文件的物理状态不触发命中扫描或自动重跑。MISS 才实际加载所需 Output／图并计算、正规写入 Evaluation；实际消费文件时加载错误直接报告。首次增加此层不能承诺全 HIT。`gu_cache=disabled` 的 run-owned Output 继续支持独立 Metrics，明确绕过计算缓存。普通 Selector／GU 的输入准备与实际文件消费者保持自己的职责；Evaluation 访问状态和引用继续保留在 AutoReport 与 run/cell 的既有 cache、cache_provenance、timing 字段。
 
@@ -93,7 +93,7 @@ SSH 正式启动分两层：
 1. **共享 stage check**：本地 main、已核验 bundle 目标与 SSH main 的完整 SHA 一致，精确安装回执有效、tracked tree 干净、活跃检出正确、GPU 可用、运行路径归属明确；
 2. **实验专属 preflight**：配置或 Recipe、数据与划分、manifest、设备要求、已有产物和恢复条件符合本实验定义。
 
-恢复条件包括 ScoreBundle 写锁：Selector/GU 的项目 preflight 与实际执行入口在模型准备前只读检查共享 Cache 的 `.locks/score-*.lock`，现存活动、遗留或归属未知的锁均阻断新矩阵。超时强杀不能保证释放文件锁；runner 空闲或安装通过不代表 Cache 可续跑。具体恢复按实验 Runbook 和机器修复 Runbook，不自动删除锁或 Artifact。
+共享 Cache 不再以启动前扫描任意 Score 锁阻断整个矩阵。实际 Cache 访问保留按条目锁、取得锁后的 HIT 复查、索引事务和身份／内容冲突保护。锁等待超时保留原任务、失败日志和锁，不自动删除或重试；另一次获授权提交使用新的运行身份。损坏、冲突和归属不明须按实验 Runbook 与机器修复 Runbook 诊断，安装成功不代表这些问题已解决。
 
 正式 GPU gate 或 matrix 必须枚举到至少一张 GPU；GPU 不可用时立即停止，禁止自动降级到 CPU。
 
