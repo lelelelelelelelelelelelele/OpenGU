@@ -392,7 +392,9 @@ def main(argv=None):
             elif args.command == 'runner-queue' and args.runner_queue_command == 'submit':
                 result = submit(args)
             elif args.command == 'console':
-                raise ValueError('OpenGU uses its installed dispatch entry; generic console submission is unsupported')
+                from .console import serve
+                return serve(root, args, source_ref=common.source_ref,
+                             verification_root=common.verification_root)
             elif args.command == 'smoke':
                 from syncmate_core.project import GenericProjectExtension
                 return core_main(prefix + rest, project_root=root, extension=GenericProjectExtension())

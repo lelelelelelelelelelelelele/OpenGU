@@ -26,11 +26,20 @@ def main(argv=None):
             raise ValueError('linked deployment manifest')
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
         base = manifest['nodes'][node]['base_python'] if node else manifest['controller']['base_python']
-        needs_input = any(arg in ('source-import', 'source-status', '--binding-stdin') for arg in argv)
-        request = {'action': 'entry', 'root': str(PROJECT_ROOT), 'node': node, 'argv': argv,
-                   'stdin': sys.stdin.read() if needs_input else ''}
-        return subprocess.run([base, '-I', '-X', 'utf8', '-B', '-c', code],
-            input=json.dumps(request), text=True, encoding='utf-8', stdout=sys.stdout, stderr=sys.stderr,
+        request = {'action': 'ensure', 'root': str(PROJECT_ROOT), 'node': node, 'source_sha': sha}
+        prepared = subprocess.run([base, '-I', '-X', 'utf8', '-B', '-c', code],
+            input=json.dumps(request), text=True, encoding='utf-8', capture_output=True,
+            **({'creationflags': subprocess.CREATE_NO_WINDOW} if sys.platform == 'win32' else {}))
+        if prepared.returncode:
+            print(prepared.stdout, end='')
+            print(prepared.stderr, end='', file=sys.stderr)
+            return prepared.returncode
+        ready = json.loads(prepared.stdout)
+        if ready.get('status') != 'ready' or ready.get('source_sha') != sha or ready.get('node') != node:
+            raise ValueError('installed runtime was not verified for this deployment')
+        return subprocess.run([ready['runtime_python'], '-I', '-X', 'utf8', '-B', '-m',
+            'opengu_syncmate', '--project-root', str(PROJECT_ROOT), *argv],
+            stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr,
             **({'creationflags': subprocess.CREATE_NO_WINDOW} if sys.platform == 'win32' else {})).returncode
     return subprocess.run([sys.executable, '-I', '-X', 'utf8', '-B', '-m', 'opengu_syncmate',
                            '--project-root', str(PROJECT_ROOT), *argv],

@@ -74,10 +74,28 @@ def install_guard(setattr_fn=setattr):
     setattr_fn(subprocess,'Popen',LocalPopen)
     def no_network(*args,**kwargs):
         denied('network socket',repr(args)[:250])
-    setattr_fn(socket,'create_connection',no_network)
-    setattr_fn(socket,'getaddrinfo',no_network)
-    setattr_fn(socket.socket,'connect',no_network)
-    setattr_fn(socket.socket,'connect_ex',no_network)
+    create_connection,getaddrinfo=socket.create_connection,socket.getaddrinfo
+    connect,connect_ex=socket.socket.connect,socket.socket.connect_ex
+    def loopback(address):
+        return (os.environ.get('OPENGU_TEST_LOOPBACK')=='1' and isinstance(address,tuple)
+                and len(address)>=2 and address[0]=='127.0.0.1'
+                and isinstance(address[1],int) and 0<address[1]<65536)
+    def local_connection(address,*args,**kwargs):
+        if not loopback(address):return no_network(address)
+        return create_connection(address,*args,**kwargs)
+    def local_address(host,port,*args,**kwargs):
+        if not loopback((host,port)):return no_network(host,port)
+        return getaddrinfo(host,port,*args,**kwargs)
+    def local_connect(sock,address):
+        if not loopback(address):return no_network(address)
+        return connect(sock,address)
+    def local_connect_ex(sock,address):
+        if not loopback(address):return no_network(address)
+        return connect_ex(sock,address)
+    setattr_fn(socket,'create_connection',local_connection)
+    setattr_fn(socket,'getaddrinfo',local_address)
+    setattr_fn(socket.socket,'connect',local_connect)
+    setattr_fn(socket.socket,'connect_ex',local_connect_ex)
     setattr_fn(os,'system',lambda command:denied('os.system',command))
 
 
