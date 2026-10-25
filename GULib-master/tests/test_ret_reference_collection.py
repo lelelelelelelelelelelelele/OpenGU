@@ -9,7 +9,9 @@ import yaml
 from test_modular_consumers import tables, write_yaml
 from test_syncmate_execution_contract import workspace, cli, commit, declaration
 from test_syncmate_gu_outputs import collect
-from opengu_adapter import OpenGUProjectExtension
+from syncmate_core.project import GenericProjectExtension
+from scripts.syncmate.opengu_acceptance import acceptance_payload
+from scripts.syncmate.opengu_results import results_payload
 from syncmate_core import context
 from experiments.ret_reference_policy import ARMS, DETERMINISTIC
 
@@ -66,13 +68,13 @@ def test_native_ret_reference_collection(workspace,source_bound,record_property)
     assert len(definition['expected_artifact_paths'])==17
     collector=root/'collector';collector.mkdir()
     for p in root.glob('*.yaml'):(collector/p.name).write_bytes(p.read_bytes())
-    extension=OpenGUProjectExtension()
+    extension=GenericProjectExtension()
     with context.use(collector,extension=extension):
         collected,_,_=collect((root,collector,sha,definition))
-        checked=extension.accept('modular-output-v1',definition,collected)
+        checked=acceptance_payload('modular-output-v1',definition,collected)
         assert checked['passed'],checked
         assert checked['accepted_cells']==4 and checked['scientific_acceptance']=='not_evaluated'
-        results=extension.results(collected['artifact_index'],{'project_root':collector})
+        results=results_payload(collected['artifact_index'],{'project_root':collector})
         assert len(results['rows'])==4 and not results['parse_errors'],results
     assert not (collector/'results/cache_v2').exists()
     assert not list(collector.rglob('*.pt')) and not list(collector.rglob('*.npz'))

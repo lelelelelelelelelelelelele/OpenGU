@@ -5,6 +5,7 @@ import json
 import re
 
 from experiments.effective_config import ConfigurationError, fields
+from experiments.effective_config import source_bytes, source_file
 
 SCHEMA='opengu.exact-gu-inputs-v1'
 
@@ -20,9 +21,9 @@ def read_document(reference,directory):
             Path(relative).is_absolute() or ':' in relative or '..' in Path(relative).parts):
         raise ConfigurationError('exact_inputs.path must be a contained relative JSON path')
     path=(Path(directory)/relative).resolve()
-    if not path.is_file() or Path(directory).resolve() not in path.parents:
+    if not source_file(path) or Path(directory).resolve() not in path.parents:
         raise ConfigurationError('exact input JSON is missing or outside its config directory')
-    raw=path.read_bytes()
+    raw=source_bytes(path)
     if hashlib.sha256(raw).hexdigest()!=reference['sha256']:
         raise ConfigurationError('exact input JSON SHA mismatch')
     def unique(pairs):

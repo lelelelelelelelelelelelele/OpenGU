@@ -62,11 +62,11 @@ def _peer_evidence(
         errors.append(f"{label} artifact index is not verified")
     if set(by_remote) != expected:
         errors.append(f"verified {label} artifact set differs from the reviewed recipe")
-    observed_sha = ((peer.get("remote") or {}).get("git") or {}).get("sha")
     expected_sha = context.get("expected_git_sha")
-    if expected_sha and observed_sha != expected_sha:
+    observed = {(item.get('remote_git') or {}).get('sha') for item in items}
+    if expected_sha and observed != {expected_sha}:
         errors.append(f"verified {label} artifact Git SHA differs from the dispatched SHA")
-    return peer, errors, expected_paths, by_remote, observed_sha
+    return peer, errors, expected_paths, by_remote, expected_sha
 
 
 def acceptance_payload(profile, definition, context):
@@ -88,7 +88,7 @@ def acceptance_payload(profile, definition, context):
             run_path = root / entry['local_path']
             run, documents = read_run(run_path, entry['sha256'])
             if (run['commit'] != context['expected_git_sha'] or run['run_id'] != definition['run_identity']['run_id']
-                    or run['experiment_id'] != definition['run_identity']['experiment_id']
+                    or run['experiment_id'] != definition['experiment_id']
                     or run['config_path'] != definition['config_path'] or run['stage'] != definition['stage']):
                 raise ValueError('collected execution identity mismatch')
             config_path = root / definition['config_path']

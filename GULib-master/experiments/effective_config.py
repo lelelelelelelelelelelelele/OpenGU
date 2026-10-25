@@ -5,6 +5,44 @@ import copy
 import math
 from pathlib import Path
 import yaml
+from contextlib import contextmanager
+from contextvars import ContextVar
+
+_source = ContextVar('opengu_committed_config', default=None)
+
+
+@contextmanager
+def committed_files(source, *, root=None):
+    """Explicit committed input view; a missing file never falls back to disk."""
+    view = (source, Path(root or source.root).resolve(), set(source.files()), {})
+    token = _source.set(view)
+    try:
+        yield view[3]
+    finally:
+        _source.reset(token)
+
+
+def configuration_root(default):
+    view = _source.get()
+    return view[1] if view else Path(default)
+
+
+def source_bytes(path):
+    view = _source.get()
+    if view is None:
+        return Path(path).read_bytes()
+    relative = Path(path).resolve().relative_to(view[1]).as_posix()
+    if relative not in view[3]:
+        view[3][relative] = view[0].read_bytes(relative)
+    return view[3][relative]
+
+
+def source_file(path):
+    view = _source.get()
+    if view is None:
+        return Path(path).is_file()
+    relative = Path(path).resolve().relative_to(view[1]).as_posix()
+    return relative in view[2]
 
 
 class ConfigurationError(ValueError):
@@ -25,7 +63,7 @@ class UniqueLoader(yaml.SafeLoader):
 
 
 def read_yaml(path):
-    value = yaml.load(Path(path).read_text(encoding='utf-8'), Loader=UniqueLoader)
+    value = yaml.load(source_bytes(path).decode('utf-8'), Loader=UniqueLoader)
     if not isinstance(value, dict):
         raise ConfigurationError('configuration must be a mapping')
     return value

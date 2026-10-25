@@ -12,8 +12,11 @@ from test_syncmate_gu_outputs import collect
 from experiments.modular_config import load_experiment, experiment_batches
 from experiments.modular_run import execute
 from scripts.syncmate import syncmate
-from opengu_adapter import OpenGUProjectExtension
-from syncmate_core import context, devices, queue
+from syncmate_core.project import GenericProjectExtension
+from scripts.syncmate.opengu_acceptance import acceptance_payload
+from scripts.syncmate.opengu_results import results_payload
+from syncmate_core import versions, context, devices, queue
+from opengu_syncmate.runtime import execution_readiness
 
 
 @pytest.mark.parametrize('stage', ['selector', 'unlearning'])
@@ -32,7 +35,7 @@ def test_removed_selection_input_is_rejected_even_when_empty(tables, stage, lega
 
 
 @pytest.mark.parametrize('dataset', ['cora', 'citeseer', 'pubmed'])
-@pytest.mark.parametrize('stage, count', [('u', 204), ('retrain', 102)])
+@pytest.mark.parametrize('stage, count', [('u', 192), ('retrain', 96)])
 def test_registered_followup_declares_same_selectors_and_axes(dataset, stage, count):
     from experiments.aagu015.definitions import CONFIG
     source = load_experiment(CONFIG / ('stage_s_' + dataset + '.yaml'))
@@ -42,6 +45,7 @@ def test_registered_followup_declares_same_selectors_and_axes(dataset, stage, co
     assert target['selector_refs'] == source['selector_refs']
     assert target['seeds'] == [42, 212, 2024]
     assert target['budget_ratios'] == [.01, .05]
+    assert len(source['selectors']) == 16
     for before, after in zip(experiment_batches(source), experiment_batches(target)):
         assert before['selectors'] == after['selectors']
         assert before['matrix_values'] == after['matrix_values']
@@ -80,15 +84,16 @@ def test_cold_unlearning_and_core_warm_collect_share_declared_rows(workspace, re
     config.update(stage='unlearning', selector_refs=['degree.yaml', 'score.yaml'],
                   unlearning_refs=['gu.yaml', 'retrain.yaml'])
     write_yaml(path, config)
+    definition = declaration(runner, path, 'unlearning')
     sha = commit(runner)
     # No earlier selector stage and no user-supplied output/Selection references.
     cold = cli(runner, path, 'cold')
     assert cold.returncode == 0, cold.stdout + cold.stderr
     first = json.loads(cold.stdout)
     assert first['selector_producer_called'] is True and len(first['unlearning']) == 16
-    definition = declaration(runner, path, 'unlearning')
     summary = definition['expected_artifact_paths'][0]
-    with context.use(runner, extension=FixtureRegistration(definition)):
+    with context.use(runner, extension=FixtureRegistration(definition), node_id='runner', execution_readiness=execution_readiness):
+        definition = versions.bind(definition['id'], sha)['definition']
         assert queue.runner_queue_submit('selector-contract', definition['id'], expected_git_sha=sha)['submitted']
         device, warnings = devices.load_device(runner / '.syncmate/device.yaml')
         assert not warnings
@@ -96,15 +101,17 @@ def test_cold_unlearning_and_core_warm_collect_share_declared_rows(workspace, re
         assert completed['status'] == 'done', completed
     warm = json.loads((runner / summary).read_text())
     assert all(r['cache']['score'] == 'hit' and r['cache']['selection'] == 'hit' for r in warm['cells'])
-    assert [r['output'] for r in warm['cells']] == [r['output'] for r in first['unlearning']]
+    from experiments.modular_artifacts import ordered_execution_rows
+    assert [r['output'] for r in warm['cells']] == [r['output']
+        for r in ordered_execution_rows(warm['cells'], first['unlearning'])]
     collector = runner / 'collector'
     collector.mkdir()
     for source in runner.glob('*.yaml'):
         (collector / source.name).write_bytes(source.read_bytes())
-    extension = OpenGUProjectExtension()
+    extension = GenericProjectExtension()
     with context.use(collector, extension=extension):
         collected, _, _ = collect((runner, collector, sha, definition))
-        accepted = extension.accept('modular-output-v1', definition, collected)
+        accepted = acceptance_payload('modular-output-v1', definition, collected)
         assert accepted['passed'], accepted['errors']
         assert accepted['accepted_cells'] == 16
         # Even with a transport-valid digest, a false Selection identity is rejected.
@@ -115,7 +122,7 @@ def test_cold_unlearning_and_core_warm_collect_share_declared_rows(workspace, re
         changed['cells'][0]['selection_id'] = 'f' * 64
         local.write_text(json.dumps(changed))
         entry['sha256'] = hashlib.sha256(local.read_bytes()).hexdigest()
-        rejected = extension.accept('modular-output-v1', definition, collected)
+        rejected = acceptance_payload('modular-output-v1', definition, collected)
         assert not rejected['passed'] and rejected['errors']
     record_property('collection', json.dumps({'accepted_cells': 16,
         'artifact_count': len(definition['expected_artifact_paths']), 'false_selection_rejected': True}))

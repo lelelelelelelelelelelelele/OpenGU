@@ -24,7 +24,7 @@ def reconcile(job, definition, execution, terminal, event_path):
         raise ValueError('untrusted audit stream')
     selected = [e for e in events if e['git_sha'] == job['expected_git_sha']
         and e['config_fingerprint'] == definition['configuration_fingerprint']
-        and e['identity'].get('experiment_id') == identity['experiment_id']
+        and e['identity'].get('experiment_id') == definition['experiment_id']
         and e['metadata'].get('execution_run_id') == identity['run_id']]
     if not selected:
         raise ValueError('no audit attempt matches the exact Core execution')
@@ -54,12 +54,13 @@ def main():
     args = parser.parse_args()
     from syncmate_core.context import use
     from syncmate_core.queue import runner_queue_job_details, runner_queue_job_status
-    from scripts.syncmate.opengu_adapter import OpenGUProjectExtension
+    from opengu_syncmate.adapter import OpenGUProjectExtension
     root = Path(__file__).resolve().parents[2]
     with use(root, extension=OpenGUProjectExtension(), node_id=args.node_id):
         details = runner_queue_job_details(args.job_id)
         job = details
-        definition = OpenGUProjectExtension().resolve_recipe(root, job['recipe'])
+        from syncmate_core.versions import bind
+        definition = bind(job['recipe'], job['expected_git_sha'])['definition']
         terminal = runner_queue_job_status(args.job_id)
         print(reconcile(job, definition, details['receipt']['output_contract'], terminal,
             root / 'results/runtime/modular/_journal/auto_report.events.jsonl'))

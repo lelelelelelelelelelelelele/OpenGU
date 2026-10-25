@@ -9,6 +9,7 @@ import yaml
 from experiments.modular_artifacts import ARTIFACT_NAMES, output_paths
 from experiments.modular_layout import modular_output_path
 from syncmate_core.contracts import Recipe, resolve_repo_path
+from experiments.effective_config import source_file
 
 ROOT = Path(__file__).resolve().parents[2]
 RECIPE_DIRECTORY = Path('scripts/syncmate/recipes')
@@ -91,13 +92,13 @@ def assemble(spec, project_root=ROOT):
     from experiments.modular_config import load_experiment
     root = Path(project_root)
     config_path = resolve_repo_path(root, spec['config_path'])
-    if not config_path.is_file():
+    if not source_file(config_path):
         raise ValueError('recipe config is missing')
     spec = validate_declaration(spec)
     runner = spec['runner']
     definition = {k: copy.deepcopy(v) for k, v in spec.items()
                   if k not in ('schema_version', 'runner', 'outputs', 'hidden_channels')}
-    definition.update(git_binding_policy='job-exact-main-v1', collector_acceptance=False)
+    definition.update(collector_acceptance=False)
     if runner in ('smoke', 'opengu-preflight-v1'):
         definition.update(argv=('{python}', 'scripts/syncmate/syncmate.py', 'smoke', '--json'),
             recipe_introduced_git_sha='3331c641ce16d0d7a3def66b0e302dd4a39a919c',
@@ -109,6 +110,9 @@ def assemble(spec, project_root=ROOT):
                 collector_acceptance=True,
                 success_predicate='json.passed == true and generated_artifacts == expected_artifact_paths')
     else:
+        # RID owns the shared runtime directory across experiments and nodes.
+        definition['experiment_id'] = spec['run_identity']['experiment_id']
+        definition['run_identity'] = {'run_id': spec['run_identity']['run_id']}
         summary = modular_output_path(**spec['run_identity'])
         base = summary.rsplit('/', 1)[0]
         entry = 'experiments/run.py' if runner == 'experiment' else 'experiments/aagu059_diagnostic.py'

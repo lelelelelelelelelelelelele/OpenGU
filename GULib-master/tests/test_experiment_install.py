@@ -17,6 +17,29 @@ def git(root, *args):
     return subprocess.check_output(['git', '-C', str(root), *args], text=True).strip()
 
 
+def isolated_node(project, request, action):
+    """Match the real -I SSH process; pytest's source path must not enter it."""
+    code = '''import json, runpy, sys
+from pathlib import Path
+module = runpy.run_path(sys.argv[1])
+request = json.load(sys.stdin)
+try:
+    if sys.argv[3] == 'apply': result = module['install_checkout'](Path(sys.argv[2]), request)
+    elif sys.argv[3] == 'restore': result = module['restore_runner'](Path(sys.argv[2]), request)
+    else: result = module['inspect_checkout'](Path(sys.argv[2]), request, status=sys.argv[3] == 'inspect')
+    print(json.dumps(result))
+except Exception as exc:
+    print(json.dumps({'error': str(exc)}))
+    raise SystemExit(1)
+'''
+    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-B', '-c', code,
+        installer.__file__, str(project), action], input=json.dumps(request),
+        capture_output=True, text=True, encoding='utf-8', timeout=60)
+    if result.returncode:
+        raise ValueError(result.stdout + result.stderr)
+    return json.loads(result.stdout)
+
+
 @pytest.fixture
 def checkout(tmp_path):
     source = tmp_path / 'source'
@@ -43,7 +66,10 @@ def checkout(tmp_path):
     pin_path = project / 'scripts/syncmate/core_dependency.json'
     pin_path.write_bytes(Path(installer.__file__).with_name('core_dependency.json').read_bytes())
     pin = json.loads(pin_path.read_text(encoding='utf-8'))
-    git(source, 'add', str(policy), str(pin_path))
+    control_path = pin_path.with_name('control_dependency.json')
+    control_path.write_bytes(Path(installer.__file__).with_name('control_dependency.json').read_bytes())
+    control_pin = json.loads(control_path.read_text(encoding='utf-8'))
+    git(source, 'add', str(policy), str(pin_path), str(control_path))
     git(source, 'commit', '-am', 'target')
     target = git(source, 'rev-parse', 'HEAD')
     bundle = tmp_path / 'update.bundle'
@@ -57,7 +83,7 @@ def checkout(tmp_path):
             queue.ensure_runner_queue_dirs()
     import yaml
     (runner_project / '.syncmate/device.yaml').write_text(yaml.safe_dump({'version': 1, 'device_id': 'shared-fixture', 'role': 'runner', 'repo_path': str(runner_project), 'execution_device': 'cpu', 'peers': {}}), encoding='utf-8')
-    return runner_project, {'core_dependency': pin, 'node_ids': ['gpu4090', 'gpu4090-2'], 'python_executable': sys.executable, 'old': old, 'target': target, 'node': 'gpu4090', 'ssh': 'autodl-opengu',
+    return runner_project, {'core_dependency': pin, 'control_dependency': control_pin, 'node_ids': ['gpu4090', 'gpu4090-2'], 'python_executable': sys.executable, 'old': old, 'target': target, 'node': 'gpu4090', 'ssh': 'autodl-opengu',
         'bundle': base64.b64encode(bundle.read_bytes()).decode(),
         'bundle_sha256': hashlib.sha256(bundle.read_bytes()).hexdigest(),
         'transport': 'private-bundle', 'policy_sha256': hashlib.sha256(json.dumps(json.loads(policy.read_text(encoding='utf-8')), sort_keys=True, separators=(',', ':')).encode()).hexdigest()}, protected
@@ -142,7 +168,7 @@ def test_idle_runner_is_stopped_and_restored_after_install(checkout, monkeypatch
                 pytest.fail('test runner did not start')
         result = installer.install_checkout(project, request)
         assert result['nodes']['gpu4090']['restart']
-        restored = installer.restore_runner(project, {**request, 'runner': result['nodes']['gpu4090']['runner']})
+        restored = isolated_node(project, {**request, 'runner': result['nodes']['gpu4090']['runner']}, 'restore')
         assert restored['status'] == 'restored'
         assert result['status'] == 'installed'
         worker.wait(timeout=10)
@@ -172,16 +198,18 @@ def test_mismatched_private_inputs_never_merge(checkout, field, value, match):
     assert not list((project.parent / '.git').glob('install-*.bundle'))
 
 
-@pytest.mark.parametrize('condition', ['dirty', 'branch'])
-def test_remote_clean_main_is_mandatory(checkout, condition):
+def test_remote_clean_source_is_mandatory(checkout):
     project, request, _ = checkout
-    if condition == 'dirty':
-        (project / 'run.py').write_text('value = 99\n')
-    else:
-        git(project.parent, 'switch', '-c', 'other')
-    with pytest.raises(ValueError, match='dirty|main'):
+    (project / 'run.py').write_text('value = 99\n')
+    with pytest.raises(ValueError, match='dirty'):
         installer.install_checkout(project, request)
     assert git(project.parent, 'rev-parse', 'HEAD') == request['old']
+
+
+def test_clean_prepared_detached_checkout_can_be_maintained(checkout):
+    project, request, _ = checkout
+    git(project.parent, 'checkout', '--detach', request['old'])
+    assert installer.install_checkout(project, request)['head'] == request['target']
 
 
 def test_divergent_private_bundle_cannot_replace_main(checkout, tmp_path):
@@ -234,8 +262,8 @@ def test_mismatched_receipt_is_rejected(change):
     receipt = {'node': 'gpu4090', 'ssh': 'autodl-opengu', 'target': 'a'*40, 'head': 'a'*40, 'status': 'installed',
         'project': '/autodl-fs/data/OpenGU/GULib-master', 'transport': 'private-bundle',
         'policy_sha256': 'c'*64, 'origin_refs_unchanged': True, 'bundle_sha256': 'd'*64}
-    expected = {'python_executable': sys.executable, 'core_dependency_sha256': 'e'*64}
-    receipt.update(expected_environment=expected, environment={'node_id': 'gpu4090', 'git_sha': 'a'*40, 'requested_python': sys.executable, 'python_executable': sys.executable, 'core_dependency_sha256': 'e'*64, 'core_payload_verified': True})
+    expected = {'python_executable': sys.executable, 'core_dependency_sha256': 'e'*64, 'control_dependency_sha256': 'f'*64}
+    receipt.update(expected_environment=expected, environment={'node_id': 'gpu4090', 'git_sha': 'a'*40, 'requested_python': sys.executable, 'python_executable': sys.executable, 'core_dependency_sha256': 'e'*64, 'core_payload_verified': True, 'control_dependency_sha256': 'f'*64, 'control_payload_verified': True})
     validate_receipt(receipt, 'gpu4090', 'a'*40, policy, expected_environment=expected, bundle_sha256='d'*64)
     with pytest.raises(ValueError):
         validate_receipt({**receipt, **change}, 'gpu4090', 'a'*40, policy, expected_environment=expected, bundle_sha256='d'*64)
@@ -270,19 +298,21 @@ def test_same_sha_receipts_are_node_and_environment_bound(tmp_path):
     import shutil
     folder = tmp_path / 'scripts/syncmate'
     folder.mkdir(parents=True)
-    for name in ('deployment.json', 'core_dependency.json'):
+    for name in ('deployment.json', 'core_dependency.json', 'control_dependency.json'):
         shutil.copyfile(root / 'scripts/syncmate' / name, folder / name)
     policy = deployment_policy(tmp_path)
     _, digest = dependency_pin(tmp_path)
     sha = 'a'*40
-    expected = {'python_executable': sys.executable, 'core_dependency_sha256': digest}
+    _, control_digest = dependency_pin(tmp_path, 'control_dependency.json')
+    expected = {'python_executable': sys.executable, 'core_dependency_sha256': digest, 'control_dependency_sha256': control_digest}
     old = policy['targets']['gpu4090']
     value = {'node': 'gpu4090', 'ssh': old['ssh'], 'project': old['repo_path'],
         'target': sha, 'head': sha, 'status': 'installed', 'transport': 'private-bundle',
         'policy_sha256': policy['sha256'], 'bundle_sha256': 'd'*64, 'origin_refs_unchanged': True,
         'expected_environment': expected, 'environment': {'node_id': 'gpu4090', 'git_sha': sha,
         'requested_python': sys.executable, 'python_executable': sys.executable,
-        'core_dependency_sha256': digest, 'core_payload_verified': True}}
+        'core_dependency_sha256': digest, 'core_payload_verified': True,
+        'control_dependency_sha256': control_digest, 'control_payload_verified': True}}
     original = receipt_path(tmp_path, 'gpu4090', sha, policy)
     original.parent.mkdir(parents=True)
     original.write_text(json.dumps(value), encoding='utf-8')
@@ -336,14 +366,7 @@ def local_transport(checkout, tmp_path, monkeypatch):
         assert peer == peers[node]
         assert supplied['ssh'] == peers[node]['ssh']
         calls.append((node, action))
-        if action in ('inspect', 'verify'):
-            result = installer.inspect_checkout(project, supplied, status=action == 'inspect')
-        elif action == 'apply':
-            result = installer.install_checkout(project, supplied)
-        elif action == 'restore':
-            result = installer.restore_runner(project, supplied)
-        else:
-            raise AssertionError('unexpected action')
+        result = isolated_node(project, supplied, action)
         # Translate only the disposable filesystem address, as an SSH mount does.
         return {**result, 'project': peer['repo_path']}
     monkeypatch.setattr(client, 'invoke', transport)
@@ -463,7 +486,7 @@ def test_other_nodes_actual_corrupt_core_cannot_borrow_coordinator_environment(l
                 'print(json.dumps(inspect_checkout(Path(sys.argv[1]),request)))')
         result = subprocess.run([sys.executable, '-B', '-c', code, str(project)],
             input=json.dumps(supplied), cwd=source, env=env, capture_output=True, text=True, encoding='utf-8')
-        assert result.returncode != 0 and 'node Core payload mismatch: syncmate_core/readiness.py' in result.stderr
+        assert result.returncode != 0 and 'installed dependency payload differs: syncmate_core/readiness.py' in result.stderr
         raise ValueError('gpu4090-2 actual isolated Core payload mismatch')
     monkeypatch.setattr(client, 'invoke', transport)
     assert client.deploy('gpu4090') == 1
@@ -480,6 +503,8 @@ def test_local_core_mismatch_blocks_before_any_peer_probe(local_transport):
     value=json.loads(pin.read_text(encoding='utf-8'))
     value['version']='unverified-version'
     pin.write_text(json.dumps(value),encoding='utf-8')
-    with pytest.raises(ValueError,match='local Core environment is unverified'):
+    git(source, 'add', str(pin))
+    git(source, 'commit', '-m', 'unverified dependency')
+    with pytest.raises(ValueError,match='local control environment is unverified'):
         client.deploy('gpu4090')
     assert calls==[] and git(project.parent,'rev-parse','HEAD')==request['old']
