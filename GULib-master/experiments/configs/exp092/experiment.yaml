@@ -1,0 +1,46 @@
+# Fixed confirmation cohort: 83001-83030. This invocation covers only the eight
+# unsubmitted seeds. Keep 83001-83022 under their original jobs; 83022 still
+# needs independent technical admission. No completed seed is re-executed.
+kind: experiment
+schema_version: 1
+experiment_id: exp092-c1
+stage: unlearning
+dataset_refs:
+- ../datasets/exp092_citeseer.yaml
+selector_refs:
+- ../selectors/exp092_r_point_gat.yaml
+- ../selectors/exp092_degree.yaml
+unlearning_refs:
+- ../unlearning/exp092_retrain.yaml
+- ../unlearning/exp092_gif.yaml
+- ../unlearning/exp092_grapheraser.yaml
+evaluation_refs:
+- ../evaluations/exp092_post_unlearning_utility_and_retrain_gap.yaml
+- ../evaluations/exp092_post_unlearning_flip_hop.yaml
+- ../evaluations/exp092_post_unlearning_response_diagnostics.yaml
+matrix: cartesian_product
+return_scores: false
+execution:
+  gu_cache:
+    GIF: disabled
+    Retrain: reuse
+    GraphEraser: reuse
+observers:
+- name: hessian_calibration
+  methods:
+  - GIF
+- name: linear_solver_trace
+  methods:
+  - GIF
+- name: same_graph_change
+  methods:
+  - GIF
+seeds:
+- 83023
+- 83024
+- 83025
+- 83026
+- 83027
+- 83028
+- 83029
+- 83030
