@@ -28,8 +28,6 @@ def git(repo, *args):
 
 
 def check_tree(repo, target=None):
-    if git(repo, 'branch', '--show-current') != 'main':
-        raise ValueError('remote must be on main')
     if git(repo, 'status', '--porcelain=v1', '--untracked-files=all'):
         raise ValueError('remote working tree is dirty')
     head = git(repo, 'rev-parse', 'HEAD')
@@ -56,7 +54,7 @@ def origin_refs(repo):
     return git(repo, 'for-each-ref', '--format=%(refname) %(objectname)', 'refs/remotes/origin/')
 
 
-def check_policy(repo, target, expected_hash, expected_core):
+def check_policy(repo, target, expected_hash, expected_core, expected_control):
     raw = subprocess.check_output(['git', '-C', str(repo), 'show',
                                    target + ':GULib-master/scripts/syncmate/deployment.json'])
     value = json.loads(raw.decode('utf-8'))
@@ -67,6 +65,9 @@ def check_policy(repo, target, expected_hash, expected_core):
     raw_pin = subprocess.check_output(['git', '-C', str(repo), 'show', target + ':GULib-master/scripts/syncmate/core_dependency.json'])
     if canonical_hash(json.loads(raw_pin.decode('utf-8'))) != canonical_hash(expected_core):
         raise ValueError('target Core dependency mismatch')
+    raw_control = subprocess.check_output(['git', '-C', str(repo), 'show', target + ':GULib-master/scripts/syncmate/control_dependency.json'])
+    if canonical_hash(json.loads(raw_control.decode('utf-8'))) != canonical_hash(expected_control):
+        raise ValueError('target control dependency mismatch')
 
 
 def check_request(request):
@@ -104,7 +105,7 @@ def import_bundle(repo, request):
                        check=True, capture_output=True)
         if git(repo, 'rev-parse', 'FETCH_HEAD') != request['target']:
             raise ValueError('bundle target mismatch')
-        check_policy(repo, request['target'], request['policy_sha256'], request['core_dependency'])
+        check_policy(repo, request['target'], request['policy_sha256'], request['core_dependency'], request['control_dependency'])
     finally:
         bundle.unlink(missing_ok=True)
 
@@ -115,30 +116,19 @@ def canonical_hash(value):
 
 def inspect_environment(request):
     """Read this container's interpreter and exact reviewed Core payload."""
-    from importlib import metadata
     import platform
-    import syncmate_core
+    from opengu_syncmate.control import verify_payload
     pin = request['core_dependency']
-    dist = metadata.distribution(pin['distribution'])
-    expected_module = Path(dist.locate_file('syncmate_core/__init__.py')).resolve()
-    if (dist.version != pin['version'] or syncmate_core.__version__ != pin['version']
-            or Path(syncmate_core.__file__).resolve() != expected_module):
-        raise ValueError('node Core distribution or import mismatch')
-    expected = {p for p in pin['files'] if p.startswith('syncmate_core/')}
-    actual = {p.relative_to(expected_module.parent.parent).as_posix()
-              for p in expected_module.parent.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
-    if expected != actual:
-        raise ValueError('node Core payload file set mismatch')
-    for relative, digest in pin['files'].items():
-        file = Path(dist.locate_file(relative))
-        if file.is_symlink() or not file.is_file() or hashlib.sha256(file.read_bytes()).hexdigest() != digest:
-            raise ValueError('node Core payload mismatch: ' + relative)
+    core = verify_payload(pin, 'syncmate_core')
+    control_pin = request['control_dependency']
+    control = verify_payload(control_pin, 'opengu_syncmate')
     requested = Path(request['python_executable'])
     if not requested.is_absolute() or requested.resolve() != Path(sys.executable).resolve():
         raise ValueError('node interpreter differs from the configured environment')
     return {'node_id': request['node'], 'requested_python': str(request['python_executable']),
             'python_executable': str(Path(sys.executable).resolve()), 'python_version': platform.python_version(),
-            'platform_node': platform.node(), 'core_version': dist.version,
+            'platform_node': platform.node(), 'core_version': core['version'], 'control_version': control['version'],
+            'control_dependency_sha256': canonical_hash(control_pin), 'control_payload_verified': True,
             'core_dependency_sha256': canonical_hash(pin), 'core_payload_verified': True,
             'verified_payload_files': len(pin['files'])}
 
@@ -167,15 +157,26 @@ def restore_runner(project, request):
         if queue.runner_agent_lock_dir().exists():
             raise ValueError('restoration refuses an existing runner lock')
         log = project / '.syncmate' / ('runner-install-' + node + '.log')
+        identity = project / '.syncmate' / ('runner-start-' + uuid.uuid4().hex + '.json')
+        # A Windows venv launcher has a different PID from its interpreter.
+        # The fixed bootstrap records its own PID before entering Core in-process.
+        bootstrap = ('import json,os,runpy,sys; from pathlib import Path; '
+            'path=Path(sys.argv.pop(1)); '
+            'path.open("x",encoding="utf-8").write(json.dumps({"pid":os.getpid()})); '
+            'runpy.run_module("opengu_syncmate",run_name="__main__")')
+        from syncmate_core.process import captured_process_options
         with log.open('ab') as output:
-            proc = subprocess.Popen([sys.executable, '-B', 'scripts/syncmate/syncmate.py', '--node-id', node,
+            proc = subprocess.Popen([sys.executable, '-I', '-X', 'utf8', '-B', '-c', bootstrap, str(identity), '--project-root', str(project), '--node-id', node,
                 'runner-agent', 'serve', '--poll-seconds', str(poll)], cwd=project,
-                stdin=subprocess.DEVNULL, stdout=output, stderr=output, start_new_session=True)
+                stdout=output, stderr=output, start_new_session=True, **captured_process_options())
         deadline = time.monotonic() + 10
         while time.monotonic() < deadline:
             owner = queue.runner_queue_load_json(queue.runner_agent_lock_dir() / 'owner.json')
-            if owner.get('pid') == proc.pid and owner.get('node_id') == node:
-                return {**observed, 'status': 'restored', 'pid': proc.pid, 'runner_log': str(log)}
+            started = queue.runner_queue_load_json(identity)
+            if (started.get('pid') and owner.get('pid') == started['pid']
+                    and owner.get('node_id') == node and proc.poll() is None):
+                identity.unlink()
+                return {**observed, 'status': 'restored', 'pid': owner['pid'], 'runner_log': str(log)}
             if proc.poll() is not None:
                 break
             time.sleep(.1)
@@ -225,7 +226,7 @@ def install_checkout(project, request):
             if old != target:
                 import_bundle(repo, request)
             else:
-                check_policy(repo, target, request['policy_sha256'], request['core_dependency'])
+                check_policy(repo, target, request['policy_sha256'], request['core_dependency'], request['control_dependency'])
             result['bundle_sha256'] = request.get('bundle_sha256')
             subprocess.run(['git', '-C', str(repo), 'merge-base', '--is-ancestor', old, target], check=True)
             paths = check_paths(repo, old, target)

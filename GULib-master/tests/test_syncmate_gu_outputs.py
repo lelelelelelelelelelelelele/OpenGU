@@ -15,7 +15,7 @@ from experiments.modular_config import configuration_fingerprint
 from experiments.modular_run import execute
 from experiments.modular_artifacts import ARTIFACT_NAMES,output_paths
 from scripts.syncmate import syncmate
-from opengu_adapter import OpenGUProjectExtension
+from opengu_syncmate.adapter import OpenGUProjectExtension
 from syncmate_core import collection,context,devices,index
 from syncmate_core.identity import sha256_recipe_config
 from syncmate_core.run_handoff import build_execution_contract
@@ -24,7 +24,8 @@ ROOT=Path(__file__).resolve().parents[1]
 
 
 from test_syncmate_execution_contract import workspace, commit, declaration, FixtureRegistration
-from syncmate_core import queue
+from syncmate_core import queue, versions
+from opengu_syncmate.runtime import execution_readiness
 
 
 @pytest.fixture
@@ -34,7 +35,8 @@ def exported(workspace):
     write_yaml(path, config)
     definition = declaration(runner, path, 'unlearning')
     sha = commit(runner)
-    with context.use(runner, extension=FixtureRegistration(definition), node_id='runner'):
+    with context.use(runner, extension=FixtureRegistration(definition), node_id='runner', execution_readiness=execution_readiness):
+        definition = versions.bind(definition['id'], sha)['definition']
         submitted = queue.runner_queue_submit('cpu-job', definition['id'], expected_git_sha=sha)
         assert submitted['submitted'], submitted
         device, warnings = devices.load_device(runner / '.syncmate/device.yaml')
@@ -42,9 +44,8 @@ def exported(workspace):
         result = queue.runner_queue_run_once(device)
         assert result['status'] == 'done', result
     collector = runner / 'collector'
-    collector.mkdir()
-    for source in runner.glob('*.yaml'):
-        (collector / source.name).write_bytes(source.read_bytes())
+    from test_syncmate_execution_contract import git
+    git(runner, 'clone', '--quiet', str(runner), str(collector))
     return runner, collector, sha, definition
 
 
@@ -69,6 +70,11 @@ def test_real_queue_command_collect_verify_accept_results_and_repeat(exported,mo
     monkeypatch.setattr(torch.optim.Adam,'step',forbidden)
     hook=torch.nn.modules.module.register_module_forward_pre_hook(forbidden)
     try:
+        monkeypatch.setenv('OPENGU_TEST_READ_ONLY_SCIENCE', '1')
+        probe = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c',
+            'import torch; torch.nn.Linear(2, 2)(torch.ones(1, 2))'],
+            capture_output=True, text=True, encoding='utf-8', timeout=30)
+        assert probe.returncode != 0 and 'read-only scientific check called a producer' in probe.stderr
         with context.use(collector,extension=extension):
             collected,args,options=collect(exported)
             checked=extension.accept('modular-output-v1',definition,collected)
@@ -122,6 +128,10 @@ def test_collection_faults_fail_closed(exported,fault):
                 indexed = next(i for i in peer['items'] if (collector/i['local_path']).resolve() == metric.resolve())
                 indexed['sha256'] = cell['files']['metrics.json']['sha256']
             path.write_text(json.dumps(run)); entry['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
-        result=extension.accept('modular-output-v1',definition,collected)
-        assert not result['passed'] and result['errors']
+        if fault == 'wrong_sha':
+            with pytest.raises(ValueError, match='Git source operation failed'):
+                extension.accept('modular-output-v1',definition,collected)
+        else:
+            result=extension.accept('modular-output-v1',definition,collected)
+            assert not result['passed'] and result['errors']
 

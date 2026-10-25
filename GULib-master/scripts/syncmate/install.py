@@ -48,7 +48,7 @@ def load_runners(policy):
 
 def invoke(peer, request):
     code = Path(__file__).with_name('install_remote.py').read_text(encoding='utf-8')
-    response = ssh(peer, [peer['python_executable'], '-B', '-c', code], payload=json.dumps(request))
+    response = ssh(peer, [peer['python_executable'], '-I', '-X', 'utf8', '-B', '-c', code], payload=json.dumps(request))
     try:
         result = json.loads(response.stdout)
         if not isinstance(result, dict):
@@ -63,7 +63,8 @@ def invoke(peer, request):
 def request_for(node, peer, *, action, target, policy, pin):
     return {'action': action, 'node': node, 'ssh': peer['ssh'], 'project': peer['repo_path'],
             'python_executable': peer['python_executable'], 'target': target,
-            'transport': policy['transport'], 'policy_sha256': policy['sha256'], 'core_dependency': pin}
+            'transport': policy['transport'], 'policy_sha256': policy['sha256'], 'core_dependency': pin,
+            'control_dependency': dependency_pin(ROOT, 'control_dependency.json')[0]}
 
 
 def verify_observation(result, node, peer, *, pin_sha, target=None, idle=False):
@@ -72,6 +73,8 @@ def verify_observation(result, node, peer, *, pin_sha, target=None, idle=False):
             or result.get('project') != peer['repo_path']
             or env.get('node_id') != node or env.get('requested_python') != peer['python_executable']
             or env.get('core_dependency_sha256') != pin_sha or env.get('core_payload_verified') is not True
+            or env.get('control_dependency_sha256') != dependency_pin(ROOT, 'control_dependency.json')[1]
+            or env.get('control_payload_verified') is not True
             or not env.get('python_executable') or env.get('git_sha') != result.get('head')
             or (target is not None and result.get('head') != target)
             or result.get('status') not in ('idle', 'verified', 'restored')
@@ -93,10 +96,11 @@ def deploy(node):
     started = time.monotonic()
     policy = deployment_policy(ROOT)
     pin, pin_sha = dependency_pin(ROOT)
-    from scripts.syncmate.verify_core_dependency import verify_core_dependency
-    local = verify_core_dependency(pin_path=ROOT / 'scripts/syncmate/core_dependency.json')
-    if not local['ready']:
-        raise ValueError('local Core environment is unverified: ' + '; '.join(local['errors']))
+    local = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-B', '-m', 'opengu_syncmate',
+        '--project-root', str(ROOT), '--source-ref', 'HEAD', 'dependencies'],
+        capture_output=True, text=True, encoding='utf-8', timeout=60)
+    if local.returncode:
+        raise ValueError('local control environment is unverified: ' + local.stdout + local.stderr)
     runners = load_runners(policy)
     if node not in runners:
         raise ValueError('select a registered coordinator node')
@@ -158,7 +162,8 @@ def deploy(node):
                     raise ValueError('node runner restoration is unverified: ' + current)
                 report['restoration'][current] = restored
         for current, peer in runners.items():
-            expected = {'python_executable': peer['python_executable'], 'core_dependency_sha256': pin_sha}
+            expected = {'python_executable': peer['python_executable'], 'core_dependency_sha256': pin_sha,
+                        'control_dependency_sha256': dependency_pin(ROOT, 'control_dependency.json')[1]}
             receipt = {'node': current, 'ssh': peer['ssh'], 'project': peer['repo_path'],
                 'target': target, 'head': target, 'status': installed['status'],
                 'transport': policy['transport'], 'policy_sha256': policy['sha256'],

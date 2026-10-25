@@ -8,7 +8,7 @@
     ".workblock/runtime/install"
   ],
   "preconditions": [
-    "All locally registered runner peers must independently verify their configured interpreter, the pinned Core 0.6.0 payload, clean shared code and idle explicit node queues. Legacy jobs/workers and the first private Core upgrade/queue initialization are handled separately by the owner; missing or unknown state is not idle. Hold all node admission gates and update shared code once. Never use public GitHub or push. Bind each node receipt to alias/project/target/policy/bundle and its own expected and observed environment. Keep failed attempts and historical credentials; no automatic retries or queue/cache migration."
+    "All locally registered runner peers must independently verify their configured interpreter, the pinned Core 0.7.0 and installed OpenGU control payloads, clean shared code and idle explicit node queues. Legacy jobs/workers and the first private Core upgrade/queue initialization are handled separately by the owner; missing or unknown state is not idle. Hold all node admission gates and update shared code once. Never use public GitHub or push. Bind each node receipt to alias/project/target/policy/bundle and its own expected and observed environment. Keep failed attempts and historical credentials; no automatic retries or queue/cache migration."
   ],
   "instruction": {
     "entry": [
@@ -37,6 +37,6 @@
     ]
   },
   "secretRefs": [],
-  "readBack": "From the registered project working directory run E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090 and E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090-2, stopping if either fails. Both node-specific receipts must independently validate this landed target, alias, shared project, policy, bundle and expected/observed Core/interpreter environment. Current per-node receipt.json files remain execution credentials while their target is valid. Preserve failed attempt-*.json for diagnosis; the Closeout owner archives necessary evidence and cleans only superseded receipts/attempts after they no longer authorize execution. Temporary code bundles are removed by the installer; persistent runner-install-<node>.log files are preserved. See scripts/syncmate/README.md for exact locations and the separately authorized first Core transition.",
+  "readBack": "From the registered project working directory run E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090 and E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090-2, stopping if either fails. Both node-specific receipts must independently validate this landed target, alias, shared project, policy, bundle and expected/observed Core/control/interpreter environment. Current per-node receipt.json files remain execution credentials while their target is valid. Preserve failed attempt-*.json for diagnosis; the Closeout owner archives necessary evidence and cleans only superseded receipts/attempts after they no longer authorize execution. Temporary code bundles are removed by the installer; persistent runner-install-<node>.log files are preserved. See scripts/syncmate/README.md for exact locations and the separately authorized first Core transition.",
   "onFailure": "stop"
 }

@@ -40,7 +40,7 @@ sys.setprofile(profile)
 def no_forward_cli(root, path, run_id):
     code = GUARD + "\nimport runpy\nrunpy.run_path('experiments/run.py', run_name='__main__')"
     return subprocess.run([sys.executable, '-B', '-c', code, str(path), '--run-id', run_id,
-        '--syncmate', '--device-config', '.syncmate/device.yaml', '--verification-root', str(root)],
+        '--syncmate', '--node-id', 'runner', '--device-config', '.syncmate/device.yaml', '--verification-root', str(root)],
         cwd=root, capture_output=True, text=True, encoding='utf-8', timeout=120)
 
 
@@ -63,7 +63,9 @@ def test_native_endpoint_metrics_collection_and_faults(workspace,source_bound,re
     from experiments.ret_reference_reading import load_endpoints, validate_trace
     from experiments.unlearning_outputs import load_metric_output
     from scripts.syncmate.opengu_acceptance import acceptance_payload
-    from opengu_adapter import OpenGUProjectExtension
+    from syncmate_core.project import GenericProjectExtension
+    from scripts.syncmate.opengu_acceptance import acceptance_payload
+    from scripts.syncmate.opengu_results import results_payload
     from syncmate_core import context
 
     root,path,config=workspace
@@ -150,7 +152,7 @@ def test_native_endpoint_metrics_collection_and_faults(workspace,source_bound,re
         if gu_cell['conditions']['method']=='MEGU':assert row['identity']['protocol']['gu_prediction']=='MEGU_updated_C&S'
     collector=root/'collector';collector.mkdir()
     for p in root.glob('*.yaml'):(collector/p.name).write_bytes(p.read_bytes())
-    with context.use(collector,extension=OpenGUProjectExtension()):
+    with context.use(collector,extension=GenericProjectExtension()):
         collected,_,_=collect((root,collector,execution_sha,definition))
     request=collector/'accept-request.json'
     request.write_text(json.dumps(dict(definition=definition,context=collected),default=str),encoding='utf-8')

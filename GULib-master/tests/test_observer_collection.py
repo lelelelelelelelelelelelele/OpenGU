@@ -8,7 +8,9 @@ import pytest
 from test_modular_consumers import tables, write_yaml
 from test_syncmate_execution_contract import workspace, cli, commit, declaration
 from test_syncmate_gu_outputs import collect
-from opengu_adapter import OpenGUProjectExtension
+from syncmate_core.project import GenericProjectExtension
+from scripts.syncmate.opengu_acceptance import acceptance_payload
+from scripts.syncmate.opengu_results import results_payload
 from syncmate_core import context
 
 
@@ -43,13 +45,13 @@ def test_observer_cli_collect_verify_and_accept(workspace, record_property, cach
     collector.mkdir()
     for source in runner.glob('*.yaml'):
         (collector/source.name).write_bytes(source.read_bytes())
-    extension = OpenGUProjectExtension()
+    extension = GenericProjectExtension()
     with context.use(collector, extension=extension):
         collected, _, _ = collect((runner, collector, sha, definition))
-        checked = extension.accept('modular-output-v1', definition, collected)
+        checked = acceptance_payload('modular-output-v1', definition, collected)
         assert checked['passed'], checked
         assert checked['accepted_cells'] == 3
-        rows = extension.results(collected['artifact_index'], {'project_root': collector})
+        rows = results_payload(collected['artifact_index'], {'project_root': collector})
         assert len(rows['rows']) == 3 and not rows['parse_errors'], rows
     assert not list(collector.rglob('output.npz'))
     assert not (collector/'results/cache_v2').exists()

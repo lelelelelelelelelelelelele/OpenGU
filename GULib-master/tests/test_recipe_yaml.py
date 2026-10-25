@@ -209,7 +209,7 @@ def test_stale_git_version_rejected_by_real_core(workspace):
     definition = declaration(root, config, 'selector')
     sha = commit(root)
     with context.use(root, extension=FixtureRegistration(definition), node_id='runner'):
-        with pytest.raises(SystemExit, match='main changed'):
+        with pytest.raises(SystemExit, match='commit|revision|source|Git'):
             queue.runner_queue_submit('wrong-version', definition['id'], expected_git_sha='f'*40)
     assert not (root / 'results').exists()
 
@@ -220,6 +220,8 @@ def test_preview_resolves_device_and_outputs_without_submission(workspace):
     spec = generate('experiment.yaml', recipe_id='visible', run_id='visible-run',
         project_root=root)
     path = save_spec(root, spec)
+    with (root / '.gitignore').open('a', encoding='utf-8') as handle:
+        handle.write('data/\n')
     sha = commit(root)
     device_file = root / '.syncmate/device.yaml'
     device = yaml.safe_load(device_file.read_text())
@@ -235,7 +237,6 @@ def test_preview_resolves_device_and_outputs_without_submission(workspace):
     assert view['argv'][1:] == ['experiments/run.py', 'experiment.yaml', '--run-id', 'visible-run', '--syncmate', '--node-id', 'gpu4090-2']
     assert view['expected_artifact_count'] == len(assemble(load_declaration(path), root)['expected_artifact_paths'])
     assert view['remote_checks'].startswith('NOT OBSERVED')
-    assert not view['local_checks_passed']
-    assert view['errors'] == ['exact node private installation receipt is missing']
-    assert view['deployment_policy']['transport'] == 'private-bundle'
+    assert view['local_checks_passed'] and view['errors'] == []
+    assert view['runtime_preflight'] == 'deferred until exact checkout and execution lease'
     assert before == {p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()}

@@ -19,7 +19,9 @@ from experiments.unlearning_outputs import load_output, restore_model
 from experiments.dataset_inputs import resolve_input
 from utils.target_checkpoint import data_identity, sha256_file
 from scripts.syncmate import syncmate
-from opengu_adapter import OpenGUProjectExtension
+from syncmate_core.project import GenericProjectExtension
+from scripts.syncmate.opengu_acceptance import acceptance_payload
+from scripts.syncmate.opengu_results import results_payload
 from syncmate_core import context, devices
 
 
@@ -69,7 +71,8 @@ def test_shared_inputs_real_growth_collection_and_faults(workspace, shape, monke
     assert warm_trace == {'training_seeds': [], 'score_calls': []}
     summary = Path(cold['execution_receipt']['output'])
     returned, documents = read_run(summary, sha256_file(summary))
-    for row, document in zip(cold['unlearning'], documents):
+    from experiments.modular_artifacts import ordered_execution_rows
+    for row, document in zip(ordered_execution_rows(returned['cells'], cold['unlearning']), documents):
         assert document['metrics.json']['rows'][0]['values'] == row['evaluation']['metrics']
         assert document['selection.json']['requested_k'] == int((n//2)*row['matrix_values']['budget_ratio'])
     files = inventory(summary.parent)
@@ -86,10 +89,10 @@ def test_shared_inputs_real_growth_collection_and_faults(workspace, shape, monke
     definition['expected_artifact_paths'] = [relative] + list(output_paths(relative, load_experiment(config_path)))
     definition['collector_result_roots'] = [Path(relative).parent.as_posix()]
     definition['expected_datasets'] = [{'num_nodes':n,'candidate_count':n//2}]
-    extension = OpenGUProjectExtension()
+    extension = GenericProjectExtension()
     with context.use(collector, extension=extension):
         collected, _, _ = collect((root, collector, sha, definition))
-        acceptance = extension.accept('modular-output-v1',definition,collected)
+        acceptance = acceptance_payload('modular-output-v1',definition,collected)
         assert acceptance['passed'], acceptance
     assert not (collector/'results/cache_v2').exists()
     assert not (collector/'data').exists()

@@ -1,0 +1,18 @@
+{
+  "distribution": "opengu-syncmate",
+  "files": {
+    "opengu_syncmate-0.1.0.dist-info/METADATA": "13feabc61e801504863d2cf53d617ae62a43f591af386c79fef353904ff97f86",
+    "opengu_syncmate-0.1.0.dist-info/WHEEL": "78e2e134019ad845b7c1697f4d4e3ce21eead54360cb42578e3a2a2a8c400107",
+    "opengu_syncmate-0.1.0.dist-info/entry_points.txt": "d20b7bbd9020f5db17ad712511a2aa8bebf0bfd988073ca8d9124203eb0daa04",
+    "opengu_syncmate-0.1.0.dist-info/top_level.txt": "4fe9dfdca3e7265ef0d3de19ec1747a6f37722979f34b79618439952b9300d96",
+    "opengu_syncmate/__init__.py": "b3e0c935d46ef5a50dc5f0300869863a194b8ab8f9e872c84e49ddc067a9c971",
+    "opengu_syncmate/__main__.py": "2ba601bb1697245fe1efd7a16251d9929057a709b1d6f60efbbef4f15fc48bdf",
+    "opengu_syncmate/adapter.py": "47e5825ed1c56e95e74f75543bc823e2dc49423fd12df6df8233541af1287589",
+    "opengu_syncmate/control.py": "840007dc102a753fe410688146e4a91b781cad106ba6fb28327bec6aa48d3596",
+    "opengu_syncmate/runtime.py": "2777132a193c34cccf5f28e96d47514a95625a43f0936d40c777161ef225442e",
+    "opengu_syncmate/source_worker.py": "470daf80baa0e10204556ba010d78d62b8dd1935b91a9db4b1fe44250eee797c"
+  },
+  "version": "0.1.0",
+  "wheel": "opengu_syncmate-0.1.0-py3-none-any.whl",
+  "wheel_sha256": "dd330ec54bbe38158ac966616d299a37994aeea05ed6c1d809e634dd57aa6b5d"
+}

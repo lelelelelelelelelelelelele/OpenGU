@@ -44,8 +44,8 @@ def validate_peer(peer, node, policy):
     return target
 
 
-def dependency_pin(root):
-    value = json.loads((Path(root) / 'scripts/syncmate/core_dependency.json').read_text(encoding='utf-8'))
+def dependency_pin(root, filename="core_dependency.json"):
+    value = json.loads((Path(root) / 'scripts/syncmate' / filename).read_text(encoding='utf-8'))
     digest = hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest()
     return value, digest
 
@@ -74,7 +74,9 @@ def validate_receipt(result, node, target, policy, *, expected_environment, bund
             or observed.get('node_id') != node or observed.get('git_sha') != target
             or observed.get('requested_python') != expected_environment['python_executable']
             or observed.get('core_dependency_sha256') != expected_environment['core_dependency_sha256']
-            or observed.get('core_payload_verified') is not True or not observed.get('python_executable')):
+            or observed.get('core_payload_verified') is not True
+            or observed.get('control_dependency_sha256') != expected_environment['control_dependency_sha256']
+            or observed.get('control_payload_verified') is not True or not observed.get('python_executable')):
         raise ValueError('installation receipt does not verify this node environment')
     if result['status'] == 'installed':
         actual = result.get('bundle_sha256') or ''
@@ -90,28 +92,8 @@ def installation_receipt(root, node, target, policy, *, peer):
         raise ValueError('exact node private installation receipt is missing')
     result = json.loads(path.read_text(encoding='utf-8'))
     _, core_sha = dependency_pin(root)
-    expected = {'python_executable': peer['python_executable'], 'core_dependency_sha256': core_sha}
+    _, control_sha = dependency_pin(root, 'control_dependency.json')
+    expected = {'python_executable': peer['python_executable'], 'core_dependency_sha256': core_sha,
+                'control_dependency_sha256': control_sha}
     validate_receipt(result, node, target, policy, expected_environment=expected)
     return {'path': str(path), 'node': node, 'target': target, 'status': result['status']}
-
-
-def execution_readiness(peer, definition):
-    """The existing Core UI hook consumes the same selected-node credential."""
-    from syncmate_core import context, identity, devices
-    from scripts.syncmate.verify_core_dependency import verify_core_dependency
-    project = context.current()
-    try:
-        device, warnings = devices.load_device(project.device_file)
-        if warnings:
-            raise ValueError('; '.join(warnings))
-        matches = [node for node, registered in device.get('peers', {}).items() if registered == peer]
-        if len(matches) != 1:
-            raise ValueError('selected peer does not identify one registered node')
-        node = context.validate_node_id(matches[0])
-        policy = deployment_policy(project.root)
-        proof = installation_receipt(project.root, node, identity.git_state()['sha'], policy, peer=peer)
-        dependency = verify_core_dependency(pin_path=project.root / 'scripts/syncmate/core_dependency.json')
-        return {'ready': dependency['ready'], 'errors': dependency['errors'],
-                'node': node, 'installation_receipt': proof}
-    except (ValueError, OSError, KeyError) as exc:
-        return {'ready': False, 'errors': [str(exc)]}
