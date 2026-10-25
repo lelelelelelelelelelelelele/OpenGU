@@ -358,7 +358,10 @@ def test_all_active_methods_match_pre_refactor_formulas(tables, record_property)
     expected['class_matched_r_point'] = ordinal_scores(candidate_list, matched)
     selectors = []
     for name in SCORE_NAMES:
-        p = resolve_parameters(name, {'matching_seed': 44} if name == 'class_matched_r_point' else None)
+        supplied = ({'matching_seed': 44, 'overlap_seed': 144, 'profile_counts': [2, 7]}
+                    if name == 'overlap_profile_r_point' else
+                    {'matching_seed': 44} if name == 'class_matched_r_point' else None)
+        p = resolve_parameters(name, supplied)
         if 'lissa' in p:
             p['lissa'] = lissa
         if 'hutchinson' in p:
@@ -367,6 +370,18 @@ def test_all_active_methods_match_pre_refactor_formulas(tables, record_property)
     kwargs = dict(store_root=root/'v2', data=data, dataset_name=inputs.dataset_name, model=model, include_scores=True,
         checkpoints=checkpoints, selectors=selectors, model_config=instance['model'], training=instance['training'])
     cold = resolve_methods(**kwargs)
+    # Independent membership labels over the already-derived S/M expectations.
+    # The draw binds both real prepared parents, not the measured P scores.
+    from experiments.target_direct_v1.overlap_profile import draw_seed
+    profile = next(s['parameters'] for s in selectors if s['method'] == 'overlap_profile_r_point')
+    parent_refs = cold['overlap_profile_r_point']['score']['recipe']['fields']
+    source_order = stable_ranking(candidate_list, expected['r_point'])
+    low, high = profile['profile_counts']
+    first, second = set(source_order[:low]), set(source_order[low:high])
+    membership = [0 if n in first else 1 if n in second else 2 for n in candidate_list]
+    independent_order = class_prefix_matched_order(candidate_list, membership, matched,
+        draw_seed(profile, parent_refs['source_r_point'], parent_refs['source_class_matched']))
+    expected['overlap_profile_r_point'] = ordinal_scores(candidate_list, independent_order)
     warm = resolve_methods(**kwargs, fail_if_score_called=True, fail_if_selection_called=True)
     errors = {}
     for name in SCORE_NAMES:

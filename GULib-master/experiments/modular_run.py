@@ -76,8 +76,14 @@ def _plan_summary(config):
 
 def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     config = load_experiment(path)
+    exact = None
+    if 'exact_inputs' in config:
+        from experiments.exact_replay_inputs import ExactInputs
+        exact = ExactInputs(config)
     batches = list(experiment_batches(config))
     plan = _plan_summary(config)
+    if exact is not None:
+        plan['exact_inputs'] = dict(config['exact_inputs'])
     plan['batches'] = [{**_plan_summary(batch), 'matrix_values': batch['matrix_values']} for batch in batches]
     plan['logical_cells'] = sum(
         len(batch.get('output_inputs', [])) if batch['stage'] in ('metrics', 'retrain_diagnostics') else
@@ -89,7 +95,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     plan['configuration_fingerprint'] = configuration_fingerprint(path)
     if config['stage'] == 'unlearning' and any(
             is_paired_evaluation(item) for item in config['evaluations']):
-        if not any(item['method'] == 'Retrain' for item in config['unlearnings']):
+        if exact is None and not any(item['method'] == 'Retrain' for item in config['unlearnings']):
             raise ConfigurationError('paired evaluations require an explicit Retrain in unlearning_refs')
     if dry_run:
         return {**plan, 'dry_run': True, 'execution_context_required': True,
@@ -230,7 +236,7 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
         outputs.select_group(group)
         data, inputs = loaded_data[batch['matrix_values']['dataset_index']]
         data = data.to(device)
-        if config['stage'] == 'unlearning':
+        if config['stage'] == 'unlearning' and exact is None:
             with audit.phase('shared_output_request_prepare'):
                 outputs.prepare([item for item in batch['unlearnings']
                     if config.get('execution',{}).get('gu_cache',{}).get(item['method'],'reuse')=='reuse'],data)
@@ -242,26 +248,31 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
             conditions = {**run_state['active'][0]['conditions'], 'method': 'selector', 'model': item.get('model', {}).get('architecture')}
             with audit.entry('selection', conditions) as fact, audit.phase('selector_access'):
                 model, checkpoints, observation = None, [], None
-                if 'model' in item:
-                    with audit.phase('model_prepare'):
-                        model, checkpoints, observation = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
-                        checkpoint_root=checkpoint_root, device=device, reference_directory=directory,
-                        **({'fail_if_training':True} if reference_only or item['method'] == 'overlap_profile_r_point' else {}))
-                if item['method'] in IM_METHODS:
-                    from experiments.modular_im import resolve_im
-                    from experiments.modular_rr import resolve_rr
-                    resolver = resolve_im if item['method'] == 'im' else resolve_rr
-                    resolved = resolver(item, store_root=store_root, data=data, inputs=inputs)
+                if exact is not None:
+                    resolved, loaded = exact.selection(run_state['active'], item,
+                        store_root=store_root, data=data, inputs=inputs)
+                    reference = dict(resolved['selection']['artifact'])
                 else:
-                    resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
-                        model=model, checkpoints=checkpoints, selectors=[item], include_scores=config.get('return_scores',False),
-                        model_config=item.get('model'), training=item.get('training'),
-                        fail_if_score_called=reference_only, fail_if_selection_called=reference_only,
-                        dataset_inputs=inputs,dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'])[item['method']]
-                reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
-                loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
-                    expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'],
-                    expected_parameters=item['parameters'] if item['method'] in IM_METHODS else None)
+                    if 'model' in item:
+                        with audit.phase('model_prepare'):
+                            model, checkpoints, observation = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
+                            checkpoint_root=checkpoint_root, device=device, reference_directory=directory,
+                            **({'fail_if_training':True} if reference_only or item['method'] == 'overlap_profile_r_point' else {}))
+                    if item['method'] in IM_METHODS:
+                        from experiments.modular_im import resolve_im
+                        from experiments.modular_rr import resolve_rr
+                        resolver = resolve_im if item['method'] == 'im' else resolve_rr
+                        resolved = resolver(item, store_root=store_root, data=data, inputs=inputs)
+                    else:
+                        resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
+                            model=model, checkpoints=checkpoints, selectors=[item], include_scores=config.get('return_scores',False),
+                            model_config=item.get('model'), training=item.get('training'),
+                            fail_if_score_called=reference_only, fail_if_selection_called=reference_only,
+                            dataset_inputs=inputs,dataset_identity=datasets[batch['matrix_values']['dataset_index']]['data_identity'])[item['method']]
+                    reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
+                    loaded = verified_selection(reference, store_root=store_root, data=data, inputs=inputs,
+                        expected_selector=item['method'], expected_k=resolved['selection']['artifact_k'],
+                        expected_parameters=item['parameters'] if item['method'] in IM_METHODS else None)
                 selection = selection_prefix(loaded, item['budget']['k'])
                 summary['selectors'].append({**resolved, 'checkpoint': observation, 'matrix_values': batch['matrix_values'],
                     'selector_ref': selector_ref, 'requested_k': item['budget']['k'],
@@ -321,8 +332,13 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                             if result is None:
                                 if item['method'] != 'Retrain':
                                     with audit.phase('model_prepare'):
-                                        model, _, checkpoint = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
-                                        checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
+                                        if exact is not None:
+                                            model, checkpoint = exact.prepare(cell, item, data=data, inputs=inputs,
+                                                dataset_input=dataset_input, store_root=store_root, dataset_root=dataset_root,
+                                                device=device, checkpoint_root=checkpoint_root)
+                                        else:
+                                            model, _, checkpoint = prepared.get(item, data=data, dataset_name=inputs.dataset_name,
+                                            checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
                                 with audit.phase('method_execution'):
                                     result = consumer(item, selection=selection, model=model, data=data,
                                     dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
@@ -339,6 +355,8 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
                                     for reference in cell['observers']:
                                         cell['files'].update(reference['files'])
                                     update_run(run, context.output)
+                        if exact is not None:
+                            result['retrain'] = exact.rows[cell['cell_id']]['retrain']
                         result['observer_seconds'] = session.seconds if session else 0.0
                         if 'evaluation_cache' not in result:
                             from experiments.evaluation_cache import persist_single
@@ -397,6 +415,10 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     notify_event(notify, 'progress', position={'stage': 'export'}, current=0, total=1)
     with audit.phase('export'):
         export_outputs(summary, config=config, context=context, run=run)
+        if exact is not None:
+            for cell in run['cells']:
+                cell['cache_provenance']['exact_inputs'] = exact.provenance(cell)
+            update_run(run, context.output)
     for row in summary['selectors']:
         row.pop('result_scores', None)
     notify_event(notify, 'progress', position={'stage': 'export'}, current=1, total=1)
