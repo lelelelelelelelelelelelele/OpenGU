@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-megu160-endpoint-joint
+runner: experiment
+config_path: experiments/configs/exp087/metrics_remaining_megu160_endpoint_joint.yaml
+config_sha256: e1b77a342e4fc25d49f67715cd082ccaebb0e58eafbf8de55cc6e1b7a04cc08c
+configuration_fingerprint: 5480f13fc2e339d2541b4bbd63ecf6e33ff53376ccbe97453dd218a44a60e489
+run_identity:
+  experiment_id: exp087-megu160-endpoint-joint
+  run_id: e87he1
+timeout_seconds: 3600
+logical_cells: 160
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

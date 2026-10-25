@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp087-megu160-graph
+runner: experiment
+config_path: experiments/configs/exp087/metrics_remaining_megu160_graph.yaml
+config_sha256: 5ef2d812385c6fd97a258e1e183ccb56f5526c950a2cbe141211feeb59aca0e9
+configuration_fingerprint: 31b3778d285da29bf98e6d07fd3d5b8a391cf20076b83fd5c17611a1ea330048
+run_identity:
+  experiment_id: exp087-megu160-graph
+  run_id: e87hg1
+timeout_seconds: 7200
+logical_cells: 160
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
