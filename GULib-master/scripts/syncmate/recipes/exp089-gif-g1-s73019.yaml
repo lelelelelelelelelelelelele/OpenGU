@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp089-gif-g1-s73019
+runner: experiment
+config_path: experiments/configs/exp089/derived_seed73019_g1.yaml
+config_sha256: 098eb66348245864c2942b86be3561ba3094a495433cd154d8a2e729fac43d2c
+configuration_fingerprint: 7ae072f65ca4466192928bb1a1c9a5d4f360a03cbfa9891c60254811c5f7d706
+run_identity:
+  experiment_id: exp089-gif-g1-s73019
+  run_id: e89g106
+timeout_seconds: 2400
+logical_cells: 6
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
