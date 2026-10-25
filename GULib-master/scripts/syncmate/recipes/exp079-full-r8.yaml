@@ -1,0 +1,27 @@
+schema_version: 1
+id: exp079-full-r8
+runner: experiment
+config_path: experiments/configs/exp079/surrogate_multiseed.yaml
+config_sha256: 98b0fa3f4bdc55305c2cdccab9467ffd7bc551bcb59d0851f5a756a35870a67c
+configuration_fingerprint: 5ceba8e2cee00a399a843795535645266905285219d9dc2c2addda2d225ca851
+run_identity:
+  experiment_id: exp079-surrogate-multiseed
+  run_id: e79r8
+timeout_seconds: 21600
+logical_cells: 2880
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+- num_nodes: 19717
+  candidate_count: 13801
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
