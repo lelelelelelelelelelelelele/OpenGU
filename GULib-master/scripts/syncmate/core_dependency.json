@@ -1,5 +1,5 @@
 {
-  "build_source_commit": "479eb2c4d4d68b75fbfb81db8e944c3679984abf",
+  "build_source_commit": "5337f55780452af7ab081f544e09f36f852328d9",
   "distribution": "syncmate",
   "files": {
     "syncmate-0.7.0.dist-info/LICENSE": "6d10772cc99400ac24a64d51e473393423b9c582df512fe713a10ba5df19e1cb",
@@ -27,7 +27,7 @@
     "syncmate_core/constants.py": "35b496ea1b4b543a617d1135abea97109b3515c936f47b139a353796e53ce07f",
     "syncmate_core/context.py": "d5fd4a7fe2c0616c4bdb0c2c3bb40c7badea5600808225f4a5e4471b1ded33ee",
     "syncmate_core/contracts.py": "730c0ad2fb78bbea69b95bf63fc4f25d6422540a38c9d05da08ff3437273bf29",
-    "syncmate_core/controller.py": "4c06e67167489730bb83818be1fcf364a23e35cbc20be6aed9356f2a30ec8c2b",
+    "syncmate_core/controller.py": "4c414d0914b5addb21443b021bd9336ca035322df3e4b8a79b7c1de50434bf2b",
     "syncmate_core/dashboard.py": "49d34ac0a5ba0dc2ba53b5bbd89947702c2f3207369d89cda81093cff69aa7f0",
     "syncmate_core/devices.py": "78feb3e1bd4d2c32d05fe500265c68b3c0ce10b60ebf1b582533317b9dbe84c1",
     "syncmate_core/diagnostics.py": "4323567528a0cc64563f630f03817c9bdf82d0708fb4811d56e55edb2023e305",
@@ -73,15 +73,15 @@
     "syncmate_core/trace.py": "9ad1cc9e154123b90e9d829a33ab0ecf88c8b156dadbf9dbd261f92b2c5df3ea",
     "syncmate_core/transport.py": "c4848e6636ad4088fc2b027da4f1df63792a7eb22d90b2c1bdb34580b00c51cd",
     "syncmate_core/versions.py": "030c3b983c1a7b9162c79f1600524e63fc93446a9643050f08e365151bb109eb",
-    "syncmate_core/web/app.js": "98a247c3910e177637774eed394cc970823ed8a0184ddd5ab821f7603892c566",
+    "syncmate_core/web/app.js": "e89737cffda7e1a5836d182456944374b1b2e1812d4a2fd9c72ec99e50ec3822",
     "syncmate_core/web/index.html": "35746a7c0af3cb71170cdfdb9933774f22425c60ddacf15eb405900248f25f56",
     "syncmate_core/web/style.css": "6bc10523ce41f651ad0057ec37b7490fa74d540e94aa47a9359ce0c229250e6a",
     "syncmate_core/worker.py": "974303b6967130418f82115ea6438204bc93c8c1bbb088d52fda778780078582",
     "syncmate_core/workflow.py": "cc270d7778e7510bc50ae87f47d61d7e9e2edc2431a8948b3ad6260167afedc9"
   },
   "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
-  "source_commit": "479eb2c4d4d68b75fbfb81db8e944c3679984abf",
+  "source_commit": "5337f55780452af7ab081f544e09f36f852328d9",
   "version": "0.7.0",
   "wheel": "syncmate-0.7.0-py3-none-any.whl",
-  "wheel_sha256": "1616addbb1429ad782d30771a848d27ba199af6ae5d46adfa20f73c8f8739692"
+  "wheel_sha256": "1bba9aaeb63813613eb90726039061aab4a3d3ff498f0f44867f0aab0c5a1564"
 }
