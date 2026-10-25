@@ -5,6 +5,7 @@ from pathlib import Path
 import socket
 import subprocess
 import sys
+import tempfile
 
 
 
@@ -55,7 +56,21 @@ def install_guard(setattr_fn=setattr):
         _opengu_local_only = True
 
         def __init__(self, args, *positional, **kwargs):
+            self._created_venv = (Path(args[-1]) if isinstance(args, (list, tuple))
+                and '-m' in args and 'venv' in args and '--without-pip' in args else None)
             super().__init__(local_popen(args, *positional, **kwargs), *positional, **kwargs)
+
+        def wait(self, *args, **kwargs):
+            result = super().wait(*args, **kwargs)
+            if result == 0 and self._created_venv is not None:
+                # Install the same transport guard in real disposable child venvs.
+                prefix = self._created_venv.resolve()
+                prefix.relative_to(Path(tempfile.gettempdir()).resolve())
+                guard = Path(sys.prefix) / 'Lib/site-packages/opengu_test_guard.pth'
+                destination = prefix / 'Lib/site-packages/opengu_test_guard.pth'
+                destination.write_bytes(guard.read_bytes())
+                self._created_venv = None
+            return result
     setattr_fn(subprocess,'Popen',LocalPopen)
     def no_network(*args,**kwargs):
         denied('network socket',repr(args)[:250])

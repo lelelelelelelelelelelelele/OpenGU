@@ -5,30 +5,30 @@
   "targets": [
     "ssh://autodl-opengu/autodl-fs/data/OpenGU",
     "ssh://autodl-opengu-2/autodl-fs/data/OpenGU",
-    ".workblock/runtime/install"
+    ".syncmate",
+    ".workblock/runtime/install",
+    "E:/conda_package/envs/gnn/envs",
+    "ssh://autodl-opengu/root/miniconda3/envs",
+    "ssh://autodl-opengu-2/root/miniconda3/envs"
   ],
   "preconditions": [
-    "All locally registered runner peers must independently verify their configured interpreter, the pinned Core 0.7.0 and installed OpenGU control payloads, clean shared code and idle explicit node queues. Legacy jobs/workers and the first private Core upgrade/queue initialization are handled separately by the owner; missing or unknown state is not idle. Hold all node admission gates and update shared code once. Never use public GitHub or push. Bind each node receipt to alias/project/target/policy/bundle and its own expected and observed environment. Keep failed attempts and historical credentials; no automatic retries or queue/cache migration."
+    "The corresponding accepted source is clean landed canonical main. Exact Core/control wheel inputs are staged for the registered bootstrap action. All physical registered node queues must be idle and known before the shared source update; an unavailable SSH endpoint does not prove idle. No public GitHub/push, active task termination, lock deletion or environment repair is authorized."
   ],
-  "instruction": {
-    "entry": [
-      "E:/conda_package/envs/gnn/python.exe",
-      "-B",
-      "scripts/syncmate/install.py",
-      "apply",
-      "--node",
-      "gpu4090"
-    ]
-  },
+  "instruction": "Execute the separately registered bootstrap action first. If it succeeds, run E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py apply --node gpu4090. The script selects its verified immutable controller runtime and a reachable coordinator, holds all physical node queue admission gates, updates the single shared checkout once, verifies online peers, activates the exact deployment and records offline peers as deferred. A returning peer may install only this approved staged Core/control pair before accepting a task. Do not run the former global Core installer.",
   "permissions": {
     "write": [
       "ssh://autodl-opengu/autodl-fs/data/OpenGU",
       "ssh://autodl-opengu-2/autodl-fs/data/OpenGU",
-      ".workblock/runtime/install"
+      ".syncmate",
+      ".workblock/runtime/install",
+      "E:/conda_package/envs/gnn/envs",
+      "ssh://autodl-opengu/root/miniconda3/envs",
+      "ssh://autodl-opengu-2/root/miniconda3/envs"
     ],
     "delete": [
       "ssh://autodl-opengu/autodl-fs/data/OpenGU",
       "ssh://autodl-opengu-2/autodl-fs/data/OpenGU",
+      ".syncmate",
       ".workblock/runtime/install"
     ],
     "network": [
@@ -37,6 +37,6 @@
     ]
   },
   "secretRefs": [],
-  "readBack": "From the registered project working directory run E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090 and E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090-2, stopping if either fails. Both node-specific receipts must independently validate this landed target, alias, shared project, policy, bundle and expected/observed Core/control/interpreter environment. Current per-node receipt.json files remain execution credentials while their target is valid. Preserve failed attempt-*.json for diagnosis; the Closeout owner archives necessary evidence and cleans only superseded receipts/attempts after they no longer authorize execution. Temporary code bundles are removed by the installer; persistent runner-install-<node>.log files are preserved. See scripts/syncmate/README.md for exact locations and the separately authorized first Core transition.",
+  "readBack": "Run E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py deployment-status and the source CLI dependencies command. Verify this landed target and exact Core/control pins. Independently read the online node receipts via install.py receipt --node <online-node>. Offline nodes must remain deferred and are not counted as verified or live-boot-tested; do not require powering them on. Immutable runtime/deployment storage is persistent product state; installation attempt logs under .workblock/runtime/install are temporary. Closeout archives necessary evidence and cleans only superseded attempts/credentials when no longer needed. Retain failed attempts, maintenance markers and original locks for diagnosis. No experiment launch is part of this action.",
   "onFailure": "stop"
 }

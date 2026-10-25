@@ -18,6 +18,33 @@ from syncmate_core.process import captured_process_options
 
 from .adapter import OpenGUProjectExtension, implementation
 from .runtime import execution_readiness
+from . import provision
+
+
+def ensure_deployed_peer(root, peer):
+    """Reconnect only the selected peer using the already authorized deployment."""
+    if not (root / '.syncmate/deployments/active.json').exists():
+        return
+    manifest = provision.load(root)
+    node = peer['node_id']
+    base = manifest['nodes'][node]['base_python']
+    expected = provision.runtime_python(base, manifest['pins'])
+    if peer['python_executable'] != expected:
+        raise ValueError('peer interpreter differs from approved deployment')
+    request = {'action': 'ensure', 'root': peer['repo_path'], 'node': node,
+               'source_sha': manifest['source_sha']}
+    code = Path(provision.__file__).read_text(encoding='utf-8')
+    command = ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=20', '--', peer['ssh'],
+               shlex.join([base, '-I', '-X', 'utf8', '-B', '-c', code])]
+    completed = subprocess.run(command, input=json.dumps(request), capture_output=True,
+        text=True, encoding='utf-8', timeout=240, **captured_process_options(piped_input=True))
+    if completed.returncode:
+        raise ValueError('selected node is offline or runtime preparation failed: ' + completed.stdout[-1200:] + completed.stderr[-800:])
+    observed = json.loads(completed.stdout)
+    if (observed.get('status') != 'ready' or observed.get('runtime_python') != expected
+            or observed.get('source_sha') != manifest['source_sha'] or observed.get('node') != node):
+        raise ValueError('selected node runtime identity is unverified')
+    provision.atomic(provision.directory(root, manifest['source_sha']) / 'nodes' / (node + '.json'), observed)
 
 
 def protect_runtime_source(source, verification_root):
@@ -91,6 +118,7 @@ def invoke(peer, arguments, *, payload=None, verification_root=None):
     if devices.peer_uses_local_transport(peer):
         command, cwd = [sys.executable, *argv], peer['repo_path']
     else:
+        ensure_deployed_peer(context.current().root, peer)
         command = ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=20', '--', peer['ssh'],
             'cd ' + shlex.quote(peer['repo_path']) + ' && ' + shlex.join([devices.peer_python_executable(peer), *argv])]
         cwd = None
@@ -315,6 +343,18 @@ def main(argv=None):
         with context.use(root, extension=extension, node_id=node, execution_readiness=execution_readiness):
             if common.node_id and getattr(args, 'node', common.node_id) != common.node_id:
                 raise ValueError('explicit node identities differ')
+            # Core's collection/status transports use configured runtime paths.
+            # Prepare returning peers before handing those operations to Core.
+            if args.command in ('remote-status', 'collect', 'sync') or (
+                    args.command == 'runner-agent' and args.runner_agent_command in ('watch', 'collect')):
+                device, warnings = devices.load_device(args.config)
+                if warnings:
+                    raise ValueError('; '.join(warnings))
+                selected = (args.node_ids or list(device['peers'])) if args.command == 'sync' else [args.node_id]
+                for selected_node in selected:
+                    peer = {**device['peers'][selected_node], 'node_id': selected_node}
+                    if not devices.peer_uses_local_transport(peer):
+                        ensure_deployed_peer(root, peer)
             if args.command == 'preview':
                 result = preview(root, args.recipe, args.node, args.config, common.source_ref, common.verification_root)
             elif args.command == 'dependencies':

@@ -17,47 +17,61 @@ retain their Recipe/run directories; only collected landings identify the peer.
 
 The exact Core 0.7.0 and OpenGU control wheel payloads are bound by
 `core_dependency.json` / `control_dependency.json`; see [dependency boundary](CORE_DEPENDENCY.md).
-The control is installed outside the execution checkout. Pins and build artifacts
-are not production installation. Before the first transition, separately authorize
-and verify every old task/return and worker has ended, then install the accepted
-pair and initialize each explicit node queue. Missing or unknown state is not idle.
-This shared-source installer does not install dependencies, migrate queues, create
-another checkout, copy Cache, or delete locks.
-
-After that transition and after the reviewed code lands on clean local main:
+The control uses an immutable project runtime outside the execution checkout. The
+registered `bootstrap` action creates a standard-library venv inheriting the
+existing scientific environment, installs only the two exact staged wheels with
+`--no-index --no-deps`, and verifies their complete payloads. It never updates the
+base interpreter or its packages. Stage reviewed wheel inputs under
+`.syncmate/package-inputs/` using the committed wheel filenames, then execute the
+registered actions after clean canonical main lands:
 
 ```powershell
+E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py bootstrap
 E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py apply --node gpu4090
-E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090
-E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090-2
+E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py deployment-status
 ```
 
-`--node` chooses the coordinator for one shared code update, not the inspection
-scope. The installer reads every registered runner from the collector device
-file, verifies the local pinned Core payload, and probes each SSH container's configured interpreter, exact Core payload,
-clean Git identity and explicit node status. Any busy/unconfirmed node blocks
-the update. Core `maintenance.installation(node_ids=[all registered runners])`
-holds admission for all nodes, pauses only idle cooperative persistent workers,
-and permits one exact private-bundle fast-forward. The advertised ref, bundle
-SHA, target policy/Core pin, ancestry, protected paths and unchanged origin refs
-are checked. No public network or push is used. Unknown locks are preserved.
+`--node` selects a preferred coordinator. Any reachable registered node may
+coordinate the single shared source update. A powered-off endpoint is recorded
+as **deferred**, while online nodes are installed and verified independently.
+Authentication failures, invalid packages and failed remote operations stop the
+attempt. A lost response after a mutation is not classified as a safe deferral.
 
-After the shared update each peer is verified independently; only its own SSH
-route can restore its previously idle persistent worker with explicit
-`--node-id`. A stopped worker stays stopped. Failed post-update verification
-leaves the installed code and original evidence for diagnosis, issues no new
-execution receipts, and does not retry, roll back or resubmit tasks.
+Availability does not change topology. Core
+`maintenance.installation(node_ids=[all registered runners])` still holds every
+physical node queue gate and checks active/unknown occupancy, outstanding return
+barriers and workers. No SSH connection is needed to inspect the offline node's
+queue on the shared filesystem. Unknown occupancy blocks source switching. Missing
+queues are never initialized implicitly; existing jobs and locks are preserved.
+Only idle cooperative workers are paused/restored; previously stopped workers
+remain stopped. An unavailable idle node never forces another node to wait for it
+to boot.
 
-Successful credentials are `.workblock/runtime/install/<node>/<full-SHA>/receipt.json`.
-Each binds node, alias, shared project, full target, policy, bundle and that
-peer's observed interpreter and dependency identity. These are installation
-receipts, not a requirement that every new task's selected SHA equals current
-local main or current runner HEAD. Admission is described below; startup must
-observe the frozen task SHA and scientific preflight under Core's lease.
-Failed attempts and historical credentials remain evidence. A later Closeout owner
-cleans only superseded credentials; no automatic retry or production upgrade is
-implied. The [action declaration](install.action.json) is activated by the owner
-after the corresponding acceptance and installation authorization.
+After the exact source update, `.syncmate/deployments/active.json` selects an
+immutable deployment manifest and its staged wheels on the shared filesystem.
+Node-specific runtimes are named by both wheel digests under the base prefix's
+`envs/opengu-control-<digest>/`. The source CLI and installed collector prepare a
+returning node from its configured base interpreter, verify the approved payloads,
+and only then delegate to the installed Core/control entry. Ordinary jobs cannot
+supply packages or environment commands. A partial, unknown or corrupted runtime
+is preserved and refused, never silently repaired. A disconnected node cannot
+execute a job; other online nodes remain usable.
+
+Online source-install receipts remain at
+`.workblock/runtime/install/<node>/<full-SHA>/receipt.json`; deferred nodes do not
+receive a fabricated receipt. `deployment-status` reports the approved rollout
+and the most recent verified readiness, not live reachability. Exact package
+verification repeats on reconnect. The active manifest, staged wheels and ready
+runtimes are persistent product state required for delayed startup. Temporary
+package-input copies and attempt logs belong to the deployment owner; archive
+necessary evidence before removing superseded inputs/logs. Failed attempts and
+unknown markers remain for diagnosis. There is no automatic retry, rollback,
+queue migration, public GitHub access or experiment launch.
+
+The [install action](install.action.json) invokes the separate
+[bootstrap action](bootstrap.action.json); activate both registrations only after
+the source is accepted and landed. This route replaces the old all-endpoints-
+online source-only installer and the global Core replacement route.
 
 Runner commands require the global `--node-id` before the subcommand:
 

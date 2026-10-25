@@ -44,7 +44,7 @@ GU 在 `reuse` 下先按当前输入和已有 checkpoint 元数据查找 Output�
 
 每次运行先备齐本阶段代码、科学配置、引用小表与 Recipe，完成审阅和相邻验证，再明确提交版本。生成可以读取工作区草稿；预览和提交只消费选定提交。未来步骤可选择不同的新提交；已入队、运行或完成的 job 保持原 SHA、Recipe/config 和验证合同，不会随 main 前进或文稿修改漂移。
 
-首次 Core/控制包部署仍通过登记安装边界，在所有相关节点安全停点按对应已接受版本执行。正常任务提交中的 private-bundle 来源导入只增加 Git 对象，不切换 checkout、环境或 origin 引用；实际切版归 Core，必须覆盖全部相关 node 的安全准入。同版本可双节点执行。不得向公开 GitHub 推送，不能临时手写远端 fetch/pull、停掉正常任务或升级环境来绕过入队条件。
+首次 Core/控制包部署通过登记 bootstrap/install 边界，精确 wheel 安装到项目独立运行环境，保留原科学基础环境。离线节点记为待更新，上线后由同一授权部署材料核验就绪；在线节点无须等待它开机。共享源码切换仍检查全部登记节点在共享文件系统上的队列及安全停点，离线或占用未知不等于空闲。正常任务提交中的 private-bundle 来源导入只增加 Git 对象，不切换 checkout、环境或 origin 引用；实际切版归 Core，必须覆盖全部相关 node 的安全准入。同版本可双节点执行。不得向公开 GitHub 推送，不能临时手写远端 fetch/pull、停掉正常任务或升级环境来绕过入队条件。
 
 1. 确认实验记录允许的范围，审阅配置和引用小表，按 [experiments/AGENTS.md](../../experiments/AGENTS.md) 完成相邻验证。
 2. 按 [Recipe 命令说明](../../scripts/syncmate/README.md#independent-recipe-yaml) 生成新 ID、新 RID 的独立 Recipe。节点数与候选数来自绑定的现存 Dataset/Split；缺失或不符就拒绝，不手填计数，不下载或物化正式数据。
