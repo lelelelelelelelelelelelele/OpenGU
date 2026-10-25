@@ -102,7 +102,7 @@ for i in range(12):
  assert not events.append_event(event,event_path=path,refresh=False).written
 print(json.dumps(dict(writer=name,written=12)))
 ''', encoding='utf-8')
-    env = dict(os.environ, PYTHONPATH=str(Path(__file__).resolve().parents[1]),
+    env = dict(os.environ, PYTHONPATH=str(Path(__file__).resolve().parents[1])+os.pathsep+os.environ.get('PYTHONPATH',''),
                PYTHONUTF8='1', PYTHONIOENCODING='utf-8', PYTHONDONTWRITEBYTECODE='1')
     processes = [subprocess.Popen([sys.executable,'-B',str(worker),str(path),name],
         stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env) for name in ('node-a','node-b')]
