@@ -1,5 +1,26 @@
 # EXP-080 ratio response configuration
 
+## ETR supplement
+
+`cc_etr.yaml` adds ETR and explicit same-request Retrain over Cora/CiteSeer,
+training seeds 42/212/2024 and deletion ratios 5%, 7.5%, 10%, 15%, 22%, 33%,
+50%. It retains the five selection strategies, including three IM draws,
+and the evaluation definitions of the completed matrix. The full table has
+588 rows: 294 ETR and 294 Retrain. Existing exact results remain reusable;
+the 294 repeated Retrain rows are not new independent scientific conditions.
+
+`cc_etr_gate.yaml` checks Degree at 5% and 50% on both datasets, seed 42,
+with ETR and Retrain (8 rows, an exact subset of the main table). The new
+declarations are `exp080-etr-gate` / `e80eg1` (7200-second cap) and
+`exp080-etr-r1` / `e80etr1` (21600-second cap). The authorized sequence waits
+for EXP-079's verified return and project check, then this gate's verified
+return and project check before submitting the full table. Runtime state and
+budget are owned by Work Plan; configuration preparation is not GPU execution.
+
+ETR has no shard-aggregation constraint at Cora 50%; the old 42 unavailable
+sharded endpoints remain excluded from their original evidence. PubMed remains
+deferred. Existing scientific decisions and result files are preserved.
+
 The current prepared scope is **Cora + CiteSeer**. PubMed is deferred. The
 `cc_*.yaml` definitions replace the previous ten-group submission plan; Work Plan
 owns live attempts and result acceptance. Preparing these declarations does not

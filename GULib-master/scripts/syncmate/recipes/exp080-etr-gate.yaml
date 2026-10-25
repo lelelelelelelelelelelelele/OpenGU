@@ -1,0 +1,25 @@
+schema_version: 1
+id: exp080-etr-gate
+runner: experiment
+config_path: experiments/configs/exp080/cc_etr_gate.yaml
+config_sha256: 9994046bf3542cba941f4c60c2a4f049b7e26b065b161b2eec982bdf80039e1e
+configuration_fingerprint: 59c96fcbf6fa5d6f4d1fd77d6eebd6db19ebd8ae76f23083077a34a8af06b2b7
+run_identity:
+  experiment_id: exp080-cc-etr-gate
+  run_id: e80eg1
+timeout_seconds: 7200
+logical_cells: 8
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

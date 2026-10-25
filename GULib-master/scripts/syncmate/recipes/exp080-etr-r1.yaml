@@ -1,0 +1,25 @@
+schema_version: 1
+id: exp080-etr-r1
+runner: experiment
+config_path: experiments/configs/exp080/cc_etr.yaml
+config_sha256: 11c4e650c9ec85c1c382d420869df7135fb01b050dc9c164392e9513b06e9029
+configuration_fingerprint: 843af757e8c64e33a727f6a66db47d37d104d26caf2d1bc5182dc596f74ac2c2
+run_identity:
+  experiment_id: exp080-cc-etr
+  run_id: e80etr1
+timeout_seconds: 21600
+logical_cells: 588
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
