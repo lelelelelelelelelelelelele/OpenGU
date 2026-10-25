@@ -5,3 +5,6 @@ experiments/configs/exp085/*.yaml text eol=lf
 experiments/configs/evaluations/post_unlearning_response_graph_sensitivity.yaml text eol=lf
 scripts/syncmate/recipes/exp084-*.yaml text eol=lf
 scripts/syncmate/recipes/exp085-*.yaml text eol=lf
+
+# Exact replay JSON is bound by its raw bytes.
+experiments/configs/exp091/inputs/*.json text eol=lf

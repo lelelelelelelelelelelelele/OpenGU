@@ -1,0 +1,30 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp091-additional-s6-t400
+stage: unlearning
+dataset_refs:
+- ../datasets/exp091_citeseer.yaml
+selector_refs:
+- ../selectors/exp091_a_s6_sgc_r10.yaml
+- ../selectors/exp091_a_s6_gat_r10.yaml
+unlearning_refs:
+- ../unlearning/exp091_s6_t400.yaml
+evaluation_refs:
+- ../evaluations/exp091_post_unlearning_utility_and_retrain_gap.yaml
+- ../evaluations/exp091_post_unlearning_flip_hop.yaml
+- ../evaluations/exp091_post_unlearning_response_diagnostics.yaml
+matrix: cartesian_product
+return_scores: false
+execution:
+  gu_cache:
+    GIF: disabled
+observers:
+- name: linear_solver_trace
+  methods:
+  - GIF
+- name: same_graph_change
+  methods:
+  - GIF
+exact_inputs:
+  path: inputs/additional_s6_t400.json
+  sha256: f10f724301e657fa6cd92bc32f07078c863346512659166240adeb639b69ed17

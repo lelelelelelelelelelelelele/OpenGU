@@ -1,0 +1,22 @@
+kind: unlearning
+schema_version: 1
+method: GIF
+model:
+  architecture: OpenGU.GCNNet
+  dropout: 0.5
+  hidden_channels: 64
+  layers: 2
+training:
+  seed: 6
+parameters:
+  GIF_method: GIF
+  damp: 0.20094722036615764
+  iteration: 100
+  scale: 23004
+deletion:
+  evaluation_graph: original
+  features: retain_isolated_rows
+  supervision: exclude_selected
+  task: node
+  training_graph: remove_incident_edges
+checkpoint: ../../../results/runtime/modular/checkpoints/8fa77bbf235c03ea7f23cd37ea55afd1fd2bf69254b5cee7a444be86242fa5c9.pt

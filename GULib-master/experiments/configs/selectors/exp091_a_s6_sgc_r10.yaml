@@ -1,0 +1,34 @@
+kind: selector
+schema_version: 1
+method: r_point
+candidate:
+  pool: train_mask
+budget:
+  mode: ratio
+  value: 0.1
+model:
+  hidden_channels: 64
+  architecture: OpenGU.SGCNet
+  layers: 2
+  dropout: 0.0
+parameters:
+  parameter_scope: last_layer
+  target_loss:
+    type: cross_entropy
+    source: validation_mask
+    reduction: mean
+  hessian_loss:
+    type: cross_entropy
+    source: train_mask
+    reduction: mean
+  lissa:
+    iterations: 20
+    scale: 25.0
+    damp: 0.01
+training:
+  epochs: 3000
+  optimizer: Adam
+  lr: 0.05
+  weight_decay: 0.0001
+  scheduler: none
+  seed: 6

@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp092-confirm-s83026
+runner: experiment
+config_path: experiments/configs/exp092/s83026.yaml
+config_sha256: 0b408c17747defa60dc75797e96667850e4922b9b3c0f7e0810f584fddc02df8
+configuration_fingerprint: acb5071a14579d56f0e69768ded299c5b793b2ce5cfba5dddebbd626b2a19ee2
+run_identity:
+  experiment_id: exp092-c1-s83026
+  run_id: e92c26
+timeout_seconds: 2520
+logical_cells: 6
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

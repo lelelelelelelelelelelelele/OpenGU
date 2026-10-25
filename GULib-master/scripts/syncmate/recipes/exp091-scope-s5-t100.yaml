@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp091-scope-s5-t100
+runner: experiment
+config_path: experiments/configs/exp091/additional_s5_t100.yaml
+config_sha256: dc223591031251e02f8656095704423f31418220853aa306b56dd6ccd7a2ab04
+configuration_fingerprint: 9352563ba851c363ff9427607a5a025c55e76e82cfa3585053647dd0afd7a054
+run_identity:
+  experiment_id: exp091-additional-s5-t100
+  run_id: e91x06
+timeout_seconds: 1320
+logical_cells: 2
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
