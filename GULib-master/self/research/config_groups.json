@@ -158,5 +158,10 @@
     "kind": "experiment",
     "note": "类别条件与重合剖面条件请求的独立补充对照；范围、阶段门禁及运行状态由EXP-088拥有。",
     "owner": "EXP-088"
+  },
+  "exp089": {
+    "kind": "experiment",
+    "note": "新strict00数值观测及有来源的方法参数敏感性；范围、阶段与运行状态由EXP-089拥有。",
+    "owner": "EXP-089"
   }
 }
