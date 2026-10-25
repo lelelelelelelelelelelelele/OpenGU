@@ -13,8 +13,7 @@ for directory in (ROOT, Path(__file__).resolve().parent):
         sys.path.insert(0, str(directory))
 
 import yaml
-from opengu_recipes import RECIPE_DIRECTORY, assemble, generate, load_declaration
-from deployment_policy import deployment_policy, installation_receipt
+from scripts.syncmate.opengu_recipes import RECIPE_DIRECTORY, assemble, generate, load_declaration
 
 
 def git(root, *args):
@@ -24,70 +23,16 @@ def git(root, *args):
     return result.stdout.strip()
 
 
-def preview(recipe_id, node_id, device_file, project_root=ROOT):
-    from syncmate_core import context, devices, recipes, run_handoff
-    from opengu_adapter import OpenGUProjectExtension, bind_execution_node
-    from verify_core_dependency import verify_core_dependency
-    root = Path(project_root).resolve()
-    policy = deployment_policy(root)
-    declaration_path = root / RECIPE_DIRECTORY / (recipe_id + '.yaml')
-    # A recipe argument is an ID, never an arbitrary filesystem path.
-    from syncmate_core.contracts import JOB_ID_RE
-    if not JOB_ID_RE.fullmatch(recipe_id):
-        raise ValueError('invalid recipe id')
-    declaration_path.resolve().relative_to(root)
-    spec = load_declaration(declaration_path)
-    if spec['id'] != recipe_id:
-        raise ValueError('recipe filename/id mismatch')
-    definition = bind_execution_node(assemble(spec, root), node_id)
-    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=policy['require_origin_main'], node_id=node_id):
-        device, warnings = devices.load_device(Path(device_file))
-    peer = device.get('peers', {}).get(node_id)
-    if not peer or peer.get('role') not in ('runner', 'runner+collector'):
-        raise ValueError('select a configured runner peer')
-    sha = git(root, 'rev-parse', 'HEAD')
-    branch = git(root, 'branch', '--show-current')
-    errors = list(warnings)
-    receipt = None
-    try:
-        receipt = installation_receipt(root, node_id, sha, policy, peer=peer)
-    except (ValueError, OSError) as exc:
-        errors.append(str(exc))
-    if git(root, 'status', '--porcelain', '--untracked-files=all'):
-        errors.append('checkout has uncommitted files; commit the declaration and configuration before dispatch')
-    if branch != 'main':
-        errors.append('Core dispatch requires the reviewed candidate to land on main')
-    git(root, 'ls-files', '--error-unmatch', str(declaration_path.relative_to(root)))
-    git(root, 'ls-files', '--error-unmatch', definition['config_path'])
-    dependency = verify_core_dependency(pin_path=root / 'scripts/syncmate/core_dependency.json')
-    errors.extend(dependency['errors'])
-    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=policy['require_origin_main'], node_id=node_id):
-        binding = recipes.runner_recipe_binding(definition)
-        errors.extend(binding['errors'])
-        landing = run_handoff.landing_for(node_id)
-    python = sys.executable if devices.peer_uses_local_transport(peer) else devices.peer_python_executable(peer)
-    command = [python if value == '{python}' else value for value in definition['argv']]
-    try:
-        repository = git(root, 'remote', 'get-url', 'origin')
-    except ValueError:
-        repository = None
-
-    return {'recipe': recipe_id, 'declaration': declaration_path.relative_to(root).as_posix(),
-        'repository': repository, 'commit': sha, 'branch': branch,
-        'config_path': definition['config_path'], 'config_sha256': definition['config_sha256'],
-        'configuration_fingerprint': definition.get('configuration_fingerprint'),
-        'node': node_id, 'transport': peer.get('transport', 'ssh'), 'ssh_alias': peer.get('ssh'),
-        'remote_workdir': peer['repo_path'], 'python': python, 'argv': command,
-        'run_identity': definition.get('run_identity', {}),
-        'remote_result_roots': list(definition.get('collector_result_roots', [])),
-        'local_receiving_root': str(root / landing),
-        'collection': spec.get('outputs', {'layout': 'core-preflight'}),
-        'expected_artifact_count': len(definition['expected_artifact_paths']),
-        'deployment_policy': policy, 'installation_receipt': receipt,
-        'code_sync': 'Registered private-bundle installation before dispatch; local/runner clean main must share the same full commit. Public origin alignment is not required. Dispatch never copies dirty files or updates code.',
-        'local_checks_passed': not errors, 'errors': errors,
-        'remote_checks': 'NOT OBSERVED: preview makes no remote connection; dispatch performs peer preflight and exact version checks.',
-        'submitted': False}
+def preview(recipe_id, node_id, device_file, project_root=ROOT, source_ref='refs/heads/main'):
+    """Inspect exactly one committed source through the installed consumer."""
+    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-B', '-m', 'opengu_syncmate',
+        '--project-root', str(Path(project_root).resolve()), '--config', str(device_file),
+        '--source-ref', source_ref, 'preview', recipe_id, '--node', node_id],
+        capture_output=True, text=True, encoding='utf-8')
+    view = json.loads(result.stdout)
+    if result.returncode:
+        raise ValueError('; '.join(view.get('errors') or ['committed preview failed']))
+    return view
 
 
 def main(argv=None):
@@ -103,6 +48,7 @@ def main(argv=None):
     gen.add_argument('--timeout-seconds', type=int, default=21600)
     view = sub.add_parser('preview')
     view.add_argument('recipe')
+    view.add_argument('--source-ref', default='refs/heads/main')
     view.add_argument('--node', required=True)
     view.add_argument('--device-config', type=Path, default=ROOT / '.syncmate/device.yaml')
     args = parser.parse_args(argv)
@@ -112,7 +58,7 @@ def main(argv=None):
                 raise ValueError('output must be a new file named <Recipe ID>.yaml')
             spec = generate(args.config, recipe_id=args.id, run_id=args.run_id,
                 timeout_seconds=args.timeout_seconds, node=args.node, device_file=args.device_config)
-            from opengu_recipes import validate_declaration
+            from scripts.syncmate.opengu_recipes import validate_declaration
             validate_declaration(spec)
             assemble(spec)
             if args.output.name != args.id + '.yaml':
@@ -123,7 +69,7 @@ def main(argv=None):
             print(json.dumps({'recipe': spec['id'], 'path': str(args.output.resolve()),
                               'expected_datasets': spec['expected_datasets']}))
         else:
-            print(json.dumps(preview(args.recipe, args.node, args.device_config), indent=2, ensure_ascii=False))
+            print(json.dumps(preview(args.recipe, args.node, args.device_config, source_ref=args.source_ref), indent=2, ensure_ascii=False))
         return 0
     except (ValueError, OSError, yaml.YAMLError, subprocess.SubprocessError) as exc:
         print(str(exc), file=sys.stderr)

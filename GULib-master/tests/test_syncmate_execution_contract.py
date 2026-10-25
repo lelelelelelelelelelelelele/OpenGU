@@ -17,9 +17,10 @@ from test_modular_consumers import tables, write_yaml
 from experiments.modular_config import configuration_fingerprint
 from experiments.modular_run import execute
 from scripts.syncmate import syncmate
-from opengu_adapter import OpenGUProjectExtension
-from opengu_recipes import generate, assemble, load_declaration
-from syncmate_core import collection, context, devices, index, queue
+from opengu_syncmate.adapter import OpenGUProjectExtension
+from scripts.syncmate.opengu_recipes import generate, assemble, load_declaration
+from syncmate_core import collection, context, devices, index, queue, versions
+from opengu_syncmate.runtime import execution_readiness
 from syncmate_core.identity import sha256_recipe_config
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,7 +44,7 @@ def workspace(tables):
     paths = [p.relative_to(ROOT).as_posix() for directory in ('experiments', 'scripts', 'model', 'utils', 'attack', 'cache_v2', 'task', 'pipeline', 'unlearning', 'dataset') for p in (ROOT / directory).rglob('*') if p.is_file()] + [p.name for p in ROOT.glob('*.py')]
     for relative in filter(None, paths):
         source = ROOT / relative
-        if (source.suffix != '.py' and relative not in ('cache_v2/source_compatibility.json', 'scripts/syncmate/core_dependency.json', 'scripts/syncmate/deployment.json') and not relative.startswith('model/properties/')) or relative.startswith('tests/') or not source.is_file():
+        if (source.suffix != '.py' and relative not in ('cache_v2/source_compatibility.json', 'scripts/syncmate/core_dependency.json', 'scripts/syncmate/control_dependency.json', 'scripts/syncmate/deployment.json') and not relative.startswith('model/properties/')) or relative.startswith('tests/') or not source.is_file():
             continue
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -80,10 +81,11 @@ def cli(root, path, run_id):
         encoding='utf-8', timeout=120)
 
 
-def declaration(root, path, stage):
-    spec = generate('experiment.yaml', recipe_id='temporary-contract', run_id='registered',
+def declaration(root, path, stage, *, run_id='registered'):
+    spec = generate(Path(path).relative_to(root).as_posix(), recipe_id='temporary-contract', run_id=run_id,
         project_root=root)
-    declaration_path = root / 'temporary-contract.yaml'
+    declaration_path = root / 'scripts/syncmate/recipes/temporary-contract.yaml'
+    declaration_path.parent.mkdir(parents=True, exist_ok=True)
     write_yaml(declaration_path, spec)
     definition = assemble(load_declaration(declaration_path), root)
     # Only the existing disposable-verification CLI switches are fixture-specific.
@@ -94,15 +96,7 @@ def declaration(root, path, stage):
 
 class FixtureRegistration(OpenGUProjectExtension):
     def __init__(self, definition):
-        self.definition = definition
-
-    def recipe_ids(self, project_root):
-        return (self.definition['id'],)
-
-    def resolve_recipe(self, project_root, recipe_id):
-        if recipe_id != self.definition['id']:
-            raise ValueError('recipe is not allowlisted')
-        return copy.deepcopy(self.definition)
+        super().__init__(verification_root=definition['argv'][definition['argv'].index('--verification-root') + 1])
 
 
 @pytest.mark.parametrize('stage', ['selector', 'unlearning', 'metrics'])
@@ -128,7 +122,8 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
     direct = cli(root, path, 'direct')
     assert direct.returncode == 0, direct.stdout + direct.stderr
     direct_summary = json.loads(direct.stdout)
-    with context.use(root, extension=FixtureRegistration(definition), node_id='runner'):
+    with context.use(root, extension=FixtureRegistration(definition), node_id='runner', execution_readiness=execution_readiness):
+        definition = versions.bind(definition['id'], sha)['definition']
         submitted = queue.runner_queue_submit('contract-job', definition['id'], expected_git_sha=sha)
         assert submitted['submitted'], submitted
         device, warnings = devices.load_device(root / '.syncmate/device.yaml')
@@ -156,7 +151,7 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
     assert before == {str(p.relative_to(root)): p.read_bytes() for p in root.rglob('*.yaml')
                       if not {'runner_queue','runner_queues'} & set(p.parts)}
     collector = root / 'collector'
-    collector.mkdir()
+    git(root, 'clone', '--quiet', str(root), str(collector))
     with context.use(collector, extension=FixtureRegistration(definition), node_id='runner'):
         peer = devices.build_peer_config('runner', None, str(root), transport='local')
         from syncmate_core import progress, progress_sync, run_handoff
@@ -213,10 +208,13 @@ def test_device_configuration_controls_failure_before_production(workspace, devi
     assert not (root / 'results').exists()
 
 
-def test_live_registration_invokes_ordinary_yaml_directly():
-    with context.use(ROOT, extension=OpenGUProjectExtension(), node_id='gpu4090'):
-        definition = OpenGUProjectExtension().resolve_recipe(ROOT, 'opengu-aagu007-v2')
-    assert definition['argv'][:3] == ('{python}', 'experiments/run.py', definition['config_path'])
+def test_live_registration_invokes_ordinary_yaml_directly(workspace):
+    root, path, _ = workspace
+    original = declaration(root, path, 'selector')
+    commit(root)
+    with context.use(root, extension=FixtureRegistration(original), node_id='runner'):
+        definition = context.extension().resolve_recipe(root, 'temporary-contract')
+    assert definition['argv'][:3] == ['{python}', 'experiments/run.py', definition['config_path']]
     assert '--recipe' not in definition['argv']
     assert '--run-id' in definition['argv']
-    assert configuration_fingerprint(ROOT / definition['config_path']) == definition['configuration_fingerprint']
+    assert configuration_fingerprint(root / definition['config_path']) == definition['configuration_fingerprint']

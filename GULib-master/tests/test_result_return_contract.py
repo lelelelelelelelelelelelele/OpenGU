@@ -13,7 +13,9 @@ from test_syncmate_gu_outputs import collect
 from test_unified_execution import command
 from experiments.modular_artifacts import existing_scores, read_run, output_paths
 from experiments.modular_config import load_experiment
-from scripts.syncmate.opengu_adapter import OpenGUProjectExtension
+from syncmate_core.project import GenericProjectExtension
+from scripts.syncmate.opengu_acceptance import acceptance_payload
+from scripts.syncmate.opengu_results import results_payload
 from syncmate_core import context, collection, index
 
 
@@ -70,16 +72,19 @@ def test_real_metrics_fix_refreshes_current_collected_results(workspace, record_
     first = json.loads(result.stdout)
     source = Path(first['execution_receipt']['output'])
     original = {p: p.read_bytes() for p in source.parent.rglob('*') if p.is_file()}
-    original_values = [r['evaluation']['metrics']['cross_entropy'] for r in first['unlearning']]
+    from experiments.modular_artifacts import ordered_execution_rows
+    original_run, _ = read_run(source, digest(source))
+    original_values = [r['evaluation']['metrics']['cross_entropy']
+                       for r in ordered_execution_rows(original_run['cells'], first['unlearning'])]
     old_definition = declaration(runner, path, 'unlearning')
     collector = runner/'collector'; collector.mkdir()
     for p in runner.glob('*.yaml'):
         (collector/p.name).write_bytes(p.read_bytes())
-    extension = OpenGUProjectExtension()
+    extension = GenericProjectExtension()
     with context.use(collector, extension=extension):
         old_context, _, _ = collect((runner,collector,old_sha,old_definition))
-        assert extension.accept('modular-output-v1', old_definition, old_context)['passed']
-        assert len(extension.results(old_context['artifact_index'], {'project_root':collector})['rows']) == 8
+        assert acceptance_payload('modular-output-v1', old_definition, old_context)['passed']
+        assert len(results_payload(old_context['artifact_index'], {'project_root':collector})['rows']) == 8
     # A real metric-code correction in the disposable runner. Training code,
     # methods and cache identities are not changed or mocked.
     metric_code = runner/'experiments/output_metrics.py'
@@ -98,17 +103,14 @@ def test_real_metrics_fix_refreshes_current_collected_results(workspace, record_
     output = Path(json.loads(fresh.stdout)['execution_receipt']['output'])
     refreshed, docs = read_run(output, digest(output))
     assert [d['metrics.json']['rows'][0]['values']['cross_entropy'] for d in docs] == pytest.approx([v+.125 for v in original_values])
-    definition = declaration(runner, metric_path, 'metrics')
-    definition.update(config_path='refresh.yaml', run_identity={'experiment_id':'metrics-refresh','run_id':'refreshed'},
-        expected_artifact_paths=[output.relative_to(runner).as_posix()]+list(output_paths(output.relative_to(runner), load_experiment(metric_path))),
-        collector_result_roots=[output.parent.relative_to(runner).as_posix()])
+    definition = declaration(runner, metric_path, 'metrics', run_id='refreshed')
     for p in runner.glob('*.yaml'):
         (collector/p.name).write_bytes(p.read_bytes())
     with context.use(collector, extension=extension):
         current, args, options = collect((runner,collector,new_sha,definition))
-        accepted = extension.accept('modular-output-v1', definition, current)
+        accepted = acceptance_payload('modular-output-v1', definition, current)
         assert accepted['passed'], accepted
-        rows = extension.results(current['artifact_index'], {'project_root':collector})
+        rows = results_payload(current['artifact_index'], {'project_root':collector})
         assert not rows['parse_errors'], rows
         assert len(rows['rows']) == 8
         assert all(r['run_id'] == 'refreshed' and r['git_sha'] == new_sha for r in rows['rows'])

@@ -7,6 +7,7 @@ import copy
 import math
 from pathlib import Path
 from experiments.effective_config import read_yaml, fields, effective, choice, ConfigurationError
+from experiments.effective_config import configuration_root, source_file
 from experiments.target_direct_v1.methods import resolve_parameters, uses_model, SCORE_NAMES
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,11 +43,11 @@ def resolve_reference(field, reference, source_directory):
         if '/' in reference or '\\' in reference:
             path = Path(source_directory) / reference.replace('\\', '/')
         else:
-            directory = (ROOT / 'experiments/configs' / REFERENCE_DIRECTORIES[field]).resolve()
+            directory = (configuration_root(ROOT) / 'experiments/configs' / REFERENCE_DIRECTORIES[field]).resolve()
             path = (directory / reference).resolve()
             if path.parent != directory:
                 raise ConfigurationError(f'{field} resolves outside its public directory')
-    if path.suffix not in ('.yaml', '.yml') or not path.is_file():
+    if path.suffix not in ('.yaml', '.yml') or not source_file(path):
         raise ConfigurationError(f'{field}: YAML file does not exist: {path}')
     return path.resolve()
 
@@ -177,7 +178,7 @@ def model_training(value, *, pretrained=False):
             raise ConfigurationError('invalid training seed')
         # These settings describe no executed training in the external-weight lane.
         return model, {**dict.fromkeys(unused), 'seed': seed}
-    props = read_yaml(ROOT / 'model/properties' / MODEL_PROPERTIES[architecture])
+    props = read_yaml(configuration_root(ROOT) / 'model/properties' / MODEL_PROPERTIES[architecture])
     training = effective(value.get('training', {}), {'epochs': 3000, 'optimizer': 'Adam', 'lr': float(props['lr']),
         'weight_decay': float(props['decay']), 'scheduler': 'none', 'seed': 42}, 'training')
     choice(training['optimizer'], ('Adam', 'SGD'), 'optimizer')
@@ -246,7 +247,7 @@ def gu_defaults(method):
     if method == 'GIF':
         return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'GIF_method')}
     if method == 'MEGU':
-        props = read_yaml(ROOT / 'model/properties/GCN.yaml')
+        props = read_yaml(configuration_root(ROOT) / 'model/properties/GCN.yaml')
         return {**{k: defaults[k] for k in ('unlearning_epochs', 'kappa', 'alpha1', 'alpha2', 'GNN_layer')},
                 'unlearn_lr': float(props['lr']), 'unlearn_weight_decay': float(props['decay'])}
 

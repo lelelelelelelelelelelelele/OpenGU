@@ -1,70 +1,41 @@
 #!/usr/bin/env python
-"""OpenGU CLI entry; project semantics stay in its adapter."""
-from __future__ import annotations
-
-import sys
+"""Launch the installed OpenGU control, outside the execution checkout."""
 from pathlib import Path
+import json
+import re
+import subprocess
+import sys
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-for directory in (PROJECT_ROOT, Path(__file__).resolve().parent):
-    if str(directory) not in sys.path:
-        sys.path.insert(0, str(directory))
-
-from syncmate_core.cli import main as core_main, build_parser
-from syncmate_core import context, devices
-from opengu_adapter import OpenGUProjectExtension
-from deployment_policy import deployment_policy, installation_receipt, execution_readiness
-
-
-def prepare_console_runtime():
-    """Load project numerical DLLs before HTTP and observer threads start."""
-    from experiments import modular_config, modular_run  # noqa: F401
 
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
-    import argparse
-    root_parser = argparse.ArgumentParser(add_help=False)
-    root_parser.add_argument('--project-root', type=Path)
-    root_parser.add_argument('--node-id')
-    root_args, _ = root_parser.parse_known_args(argv)
-    root = (root_args.project_root or PROJECT_ROOT).resolve()
-    policy = deployment_policy(root)
-    if not callable(getattr(context, 'runner_node_id', None)):
-        import json
-        print(json.dumps({'status': 'blocked', 'errors': ['OpenGU requires the node-queue Core interface (SM-027); old Core is unsupported']}))
-        return 1
-    with context.use(root, node_id=root_args.node_id):
-        args = build_parser().parse_args(argv)
-    if args.command == 'runner-agent' and args.runner_agent_command == 'dispatch':
-        import json
-        import subprocess
-        target = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
-        try:
-            if root_args.node_id is not None and root_args.node_id != args.node_id:
-                raise ValueError('global node differs from selected dispatch peer')
-            with context.use(root, node_id=args.node_id):
-                device, warnings = devices.load_device(args.config)
-            if warnings:
-                raise ValueError('; '.join(warnings))
-            peer = device.get('peers', {}).get(args.node_id)
-            installation_receipt(root, args.node_id, target, policy, peer=peer)
-        except (ValueError, OSError) as exc:
-            print(json.dumps({'status': 'blocked', 'errors': [str(exc)]}))
-            return 1
-    if args.command == 'console':
-        from dataclasses import replace
-        from syncmate_core import console
-        with context.use(root, extension=OpenGUProjectExtension(),
-                         require_origin_main=policy['require_origin_main'], node_id=root_args.node_id) as project:
-            if args.stop:
-                return console.cmd_console(args)
-            prepare_console_runtime()
-            project = replace(project, execution_readiness=execution_readiness)
-            console.serve_console({root.name: project}, args.port, args.desktop)
-        return 0
-    return core_main(argv, project_root=root, extension=OpenGUProjectExtension(),
-                     require_origin_main=policy['require_origin_main'])
+    active = PROJECT_ROOT / '.syncmate/deployments/active.json'
+    if active.exists():
+        if active.is_symlink():
+            raise ValueError('linked deployment pointer')
+        sha = json.loads(active.read_text(encoding='utf-8'))['source_sha']
+        if not re.fullmatch('[0-9a-f]{40}', sha):
+            raise ValueError('invalid active deployment source')
+        prefix = subprocess.check_output(['git', '-C', str(PROJECT_ROOT), 'rev-parse', '--show-prefix'], text=True).strip()
+        code = subprocess.check_output(['git', '-C', str(PROJECT_ROOT), 'show', sha + ':' + prefix + 'opengu_syncmate/provision.py'], text=True, encoding='utf-8')
+        node = argv[argv.index('--node-id') + 1] if '--node-id' in argv else None
+        manifest_path = active.parent / sha / 'manifest.json'
+        if manifest_path.is_symlink():
+            raise ValueError('linked deployment manifest')
+        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+        base = manifest['nodes'][node]['base_python'] if node else manifest['controller']['base_python']
+        needs_input = any(arg in ('source-import', 'source-status', '--binding-stdin') for arg in argv)
+        request = {'action': 'entry', 'root': str(PROJECT_ROOT), 'node': node, 'argv': argv,
+                   'stdin': sys.stdin.read() if needs_input else ''}
+        return subprocess.run([base, '-I', '-X', 'utf8', '-B', '-c', code],
+            input=json.dumps(request), text=True, encoding='utf-8', stdout=sys.stdout, stderr=sys.stderr,
+            **({'creationflags': subprocess.CREATE_NO_WINDOW} if sys.platform == 'win32' else {})).returncode
+    return subprocess.run([sys.executable, '-I', '-X', 'utf8', '-B', '-m', 'opengu_syncmate',
+                           '--project-root', str(PROJECT_ROOT), *argv],
+                          stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr,
+                          **({'creationflags': subprocess.CREATE_NO_WINDOW} if sys.platform == 'win32' else {})).returncode
 
 
 if __name__ == '__main__':

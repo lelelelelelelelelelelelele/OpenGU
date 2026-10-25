@@ -16,8 +16,11 @@ from experiments.modular_config import load_experiment, experiment_batches, conf
 from experiments.modular_artifacts import read_run
 from experiments.modular_run import execute
 from scripts.syncmate import syncmate
-from opengu_adapter import OpenGUProjectExtension
-from syncmate_core import context, devices, queue
+from syncmate_core.project import GenericProjectExtension
+from scripts.syncmate.opengu_acceptance import acceptance_payload
+from scripts.syncmate.opengu_results import results_payload
+from syncmate_core import versions, context, devices, queue
+from opengu_syncmate.runtime import execution_readiness
 from utils.target_checkpoint import data_identity, sha256_file
 
 
@@ -82,13 +85,14 @@ def test_real_multi_dataset_lifecycle(workspace, record_property):
     cold = run(root, path, 'single-cold')
     config['dataset_refs'] = ['dataset.yaml', 'second.yaml']
     write_yaml(path, config)
-    sha = commit(root)
     definition = declaration(root, path, 'unlearning')
+    sha = commit(root)
     definition['expected_datasets'] = [{'num_nodes': 20, 'candidate_count': 10},
                                        {'num_nodes': 24, 'candidate_count': 12}]
     summary_path = definition['expected_artifact_paths'][0]
     assert definition['logical_cells'] == 16
-    with context.use(root, extension=FixtureRegistration(definition)):
+    with context.use(root, extension=FixtureRegistration(definition), node_id='runner', execution_readiness=execution_readiness):
+        definition = versions.bind(definition['id'], sha)['definition']
         submitted = queue.runner_queue_submit('multi-job', definition['id'], expected_git_sha=sha)
         assert submitted['submitted'], submitted
         device, warnings = devices.load_device(root / '.syncmate/device.yaml')
@@ -107,13 +111,13 @@ def test_real_multi_dataset_lifecycle(workspace, record_property):
     collector = root / 'collector'; collector.mkdir()
     for source in root.glob('*.yaml'):
         (collector / source.name).write_bytes(source.read_bytes())
-    extension = OpenGUProjectExtension()
+    extension = GenericProjectExtension()
     with context.use(collector, extension=extension):
         collected, args, options = collect((root, collector, sha, definition))
-        accepted = extension.accept('modular-output-v1', definition, collected)
+        accepted = acceptance_payload('modular-output-v1', definition, collected)
         assert accepted['passed'], accepted
         assert accepted['accepted_cells'] == 16
-        rows = extension.results(collected['artifact_index'], {'project_root': collector})
+        rows = results_payload(collected['artifact_index'], {'project_root': collector})
         assert len(rows['rows']) == 16 and not rows['parse_errors']
         assert {r['dataset'] for r in rows['rows']} == {'cpu_fixture', 'cpu_second'}
         assert {r['seed'] for r in rows['rows']} == {122, 722}
@@ -131,7 +135,7 @@ def test_real_multi_dataset_lifecycle(workspace, record_property):
                 document['cells'][0]['conditions']['dataset_index'] = 1
                 target.write_text(json.dumps(document))
                 entry['sha256'] = sha256_file(target)
-            checked = extension.accept('modular-output-v1', definition, bad)
+            checked = acceptance_payload('modular-output-v1', definition, bad)
             if fault == 'wrong_owner': target.write_bytes(original)
             assert not checked['passed'], fault
             faults[fault] = checked['errors']

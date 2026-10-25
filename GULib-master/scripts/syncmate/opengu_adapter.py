@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Mapping
 
 def _modular_preflight(definition, config_path):
     from experiments.modular_run import execute
@@ -11,7 +10,7 @@ def _modular_preflight(definition, config_path):
         errors.append('referenced configuration fingerprint changed')
     if plan['logical_cells'] != definition['logical_cells']:
         errors.append('expanded conditions differ from registration')
-    if plan['experiment_id'] != definition['run_identity']['experiment_id']:
+    if plan['experiment_id'] != definition['experiment_id']:
         errors.append('experiment identity differs from registration')
     return {'ready': not errors, 'errors': errors}
 
@@ -29,84 +28,3 @@ def bind_execution_node(definition, node_id):
     else:
         argv += ('--node-id', node_id)
     return {**definition, 'argv': argv}
-
-
-class OpenGUProjectExtension:
-    """OpenGU-owned policy surface consumed by the independent SyncMate Core."""
-
-    extension_id = "opengu"
-
-    def result_roots(self) -> tuple[str, ...]:
-        return ("results/runs",)
-
-    def recipe_ids(self, project_root: Path) -> tuple[str, ...]:
-        import opengu_recipes as recipes_module
-        return recipes_module.recipe_ids(project_root)
-
-    def resolve_recipe(self, project_root: Path, recipe_id: str) -> Mapping[str, Any]:
-        import opengu_recipes as recipes_module
-        definition = recipes_module.resolve_recipe(project_root, recipe_id)
-        from syncmate_core.context import current
-        node_id = current().node_id
-        return bind_execution_node(definition, node_id) if node_id is not None else definition
-
-    def artifact_names(
-        self,
-        device: Mapping[str, Any] | None,
-        peer: Mapping[str, Any] | None,
-    ) -> tuple[str, ...]:
-        policy = (peer or {}).get("artifact_policy") or (device or {}).get("artifact_policy") or {}
-        included = policy.get("include") if isinstance(policy, Mapping) else None
-        if included:
-            return tuple(str(name) for name in included)
-        return ("attack.json", "collateral.json", "_meta.json")
-
-    def preflight(
-        self,
-        profile: str,
-        definition: Mapping[str, Any],
-        config_path: Path,
-    ) -> Mapping[str, Any]:
-        handler = _PREFLIGHT_HANDLERS.get(profile)
-        if handler is None:
-            return {
-                "ready": False,
-                "owner": self.extension_id,
-                "profile": profile,
-                "expected": {"profile": "reviewed OpenGU preflight profile"},
-                "observed": {"profile": profile},
-                "action": "select a reviewed OpenGU recipe",
-                "errors": ["OpenGU preflight profile is not reviewed"],
-            }
-        try:
-            result = dict(handler(definition, config_path))
-        except Exception as exc:
-            return {
-                "ready": False,
-                "owner": self.extension_id,
-                "profile": profile,
-                "expected": {"handler": "successful Project preflight"},
-                "observed": {"error": f"{type(exc).__name__}: {exc}"},
-                "action": "repair the OpenGU Project preflight dependency",
-                "errors": [f"OpenGU Project preflight failed: {type(exc).__name__}: {exc}"],
-            }
-        result["owner"] = self.extension_id
-        result["profile"] = profile
-        return result
-
-    def accept(
-        self,
-        profile: str,
-        definition: Mapping[str, Any],
-        context: Mapping[str, Any],
-    ) -> Mapping[str, Any]:
-        import opengu_acceptance as acceptance_module
-        return acceptance_module.acceptance_payload(profile, definition, context)
-
-    def results(
-        self,
-        index: Mapping[str, Any],
-        options: Mapping[str, Any],
-    ) -> Mapping[str, Any]:
-        import opengu_results as results_module
-        return results_module.results_payload(index, options)

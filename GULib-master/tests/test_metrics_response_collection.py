@@ -7,7 +7,9 @@ import yaml
 from test_syncmate_execution_contract import workspace,cli,commit,declaration
 from test_syncmate_gu_outputs import collect
 from test_modular_consumers import tables,write_yaml
-from opengu_adapter import OpenGUProjectExtension
+from syncmate_core.project import GenericProjectExtension
+from scripts.syncmate.opengu_acceptance import acceptance_payload
+from scripts.syncmate.opengu_results import results_payload
 from syncmate_core import context
 
 
@@ -55,28 +57,28 @@ def test_metrics_recipe_exact_subset_collects_and_accepts(workspace,record_prope
     assert all(not c['producer_called'].get('method',False) for c in actual['cells'])
     collector=root/'collector';collector.mkdir()
     for source_yaml in root.glob('*.yaml'):(collector/source_yaml.name).write_bytes(source_yaml.read_bytes())
-    extension=OpenGUProjectExtension()
+    extension=GenericProjectExtension()
     with context.use(collector,extension=extension):
         collected,_,_=collect((root,collector,sha,definition))
-        accepted=extension.accept('modular-output-v1',definition,collected)
+        accepted=acceptance_payload('modular-output-v1',definition,collected)
         assert accepted['passed'],accepted['errors']
         assert accepted['accepted_cells']==2
         missing=copy.deepcopy(definition);missing['expected_cells'].pop()
-        assert not extension.accept('modular-output-v1',missing,collected)['passed']
+        assert not acceptance_payload('modular-output-v1',missing,collected)['passed']
         wrong=copy.deepcopy(definition);wrong['expected_cells'][0]['conditions']['seed']=999
-        assert not extension.accept('modular-output-v1',wrong,collected)['passed']
+        assert not acceptance_payload('modular-output-v1',wrong,collected)['passed']
         # A different or ambiguous reviewed Dataset never borrows counts by index.
         from experiments.modular_config import configuration_fingerprint
         bad_config=copy.deepcopy(config);bad_config['dataset_refs']=['other.yaml']
         write_yaml(collector/'experiment.yaml',bad_config)
         bad_definition=copy.deepcopy(definition)
         bad_definition['configuration_fingerprint']=configuration_fingerprint(collector/'experiment.yaml')
-        mismatch=extension.accept('modular-output-v1',bad_definition,collected)
+        mismatch=acceptance_payload('modular-output-v1',bad_definition,collected)
         assert not mismatch['passed'] and any('fingerprint must match exactly one' in e for e in mismatch['errors'])
         bad_config['dataset_refs']=['dataset.yaml','dataset.yaml']
         write_yaml(collector/'experiment.yaml',bad_config)
         bad_definition['configuration_fingerprint']=configuration_fingerprint(collector/'experiment.yaml')
-        ambiguous=extension.accept('modular-output-v1',bad_definition,collected)
+        ambiguous=acceptance_payload('modular-output-v1',bad_definition,collected)
         assert not ambiguous['passed'] and ambiguous['errors']
         write_yaml(collector/'experiment.yaml',config)
     assert not (collector/'data').exists() and not (collector/'results/cache_v2').exists()

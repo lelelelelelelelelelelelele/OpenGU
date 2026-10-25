@@ -42,16 +42,18 @@ GU 在 `reuse` 下先按当前输入和已有 checkpoint 元数据查找 Output�
 
 ### 创建或修改配置后
 
-每次运行准备以一次同步为目标：先在本地备齐本阶段所需代码、实验配置、引用小表和全部 Recipe，完成审阅与相邻验证，并将完整交付落到同一主线目标版本，再统一同步一次。不得先同步代码、到提交前才补配置或 Recipe 而重复同步。同步完成并通过正式 preflight 后，直接按已授权顺序提交已准备好的运行。同一版本已同步就绪时不重复同步；依赖上游结果才能确定的后续阶段，在结果确定后独立备齐该阶段输入，再按同样流程处理。
+每次运行先备齐本阶段代码、科学配置、引用小表与 Recipe，完成审阅和相邻验证，再明确提交版本。生成可以读取工作区草稿；预览和提交只消费选定提交。未来步骤可选择不同的新提交；已入队、运行或完成的 job 保持原 SHA、Recipe/config 和验证合同，不会随 main 前进或文稿修改漂移。
 
-所有 SSH 代码同步，包括不伴随 Block 合并的独立同步，都使用 `.workblock/actions/install.json` 登记的安装动作；当前登记路线使用经 SHA-256、目标 ref 与前置提交校验的私有 Git bundle；正式基线为本地主线、已核验 bundle 目标与 SSH 主线同一完整 SHA。不得访问或推送公开 GitHub，不临时手写 fetch/pull，不重写 origin 引用；origin 保留真实历史值，不声称与私有版本相等。仅论文或文档编辑不主动触发 SSH 同步；下一次正式运行需要更新版本时再统一同步。已有任务占用 SSH 活跃检出时，任何提交（包括论文提交）都不得更新该检出；运行代码变更留在本地，待占用结束后部署。
+首次 Core/控制包部署通过登记 bootstrap/install 边界，精确 wheel 安装到项目独立运行环境，保留原科学基础环境。离线节点记为待更新，上线后由同一授权部署材料核验就绪；在线节点无须等待它开机。共享源码切换仍检查全部登记节点在共享文件系统上的队列及安全停点，离线或占用未知不等于空闲。正常任务提交中的 private-bundle 来源导入只增加 Git 对象，不切换 checkout、环境或 origin 引用；实际切版归 Core，必须覆盖全部相关 node 的安全准入。同版本可双节点执行。不得向公开 GitHub 推送，不能临时手写远端 fetch/pull、停掉正常任务或升级环境来绕过入队条件。
 
-1. 确认实验记录允许的范围，审阅 `experiment.yaml` 及引用的小表，按 [experiments/AGENTS.md](../../experiments/AGENTS.md) 完成相邻验证。
-2. 按 [Recipe 命令说明](../../scripts/syncmate/README.md#independent-recipe-yaml) 使用 `recipe.py generate`，指定 recipe ID、新 run ID、超时、`--node gpu4090` 和 `--output scripts/syncmate/recipes/<id>.yaml`。命令从配置绑定的现存 Dataset/Split 自动取得节点数与候选数并直接生成可审阅 YAML；缺失或身份不符即报错，不手填计数、不下载原始数据。已有 YAML 保留；不为每次查看重新生成。
-3. 配置或引用输入改变后，显式重新生成并审阅 SHA/指纹，将配置和 Recipe 一起提交。读取、预览或提交不会自动刷新哈希。仅改变 run ID 或超时也须审阅新的声明；不覆盖旧运行目录。
-4. Recipe 纳入 Git 跟踪后，用 `recipe.py preview <recipe-id> --node <peer-id> --device-config .syncmate/device.yaml` 检查完整 commit、配置、节点、SSH 工作目录、解释器、命令、run ID、执行输出和本地接收位置。`peer-id` 是设备配置中的节点 ID，例如 `gpu4090`，不是 SSH 别名。预览只读且不连接 SSH；脏工作区可以检查，但不具备正式提交资格。
-5. 本阶段代码、配置与全部 Recipe 完整交付后，对同一主线目标版本统一完成一次已授权的同步，消费安装回执中的精确 SHA 与工作区检查结果，随后由 dispatch 执行正式 preflight，不由 Agent 再 SSH 重复审计。预览、dispatch 均不负责同步工作区修改；候选工作树预览不代表部署完成。
-6. 使用 SyncMate“运行与回传”前端选择已审阅的 Recipe 与节点，检查就绪后提交。Recipe 生成和完整提交预览目前通过上述 CLI 完成，前端接入留待后续。Agent 需要提交命令时读取已安装 CLI 的 `--help` 和上述 README，不从历史示例猜测接口。
+1. 确认实验记录允许的范围，审阅配置和引用小表，按 [experiments/AGENTS.md](../../experiments/AGENTS.md) 完成相邻验证。
+2. 按 [Recipe 命令说明](../../scripts/syncmate/README.md#independent-recipe-yaml) 生成新 ID、新 RID 的独立 Recipe。节点数与候选数来自绑定的现存 Dataset/Split；缺失或不符就拒绝，不手填计数，不下载或物化正式数据。
+3. 显式重新生成并审阅改变后的哈希/指纹，把配置和 Recipe 一起提交。预览或提交不刷新旧声明，也不覆盖已有运行目录。
+4. 使用 `recipe.py preview <recipe-id> --node <peer-id> --source-ref <full-sha> --device-config .syncmate/device.yaml` 检查源 SHA、配置、命令、节点、输出、接收位置和排除未提交内容的提示。预览不连接 SSH、不检查 GPU，也不表示已经执行。
+5. 用已安装控制包的 OpenGU 入口提交：`syncmate.py --source-ref <full-sha> runner-agent dispatch <peer-id> --recipe <id> --job-id <new-id> --json`。它核验注册 peer、依赖和私有来源，只导入执行端缺少的提交对象并保存冻结 handoff/科学声明，再由 Core 预留独立 node 任务。执行端仍为 S1 不阻止 B@S2 入队。生成或预览不产生 attempt；实际提交后才把 job、SHA、Recipe、范围和回执写入 Work Plan。
+6. 实际启动时 Core 取得租约，所有相关 node 安全后才准备精确版本；绑定 checkout 中的新进程核验代码、依赖、科学配置、Dataset/Split、CUDA 与结果/runtime 身份。未通过时不记录 producer 已启动。只读查询区分 queued、preparing/preflight、executing、awaiting_return、verified 和失败；查询中断不等于实验失败。
+
+OpenGU 当前提交通路是上述固定 CLI；不能把通用 Core console 的提交通路当作已接入的 OpenGU 自定义控制入口。新接口仅在对应控制包、Core 和源码已交付后生效；本地候选文档不代表生产已经部署。
 
 ### Run ID 命名
 
@@ -61,7 +63,7 @@ GU 在 `reuse` 下先按当前输入和已有 checkpoint 元数据查找 Output�
 
 ### 回执和目录
 
-Recipe 是提交前维护的输入；提交时 Core 自动保存 `.syncmate/runs/<job_id>.json` handoff，队列执行产生对应 receipt/result。它们记录实际提交与执行事实，不由用户手写，也不会因为只创建或预览 Recipe 就产生一次执行回执。收集和校验记录在执行相应操作后生成；`dispatch --wait` 可在成功后自动收集校验，控制端必须持续运行，否则按 README 的 `runner-agent collect` 对原 job 收集。
+Recipe 是提交前维护的输入；提交时 Core 自动保存 `.syncmate/runs/<job_id>.json` handoff，队列执行产生对应 receipt/result。它们记录实际提交与执行事实，不由用户手写，也不会因为只创建或预览 Recipe 就产生一次执行回执。收集和校验记录在执行相应操作后生成；按 README 的 `runner-agent collect` 对原 job 收集。传输校验后再用 `scientific-check <node> --job-id <id>` 按该任务冻结声明及原提交验证器检查项目结果；不读取当前 Recipe/config 来定义旧任务，也不把项目检查通过当作科学接受。
 
 `outputs.root: results/runs/{experiment_id}/{run_id}` 指执行端目录，正式实验通常位于 SSH 活跃检出下。本地回传落到 `results/runs/<peer-id>/<experiment_id>/<run_id>/`，例如 `results/runs/gpu4090/<experiment_id>/<run_id>/`。具体绝对位置以设备配置和该 job 已保存的 handoff 为准；开发 worktree 预览显示其本地接收路径，不代表正式结果已经回传。
 
@@ -69,9 +71,9 @@ SyncMate 的 runbook、checklist 和 handoff 命令提供设备级操作指导�
 
 ### 已提交或正在运行时发生修改
 
-先按原 job ID、handoff 和 receipt 确认当前状态。旧任务固定原提交身份，不会自动采用新的 Recipe；不要改写旧 job、回执、结果或为正在运行的任务更新共享 SSH checkout。新需求在本地准备，等活跃任务完成或按既有流程明确停止后，再安排执行端版本更新。
+先按原 job ID、handoff 和 receipt 确认当前状态。旧任务固定原提交身份，不会自动采用新的 Recipe；不要改写旧 job、回执、结果或为正在运行的任务更新共享 SSH checkout。新需求在本地准备并明确选择新提交后即可入队；执行文件和共享环境的更新必须等待全部相关节点安全停点，不主动停止正常任务。
 
-后续运行使用新的 run ID；若原 Recipe 仍被排队或运行中的任务引用，保留其声明，为新提交使用新的 recipe ID 和文件。配置变更则重新生成哈希并完成审阅、提交、同步与 readiness。不要在同一目录原地覆盖产物；失败恢复先按已有恢复流程确认范围，不因修改了 YAML 就自动重跑。
+后续运行使用新的 run ID；若原 Recipe 仍被排队或运行中的任务引用，保留其声明，为新提交使用新的 recipe ID 和文件。配置变更则重新生成哈希并完成审阅、提交和冻结来源；真正启动前再检查任务版本与科学 readiness。不要在同一目录原地覆盖产物；失败恢复先按已有恢复流程确认范围，不因修改了 YAML 就自动重跑。
 
 提交后把实际 job_id、run_id、代码版本、配置入口、范围及handoff/回执引用追加到该实验 attempts。提交中断时先找回原请求；running时不自动重试。需要重跑时新增运行身份并明确retry_of和原因，不覆盖旧attempt。
 
@@ -85,10 +87,10 @@ Agent 按确切 job_id 读取本地 controller、delivery 和 handoff 回执，�
 
 分析绑定具体运行/配置范围及报告，明确哪些结果被采用或排除。可先分析可信子集；不能把部分分析显示成全矩阵完成。记录计算或缓存命中、结果身份正确、结论支持范围三类事实。用户接受的是明确结论范围，不从Block accepted、校验PASS或程序退出推断。
 
-分析完成后，将所述范围、采用/排除理由、配置引用、实际运行 SHA、run ID、manifest/报告引用与科学决定保存在 `analyses/EXP-NNN.json`，检查通过后独立提交对应分析和报告。不要用分析提交 SHA 替换实际运行 SHA。批次仍在运行时可先保留草稿，避免提交推动本地 HEAD 后影响下一阶段的本地／bundle／SSH 版本就绪检查；不得更新活跃任务的 SSH checkout。
+分析完成后，将所述范围、采用/排除理由、配置引用、实际运行 SHA、run ID、manifest/报告引用与科学决定保存在 `analyses/EXP-NNN.json`，检查通过后独立提交对应分析和报告。不要用分析提交 SHA 替换实际运行 SHA。批次运行中可以继续编辑并提交论文或分析；它们不改写已冻结任务。下一步骤明确选择来源 SHA；不得更新活跃任务的执行 checkout。
 
 ## 6. 更新总表
 
 更新实验阶段与下一步，将证据归入对应运行或科学决定，再运行 README.md 中的生成和检查命令。实验依赖及Block阻塞在前端可见；它们不会改变原Block，也不会自动提交下一项实验。
 
-运行中的状态更新和页面重建不做 commit。分析提交后，下一次正式运行前通过登记私有安装动作重新同步并核对本地／bundle／SSH 完整 SHA 与安装回执。状态目录缺失时先取回维护副本，不用 Git 历史里的旧计划或已完成分析推断当前状态。
+运行中的状态更新和页面重建不做 commit。分析提交后，下一次任务显式选择已审阅 SHA；入队导入所需私有 Git 对象，实际启动前核对本任务合同、执行 HEAD 与科学 preflight。状态目录缺失时先取回维护副本，不用 Git 历史里的旧计划或已完成分析推断当前状态。

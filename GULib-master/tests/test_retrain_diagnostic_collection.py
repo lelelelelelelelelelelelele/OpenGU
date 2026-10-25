@@ -6,7 +6,9 @@ import json
 from test_modular_consumers import tables,write_yaml
 from test_syncmate_execution_contract import workspace,cli,commit,declaration
 from test_syncmate_gu_outputs import collect
-from opengu_adapter import OpenGUProjectExtension
+from syncmate_core.project import GenericProjectExtension
+from scripts.syncmate.opengu_acceptance import acceptance_payload
+from scripts.syncmate.opengu_results import results_payload
 from syncmate_core import context
 
 
@@ -51,13 +53,13 @@ def test_retrain_diagnostic_cli_collect_accept_and_results(workspace,record_prop
     assert len(definition['expected_datasets'])==1
     collector=runner/'collector';collector.mkdir()
     for p in runner.glob('*.yaml'):(collector/p.name).write_bytes(p.read_bytes())
-    extension=OpenGUProjectExtension()
+    extension=GenericProjectExtension()
     with context.use(collector,extension=extension):
         collected,_,_=collect((runner,collector,sha,definition))
-        checked=extension.accept('modular-output-v1',definition,collected)
+        checked=acceptance_payload('modular-output-v1',definition,collected)
         assert checked['passed'],checked
         assert checked['accepted_cells']==1 and checked['scientific_acceptance']=='not_evaluated'
-        results=extension.results(collected['artifact_index'],{'project_root':collector})
+        results=results_payload(collected['artifact_index'],{'project_root':collector})
         assert len(results['rows'])==1 and not results['parse_errors'],results
     assert not (collector/'results/cache_v2').exists()
     assert not list(collector.rglob('*.pt')) and not list(collector.rglob('*.npz'))

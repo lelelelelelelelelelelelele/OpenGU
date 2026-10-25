@@ -4,22 +4,41 @@ import json
 import subprocess
 import sys
 import zipfile
+import shutil
 from pathlib import Path
 from scripts.syncmate import syncmate as sm
 import pytest
-import opengu_recipes as _project_recipes
-from opengu_adapter import OpenGUProjectExtension
+from test_syncmate_execution_contract import workspace, tables
+import scripts.syncmate.opengu_recipes as _project_recipes
+from opengu_syncmate.adapter import OpenGUProjectExtension
 from syncmate_core import artifacts as _artifacts, brief as _brief, bundles as _bundles, cli as _cli, collection as _collection, context as _context, dashboard as _dashboard, devices as _devices, diagnostics as _diagnostics, dispatch as _dispatch, evidence as _evidence, fingerprints as _fingerprints, gates as _gates, handoff as _handoff, history as _history, identity as _identity, index as _index, next_steps as _next_steps, preflight as _preflight, queue as _queue, receipts as _receipts, recipes as _recipes, saved_reports as _saved_reports, snapshot as _snapshot, storage as _storage, worker as _worker, workflow as _workflow
 
 
 @pytest.fixture(autouse=True)
 def scoped_project(tmp_path):
-    with _context.use(tmp_path, extension=OpenGUProjectExtension(), require_origin_main=True):
+    class CommittedResultFixture(OpenGUProjectExtension):
+        def results(self, index, options):
+            root = _context.current().root
+            if not (root / '.git').exists():
+                source = Path(__file__).resolve().parents[1]
+                for folder in ('scripts', 'experiments', 'cache_v2', 'utils'):
+                    for file in (source / folder).rglob('*.py'):
+                        target = root / file.relative_to(source)
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copyfile(file, target)
+                (root / '.gitignore').write_text('.syncmate/\nresults/\n__pycache__/\n*.pyc\n', encoding='utf-8')
+                def git(*args):
+                    subprocess.run(['git', '-C', str(root), *args], check=True, capture_output=True)
+                git('init', '-q', '-b', 'main')
+                git('add', 'scripts', 'experiments', 'cache_v2', 'utils', '.gitignore')
+                git('-c', 'user.name=Fixture', '-c', 'user.email=test@example.invalid', 'commit', '-qm', 'result parser source')
+            return super().results(index, options)
+    with _context.use(tmp_path, extension=CommittedResultFixture(), node_id='gpu4090'):
         yield
 
 
 def _run_cli(argv):
-    return _cli.main(argv, project_root=_context.current().root, extension=_context.extension(), require_origin_main=True)
+    return _cli.main(argv, project_root=_context.current().root, extension=_context.extension())
 
 
 def _project_acceptance(profile, definition, *, node_id, expected_git_sha):
@@ -53,20 +72,24 @@ def _stage_by_id(stages, stage_id):
 
 def test_default_implementation_is_core_backed_exact_entry():
     assert Path(sm.__file__).name == 'syncmate.py'
-    assert sm.core_main is _cli.main
+    assert '-I' in Path(sm.__file__).read_text(encoding='utf-8')
+    assert 'opengu_syncmate' in Path(sm.__file__).read_text(encoding='utf-8')
     assert sm.__name__ == 'scripts.syncmate.syncmate'
 
 
-def test_reviewed_project_recipes_satisfy_core_execution_contract():
-    # UI enumeration alone does not instantiate Core's bounded Recipe contract.
-    with _context.use(sm.PROJECT_ROOT, extension=OpenGUProjectExtension()):
+def test_reviewed_project_recipe_satisfies_committed_core_contract(workspace):
+    from test_syncmate_execution_contract import declaration, FixtureRegistration, commit
+    root, path, _ = workspace
+    definition = declaration(root, path, 'selector')
+    commit(root)
+    with _context.use(root, extension=FixtureRegistration(definition), node_id='runner'):
         recipe_ids = _recipes.allowed_recipes()
         recipes = [_recipes.runner_recipe_definition(recipe_id) for recipe_id in recipe_ids]
-    assert set(recipe_ids) == set(_project_recipes.recipe_ids(sm.PROJECT_ROOT))
+    assert recipe_ids == ['temporary-contract'] or recipe_ids == ('temporary-contract',)
     assert all(1 <= recipe['timeout_seconds'] <= 21600 for recipe in recipes)
 
 
-def test_direct_syncmate_script_bootstraps_repo_import_path(tmp_path):
+def test_direct_syncmate_script_keeps_project_off_import_path(tmp_path):
     script = Path(sm.__file__).resolve()
     repo = script.parents[2]
     probe = (
@@ -74,8 +97,8 @@ def test_direct_syncmate_script_bootstraps_repo_import_path(tmp_path):
         "repo=os.path.abspath(sys.argv[2]); "
         "sys.path=[p for p in sys.path if os.path.abspath(p or os.getcwd()) != repo]; "
         "scope=runpy.run_path(sys.argv[1],run_name='syncmate_probe'); "
-        "import experiments; "
-        "assert str(scope['PROJECT_ROOT']) in sys.path"
+        "assert str(scope['PROJECT_ROOT']) not in sys.path; "
+        "assert 'core_main' not in scope"
     )
 
     completed = subprocess.run(

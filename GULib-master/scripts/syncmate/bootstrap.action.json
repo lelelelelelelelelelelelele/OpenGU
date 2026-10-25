@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "action": "bootstrap",
+  "workingDirectory": ".",
+  "targets": [
+    "ssh://autodl-opengu/autodl-fs/data/OpenGU",
+    "ssh://autodl-opengu-2/autodl-fs/data/OpenGU",
+    ".syncmate",
+    ".workblock/runtime/install",
+    "E:/conda_package/envs/gnn/envs",
+    "ssh://autodl-opengu/root/miniconda3/envs",
+    "ssh://autodl-opengu-2/root/miniconda3/envs"
+  ],
+  "preconditions": [
+    "The exact accepted Core and control wheels are already staged in .syncmate/package-inputs with the committed filenames and digests. Clean landed canonical main is required. Probe all physical node queues through each reachable endpoint; unknown/busy state blocks. Connection refusal/timeouts before a remote response may be deferred; authentication/configuration/package failures may not. Do not stop active jobs or migrate queues."
+  ],
+  "instruction": {
+    "entry": [
+      "E:/conda_package/envs/gnn/python.exe",
+      "-B",
+      "scripts/syncmate/install.py",
+      "bootstrap"
+    ]
+  },
+  "permissions": {
+    "write": [
+      "ssh://autodl-opengu/autodl-fs/data/OpenGU",
+      "ssh://autodl-opengu-2/autodl-fs/data/OpenGU",
+      ".syncmate",
+      ".workblock/runtime/install",
+      "E:/conda_package/envs/gnn/envs",
+      "ssh://autodl-opengu/root/miniconda3/envs",
+      "ssh://autodl-opengu-2/root/miniconda3/envs"
+    ],
+    "delete": [
+      "ssh://autodl-opengu/autodl-fs/data/OpenGU",
+      "ssh://autodl-opengu-2/autodl-fs/data/OpenGU",
+      ".syncmate",
+      ".workblock/runtime/install"
+    ],
+    "network": [
+      "ssh://autodl-opengu",
+      "ssh://autodl-opengu-2"
+    ]
+  },
+  "secretRefs": [],
+  "readBack": "Read the returned prepared result: at least one node and the controller must verify the exact pinned runtime payloads. Deferred nodes remain pending, never verified. Immutable runtimes and .syncmate/deployments/<source-sha> manifests/wheels are persistent product inputs, including for a returning node. Base interpreters and their installed packages remain unchanged. Incomplete runtime prefixes are preserved for explicit diagnosis. Closeout archives necessary console evidence and removes only the exclusive .syncmate/package-inputs copies after all staged wheel digests are verified; do not remove the deployment wheels or ready runtimes. No GPU job is launched.",
+  "onFailure": "stop"
+}

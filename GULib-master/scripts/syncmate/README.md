@@ -15,57 +15,63 @@ shared. Each node uses `.syncmate/runner_queues/<node-id>/` for its queue, agent
 lock, admission lock, maintenance marker and Core receipts. Scientific outputs
 retain their Recipe/run directories; only collected landings identify the peer.
 
-Core 0.6.0 is pinned to its accepted source, build source and exact wheel payload
-in `core_dependency.json`. This declaration does not install it. Before the first
-environment switch, the owner must preserve old queue evidence, confirm every
-old job has ended and every legacy worker is idle/stopped, then separately
-authorize and perform the private Core environment upgrade and explicit node
-queue initialization on each endpoint. An empty v2 queue does not prove the old
-global queue or worker is idle. Missing Core 0.6.0, uninitialized queues or unknown
-state block installation; this action never installs Core, migrates queues,
-creates another checkout, copies Cache or deletes locks.
-
-After that transition and after the reviewed code lands on clean local main:
+The exact Core 0.7.0 and OpenGU control wheel payloads are bound by
+`core_dependency.json` / `control_dependency.json`; see [dependency boundary](CORE_DEPENDENCY.md).
+The control uses an immutable project runtime outside the execution checkout. The
+registered `bootstrap` action creates a standard-library venv inheriting the
+existing scientific environment, installs only the two exact staged wheels with
+`--no-index --no-deps`, and verifies their complete payloads. It never updates the
+base interpreter or its packages. Stage reviewed wheel inputs under
+`.syncmate/package-inputs/` using the committed wheel filenames, then execute the
+registered actions after clean canonical main lands:
 
 ```powershell
+E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py bootstrap
 E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py apply --node gpu4090
-E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090
-E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090-2
+E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py deployment-status
 ```
 
-`--node` chooses the coordinator for one shared code update, not the inspection
-scope. The installer reads every registered runner from the collector device
-file, verifies the local pinned Core payload, and probes each SSH container's configured interpreter, exact Core payload,
-clean Git identity and explicit node status. Any busy/unconfirmed node blocks
-the update. Core `maintenance.installation(node_ids=[all registered runners])`
-holds admission for all nodes, pauses only idle cooperative persistent workers,
-and permits one exact private-bundle fast-forward. The advertised ref, bundle
-SHA, target policy/Core pin, ancestry, protected paths and unchanged origin refs
-are checked. No public network or push is used. Unknown locks are preserved.
+`--node` selects a preferred coordinator. Any reachable registered node may
+coordinate the single shared source update. A powered-off endpoint is recorded
+as **deferred**, while online nodes are installed and verified independently.
+Authentication failures, invalid packages and failed remote operations stop the
+attempt. A lost response after a mutation is not classified as a safe deferral.
 
-After the shared update each peer is verified independently; only its own SSH
-route can restore its previously idle persistent worker with explicit
-`--node-id`. A stopped worker stays stopped. Failed post-update verification
-leaves the installed code and original evidence for diagnosis, issues no new
-execution receipts, and does not retry, roll back or resubmit tasks.
+Availability does not change topology. Core
+`maintenance.installation(node_ids=[all registered runners])` still holds every
+physical node queue gate and checks active/unknown occupancy, outstanding return
+barriers and workers. No SSH connection is needed to inspect the offline node's
+queue on the shared filesystem. Unknown occupancy blocks source switching. Missing
+queues are never initialized implicitly; existing jobs and locks are preserved.
+Only idle cooperative workers are paused/restored; previously stopped workers
+remain stopped. An unavailable idle node never forces another node to wait for it
+to boot.
 
-Successful credentials are `.workblock/runtime/install/<node>/<full-SHA>/receipt.json`.
-Each binds node, alias, shared project, full target, policy, bundle identity and
-that peer's expected/observed interpreter and verified Core payload. The first
-node's same-SHA receipt cannot authorize the second. Preview, CLI dispatch and the existing Core UI backend readiness hook
-validate the selected node's credential. The UI hook uniquely matches the full
-selected peer against the current explicit peer registry; missing or ambiguous
-registration fails closed before Core can dispatch. No node is inferred from an
-environment variable or port. Current per-node receipts remain execution credentials while their target is
-valid. Failed attempt files remain diagnostic evidence. After a target is
-superseded and its credentials no longer authorize runs, the Closeout owner
-archives necessary evidence into the Item/Report and cleans the superseded
-receipts/attempts. The installer removes its temporary bundles; persistent
-`runner-install-<node>.log` files remain. Historical v1 receipts remain evidence
-and are not accepted as current credentials. Every attempt also retains its
-actual probe/update/restoration result; temporary code bundles are removed.
-The [action declaration](install.action.json) is activated only by the owner
-after acceptance and installation authorization.
+After the exact source update, `.syncmate/deployments/active.json` selects an
+immutable deployment manifest and its staged wheels on the shared filesystem.
+Node-specific runtimes are named by both wheel digests under the base prefix's
+`envs/opengu-control-<digest>/`. The source CLI and installed collector prepare a
+returning node from its configured base interpreter, verify the approved payloads,
+and only then delegate to the installed Core/control entry. Ordinary jobs cannot
+supply packages or environment commands. A partial, unknown or corrupted runtime
+is preserved and refused, never silently repaired. A disconnected node cannot
+execute a job; other online nodes remain usable.
+
+Online source-install receipts remain at
+`.workblock/runtime/install/<node>/<full-SHA>/receipt.json`; deferred nodes do not
+receive a fabricated receipt. `deployment-status` reports the approved rollout
+and the most recent verified readiness, not live reachability. Exact package
+verification repeats on reconnect. The active manifest, staged wheels and ready
+runtimes are persistent product state required for delayed startup. Temporary
+package-input copies and attempt logs belong to the deployment owner; archive
+necessary evidence before removing superseded inputs/logs. Failed attempts and
+unknown markers remain for diagnosis. There is no automatic retry, rollback,
+queue migration, public GitHub access or experiment launch.
+
+The [install action](install.action.json) invokes the separate
+[bootstrap action](bootstrap.action.json); activate both registrations only after
+the source is accepted and landed. This route replaces the old all-endpoints-
+online source-only installer and the global Core replacement route.
 
 Runner commands require the global `--node-id` before the subcommand:
 
@@ -116,14 +122,17 @@ it shows the repository/full commit, config, configured node/workdir/interpreter
 actual argv, run identity, remote result roots, local landing and collection
 rules. It reports local blockers and explicitly marks remote readiness unobserved.
 It performs no SSH, synchronization, submission or producer computation.
-The recipe must be tracked before preview; a dirty candidate can be inspected
-but is not dispatch-ready. Core dispatch selects the positional peer ID and binds that node to the saved handoff.
+Select a complete commit with `--source-ref <full-sha>` (default: the explicitly
+reported committed main). Uncommitted paper/config/code changes are excluded and
+warned about; they do not block admission. A Recipe missing from that commit is
+rejected. Main advancing later does not change a saved task.
 
-Code synchronization is separate: reviewed local main, the verified private bundle
-and clean runner main must share the exact full commit before dispatch. Public
-origin keeps its historical value; the current installation receipt is required. Dispatch does not
-copy working-tree changes or update runner code. The existing job freezes commit
-and config hash; receipts preserve its execution and return facts.
+The installed dispatch checks the configured private peer and exact installed
+payloads, imports missing source objects through a SHA-256-checked private bundle,
+and leaves HEAD/refs/environment unchanged. Only Core prepares a version after
+every related node is safe; same-SHA nodes may run together. Startup checks the
+actual clean checkout, device, Dataset/Split and run/runtime identity. No allow_dirty,
+public origin fetch or current-main gate is provided. Import does not upgrade environments.
 
 `outputs.root` describes the executor's fixed
 `results/runs/{experiment_id}/{run_id}` layout; edit the run identity to choose a
@@ -1368,21 +1377,16 @@ From a collector, use only a configured runner peer and the fixed controller
 bridge:
 
 ```bash
-python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-preflight-v1 --wait --json
+python scripts/syncmate/syncmate.py --source-ref <full-sha> runner-agent dispatch <runner_id> --recipe opengu-preflight-v1 --json
 # After the current AAGU-007 configuration and its execution are approved:
-python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-aagu007-v2 --wait --json
+python scripts/syncmate/syncmate.py --source-ref <full-sha> runner-agent dispatch <runner_id> --recipe opengu-aagu007-v2 --json
 ```
 
-Dispatch preflights the controller, rejects unknown/non-runner peers, and sends
-only validated job id, static recipe, requester, and note. `--wait` observes a
-terminal result, then collects and SHA-256 verifies the successful job's reviewed
-`expected_artifact_paths` from the saved execution handoff. It does not
-require a per-run `device.yaml.result_roots` entry. The controller process must
-remain running; it may run in the background. Failed, blocked, timed-out or
-identity-mismatched jobs do not trigger collection. Existing checksum conflicts
-are preserved and reported. The result is `verified`; scientific acceptance
-remains `not_evaluated` unless the recipe declares a project collector profile
-and acceptance eligibility, in which case its separate Adapter gate runs.
+OpenGU dispatch freezes the committed Recipe/config/defaults and original
+scientific validator. It saves the Core handoff and immutable
+`.syncmate/science/<job_id>.json` before node submission. The Core recipe digest
+authenticates the project declaration. Generic Core console submission does not
+carry this custom installed transport; use the fixed OpenGU CLI entry.
 
 OpenGU may submit declared jobs and inspect `manifest.json`, receipts, and
 results. It must not move files between queue states, add command/argument/path
@@ -1513,7 +1517,7 @@ their saved handoff and plan.
 
 ## Execution and output handoff
 
-The bound SyncMate Core 0.6.0 uses `syncmate.run-handoff/v1`. Scientific YAML contains no
+The bound SyncMate Core 0.7.0 uses `syncmate.run-handoff/v2`. Scientific YAML contains no
 runtime output paths. `experiments/modular_layout.py` owns the project result layout, shared
 by `ExecutionContext` and the static recipes. The queue records the resolved
 output contract; Core validates it, invokes the ordinary command and checks its declared files.
@@ -1529,7 +1533,7 @@ The execution receipt records the explicit node, actual interpreter, working dir
 Remove `landing` and
 `result_roots`; new landings are generated as `results/runs/<peer_id>`, and
 project code declares bulk inventory roots. Per-job files come from the recipe.
-Dispatch saves `.syncmate/runs/<job_id>.json`. `dispatch --wait` automatically
+Dispatch saves `.syncmate/runs/<job_id>.json`. `runner-agent collect` explicitly
 collects and verifies using that record. For manual collection of a completed
 job, use `runner-agent collect <peer> --job-id <id> --json`; it uses the same
 saved route even if device setup has changed. The controller must remain online
@@ -1562,3 +1566,26 @@ metrics. Collecting that new run rebuilds the current results table from the
 latest matching cells; old run files and immutable Cache evidence remain intact.
 Detailed prediction/model analysis can run over SSH. See the unique
 [result content and layout contract](../../docs/experiment-result-return-contract.md).
+
+
+## Frozen scientific result validation
+
+After Core reports this job's verified delivery:
+
+```text
+python scripts/syncmate/syncmate.py scientific-check <node-id> --job-id <job-id>
+```
+
+The command verifies the frozen project declaration against the saved handoff,
+uses each trusted item's original source/handoff identity and sealed manifest,
+and invokes the validator from the original Git commit in a fresh process.
+Current main, mutable Recipe/config/Python and later peer runs do not redefine an
+old task. Missing or conflicting source/validation identity refuses the check.
+The project result records scientific_acceptance: not_evaluated; comparability
+across versions remains an analysis decision.
+
+RID also owns results/runtime/modular/<RID>. Core run reservations therefore use
+the global RID, with experiment identity separately in the scientific declaration.
+Different experiments cannot reuse a reserved RID merely because result paths
+differ. Existing runtime/results refuse admission/start. Inspect failed or unknown
+tasks explicitly; never silently resubmit them.
