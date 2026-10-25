@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="source-sha256" content="ae8abb05a726e81726a6672910c56254a1c4a213e1db2c6afd2e3b383b83b366"><title>论文复审入口：采用关系与本轮更新</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f5f7;color:#20262d;font:16px/1.85 system-ui,'Microsoft YaHei',sans-serif}main{max-width:1100px;margin:30px auto;padding:40px 48px;background:white;border:1px solid #dce0e5}h1{font-size:28px;line-height:1.5}h2{font-size:21px;margin-top:38px;border-top:1px solid #dce0e5;padding-top:22px}h3{font-size:18px}a{color:#245d87;overflow-wrap:anywhere}blockquote{margin:18px 0;padding:5px 20px;border-left:3px solid #456c8b;background:#f4f7fa}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:14px;min-width:650px}td,th{border:1px solid #dce0e5;padding:10px 12px;text-align:left;vertical-align:top}th{background:#edf2f6}li{margin:8px 0}footer{margin-top:36px;color:#626b76;font-size:12px;overflow-wrap:anywhere}code{font-size:.9em;background:#edf2f6;overflow-wrap:anywhere}img{max-width:100%}@media(max-width:700px){main{margin:0;border:0;padding:22px 18px}h1{font-size:24px}}@media print{main{margin:0;padding:0;border:0}body{background:white}table{min-width:0}}</style></head><body><main><h1 id="section">论文复审入口：采用关系与本轮更新</h1>
+<p>2026-10-25 · 状态：准备中，尚未冻结复审输入，正文整合尚未完成。</p>
+<p>本入口纳入作者本轮的图表取舍、正文解读与恢复要求。先对齐 <strong>DocMap 当前章节、旧 Overleaf 正文、XLX v8/v9 候选</strong>，再冻结明确版本交给「论文攻坚 -- XLX」。旧 review 保留其历史输入和判断，不自动沿用为当前论文评分。</p>
+<h2 id="section-1">本轮明确采用的边界</h2>
+<ul>
+<li>论文 <strong>Fig. 4 继续采用 EXP-080 的 CiteSeer 两排比例图</strong>：上排 accuracy，下排与同请求 Retrain 的预测不一致率。两排是同组实验的互补读数，不拆成两项独立发现。</li>
+<li>EXP-079 按需承担分析、Q3支撑、反例和附录。已有图不自动获得主图位置；当前正文已有引用也须在采用目录中逐项确认。</li>
+<li><strong>原 Q1–Q3 的整体研究价值与局部 B 案例分别评价。</strong> 不因 B 的确认结果或控制缺口，直接否定或接受全部 Q1–Q3；也不因整体范围广而免除 B 的证据要求。</li>
+<li>079/e79r5、e79r6、080、086/087/088 分别保留数据、seed、split、方法实现、执行身份与科学采用边界。图表的论文采用不等于科学接受状态变更。</li>
+<li>XLX v8/v9 与其重组方案均为候选。本轮不自动批准其替代原 Q1–Q3 或恢复排除主张。</li>
+</ul>
+<h2 id="section-2">三套材料的阅读与采用关系</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>顺序</th>
+<th>入口</th>
+<th>本轮角色与待办</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="file:///E:/project/OpenGU-DocMap/40_%E8%AE%BA%E6%96%87%E5%86%99%E4%BD%9C/40_%E8%AE%BA%E6%96%87%E5%86%99%E4%BD%9C.md">DocMap论文主页面</a>、<a href="file:///E:/project/OpenGU-DocMap/40_%E8%AE%BA%E6%96%87%E5%86%99%E4%BD%9C/06_%E7%BB%93%E6%9E%9C.md">结果章节</a></td>
+<td>当前写作导航和原Q1–Q3候选正文；逐项核对历史数字、方法限制及证据批次，不整体自动采用</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="../../overleaf/main.tex">Overleaf主文件</a>、<a href="../../overleaf/sections/results.tex">Results源码</a></td>
+<td>当前落盘投稿文本，需与DocMap及本轮解读逐段对照；整篇整合尚未完成</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="../../figures/exp080-ratio-response-20261025/REPORT.md">Fig. 4采用记录</a>（<a href="../../figures/exp080-ratio-response-20261025/REPORT.html">HTML</a>）</td>
+<td>两排比例图、英文段落、配对数值、展示边界与源表的共同入口</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="file:///E:/project/OpenGU/GULib-master/self/research/analyses/EXP-079/e79r5/RESPONSE_PATTERN_REPORT.md">079响应模式报告</a></td>
+<td>分析、Q3支撑与反例；使用主线现存入口，原response-figure-study工作树路径已不存在</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="file:///E:/project/OpenGU/GULib-master/paper_writing/outline/OUTLINE.v8.md">XLX v8</a>、<a href="file:///C:/Users/ADMIN/.codex/worktrees/paper-v1-figures/OpenGU/GULib-master/paper_writing/outline/OUTLINE.v9.md">候选v9</a></td>
+<td>比较候选结构、段落与图表组织；不设为默认采用稿</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="file:///E:/project/OpenGU/GULib-master/paper_writing/review/2026-10-24-round3/REVIEW_INPUTS.json">第三轮旧审稿输入</a>、<a href="file:///C:/Users/ADMIN/.codex/worktrees/paper-v1-figures/OpenGU/GULib-master/paper_writing/review/2026-10-25-pre-v1/REPORT.md">旧pre-v1判断</a></td>
+<td>历史异议与处置背景，不能充当新一轮完整输入</td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="file:///E:/project/OpenGU/GULib-master/self/research/experiments/EXP-087.json">EXP-087</a>、<a href="file:///E:/project/OpenGU/GULib-master/self/research/experiments/EXP-088.json">EXP-088</a></td>
+<td>沿真实回执刷新各阶段执行与接纳，文字概述可能滞后；不把聊天暂停当作作业停止</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="fig.34">Fig. 3/4 的更新怎样进入复审</h2>
+<p>上一版交接误将XLX图册的 <code>F03_endpoint_response</code> / <code>F04_truth_partition</code> 对应为论文Fig. 3/4。本轮纠正，<strong>图册文件编号不能代替论文编号</strong>。</p>
+<p>当前 Results 源码已有 <code>fig:response-pattern-profiles</code>，引用079/e79r5的PubMed请求响应图；这是现存正文引用，最终采用与主图位置仍按本轮目录确认。EXP-080比例图由 <code>fig:exp080-budget-response</code> 标识，继续承担作者确认的论文Fig. 4。最终编号以采用稿编译结果为准。</p>
+<p>Fig. 4 正文保留两个分析层面：第一，R-point请求的效用损伤在多种GU上是否延续，以及预算曲线怎样呈现这种效应；第二，部分GU维持较高accuracy，却未复现同请求Retrain的响应，并有更大的预测分歧。先读完整曲线，再用33%/50%端点量化，不能只用一个高预算点替代轨迹。</p>
+<p>相对Random的有符号分歧增量是单独补充图，不替换Fig. 4原始D。预算差D(50%)−D(10%)与同预算D(selector)−D(Random)分别解释。真值分解、两评价图和C&amp;S控制按明确解释缺口选用，不自动成为主图或独立贡献。</p>
+<p>所有文字继续保留三seed/固定split、均值±样本SD、历史实现和GCN参照的范围；GIF/IDEA重合不算两份独立证据。含旧GNNDelete或历史MEGU的图表行需按其具体生产身份标注采用限制，不因归档图已进入正文而追认有效性。accuracy平稳不证明没有更新，D增大不单独证明隐私泄露或遗忘失败。</p>
+<h2 id="reviewer">对 reviewer 的新要求</h2>
+<ol>
+<li>对原Q1、Q2、Q3逐问评价，再评价三问的整体论证价值；另列B案例的支持、反例、未确认与控制缺口。</li>
+<li>每条意见标明所读文本、图、证据批次与定位；区分“原稿遗漏但已有证据”“补充后仍缺证据”“主张不成立或需收窄”。</li>
+<li>给出旧意见→本轮修改→维持/修正理由的对照，不因旧包漏写而重复判定已完成工作缺失，也不预设新评分。</li>
+<li>理论、实验、分析复审使用同一冻结包。历史root三风格模拟不冒充新独立复审；本次入口更新本身不是启动复审或写作放行。</li>
+</ol>
+<h2 id="section-3">冻结前还需完成什么</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>待办</th>
+<th>完成条件</th>
+<th>当前状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>逐段采用目录</td>
+<td>对DocMap、Overleaf、v8/v9逐段标记保留、改写、待证据、移附录或排除，并确定唯一采用文本</td>
+<td>待完成</td>
+</tr>
+<tr>
+<td>图表与证据对齐</td>
+<td>文字—论文图标识—源表—配置/方法/执行身份一致，明确079与B的职责</td>
+<td>已记录选择，整合待完成</td>
+</tr>
+<tr>
+<td>工作区修改保存</td>
+<td>按来源形成可恢复检查点，不丢弃或整体合并其他任务修改</td>
+<td>见本次状态核对</td>
+</tr>
+<tr>
+<td>复审快照</td>
+<td>保存采用稿、所用DocMap章节、图与必要证据入口，生成精确SHA和文件哈希清单</td>
+<td>尚未冻结；当前清单只记录入口来源</td>
+</tr>
+<tr>
+<td>交给XLX</td>
+<td>明确包版本及尚缺科学证据，再按有效授权恢复</td>
+<td>本次未发送或唤醒</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="section-4">工作区状态核对</h2>
+<p>下表是本次只读Git核对、入口编辑之前的状态；原准备清单中“全为0 tracked”与其Git读取错误、残留文字不一致，不能作为现值。未提交修改不会被自动清理。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>工作区</th>
+<th>HEAD / 分支</th>
+<th>实际观察</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>main</td>
+<td>c555e63a / main</td>
+<td>无tracked修改；已有本交接的两个untracked文件</td>
+</tr>
+<tr>
+<td>paper-v1-figures</td>
+<td>cc6f35bb / codex/paper-v1-figures</td>
+<td>8项tracked修改：两个绘图源码、CAPTIONS、F01三种格式、MANIFEST、references.bib；归属原任务，未改动</td>
+</tr>
+<tr>
+<td>response-figure-study</td>
+<td>不适用</td>
+<td>原路径不存在；079报告可从主线读取</td>
+</tr>
+<tr>
+<td>round4-integration</td>
+<td>117687cb / codex/round4-gu-profile-inputs</td>
+<td>无tracked修改</td>
+</tr>
+<tr>
+<td>DocMap</td>
+<td>d6bfdbb / main</td>
+<td>无tracked修改</td>
+</tr>
+</tbody>
+</table></div>
+<p>本次未连接SSH核对GPU状态。第二节点续跑仍按SM-027→AAGU-121的有效依赖与授权处理，与本地正文对齐分别推进。</p>
+<h2 id="section-5">来源、恢复指令与交付边界</h2>
+<ul>
+<li><a href="file:///C:/Users/ADMIN/.codex/visualizations/2026/10/24/01a16ea7-c8f2-7ba2-bbf1-06bd2e7649f2/review-preparation-20261025/REPORT.md">用户提供的复审准备清单</a>保留为原始准备记录。本入口整合其选择，并更正本次实际发现的失效路径和状态差异。</li>
+<li><a href="file:///E:/project/OpenGU/GULib-master/.claude/handoffs/2026-10-25-062327-paper-session-restart.md">更新后的session交接与四段恢复指令</a>供合作者接手，采用关系以本入口为准。</li>
+<li><a href="SOURCE_INVENTORY.json">来源与状态清单</a>记录入口文件哈希和Git观察，不是已经冻结的论文审稿包；改变采用文件后需重新生成。</li>
+</ul>
+<p>本次仅更新复审入口、两处写作导航与交接，生成同内容HTML并检查链接。未整合论文正文、改科学决定、提交/合并分支、部署、启动实验或向XLX发消息。</p>
+<footer>2026-10-25 · <a href="REPORT.md">Markdown源</a><br>源SHA-256：ae8abb05a726e81726a6672910c56254a1c4a213e1db2c6afd2e3b383b83b366<br>由report/paper/review/2026-10-25-reentry/build_report.ps1生成。</footer></main></body></html>

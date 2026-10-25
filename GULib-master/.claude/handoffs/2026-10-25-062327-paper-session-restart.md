@@ -1,0 +1,109 @@
+# Handoff: 论文攻坚恢复与合作者接手说明
+
+2026-10-25，Asia/Shanghai。欢迎加入！这次先从作者对 Fig 3/4 的解读开始：把图中已有、正文尚未讲清楚的发现整理出来，再让 reviewer 判断其意义与缺口。
+
+**本轮采用关系已更新：** 复审先读[采用关系与本轮更新](E:/project/OpenGU/GULib-master/report/paper/review/2026-10-25-reentry/REPORT.md)（[HTML](E:/project/OpenGU/GULib-master/report/paper/review/2026-10-25-reentry/REPORT.html)）。对齐 DocMap、旧 Overleaf、XLX v8/v9，原 Q1–Q3 整体价值与 B 案例分别评价；正文整合与复审输入冻结尚未完成。论文 Fig. 4 是 EXP-080 两排比例图，不能用 XLX 图册 F04_truth_partition 替代。下文相关指令已同步修正。
+
+## Current State Summary · 当前判断
+
+作者希望重启「论文攻坚 -- XLX」的一轮迭代：原对话混入论文、开发、部署与实验问题，且 Fig 3/4 信息没有充分进入此前的正文或论证材料。作者已作初步引导，但尚未补全所有结论。本次保存恢复说明与可复制指令，保留原会话及成果，没有启动复审代理、实验、部署或自动继续任务。作者最新引导的逐字文本及其具体落盘版本，本次尚未定位，接手时先对齐，不能把本说明冒充作者原文。
+
+旧 pre-v1 报告已有过时状态：完整 GIF160 及其 joint/R10/两图诊断已有返回和描述性接纳；历史36GU的新 strict Ret final/best 敏感性也已完成，P60 Ret 描述性报告已存在。新 reviewer 必须先更新证据清单，不能复制旧报告里的“还没完成”。完整受控主统计与论文写作放行，本次没有核验为通过。
+
+## Important Context · 作者贡献与主张边界
+
+这里整理作者的研究判断与组织贡献，不据会话记录推断谁亲手完成了全部代码或数据工作。
+
+| 作者已明确推动的贡献 | 对新一轮论文的作用 | 检验要求 |
+| --- | --- | --- |
+| 从策略性删除请求出发审视 GU 响应 | 将候选池、可用信息、同请求 GU/Ret 比较串成研究对象 | 框架覆盖面不直接等于学术新颖性 |
+| 分别阅读效用、相对Random增量、GU–Ret差距与预测分歧 | 避免把accuracy保持误读为接近重训或遗忘正确 | 同请求、同端点、分母明确，隐私/攻击指标另行解释 |
+| 指出 Fig 3/4 的信息没有充分进入正文，并开始引导解读 | 从图表展示转为可复述的核心发现，修正不完整的评审输入 | 每项发现有图中位置、原值/计数、反例与范围 |
+| 要求 reviewer 基于补充解读重新判断 | 纠正遗漏，同时让新增解释接受独立批评 | 分清表达修复、证据新增与仍未解决的问题，不预设升分 |
+| 保留有用攻坚流程，并指出第二GPU前置 | 支持合作者连续工作 | 本地解读/复评可先做，第二节点运行等待SM-027→AAGU-121 |
+
+贡献候选主线：**请求条件与评价参照共同改变对 GU 响应的判断；受控对照检验哪些解释仍成立。** 这是组织方向，尚不等于已超过近邻工作或达到 Weak Accept。
+
+### Fig 3：区分论文引用与候选图册
+
+上一版误将paper-v1-figures图册的F03_endpoint_response当作论文Fig. 3。当前Overleaf Results已有079/e79r5 PubMed图，标识为fig:response-pattern-profiles；其最终采用和主图位置仍待确认，不能因已有图自动增加主图。F03_endpoint_response只是候选支撑图。079按需承担分析、Q3支撑、反例与附录，不自动接受XLX的Q1–Q3重组。
+
+正文仍应解释方法自身起点、GU与同请求Retrain谁在变化，并保留Random/Degree及反向响应。最终图编号以采用稿编译为准，不以文件F03编号推断。
+
+### Fig 4：EXP-080的accuracy与同请求预测不一致率
+
+作者明确保留CiteSeer两行五列比例图：上排accuracy，下排GU与同请求Retrain原始预测不一致率D。七预算为5%–50%，三个训练seed、固定split，均值±样本SD；两排是同组实验的互补读数。采用与英文段落见[Fig. 4归档](E:/project/OpenGU/GULib-master/report/paper/figures/exp080-ratio-response-20261025/REPORT.md)。
+
+正文保留两个层面：请求的效用损伤在多种GU上如何延续；部分GU维持较高accuracy却偏离Retrain响应，D随预算扩大。先读完整曲线再量化高预算端点。相对Random的有符号分歧增量是独立补充图，不替换原始D。F04_truth_partition只按明确解释需要作候选支撑；O=G≠R、真值分解或B案例不替代Fig. 4，也不决定原Q1–Q3整体价值。
+
+## Architecture Overview · 两条工作线
+
+论文线：对齐DocMap/Overleaf/v8/v9 → 明确采用目录与Fig. 4 → 分别评价原Q1–Q3与B → 一页核心论证和正文整合 → 冻结共同输入 → 理论/实验/分析独立复评 → 逐项处置 → 按现行协议决定写作。
+
+运行线：SM-027节点队列能力 → AAGU-121 OpenGU接入 → 依赖验收与全节点空闲检查 → 获授权的私有安装/逐节点回执 → 获授权的最小真实验证 → 续原实验计划。本说明不触发运行线。
+
+## Critical Files · 接手入口
+
+| 入口 | 作用与时效 |
+| --- | --- |
+| [原论文攻坚会话](codex://threads/01a16ada-da3c-7521-87d8-b47f4f1823fb) | 标题「论文攻坚 -- XLX」；会话目录在dual-ssh-runners，不等于全部论文资产的位置 |
+| [当前复审入口](E:/project/OpenGU/GULib-master/report/paper/review/2026-10-25-reentry/REPORT.md) | DocMap/Overleaf/v8/v9采用目录、Fig. 4、Q1–Q3/B分开评价与冻结待办 |
+| [候选图稿说明](C:/Users/ADMIN/.codex/worktrees/paper-v1-figures/OpenGU/GULib-master/paper_writing/figures/REPORT.md) | 图册F03/F04不等于论文Fig. 3/4；按需选择支撑 |
+| [v9提纲](C:/Users/ADMIN/.codex/worktrees/paper-v1-figures/OpenGU/GULib-master/paper_writing/outline/OUTLINE.v9.md) | 102组段落安排，不是当前实验状态权威 |
+| [pre-v1复审](C:/Users/ADMIN/.codex/worktrees/paper-v1-figures/OpenGU/GULib-master/paper_writing/review/2026-10-25-pre-v1/REPORT.md) | 旧输入下root三风格模拟，不是三位新独立reviewer放行 |
+| [贡献证据报告](E:/project/OpenGU/GULib-master/self/research/experiments/drafts/round4-execution/contribution-evidence-prep/REPORT.md) | 多图、多预算、多来源价值及具体反例 |
+| [v9→v10重写地图](E:/project/OpenGU/GULib-master/self/research/experiments/drafts/round4-execution/outline-rewrite-prep/REPORT.md) | 证据主次重排；条件占位不是已获得发现 |
+| [参照敏感性](E:/project/OpenGU/GULib-master/self/research/experiments/drafts/round4-execution/e86m1-analysis/REPORT.md) | 历史36GU对新strict Ret final/best已完成，不能仍称仅有三条pilot |
+| [P60 Ret描述](E:/project/OpenGU/GULib-master/self/research/experiments/drafts/round4-execution/p-ret-descriptive/REPORT.md) | 已有Ret接纳，不等于P60 GU和主检验完成 |
+| [EXP-087](E:/project/OpenGU/GULib-master/self/research/experiments/EXP-087.json) / [EXP-088](E:/project/OpenGU/GULib-master/self/research/experiments/EXP-088.json) | 本地live记录含running，部分描述落后于报告，接手需逐job核对 |
+| [AAGU-121合同](E:/project/OpenGU/GULib-master/.workblock/items/AAGU-121/WORKITEM.md) / [方法共识](E:/project/OpenGU/GULib-master/.workblock/items/AAGU-121/design/consensus.md) | working/claimed，已有Claim保留，新方案替换旧实现方向 |
+| [SM-027合同](E:/project/SyncMate/.workblock/items/SM-027/WORKITEM.md) | registered/not claimed，AAGU-121 depends_on SM-027 |
+| [现存review命令](E:/project/OpenGU/GULib-master/.claude/commands/review.md) | 可复用批评维度，单个Reviewer 2模板不能替代三类独立复审 |
+
+## Decisions Made · 恢复方式
+
+1. 保留原session、分支、失败和证据。此次没有新建、fork、发消息或唤醒旧会话。
+2. 复用“理论/实验/分析复审—改进—再审—写作—LaTeX核验”。以下指令按本次需求整理，不是独立命名旧命令组的逐字导出。
+3. 区分主线v8、paper-revision-20261024早期候选、paper-v1-figures的v9，以及dual-ssh-runners接入实现；先固定各自SHA、未提交修改与采用文件哈希。
+4. Weak Accept是内部目标，不能预先保证；不得为满足目标改阈值、合并失败确认批次或把自评写成独立通过。
+
+## Immediate Next Steps · 可复制的恢复指令组
+
+### 指令一：恢复上下文并固定输入
+
+> 从当前复审入口恢复，先对齐DocMap章节、Overleaf正文、XLX v8/v9候选。逐段形成保留/改写/待证据/移附录/排除的采用目录，明确论文图标识、源表和执行身份。核对分支、SHA和未提交修改并保存检查点。正文、图和证据一致后再冻结共同输入，不能把入口摸排完成当正文整合完成。不启动GPU、部署或自动重试。
+
+### 指令二：把 Fig 3/4 转成论证
+
+> 论文Fig. 4继续使用080的accuracy与同请求GU–Ret不一致率两排比例图，分别说明selector效用效应和GU响应，保留完整预算曲线、基线、反例及历史实现限制。079按明确缺口提供分析/Q3支撑/附录，图册F03/F04不自动采用。逐项补齐“观察—估计/计数—含义—替代解释—反例—范围—正文位置”，原Q1–Q3整体与B案例分开组织。先写一页核心论证，再整合结果正文，不能把互补读数拆作两项独立创新。
+
+### 指令三：重新评审
+
+> 对采用稿、DocMap所用章节、图、证据入口保存快照与哈希，注明唯一包版本，再组织未参与本轮分析的理论/实验/分析三类独立reviewer。逐问评价原Q1–Q3及整体价值，另列B案例判断，不自动接受XLX重组。每条意见定位证据并区分原稿遗漏、仍有缺口、需收窄；附旧意见→本轮修改→维持/修正理由。旧review保留历史身份，不预设评分。按现行协议报告writing gate，实际放行后才写英文v1并编译检查。
+
+### 指令四：前置完成后续实验
+
+> 先核对原Claim、队列、各job终态与可信回传，区分已完成、失败保留、未提交和待诊断，避免重跑。第二节点运行先完成SM-027验收，再由同一AAGU-121固定依赖、接入和安装核验。采用共享代码/Cache、独立节点队列的新架构。按有效运行授权续冻结矩阵；忙碌或状态不明时不更新共享代码，不自动重试、不删除锁。交接本身不启动这条指令。
+
+## Assumptions Made · 状态与前置
+
+作者已在另一会话说明论文攻坚暂停；这可能与live记录中的running并存。本次未访问SSH确认逐job状态，不能把session暂停等同于所有远端任务停止。EXP-014是另一路任务，不得为论文恢复而擅自中断。
+
+最新合同：两台共享代码、正式数据、Cache和统一日志，队列/领取锁/执行身份按节点区分，结果沿Recipe和运行身份组织。旧独立检出/独立Cache草案已失效。Core已有多peer不代表共享checkout下独立队列已具备。
+
+升级共享代码前检查所有注册runner，全部空闲且状态明确才进入维护安装；容器环境与安装回执分别核验。取消全局Score锁启动阻挡不等于移除Cache条目锁、HIT复查与事务。AAGU-121本轮合同只授权修订文档；后续实施/部署/真实运行按其有效授权执行。
+
+## Potential Gotchas · 不继承的误读
+
+- 旧GNNDelete test选模输出继续隔离，A十seed探索与五seed未确认分开，不能合并补显著性。
+- 历史MEGU与修正producer区别保留，GIF/IDEA重合不算独立机制验证。
+- 论文Fig. 4是080两排比例图；图册F03/F04编号不等于论文编号。历史n=3不是新split n=10，图稿样张不是英文初稿。
+- 新Ret不是旧历史重现或无限训练真值，best不替代冻结final主端点。
+- 图稿数字QA通过不等于科学通过；root模拟不替代独立复审。
+- 研究材料此前明确保留本地、不公开推送；交接不扩大分享或修改云端稿。
+
+## Files Modified · 本次交付与验证
+
+本轮更新交接、新复审入口和两处README导航，并生成同内容HTML。原论文正文、图稿、配置、WorkItem、Claim、科学决定和远端环境未修改。Markdown为源，HTML为阅读版；链接与源哈希检查不重新认证上游实验。最新工作区核对及尚未保存的图稿修改见新入口，不沿用“全部tracked干净”的概述。
+
+合作者的第一个小目标：读完作者的Fig 3/4补充，提交一页能让新reviewer判断的核心论证与完整证据入口。欢迎接手，后续可以从这一步直接继续。

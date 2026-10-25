@@ -75,3 +75,6 @@ GEMINI.md
 
 # Optional high-DPI raster exports for Cache architecture diagrams. The
 # referenced SVG sources are tracked; these local preview fallbacks are not.
+
+# Downloaded papers, extracted full text and reading previews are local inputs.
+/tmp/pdfs/

@@ -1,0 +1,47 @@
+{
+  "input": "E:\\project\\OpenGU\\GULib-master\\self\\research\\analyses\\EXP-080\\full-20261021\\seed_values.csv",
+  "input_sha256": "be58ebf12caf315f022abd718b8614dff9b562845120b14f0204b74cf332af2d",
+  "source_rows": 420,
+  "summary_rows": 140,
+  "highlights": [
+    {
+      "dataset": "CiteSeer",
+      "method": "GIF",
+      "selector": "r_point",
+      "ratio": 0.1,
+      "n": 3,
+      "accuracy_mean": 75.02502502502503,
+      "accuracy_sd": 0.08668922960805393,
+      "accuracy_minus_random_mean_pp": 0.500500500500498,
+      "accuracy_minus_random_sd_pp": 0.31256246238229585,
+      "disagreement_mean": 7.407407407407407,
+      "disagreement_sd": 0.3778695913548923,
+      "disagreement_minus_random_mean_pp": 2.7527527527527527,
+      "disagreement_minus_random_sd_pp": 0.6251249247646039,
+      "retrain_mean": 74.92492492492492,
+      "retrain_sd": 0.9376873871468989,
+      "retrain_minus_random_mean_pp": 0.1501501501501489,
+      "retrain_minus_random_sd_pp": 1.3761488573440848
+    },
+    {
+      "dataset": "CiteSeer",
+      "method": "GIF",
+      "selector": "r_point",
+      "ratio": 0.5,
+      "n": 3,
+      "accuracy_mean": 74.42442442442443,
+      "accuracy_sd": 0.5684592938738983,
+      "accuracy_minus_random_mean_pp": 0.0,
+      "accuracy_minus_random_sd_pp": 0.5413740653849822,
+      "disagreement_mean": 40.190190190190194,
+      "disagreement_sd": 7.110102429611165,
+      "disagreement_minus_random_mean_pp": 27.27727727727728,
+      "disagreement_minus_random_sd_pp": 7.591620892988396,
+      "retrain_mean": 50.9009009009009,
+      "retrain_sd": 2.8998810684426393,
+      "retrain_minus_random_mean_pp": -21.171171171171167,
+      "retrain_minus_random_sd_pp": 2.8646822865373776
+    }
+  ],
+  "status": "Historical scalar arithmetic only; no new inference or scientific acceptance"
+}

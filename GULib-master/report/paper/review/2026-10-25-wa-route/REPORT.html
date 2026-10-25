@@ -1,0 +1,175 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="report-source-sha256" content="1bf2a16a88dd07b021471ee80f8fe5930b92eeabc010a8fdd223d3c05bd6c7dc"><title>论文结构、核心贡献与优先路线</title><style>
+*{box-sizing:border-box}body{margin:0;background:#eff3f6;color:#182536;font:16px/1.85 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1120px;margin:28px auto;padding:38px 44px 56px;background:white;border:1px solid #d9e2ea;border-radius:12px;overflow-wrap:anywhere}h1{font-size:30px;line-height:1.45;margin:0 0 20px}h2{font-size:23px;margin-top:36px;padding-top:16px;border-top:2px solid #d9e2ea}a{color:#145f76;text-underline-offset:3px}.scroll{overflow-x:auto;margin:20px 0;border:1px solid #d9e2ea;border-radius:7px}table{width:100%;min-width:680px;border-collapse:collapse;font-size:14px;line-height:1.75}th,td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid #d9e2ea}th{background:#eaf1f5}tr:nth-child(even) td{background:#f8fafb}p{margin:12px 0}li{margin:9px 0}main>p:nth-of-type(2){padding:18px 20px;background:#edf5f6;border-left:4px solid #145f76}footer{margin-top:38px;padding-top:16px;border-top:1px solid #d9e2ea;font-size:12px;color:#526578}code{font-size:.9em}@media(max-width:760px){main{margin:0;border-radius:0;padding:24px 18px}h1{font-size:25px}h2{font-size:21px}}@media print{body{background:white}main{border:0;margin:0;padding:0;max-width:none}table{min-width:0;font-size:10px}.scroll{overflow:visible}tr{break-inside:avoid}}
+</style></head><body><main><h1 id="q2q1q3fig.34">优先推进路线：以原Q2为核心组织Q1–Q3与Fig.3/4</h1>
+<p>2026-10-25。本文是基于已完成近邻核对与XLX进展核查的结构和研究建议，不是新的实验协议、科学接受或正式英文v1；不改变原统计、写作放行和执行授权。</p>
+<p><strong>最优先的工作，是用现有清洁数据判断一个集中的经验命题能否成立，然后据此重组全文。</strong> 我推荐优先检验：哪些合法请求更影响哪个具名GU，这种相对响应是否随预算、选点来源保留；效用与同请求预测对齐是否给出一致判断。Q1提供解释基础，原Q2承担核心比较，Q3检验推广边界，B约束解释。数值适用性检查继续推进，但不必等所有GPU结果回来才处理论文结构。</p>
+<p>这是一条提高说服力和减少返工的路线，不能保证会议评分。新颖性判断必须承认八篇核读近邻已经覆盖的基础现象；若清洁比较和可靠性核验后没有重要的具体新回答，重新framing不能独自把稿件变成WA。</p>
+<h2 id="section">1. 首先确定文章要回答的一个问题</h2>
+<p>建议的一句话研究问题：<strong>从某个请求策略上观察到的压力，能否用于判断其他方法、预算和来源下的响应？效用上的判断与同请求预测对齐上的判断是否一致？</strong></p>
+<p>更集中的候选主张是：<strong>请求产生绝对压力，与它保留方法之间的相对响应，是不同命题。</strong> 这是优先检验的组织线索，不是已经被完整确认的新发现。它对应原Q2/Q3，能够将预算、source与Fig.3/4纳入一条链；若只有普通异质性或已知accuracy–fidelity分离，就不足以单独承担贡献。</p>
+<p>对象必须具体：选择既有训练候选的合法请求、实际权限/预算、具名GU程序、固定评价集合和有限Ret参照。不把全候选池协调选点写成任意普通用户都能做到的线上攻击。图删除中撤监督、切边及评价图的语义需要直接定义；“是图数据”本身不是新颖性或Web价值的证明。</p>
+<p>建议工作标题：<em>Strategic Deletion Requests in Graph Unlearning: Method Responses and Transfer Boundaries</em>。此标题仅是方向建议，暂不强调新算法、普遍漏洞、稳定指纹或新因果机制。</p>
+<h2 id="section-1">2. 核心贡献怎样收敛</h2>
+<p>不强求Q1、Q2、Q3各算一项创新。优先争取一个主要经验发现和一个重要边界，控制实验和测量设计为它们服务。</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>角色</th>
+<th>拟回答的具体内容</th>
+<th>当前状态与采用条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主要发现候选：请求对方法的相对作用</td>
+<td>同预算下，策略s相对t的变化在不同具名GU上是否有实质差异；完整预算是否维持这种关系；不能仅由Random共同损伤解释</td>
+<td>原Q2清洁交互需完整分析，不能直接继承旧选择性或依曲线目测判定</td>
+</tr>
+<tr>
+<td>重要边界候选：来源改变后保留什么</td>
+<td>某种直接压力仍保留时，跨GU相对响应是否也保留；在哪些来源/图上反转或证据不明确</td>
+<td>直接效应与profile均有探索材料，需要分对象比较；严格source-only归因仍需实际Target状态证据</td>
+</tr>
+<tr>
+<td>解释性支撑：B的预算边界</td>
+<td>类别前缀匹配在低预算达到原分辨率，但未同时再现高预算及预算变化；替代解释仍有哪些</td>
+<td>原七项结果支持有限条件陈述；GIF数值适用性仍须核验，不从残余推出新拓扑机制</td>
+</tr>
+<tr>
+<td>基础读法：Q1</td>
+<td>自身起点、Random、GU与Ret端点如何改变损伤解释</td>
+<td>必要且有用，基础认识与近邻重叠较强，不单列首次发现</td>
+</tr>
+</tbody>
+</table></div>
+<p>最终贡献句应报告具体答案和范围，而不是“提出框架、设计多个selector、开展大量实验”。IF/IM等既有组件是审计工具；无证据时不包装为新攻击算法。代码与可复算材料支持可信度，可以交付，但不是第三项强凑的科学创新。</p>
+<p>最有价值的贡献应能回答“这个结果改变哪一个研究判断”。例如，某请求能增加D，不等于它会降低accuracy，也不等于它最能区分各GU。若要声称改变方法/策略排名，须实测相应成对排序，并给不确定性；不能从GE/GR与共同GCN参照的D推出架构匹配的方法优劣排名。</p>
+<h2 id="q1q3">3. 原Q1–Q3如何保留并重排重心</h2>
+<ul>
+<li><strong>Q1：读数说明什么？</strong> 用自身before、同预算Random和同请求Ret说明读数含义，防止把低起点当请求损伤、把大D当效用损坏或隐私失败。篇幅短，承担读图准备。</li>
+<li><strong>Q2：哪种请求影响哪个方法，预算是否改变这个回答？</strong> 恢复原跨GU相对响应问题，以清洁方法、同seed策略差和完整预算支撑。这里应获得最多主文篇幅。B放在现象之后，解释某些预算差能由什么控制再现。</li>
+<li><strong>Q3：换来源后，哪些回答还能用？</strong> 并列直接压力与相对profile，报告所有图中的正/反/不明确边界；核心结论留主文，完整矩阵进附录。仅固定目标架构/配置的历史结果，不写严格同一权重实例的source干预。</li>
+</ul>
+<p>这保留原问题的整体价值，同时避免每问都承担“必须独立首创”的压力。Q2也不能被悄然改成B是否找到了机制。</p>
+<h2 id="section-2">4. 引言应怎样写</h2>
+<p>建议用五个连贯段落构成引言骨架：</p>
+<ol>
+<li><strong>具体服务问题。</strong> 图学习服务需要处理训练记录删除，请求选择会改变保留监督及关联结构；需要知道某次压力评估支持哪些结论。交代本稿红队能力和实际边界，不泛泛宣传遗忘重要性。</li>
+<li><strong>已知认识。</strong> 近邻已研究困难/战略请求、accuracy与Ret对齐分离、方法异质性及选集迁移。明确承认这些结论，避免用“尚无人研究合法请求/迁移”制造空白。</li>
+<li><strong>具体待答问题。</strong> 上述存在性结果，是否足以判断本稿图删除合同下的具体策略—方法相对关系，以及这种关系的预算/来源边界？区别来自问题和结果，而不是名词差异。</li>
+<li><strong>一个可理解的实证例子。</strong> Fig.4中CiteSeer50%/R-point/GIF相对Random的accuracy均值差0pp、D差27.28pp，说明同预算策略增量的两种读数不同。明确历史n=3；它是进入问题的例子，不独自证明新颖性。</li>
+<li><strong>结果型贡献。</strong> 按清洁分析真正支持的内容写主要发现和重要边界，紧随范围。尚未建立的结论保留待补标记，不提前把候选写成摘要事实。</li>
+</ol>
+<p>不要用框架流水线、方法清单或B的5.14pp作为引言大部分内容。B的数值可以支撑结果，但前面的研究问题应在不理解其全部技术细节时仍可读懂。</p>
+<h2 id="section-3">5. 建议的主文章节与版面</h2>
+<p>以下按既有8页主文约束规划，预算包含相应图表/caption；是作者侧粗分配，不是编译后的分页承诺。</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>章节</th>
+<th>职责</th>
+<th style="text-align: right;">约计篇幅</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 Introduction</td>
+<td>服务问题、已知认识、具体缺口、主要发现</td>
+<td style="text-align: right;">0.9页</td>
+</tr>
+<tr>
+<td>2 Related Work and Research Questions</td>
+<td>按问题比较近邻，明确Q1–Q3职责</td>
+<td style="text-align: right;">0.7页</td>
+</tr>
+<tr>
+<td>3 Task, Threat Model and Experimental Protocol</td>
+<td>候选池/权限/预算、图删除语义、参照、数据/seed与采用边界</td>
+<td style="text-align: right;">1.1页</td>
+</tr>
+<tr>
+<td>4 Request Policies and Measurements</td>
+<td>selector定义、两类读数及必要公式；不扩为新算法长章</td>
+<td style="text-align: right;">0.7页</td>
+</tr>
+<tr>
+<td>5 Results</td>
+<td>Q1基础→Q2方法/预算主结果→B有限解释→Q3来源边界；方法可靠性摘要</td>
+<td style="text-align: right;">3.8页</td>
+</tr>
+<tr>
+<td>6 Discussion, Limitations and Conclusion</td>
+<td>实际用途、最强替代解释、范围及简短结论</td>
+<td style="text-align: right;">0.8页</td>
+</tr>
+</tbody>
+</table></div>
+<p>正文大部分空间交给结果。长参数表、全部source矩阵、完整通道森林图和运行细节可放附录，但结论成立所必需的对照、主要区间和有效性结果必须在正文可判断。不能把“见附录”用来隐藏核心缺口。</p>
+<p>旧14页稿不宜逐段压缩后直接视作新稿。先按上述论证列出每段的功能和证据，再把已核材料迁入；当前正式英文v1仍遵守原放行要求，内部中文论证和逐段骨架可立即完成。</p>
+<h2 id="fig.34">6. Fig.3/4和其他证据如何分工</h2>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>载体</th>
+<th>读者应得到的一个判断</th>
+<th>紧邻正文应交付什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig.3：请求与方法端点</td>
+<td>起点、GU变化与同请求Ret变化不能混为同一损伤</td>
+<td>具名条件、before、Random、配对幅度及反例；r5图用r5数字</td>
+</tr>
+<tr>
+<td>Fig.4：保留两排五selector完整预算</td>
+<td>同预算策略增量与随预算变化的响应，在哪些方法/读数上不同</td>
+<td>简短配对差表或文字；保留Degree、IM、非单调点和全部七预算，不只讲高预算R-point</td>
+</tr>
+<tr>
+<td>Q3主文紧凑表</td>
+<td>绝对压力与相对关系，哪些保留、反转或不明确</td>
+<td>三图均保留；区分effect与profile；不把完整144格都塞主文</td>
+</tr>
+<tr>
+<td>B的紧凑图/表</td>
+<td>类别匹配控制能解释到哪里，不能解释到哪里</td>
+<td>原七项关键对比、O/G/R和有限替代解释；不让672条探索通道挤占主线</td>
+</tr>
+<tr>
+<td>可靠性小表</td>
+<td>核心结果对合理设置是否敏感，当前程序是否可解释</td>
+<td>EXP089实际结果到来后汇报完整设置方向与失败；详细轨迹附录</td>
+</tr>
+</tbody>
+</table></div>
+<p>现有F1/F2如用于请求接口/流程，应简洁支持定义；本轮不重启大规模框架图美化。Fig.3/4不是两项独立创新，它们共同支撑核心比较。主文来源表比再增加一张大热图更节省版面。</p>
+<h2 id="section-4">7. 最快的实际优先顺序</h2>
+<h3 id="p0">P0：一个工作循环内先决定主线是否有材料</h3>
+<ol>
+<li>写一页候选论证：主问题、两个拟报告发现、各自最强近邻、最强反例、还缺的证据。此页是决策稿，不宣告科学成立。</li>
+<li>完成原Q2清洁比较。以已有72项描述对比为起点，对照完整数据确定有限比较家族；探索统计诚实标记，不把选中的格子冒充事前主检验。旧S及Holm的参照有变时重算。</li>
+<li>完成Q3双对象表。直接效应与相对profile分别列出，保留三图和来源反例；检查是否真有足以承担核心的具体认识。</li>
+<li>据此决定哪些贡献句保留。若只有一般异质性和已有分离现象，明确“尚缺贡献”，不要靠换标题掩盖。</li>
+</ol>
+<p>这些以CPU分析与组织为主，不应被双机安装阻塞，也不需要反复审整个旧稿。</p>
+<h3 id="p1">P1：同步完成可读论证和必要可信度检查</h3>
+<ol start="5">
+<li>按图写结果段落，每段遵循“发现→成对幅度及不确定性→对照/反例→实际含义与范围”。直接写出相对Random的差，不让reviewer靠图估计。</li>
+<li>执行既定数值适用性、MEGU与政策边界，不改原合同或统计家族；每项附“哪些结果会改变哪句话”。不按test/D选参数，不把设置/评价图当独立重复。</li>
+<li>用八篇近邻逐条检验候选贡献句，完成半页比较表。比较同一问题/权限/测量和结果，不以“它不是图”作为主要排除理由。</li>
+</ol>
+<h3 id="p2">P2：只对重要核心命题安排针对性确认，再进入正式写作</h3>
+<ol start="8">
+<li>若一个重要经验命题经有效性检查仍值得保留，按现行分支要求制定具体确认；先定请求、指标、Target身份、比较家族、精度与失败处理。现有结果用于发现，未见数据用于确认，不挑最好看的条件无限追加。</li>
+<li>把实质变化纳入新冻结输入，复审重点为贡献重要性、替代解释和证据匹配；模拟review只是内部质量控制，不估算真实接受概率。</li>
+<li>达到既有写作放行后，按论证骨架完成正式英文v1和实际编译/逐页检查。</li>
+</ol>
+<p>这不要求停掉已批准的工程或既定实验，也不私自降低门槛。提速来自让现有分析、论证与执行前置同步推进，并防止在主线未定时扩大研究范围。</p>
+<h2 id="reviewer">8. reviewer为什么可能因此改变判断</h2>
+<p>最有利的变化是让评审清楚看到：一个具名条件下有实际量级的新比较，它如何超出已有存在性结论，最直接的替代解释如何被检查，以及哪里不能推广。范围准确和反例透明能增强可信度；新颖性仍由新增认识承担。</p>
+<p>我不会把“图更漂亮、统计更多、合同全部PASS”作为WA充分条件。若最终证据只支撑已有基础认识，应保留重要性缺口。若原Q2/Q3给出了可复算、经可靠性检查且有判断用途的新边界，即使B没有定位新机制，也仍可形成有竞争力的经验论文。</p>
+<h2 id="section-5">来源与实施边界</h2>
+<p>本建议使用<a href="E:/project/OpenGU/GULib-master/report/paper/review/2026-10-25-neighbor-audit/REPORT.html">八篇近邻独立核对</a>、<a href="E:/project/OpenGU/GULib-master/report/paper/review/2026-10-25-xlx-followup/REPORT.html">08:20 XLX进展核查</a>、<a href="C:/Users/ADMIN/.codex/worktrees/paper-reentry-v1/OpenGU/GULib-master/paper_writing/review/2026-10-25-reentry/CORE_ARGUMENT.md">XLX核心论证</a>。文献覆盖和具体数值以原核对中的原文、CSV和回执为准；不重新假定历史“方法家族脆弱性”成立。</p>
+<p>本轮仅交付结构与优先路线，未改作者采用稿、实验协议、XLX工作树或运行状态，未发送消息。</p>
+<footer>REPORT.md为源；源SHA-256：1bf2a16a88dd07b021471ee80f8fe5930b92eeabc010a8fdd223d3c05bd6c7dc。本页是论文结构与优先路线建议，不是科学验收。</footer></main></body></html>
