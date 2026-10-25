@@ -8,42 +8,79 @@ of device identity, run artifacts, result deltas, and next safe actions.
 
 ## Registered installation command
 
-The candidate action is [install.action.json](install.action.json). After this
-candidate and SyncMate Core 0.5.1 are accepted and installed on both endpoints,
-replace the canonical `.workblock/actions/install.json` with that declaration.
-Until then the existing registered action remains active; do not deploy from a
-candidate worktree. Core upgrades are owned by SyncMate, not this code installer.
-The matching Core wheel is pinned in `core_dependency.json`.
+The reviewed [deployment policy](deployment.json) binds `gpu4090` / `autodl-opengu`
+and `gpu4090-2` / `autodl-opengu-2` to the same shared checkout:
+`/autodl-fs/data/OpenGU/GULib-master`. Code, data/splits, Cache and task logs stay
+shared. Each node uses `.syncmate/runner_queues/<node-id>/` for its queue, agent
+lock, admission lock, maintenance marker and Core receipts. Scientific outputs
+retain their Recipe/run directories; only collected landings identify the peer.
 
-The registered action invokes these fixed project commands from clean landed main:
+Core 0.6.0 is pinned to its accepted source, build source and exact wheel payload
+in `core_dependency.json`. This declaration does not install it. Before the first
+environment switch, the owner must preserve old queue evidence, confirm every
+old job has ended and every legacy worker is idle/stopped, then separately
+authorize and perform the private Core environment upgrade and explicit node
+queue initialization on each endpoint. An empty v2 queue does not prove the old
+global queue or worker is idle. Missing Core 0.6.0, uninitialized queues or unknown
+state block installation; this action never installs Core, migrates queues,
+creates another checkout, copies Cache or deletes locks.
+
+After that transition and after the reviewed code lands on clean local main:
 
 ```powershell
-E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py apply
-E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt
+E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py apply --node gpu4090
+E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090
+E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090-2
 ```
 
-`apply` verifies clean local main and the reviewed [private deployment policy](deployment.json),
-gates runner admission, pauses an idle persistent service, and fast-forwards the
-fixed SSH checkout from a hash-verified bounded Git bundle to that exact SHA.
-It never accesses GitHub or rewrites `refs/remotes/origin/*`. It validates Git state,
-protected-path diff and changed Python syntax without scanning caches. It restores
-only the service it paused; a stopped runner remains stopped. One-shot or bounded
-workers must finish first. Queue/run/return occupancy and unknown locks stop the
-operation; failed installation retains maintenance state for explicit diagnosis.
-The bundle is the only code transport. Its advertised main ref, SHA-256, target
-policy, prerequisites and fast-forward ancestry must match before the merge.
-The policy digest hashes its canonical JSON object, independent of LF/CRLF;
-the full Git target still binds all exact source bytes.
-`receipt` reads and validates the exact installation result instead of repeating SSH verification.
-Preview and dispatch read the same policy and require a successful receipt for
-the current full SHA. Core still checks clean main on both endpoints, equal full
-SHAs, and all configuration, input and output identities. The current successful
-`runtime/install/<SHA>/receipt.json` remains the local execution credential. The
-closeout owner archives it in the WorkItem; its runtime copy may be removed only
-after a later installation supersedes that execution version. Temporary bundles
-are removed automatically and the append-only runner installation log is preserved. Public origin may
-remain at its true historical SHA; it is not the private execution baseline.
-Prepare all code, configurations and Recipe files before this one installation.
+`--node` chooses the coordinator for one shared code update, not the inspection
+scope. The installer reads every registered runner from the collector device
+file, verifies the local pinned Core payload, and probes each SSH container's configured interpreter, exact Core payload,
+clean Git identity and explicit node status. Any busy/unconfirmed node blocks
+the update. Core `maintenance.installation(node_ids=[all registered runners])`
+holds admission for all nodes, pauses only idle cooperative persistent workers,
+and permits one exact private-bundle fast-forward. The advertised ref, bundle
+SHA, target policy/Core pin, ancestry, protected paths and unchanged origin refs
+are checked. No public network or push is used. Unknown locks are preserved.
+
+After the shared update each peer is verified independently; only its own SSH
+route can restore its previously idle persistent worker with explicit
+`--node-id`. A stopped worker stays stopped. Failed post-update verification
+leaves the installed code and original evidence for diagnosis, issues no new
+execution receipts, and does not retry, roll back or resubmit tasks.
+
+Successful credentials are `.workblock/runtime/install/<node>/<full-SHA>/receipt.json`.
+Each binds node, alias, shared project, full target, policy, bundle identity and
+that peer's expected/observed interpreter and verified Core payload. The first
+node's same-SHA receipt cannot authorize the second. Preview, CLI dispatch and the existing Core UI backend readiness hook
+validate the selected node's credential. The UI hook uniquely matches the full
+selected peer against the current explicit peer registry; missing or ambiguous
+registration fails closed before Core can dispatch. No node is inferred from an
+environment variable or port. Current per-node receipts remain execution credentials while their target is
+valid. Failed attempt files remain diagnostic evidence. After a target is
+superseded and its credentials no longer authorize runs, the Closeout owner
+archives necessary evidence into the Item/Report and cleans the superseded
+receipts/attempts. The installer removes its temporary bundles; persistent
+`runner-install-<node>.log` files remain. Historical v1 receipts remain evidence
+and are not accepted as current credentials. Every attempt also retains its
+actual probe/update/restoration result; temporary code bundles are removed.
+The [action declaration](install.action.json) is activated only by the owner
+after acceptance and installation authorization.
+
+Runner commands require the global `--node-id` before the subcommand:
+
+```text
+python scripts/syncmate/syncmate.py --node-id gpu4090-2 runner-queue validate --json
+python scripts/syncmate/syncmate.py --node-id gpu4090-2 runner-agent status --json
+python scripts/syncmate/syncmate.py --node-id gpu4090-2 runner-agent serve --max-jobs 1
+```
+
+The first command initializes only that node's Core queue and must itself be
+authorized at first transition. Direct integrated experiment execution requires
+`--syncmate --node-id <node-id>`; the ProjectExtension supplies the same explicit
+node for Recipe execution. Node identity is recorded in execution receipts and
+run audit metadata, without changing scientific Recipe/Cache identity or result
+layout. Native `--device` execution does not accept a SyncMate node.
 
 ## Independent recipe YAML
 
@@ -80,7 +117,7 @@ actual argv, run identity, remote result roots, local landing and collection
 rules. It reports local blockers and explicitly marks remote readiness unobserved.
 It performs no SSH, synchronization, submission or producer computation.
 The recipe must be tracked before preview; a dirty candidate can be inspected
-but is not dispatch-ready. The normal Core dispatch command remains unchanged.
+but is not dispatch-ready. Core dispatch selects the positional peer ID and binds that node to the saved handoff.
 
 Code synchronization is separate: reviewed local main, the verified private bundle
 and clean runner main must share the exact full commit before dispatch. Public
@@ -191,11 +228,11 @@ python scripts/syncmate/syncmate.py runbook [node_id ...]
 python scripts/syncmate/syncmate.py overview
 python scripts/syncmate/syncmate.py lifecycle
 python scripts/syncmate/syncmate.py smoke
-python scripts/syncmate/syncmate.py runner-queue submit --recipe smoke
-python scripts/syncmate/syncmate.py runner-queue contract --json
-python scripts/syncmate/syncmate.py runner-queue validate --write
-python scripts/syncmate/syncmate.py runner-queue run --once
-python scripts/syncmate/syncmate.py runner-queue dashboard
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue submit --recipe smoke
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue contract --json
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue validate --write
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue run --once
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue dashboard
 python scripts/syncmate/syncmate.py setup-plan
 python scripts/syncmate/syncmate.py init-device --role collector
 python scripts/syncmate/syncmate.py add-peer <node_id> --ssh <ssh_alias> --repo-path <remote_repo>
@@ -1242,7 +1279,7 @@ of the local status trail before import.
 The optional queue is a small data-only protocol, with a bounded local runner
 agent. It is not an experiment launcher, general scheduler, distributed system,
 or remote shell. Jobs are YAML documents in ignored
-`.syncmate/runner_queue/inbox/` and move atomically through:
+`.syncmate/runner_queues/<node-id>/inbox/` and move atomically through:
 
 ```text
 inbox -> running -> done | failed | blocked
@@ -1282,24 +1319,24 @@ models, predictions or a local Cache. See the [result contract](../../docs/exper
 On a checkout configured with `role: runner` or `role: runner+collector`:
 
 ```bash
-# Producer: creates .syncmate/runner_queue/inbox/<id>.yaml and a receipt.
-python scripts/syncmate/syncmate.py runner-queue submit --recipe smoke --requested-by operator
+# Producer: creates .syncmate/runner_queues/<node-id>/inbox/<id>.yaml and a receipt.
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue submit --recipe smoke --requested-by operator
 
 # Any device: inspect the protocol without running work; --write refreshes the manifest.
-python scripts/syncmate/syncmate.py runner-queue validate --write
-python scripts/syncmate/syncmate.py runner-queue status --json
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue validate --write
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue status --json
 
 # Runner only: exactly one job.
-python scripts/syncmate/syncmate.py runner-queue run --once --json
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue run --once --json
 
 # Runner only: supervised bounded poller, one exclusive lock and one job at a time.
-python scripts/syncmate/syncmate.py runner-agent serve --poll-seconds 5
-python scripts/syncmate/syncmate.py runner-agent inspect --json
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-agent serve --poll-seconds 5
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-agent inspect --json
 # Stale work is never retried automatically; inspect first, then explicitly audit recovery.
-python scripts/syncmate/syncmate.py runner-agent recover --block-running --job-id <id> --confirm
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-agent recover --block-running --job-id <id> --confirm
 
 # Writes a static, browser-readable queue page from the same manifest.
-python scripts/syncmate/syncmate.py runner-queue dashboard
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue dashboard
 ```
 
 Each job requires `protocol: syncmate-runner-queue/v1`, `version: 1`, a safe ID
@@ -1322,9 +1359,9 @@ boundary, not another queue owner.
 Use the read-only, machine-readable contract before adding an adapter:
 
 ```bash
-python scripts/syncmate/syncmate.py runner-queue contract --json
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue contract --json
 # Optional local copy for a handoff; does not alter jobs.
-python scripts/syncmate/syncmate.py runner-queue contract --write
+python scripts/syncmate/syncmate.py --node-id gpu4090 runner-queue contract --write
 ```
 
 From a collector, use only a configured runner peer and the fixed controller
@@ -1476,7 +1513,7 @@ their saved handoff and plan.
 
 ## Execution and output handoff
 
-The bound SyncMate Core 0.5.1 uses `syncmate.run-handoff/v1`. Scientific YAML contains no
+The bound SyncMate Core 0.6.0 uses `syncmate.run-handoff/v1`. Scientific YAML contains no
 runtime output paths. `experiments/modular_layout.py` owns the project result layout, shared
 by `ExecutionContext` and the static recipes. The queue records the resolved
 output contract; Core validates it, invokes the ordinary command and checks its declared files.
@@ -1488,7 +1525,7 @@ Explicit `--syncmate` uses the adapter and Core's existing device reader. Native
 execution passes `--device` directly to the project and requires neither Core nor
 this directory. Missing or unavailable devices fail before reading graph data;
 there is no default device or GPU-model constant.
-The execution receipt records the actual interpreter, working directory and device.
+The execution receipt records the explicit node, actual interpreter, working directory and device.
 Remove `landing` and
 `result_roots`; new landings are generated as `results/runs/<peer_id>`, and
 project code declares bulk inventory roots. Per-job files come from the recipe.

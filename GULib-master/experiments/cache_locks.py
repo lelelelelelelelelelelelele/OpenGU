@@ -1,4 +1,4 @@
-"""Read-only recovery checks for host-local ScoreBundle lock files."""
+"""Read-only owner diagnostics for an individual ScoreBundle entry lock."""
 from pathlib import Path
 import os
 import stat
@@ -36,28 +36,3 @@ def inspect_score_lock(path):
     except (OSError, UnicodeError, ValueError):
         pass
     return result
-
-
-def score_lock_preflight(store_root):
-    """Only control files are inspected; no payload scan or automatic deletion."""
-    folder = Path(store_root) / '.locks'
-    if folder.is_symlink():
-        return {'ready': False, 'locks': [], 'errors': ['ScoreBundle lock directory is a symlink: ' + str(folder)]}
-    if folder.exists() and not folder.is_dir():
-        return {'ready': False, 'locks': [], 'errors': ['ScoreBundle lock directory is not a directory: ' + str(folder)]}
-    locks = []
-    if folder.exists():
-        for path in sorted(folder.glob('score-*.lock')):
-            item = inspect_score_lock(path)
-            if item['status'] != 'absent':
-                locks.append(item)
-    errors = ['ScoreBundle lock {status}: {path} (PID {owner_pid}); resolve recovery before starting'.format(**item)
-              for item in locks]
-    return {'ready': not errors, 'locks': locks, 'errors': errors}
-
-
-def require_score_locks_clear(store_root):
-    from cache_v2.errors import CacheResolutionError
-    result = score_lock_preflight(store_root)
-    if not result['ready']:
-        raise CacheResolutionError('; '.join(result['errors']))

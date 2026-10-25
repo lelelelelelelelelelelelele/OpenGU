@@ -4,40 +4,39 @@
   "workingDirectory": ".",
   "targets": [
     "ssh://autodl-opengu/autodl-fs/data/OpenGU",
+    "ssh://autodl-opengu-2/autodl-fs/data/OpenGU",
     ".workblock/runtime/install"
   ],
   "preconditions": [
-    "Use the reviewed private-bundle deployment policy; no public GitHub network or push. Installation receipt must bind target SHA, policy SHA and bundle SHA. The current successful runtime/install/<target>/receipt.json remains the execution credential. The closeout owner may archive and remove only superseded receipt directories after they no longer authorize runs; failed actions retain evidence for diagnosis. Temporary bundle directories are tool-owned and removed automatically. The persistent runner-install.log is preserved."
+    "All locally registered runner peers must independently verify their configured interpreter, the pinned Core 0.6.0 payload, clean shared code and idle explicit node queues. Legacy jobs/workers and the first private Core upgrade/queue initialization are handled separately by the owner; missing or unknown state is not idle. Hold all node admission gates and update shared code once. Never use public GitHub or push. Bind each node receipt to alias/project/target/policy/bundle and its own expected and observed environment. Keep failed attempts and historical credentials; no automatic retries or queue/cache migration."
   ],
   "instruction": {
     "entry": [
       "E:/conda_package/envs/gnn/python.exe",
       "-B",
       "scripts/syncmate/install.py",
-      "apply"
+      "apply",
+      "--node",
+      "gpu4090"
     ]
   },
   "permissions": {
     "write": [
       "ssh://autodl-opengu/autodl-fs/data/OpenGU",
+      "ssh://autodl-opengu-2/autodl-fs/data/OpenGU",
       ".workblock/runtime/install"
     ],
     "delete": [
       "ssh://autodl-opengu/autodl-fs/data/OpenGU",
+      "ssh://autodl-opengu-2/autodl-fs/data/OpenGU",
       ".workblock/runtime/install"
     ],
     "network": [
-      "ssh://autodl-opengu"
+      "ssh://autodl-opengu",
+      "ssh://autodl-opengu-2"
     ]
   },
   "secretRefs": [],
-  "readBack": {
-    "entry": [
-      "E:/conda_package/envs/gnn/python.exe",
-      "-B",
-      "scripts/syncmate/install.py",
-      "receipt"
-    ]
-  },
+  "readBack": "From the registered project working directory run E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090 and E:/conda_package/envs/gnn/python.exe -B scripts/syncmate/install.py receipt --node gpu4090-2, stopping if either fails. Both node-specific receipts must independently validate this landed target, alias, shared project, policy, bundle and expected/observed Core/interpreter environment. Current per-node receipt.json files remain execution credentials while their target is valid. Preserve failed attempt-*.json for diagnosis; the Closeout owner archives necessary evidence and cleans only superseded receipts/attempts after they no longer authorize execution. Temporary code bundles are removed by the installer; persistent runner-install-<node>.log files are preserved. See scripts/syncmate/README.md for exact locations and the separately authorized first Core transition.",
   "onFailure": "stop"
 }

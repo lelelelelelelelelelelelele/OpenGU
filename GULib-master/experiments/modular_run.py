@@ -110,9 +110,6 @@ def _execute(path, *, context=None, dry_run=False, run_state, notify=None):
     runtime_defaults()
     from attack.cache_identity import resolve_store_root
     store_root = resolve_store_root(context.store_root)
-    if config['stage'] not in ('metrics', 'retrain_diagnostics'):
-        from experiments.cache_locks import require_score_locks_clear
-        require_score_locks_clear(store_root)
     checkpoint_root = context.checkpoint_root
     runtime_root = context.runtime_root
     output = context.output

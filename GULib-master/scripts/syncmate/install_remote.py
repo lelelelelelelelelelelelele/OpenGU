@@ -15,7 +15,7 @@ PRIVATE_POLICY = {
     'schema_version': 2, 'transport': 'private-bundle', 'require_origin_main': False,
     'targets': {
         'gpu4090': {'ssh': 'autodl-opengu', 'repo_path': '/autodl-fs/data/OpenGU/GULib-master'},
-        'gpu4090-2': {'ssh': 'autodl-opengu-2', 'repo_path': '/autodl-fs/data/OpenGU-2/GULib-master'},
+        'gpu4090-2': {'ssh': 'autodl-opengu-2', 'repo_path': '/autodl-fs/data/OpenGU/GULib-master'},
     },
 }
 PROTECTED = ['GULib-master/' + p for p in (
@@ -56,7 +56,7 @@ def origin_refs(repo):
     return git(repo, 'for-each-ref', '--format=%(refname) %(objectname)', 'refs/remotes/origin/')
 
 
-def check_policy(repo, target, expected_hash):
+def check_policy(repo, target, expected_hash, expected_core):
     raw = subprocess.check_output(['git', '-C', str(repo), 'show',
                                    target + ':GULib-master/scripts/syncmate/deployment.json'])
     value = json.loads(raw.decode('utf-8'))
@@ -64,14 +64,13 @@ def check_policy(repo, target, expected_hash):
     if (hashlib.sha256(canonical).hexdigest() != expected_hash or value != PRIVATE_POLICY
             or type(value.get('schema_version')) is not int or type(value.get('require_origin_main')) is not bool):
         raise ValueError('target deployment policy mismatch')
+    raw_pin = subprocess.check_output(['git', '-C', str(repo), 'show', target + ':GULib-master/scripts/syncmate/core_dependency.json'])
+    if canonical_hash(json.loads(raw_pin.decode('utf-8'))) != canonical_hash(expected_core):
+        raise ValueError('target Core dependency mismatch')
 
 
-def check_request(request, *, initialize=False):
-    identities = [request.get('target')]
-    if not initialize:
-        identities.append(request.get('old'))
-    elif request.get('old') is not None:
-        raise ValueError('initialization must not replace an old checkout')
+def check_request(request):
+    identities = [request.get('target'), request.get('old')]
     if any(not isinstance(v, str) or not re.fullmatch('[0-9a-f]{40}', v) for v in identities):
         raise ValueError('full Git identities required')
     if (request.get('transport') != 'private-bundle'
@@ -105,62 +104,106 @@ def import_bundle(repo, request):
                        check=True, capture_output=True)
         if git(repo, 'rev-parse', 'FETCH_HEAD') != request['target']:
             raise ValueError('bundle target mismatch')
-        check_policy(repo, request['target'], request['policy_sha256'])
+        check_policy(repo, request['target'], request['policy_sha256'], request['core_dependency'])
     finally:
         bundle.unlink(missing_ok=True)
+
+
+def canonical_hash(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest()
+
+
+def inspect_environment(request):
+    """Read this container's interpreter and exact reviewed Core payload."""
+    from importlib import metadata
+    import platform
+    import syncmate_core
+    pin = request['core_dependency']
+    dist = metadata.distribution(pin['distribution'])
+    expected_module = Path(dist.locate_file('syncmate_core/__init__.py')).resolve()
+    if (dist.version != pin['version'] or syncmate_core.__version__ != pin['version']
+            or Path(syncmate_core.__file__).resolve() != expected_module):
+        raise ValueError('node Core distribution or import mismatch')
+    expected = {p for p in pin['files'] if p.startswith('syncmate_core/')}
+    actual = {p.relative_to(expected_module.parent.parent).as_posix()
+              for p in expected_module.parent.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
+    if expected != actual:
+        raise ValueError('node Core payload file set mismatch')
+    for relative, digest in pin['files'].items():
+        file = Path(dist.locate_file(relative))
+        if file.is_symlink() or not file.is_file() or hashlib.sha256(file.read_bytes()).hexdigest() != digest:
+            raise ValueError('node Core payload mismatch: ' + relative)
+    requested = Path(request['python_executable'])
+    if not requested.is_absolute() or requested.resolve() != Path(sys.executable).resolve():
+        raise ValueError('node interpreter differs from the configured environment')
+    return {'node_id': request['node'], 'requested_python': str(request['python_executable']),
+            'python_executable': str(Path(sys.executable).resolve()), 'python_version': platform.python_version(),
+            'platform_node': platform.node(), 'core_version': dist.version,
+            'core_dependency_sha256': canonical_hash(pin), 'core_payload_verified': True,
+            'verified_payload_files': len(pin['files'])}
+
+
+def inspect_checkout(project, request, *, status=True):
+    environment = inspect_environment(request)
+    head = check_tree(project.parent)
+    environment['git_sha'] = head
+    result = {**result_binding(project, request), 'head': head, 'environment': environment, 'status': 'verified'}
+    if status:
+        from syncmate_core import context, maintenance
+        with context.use(project, node_id=request['node']):
+            observed = maintenance.node_status()
+        result.update(status=observed['status'], node_status=observed)
+    return result
+
+
+def restore_runner(project, request):
+    from syncmate_core import context, queue, maintenance
+    observed = inspect_checkout(project, request)
+    if observed['head'] != request['target'] or observed['status'] != 'idle':
+        raise ValueError('node must verify the installed target and idle queue before restoration')
+    node = request['node']
+    poll = request['runner']['poll_seconds']
+    with context.use(project, node_id=node):
+        if queue.runner_agent_lock_dir().exists():
+            raise ValueError('restoration refuses an existing runner lock')
+        log = project / '.syncmate' / ('runner-install-' + node + '.log')
+        with log.open('ab') as output:
+            proc = subprocess.Popen([sys.executable, '-B', 'scripts/syncmate/syncmate.py', '--node-id', node,
+                'runner-agent', 'serve', '--poll-seconds', str(poll)], cwd=project,
+                stdin=subprocess.DEVNULL, stdout=output, stderr=output, start_new_session=True)
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            owner = queue.runner_queue_load_json(queue.runner_agent_lock_dir() / 'owner.json')
+            if owner.get('pid') == proc.pid and owner.get('node_id') == node:
+                return {**observed, 'status': 'restored', 'pid': proc.pid, 'runner_log': str(log)}
+            if proc.poll() is not None:
+                break
+            time.sleep(.1)
+    raise ValueError('code installed, node runner restoration failed; do not retry automatically')
 
 
 def install(request):
     registered = PRIVATE_POLICY['targets'].get(request.get('node'))
     if (registered is None or request.get('ssh') != registered['ssh']
             or request.get('project') != registered['repo_path']):
-        raise ValueError('not the registered SSH node, alias and project')
+        raise ValueError('not the registered SSH node, alias and shared project')
     project = Path(request['project'])
     check_not_linked(project)
-    if request.get('action') == 'initialize':
-        return initialize_checkout(project, request)
-    if request.get('action') != 'apply':
-        raise ValueError('explicit apply or initialize action required')
     repo = project.parent
     if Path(git(repo, 'rev-parse', '--show-toplevel')).resolve() != repo.resolve():
         raise ValueError('unexpected Git root')
+    if request.get('action') in ('inspect', 'verify'):
+        return inspect_checkout(project, request, status=request['action'] == 'inspect')
+    if request.get('action') == 'restore':
+        return restore_runner(project, request)
+    if request.get('action') != 'apply':
+        raise ValueError('explicit apply, inspect, verify or restore action required')
+    nodes = request.get('node_ids')
+    if (not isinstance(nodes, list) or not nodes or len(set(nodes)) != len(nodes)
+            or request['node'] not in nodes or any(n not in PRIVATE_POLICY['targets'] for n in nodes)):
+        raise ValueError('complete registered runner node set required')
+    inspect_environment(request)
     return install_checkout(project, request)
-
-
-def initialize_checkout(project, request):
-    """Create only a previously absent repository; partial failure is preserved."""
-    check_request(request, initialize=True)
-    check_not_linked(project)
-    repo = project.parent
-    if repo.exists():
-        raise ValueError('initialization requires a new absent repository directory')
-    if not repo.parent.is_dir():
-        raise ValueError('registered repository parent must already exist')
-    repo.mkdir()  # Exclusive creation also rejects a concurrent initializer.
-    subprocess.run(['git', 'init', '-b', 'main', str(repo)], check=True, capture_output=True)
-    before_origin = origin_refs(repo)
-    import_bundle(repo, request)
-    target = request['target']
-    paths = [p for p in git(repo, 'ls-tree', '-r', '--name-only', '-z', target).split('\0') if p]
-    for path in paths:
-        if protected_path(path) or path.startswith('GULib-master/.syncmate/'):
-            raise ValueError('initialization tree contains runtime payload: ' + path)
-    subprocess.run(['git', '-C', str(repo), 'checkout', '-b', 'main', target], check=True, capture_output=True)
-    check_tree(repo, target)
-    # Runner setup is the sole ignored local addition. No datasets or runtime jobs.
-    device = project / '.syncmate/device.yaml'
-    subprocess.run(['git', '-C', str(repo), 'check-ignore', '-q', 'GULib-master/.syncmate/device.yaml'], check=True)
-    device.parent.mkdir()
-    with device.open('x', encoding='utf-8') as handle:
-        json.dump({'version': 1, 'device_id': request['node'], 'role': 'runner',
-                   'repo_path': str(project), 'execution_device': 'cuda:0', 'peers': {}}, handle, indent=2)
-        handle.write('\n')
-    check_tree(repo, target)
-    if origin_refs(repo) != before_origin or git(repo, 'remote'):
-        raise ValueError('initialization changed origin refs or added a remote')
-    return {**result_binding(project, request), 'status': 'initialized', 'head': target,
-            'bundle_sha256': request['bundle_sha256'], 'origin_refs_unchanged': True,
-            'runner_device_config': str(device), 'runner_started': False}
 
 
 def install_checkout(project, request):
@@ -171,20 +214,19 @@ def install_checkout(project, request):
     before_origin = origin_refs(repo)
     if check_tree(repo) != old:
         raise ValueError('runner version changed since bundle preparation')
-    if old == target:
-        check_policy(repo, target, request['policy_sha256'])
-        return {**result_binding(project, request), 'status': 'already_installed', 'head': old,
-                'origin_refs_unchanged': origin_refs(repo) == before_origin}
     sys.path.insert(0, str(project))
     from syncmate_core import context
     from syncmate_core.maintenance import installation
-    result = {**result_binding(project, request), 'old': old, 'status': 'failed', 'runner_restored': False}
-    with context.use(project):
-        with installation() as state:
-            result['runner_was_active'] = state['restart']
+    result = {**result_binding(project, request), 'old': old, 'status': 'failed'}
+    with context.use(project, node_id=request['node']):
+        with installation(node_ids=request['node_ids']) as state:
+            result['nodes'] = state['nodes']
             check_tree(repo, old)
-            import_bundle(repo, request)
-            result['bundle_sha256'] = request['bundle_sha256']
+            if old != target:
+                import_bundle(repo, request)
+            else:
+                check_policy(repo, target, request['policy_sha256'], request['core_dependency'])
+            result['bundle_sha256'] = request.get('bundle_sha256')
             subprocess.run(['git', '-C', str(repo), 'merge-base', '--is-ancestor', old, target], check=True)
             paths = check_paths(repo, old, target)
             result['changed_paths'] = paths
@@ -197,26 +239,7 @@ def install_checkout(project, request):
                     ast.parse(file.read_text(encoding='utf-8-sig'), filename=path)
             if origin_refs(repo) != before_origin:
                 raise ValueError('origin tracking refs changed')
-            result.update(head=target, status='installed', origin_refs_unchanged=True)
-        if state['restart']:
-            log = project / '.syncmate/runner-install.log'
-            with log.open('ab') as output:
-                proc = subprocess.Popen([sys.executable, '-B', 'scripts/syncmate/syncmate.py',
-                    'runner-agent', 'serve', '--poll-seconds', str(state['runner']['poll_seconds'])],
-                    cwd=project, stdin=subprocess.DEVNULL, stdout=output, stderr=output,
-                    start_new_session=True)
-            from syncmate_core import queue
-            deadline = time.monotonic() + 10
-            while time.monotonic() < deadline:
-                owner = queue.runner_queue_load_json(queue.runner_agent_lock_dir() / 'owner.json')
-                if owner.get('pid') == proc.pid:
-                    result['runner_restored'] = True
-                    break
-                if proc.poll() is not None:
-                    break
-                time.sleep(.1)
-            if not result['runner_restored']:
-                result.update(status='failed', error='code installed, runner restoration failed')
+            result.update(head=target, status='installed' if old != target else 'already_installed', origin_refs_unchanged=True)
     return result
 
 
@@ -230,14 +253,16 @@ def main():
             head = git(project.parent, 'rev-parse', 'HEAD')
         except Exception:
             head = None
-        result = {'status': 'failed', 'node': request.get('node'), 'ssh': request.get('ssh'),
+        node = request.get('node')
+        queue_root = project / '.syncmate/runner_queues' / node if node in PRIVATE_POLICY['targets'] else None
+        result = {'status': 'failed', 'node': node, 'ssh': request.get('ssh'),
                   'project': str(project), 'target': request.get('target'), 'head': head,
                   'transport': request.get('transport'), 'policy_sha256': request.get('policy_sha256'),
                   'error': str(exc) if isinstance(exc, (ValueError, RuntimeError)) else type(exc).__name__,
-                  'runner_lock_present': (project / '.syncmate/runner_queue/agent.lock').exists(),
-                  'maintenance_present': (project / '.syncmate/runner_queue/maintenance.json').exists()}
+                  'runner_lock_present': (queue_root / 'agent.lock').exists() if queue_root is not None else None,
+                  'maintenance_present': (queue_root / 'maintenance.json').exists() if queue_root is not None else None}
     print(json.dumps(result))
-    return 0 if result['status'] in ('initialized', 'installed', 'already_installed') else 1
+    return 0 if result['status'] in ('idle', 'verified', 'restored', 'installed', 'already_installed') else 1
 
 
 if __name__ == '__main__':

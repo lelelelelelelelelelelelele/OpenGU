@@ -4,8 +4,9 @@ import subprocess
 import sys
 
 import pytest
+from local_transport_guard import local_only_transport
 import yaml
-from scripts.syncmate.deployment_policy import deployment_policy, receipt_path
+from scripts.syncmate.deployment_policy import deployment_policy, receipt_path, dependency_pin
 from scripts.syncmate.recipe import preview
 from scripts.syncmate.opengu_recipes import generate
 from scripts.syncmate import syncmate
@@ -22,7 +23,7 @@ def setup_controller(workspace):
     device = yaml.safe_load(device_file.read_text(encoding='utf-8'))
     policy = deployment_policy(root)
     device['role'] = 'runner+collector'
-    device['peers'] = {node: {'role': 'runner', 'transport': 'ssh', **target}
+    device['peers'] = {node: {'role': 'runner', 'transport': 'ssh', 'python_executable': sys.executable, **target}
                        for node, target in policy['targets'].items()}
     device_file.write_text(yaml.safe_dump(device), encoding='utf-8')
     paths = {}
@@ -30,6 +31,8 @@ def setup_controller(workspace):
         receipt = {'status': 'installed', 'node': node, 'ssh': target['ssh'],
             'target': sha, 'head': sha, 'project': target['repo_path'], 'transport': 'private-bundle',
             'policy_sha256': policy['sha256'], 'bundle_sha256': 'd'*64, 'origin_refs_unchanged': True}
+        _, digest = dependency_pin(root)
+        receipt.update(expected_environment={'python_executable': sys.executable, 'core_dependency_sha256': digest}, environment={'node_id': node, 'git_sha': sha, 'requested_python': sys.executable, 'python_executable': sys.executable, 'core_dependency_sha256': digest, 'core_payload_verified': True})
         path = receipt_path(root, node, sha, policy)
         path.parent.mkdir(parents=True)
         path.write_text(json.dumps(receipt), encoding='utf-8')
@@ -41,6 +44,20 @@ def dispatch_argv(root, device_file, node):
     return ['--config', str(device_file), '--project-root', str(root),
             'runner-agent', 'dispatch', node, '--recipe', 'private-check',
             '--job-id', 'private-job', '--json']
+
+
+def native_fixture_identity(root,calls):
+    """Translate SSH transport only to a real disposable native self command."""
+    def invoke(peer,argv,**kwargs):
+        assert argv==['self','--json']
+        node=peer['node_id']
+        calls.append(node)
+        result=subprocess.run([sys.executable,'-B','scripts/syncmate/syncmate.py',
+            '--project-root',str(root),'--node-id',node,'self','--json'],cwd=root,
+            capture_output=True,text=True,encoding='utf-8',timeout=30)
+        assert result.returncode==0,result.stdout+result.stderr
+        return {'ok':True,'payload':json.loads(result.stdout),'errors':[]}
+    return invoke
 
 
 @pytest.mark.parametrize('node', ['gpu4090', 'gpu4090-2'])
@@ -81,7 +98,7 @@ def test_native_dispatch_rejects_before_core_or_ssh(workspace, condition):
     else:
         value = yaml.safe_load(device.read_text(encoding='utf-8'))
         key = 'ssh' if condition == 'wrong_alias' else 'repo_path'
-        value['peers'][node][key] = value['peers']['gpu4090'][key]
+        value['peers'][node][key] = 'autodl-opengu' if key == 'ssh' else '/unregistered/project'
         device.write_text(yaml.safe_dump(value), encoding='utf-8')
     view = preview('private-check', node, device, root)
     assert not view['local_checks_passed']
@@ -89,6 +106,7 @@ def test_native_dispatch_rejects_before_core_or_ssh(workspace, condition):
         *dispatch_argv(root, device, node)], cwd=root, capture_output=True, text=True,
         encoding='utf-8', timeout=90)
     assert result.returncode == 1, result.stdout + result.stderr
+    assert result.stdout, result.stderr
     payload = json.loads(result.stdout)
     assert payload['status'] == 'blocked', payload
     expected = ('receipt is missing' if condition == 'receipt_missing' else
@@ -118,8 +136,91 @@ def test_dispatch_wrapper_uses_parsed_node_id_and_selected_device_file(workspace
 
 def test_install_actions_require_explicit_node(workspace):
     root, _, _, _, _ = setup_controller(workspace)
-    for action in ('apply', 'initialize', 'receipt'):
+    for action in ('apply', 'receipt'):
         result = subprocess.run([sys.executable, '-B', 'scripts/syncmate/install.py', action],
             cwd=root, capture_output=True, text=True, encoding='utf-8', timeout=30)
         assert result.returncode == 2
         assert '--node' in result.stderr
+
+
+def test_core_ui_readiness_uses_selected_node_receipt(workspace,monkeypatch):
+    from syncmate_core import context
+    from syncmate_core.controller import readiness
+    from syncmate_core import dispatch
+    from scripts.syncmate.opengu_adapter import OpenGUProjectExtension
+    from scripts.syncmate.deployment_policy import execution_readiness
+    root, _, _, device, paths = setup_controller(workspace)
+    paths['gpu4090-2'].write_bytes(paths['gpu4090'].read_bytes())
+    local_self=[]
+    monkeypatch.setattr(dispatch,'runner_agent_peer_invoke',native_fixture_identity(root,local_self))
+    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=False):
+        valid = readiness('gpu4090', 'private-check', execution_readiness)
+        invalid = readiness('gpu4090-2', 'private-check', execution_readiness)
+    assert valid['ready'], valid
+    assert local_self==['gpu4090']
+    assert not invalid['ready'] and 'receipt is not successful' in json.dumps(invalid)
+    assert not (root / '.syncmate/runs').exists()
+    assert not (root / 'results').exists()
+
+
+def test_console_entry_binds_native_execution_readiness_hook(workspace,monkeypatch):
+    from syncmate_core import console
+    from scripts.syncmate.deployment_policy import execution_readiness
+    root, _, _, _, _ = setup_controller(workspace)
+    calls=[]
+    def serve(projects,port,desktop):
+        calls.append((projects,port,desktop))
+    monkeypatch.setattr(console,'serve_console',serve)
+    assert syncmate.main(['--project-root',str(root),'console','--port','8767']) == 0
+    assert calls[0][0][root.name].execution_readiness is syncmate.execution_readiness
+
+
+@pytest.mark.parametrize('node',['gpu4090','gpu4090-2'])
+@pytest.mark.parametrize('condition',['wrong_receipt','wrong_alias','ambiguous_peer'])
+def test_actual_controller_submit_blocks_wrong_node_before_dispatch(workspace,monkeypatch,node,condition):
+    from dataclasses import replace
+    from syncmate_core import context,dispatch
+    from syncmate_core.controller import Controller
+    from scripts.syncmate.opengu_adapter import OpenGUProjectExtension
+    root, _, _, device, paths = setup_controller(workspace)
+    original_device=device.read_bytes()
+    original_receipt=paths[node].read_bytes()
+    other='gpu4090-2' if node=='gpu4090' else 'gpu4090'
+    expected_error='receipt is not successful'
+    if condition=='wrong_receipt':
+        paths[node].write_bytes(paths[other].read_bytes())
+    else:
+        value=yaml.safe_load(device.read_text(encoding='utf-8'))
+        if condition=='wrong_alias':
+            value['peers'][node]['ssh']=value['peers'][other]['ssh']
+            value['peers'][node]['artifact_policy']={'include':['run.json']}
+            expected_error='alias and project'
+        else:
+            value['peers'][node]=dict(value['peers'][other])
+            expected_error='one registered node'
+        device.write_text(yaml.safe_dump(value),encoding='utf-8')
+    with context.use(root,extension=OpenGUProjectExtension()) as project:
+        project=replace(project,execution_readiness=syncmate.execution_readiness)
+    controller=Controller(project)
+    started=[]
+    remote=[]
+    monkeypatch.setattr(controller,'start_thread',lambda target,args:started.append((target,args)))
+    def forbidden(*args,**kwargs):
+        remote.append(args)
+        pytest.fail('blocked GUI submission reached dispatch or a remote call')
+    monkeypatch.setattr(dispatch,'runner_agent_peer_invoke',forbidden)
+    monkeypatch.setattr(dispatch,'runner_agent_dispatch_payload',forbidden)
+    with pytest.raises(ValueError,match=expected_error):
+        controller.submit(node,'private-check','11111111-1111-1111-1111-111111111111')
+    assert started==[] and remote==[]
+    assert not (root/'.syncmate/controller').exists()
+    device.write_bytes(original_device)
+    paths[node].write_bytes(original_receipt)
+    # Preserve the original Core dispatch continuation without executing it.
+    local_self=[]
+    monkeypatch.setattr(dispatch,'runner_agent_peer_invoke',native_fixture_identity(root,local_self))
+    saved=controller.submit(node,'private-check','22222222-2222-2222-2222-222222222222')
+    assert local_self==[node]
+    assert saved['node_id']==node
+    assert len(started)==1 and started[0][0]==controller._dispatch
+    assert started[0][1][0]['job_id']==saved['job_id'] and remote==[]

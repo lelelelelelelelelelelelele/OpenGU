@@ -10,7 +10,8 @@ from scripts.evaluation.reporting.events import read_event_stream, record_event,
 def reconcile(job, definition, execution, terminal, event_path):
     """Consume Core facts; never schedule, retry, or rewrite original events."""
     from syncmate_core.job_status import validate_status
-    validate_status(terminal, job_id=job['id'], execution=execution)
+    from syncmate_core.context import runner_node_id
+    validate_status(terminal, job_id=job['id'], execution=execution, node_id=runner_node_id())
     if terminal.get('state') not in ('failed', 'blocked', 'stale') or not terminal.get('finished_at'):
         raise ValueError('a finished unsuccessful Core job is required')
     if execution['git_sha'] != job['expected_git_sha'] or execution['config_sha256'] != definition['config_sha256']:
@@ -49,12 +50,13 @@ def reconcile(job, definition, execution, terminal, event_path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--job-id', required=True)
+    parser.add_argument('--node-id', required=True)
     args = parser.parse_args()
     from syncmate_core.context import use
     from syncmate_core.queue import runner_queue_job_details, runner_queue_job_status
     from scripts.syncmate.opengu_adapter import OpenGUProjectExtension
     root = Path(__file__).resolve().parents[2]
-    with use(root, extension=OpenGUProjectExtension()):
+    with use(root, extension=OpenGUProjectExtension(), node_id=args.node_id):
         details = runner_queue_job_details(args.job_id)
         job = details
         definition = OpenGUProjectExtension().resolve_recipe(root, job['recipe'])

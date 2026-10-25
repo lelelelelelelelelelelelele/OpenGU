@@ -9,7 +9,7 @@
     },
     "gpu4090-2": {
       "ssh": "autodl-opengu-2",
-      "repo_path": "/autodl-fs/data/OpenGU-2/GULib-master"
+      "repo_path": "/autodl-fs/data/OpenGU/GULib-master"
     }
   }
 }

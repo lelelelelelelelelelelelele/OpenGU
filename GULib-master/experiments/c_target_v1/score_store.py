@@ -353,11 +353,7 @@ class ScoreBundleStore:
             except FileExistsError:
                 from experiments.cache_locks import inspect_score_lock
                 lock = inspect_score_lock(lock_path)
-                if lock['status'] == 'orphan':
-                    raise CacheResolutionError(
-                        'orphan ScoreBundle recipe lock: {path} (PID {owner_pid}); '
-                        'explicit recovery required'.format(**lock)
-                    )
+                # A PID absent in this container may own the shared lock elsewhere.
                 if time.monotonic() >= deadline:
                     raise CacheResolutionError(
                         'timed out waiting for ScoreBundle recipe lock: '

@@ -29,6 +29,7 @@ class ExecutionContext:
     output: Path
     executor: str
     source_git_sha: str = None
+    node_id: str = None
 
     def __post_init__(self):
         if _SAFE_ID.fullmatch(str(self.run_id)) is None:
@@ -51,7 +52,7 @@ class ExecutionContext:
         if torch.device(self.request_device).type == 'cuda' and torch.cuda.is_available():
             cuda_name = torch.cuda.get_device_name(torch.device(self.request_device))
         return {
-            'run_id': self.run_id, 'level': self.level,
+            'run_id': self.run_id, 'level': self.level, 'node_id': self.node_id,
             'request_device': self.request_device, 'executor': self.executor,
             'source_git_sha': self.source_git_sha,
             'store_root': str(self.store_root),

@@ -26,7 +26,7 @@ def git(root, *args):
 
 def preview(recipe_id, node_id, device_file, project_root=ROOT):
     from syncmate_core import context, devices, recipes, run_handoff
-    from opengu_adapter import OpenGUProjectExtension
+    from opengu_adapter import OpenGUProjectExtension, bind_execution_node
     from verify_core_dependency import verify_core_dependency
     root = Path(project_root).resolve()
     policy = deployment_policy(root)
@@ -39,8 +39,8 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
     spec = load_declaration(declaration_path)
     if spec['id'] != recipe_id:
         raise ValueError('recipe filename/id mismatch')
-    definition = assemble(spec, root)
-    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=policy['require_origin_main']):
+    definition = bind_execution_node(assemble(spec, root), node_id)
+    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=policy['require_origin_main'], node_id=node_id):
         device, warnings = devices.load_device(Path(device_file))
     peer = device.get('peers', {}).get(node_id)
     if not peer or peer.get('role') not in ('runner', 'runner+collector'):
@@ -59,9 +59,9 @@ def preview(recipe_id, node_id, device_file, project_root=ROOT):
         errors.append('Core dispatch requires the reviewed candidate to land on main')
     git(root, 'ls-files', '--error-unmatch', str(declaration_path.relative_to(root)))
     git(root, 'ls-files', '--error-unmatch', definition['config_path'])
-    dependency = verify_core_dependency()
+    dependency = verify_core_dependency(pin_path=root / 'scripts/syncmate/core_dependency.json')
     errors.extend(dependency['errors'])
-    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=policy['require_origin_main']):
+    with context.use(root, extension=OpenGUProjectExtension(), require_origin_main=policy['require_origin_main'], node_id=node_id):
         binding = recipes.runner_recipe_binding(definition)
         errors.extend(binding['errors'])
         landing = run_handoff.landing_for(node_id)

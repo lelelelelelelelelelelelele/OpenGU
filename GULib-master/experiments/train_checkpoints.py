@@ -108,12 +108,13 @@ def main():
     parser.add_argument('--run-id')
     parser.add_argument('--device', help='explicit native CUDA device')
     parser.add_argument('--syncmate', action='store_true')
+    parser.add_argument('--node-id', help='explicit SyncMate execution node')
     parser.add_argument('--device-config', type=Path)
     args = parser.parse_args()
     sys.argv[:] = sys.argv[:1]
     plan = load_plan(args.config)
     if args.dry_run:
-        if any((args.run_id, args.device, args.syncmate, args.device_config)):
+        if any((args.run_id, args.device, args.syncmate, args.device_config, args.node_id)):
             raise ValueError('dry-run has no execution context')
         print(json.dumps(plan, indent=2))
         return
@@ -125,10 +126,10 @@ def main():
             raise ValueError('--syncmate owns its device')
         from scripts.syncmate.opengu_execution import device_context
         context = device_context(plan['experiment_id'], run_id=args.run_id,
-            device_file=args.device_config or ROOT / '.syncmate/device.yaml')
+            device_file=args.device_config or ROOT / '.syncmate/device.yaml', node_id=args.node_id)
     else:
-        if args.device_config is not None:
-            raise ValueError('--device-config requires --syncmate')
+        if args.device_config is not None or args.node_id is not None:
+            raise ValueError('--device-config/--node-id require --syncmate')
         from experiments.modular_execution import native_context
         context = native_context(plan['experiment_id'], run_id=args.run_id, request_device=args.device)
     from experiments.dataset_inputs import bind_input

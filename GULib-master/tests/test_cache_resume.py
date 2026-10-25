@@ -61,69 +61,72 @@ def test_miss_rechecks_after_writer_finishes(tmp_path, monkeypatch):
     assert result.hit and not result.producer_called
 
 
-@pytest.mark.parametrize('status', ['active', 'orphan', 'unknown'])
-def test_lock_preflight_blocks_without_deleting(tmp_path, monkeypatch, status):
+def test_locally_invisible_writer_releases_lock_then_reader_hits(tmp_path, monkeypatch):
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
     import experiments.cache_locks as locks
-    folder = tmp_path / '.locks'
-    folder.mkdir()
-    path = folder / ('score-' + 'a' * 64 + '.lock')
-    path.write_text('54496', encoding='ascii')
-    monkeypatch.setattr(locks, 'owner_status', lambda pid: status)
-    result = locks.score_lock_preflight(tmp_path)
-    assert not result['ready'] and result['locks'][0]['status'] == status
-    assert str(path) in result['errors'][0] and '54496' in result['errors'][0]
-    assert path.read_text(encoding='ascii') == '54496'
-
-
-@pytest.mark.parametrize('content', ['', '-1', '0', 'oops', '9' * 40])
-def test_unknown_lock_fails_closed(tmp_path, content):
-    from experiments.cache_locks import score_lock_preflight
-    (tmp_path / '.locks').mkdir()
-    (tmp_path / '.locks' / 'score-x.lock').write_text(content, encoding='ascii')
-    assert not score_lock_preflight(tmp_path)['ready']
-
-
-def test_orphan_miss_fails_immediately_with_exact_owner(tmp_path, monkeypatch):
-    import experiments.cache_locks as locks
-    import experiments.c_target_v1.score_store as module
-    s = store(tmp_path)
+    writer = ScoreBundleStore(tmp_path.resolve(), producer_version=ProducerVersion('test-v1', _sha('producer')), lock_timeout_seconds=2)
+    reader = ScoreBundleStore(tmp_path.resolve(), producer_version=ProducerVersion('test-v1', _sha('producer')), lock_timeout_seconds=2)
     payload = _payload((3, 8, 10))
+    recipe = _recipe(payload.candidate_ids_hash)
+    started, contended, release = threading.Event(), threading.Event(), threading.Event()
+    calls = []
+    def compute():
+        calls.append('writer')
+        started.set()
+        assert release.wait(2)
+        return payload
+    inspect = locks.inspect_score_lock
+    monkeypatch.setattr(locks, 'owner_status', lambda pid: 'orphan')
+    def invisible(path):
+        result = inspect(path)
+        contended.set()
+        return result
+    monkeypatch.setattr(locks, 'inspect_score_lock', invisible)
+    with ThreadPoolExecutor(max_workers=2) as workers:
+        first = workers.submit(writer.get_or_compute, recipe, compute)
+        assert started.wait(2)
+        second = workers.submit(reader.get_or_compute, recipe, lambda: pytest.fail('second producer must not run'))
+        assert contended.wait(2)
+        release.set()
+        a, b = first.result(timeout=3), second.result(timeout=3)
+    assert calls == ['writer']
+    assert b.hit and not b.producer_called and a.artifact_id == b.artifact_id
+    assert not list((tmp_path / '.locks').iterdir())
+
+
+def test_unreleased_foreign_pid_lock_times_out_and_remains_unchanged(tmp_path, monkeypatch):
+    import time
+    import experiments.cache_locks as locks
+    s = ScoreBundleStore(tmp_path.resolve(), producer_version=ProducerVersion('test-v1', _sha('producer')), lock_timeout_seconds=.05)
+    payload = _payload((3,8,10))
     recipe = _recipe(payload.candidate_ids_hash)
     s.initialize()
     path = tmp_path / '.locks' / ('score-' + recipe.recipe_hash + '.lock')
-    path.write_text('54496', encoding='ascii')
+    path.write_bytes(b'54496')
     monkeypatch.setattr(locks, 'owner_status', lambda pid: 'orphan')
-    monkeypatch.setattr(module.time, 'sleep', lambda _: pytest.fail('orphan must not wait'))
-    with pytest.raises(CacheResolutionError, match='orphan.*54496'):
-        s.get_or_compute(recipe, lambda: pytest.fail('blocked producer'))
-    assert path.exists()
+    started = time.monotonic()
+    with pytest.raises(CacheResolutionError, match='timed out waiting.*54496'):
+        s.get_or_compute(recipe, lambda: pytest.fail('lock was not acquired'))
+    assert .04 <= time.monotonic()-started < 2
+    assert path.read_bytes() == b'54496'
 
 
-def test_entry_blocks_before_model_preparation_and_output_creation(tables, monkeypatch):
+def test_unrelated_lock_does_not_block_entry_before_model_preparation(tables, monkeypatch):
     import experiments.modular_run as module
     root = tables[0]
     folder = root / 'results/cache_v2/.locks'
     folder.mkdir(parents=True)
-    (folder / 'score-x.lock').write_text(str(os.getpid()), encoding='ascii')
-    monkeypatch.setattr(module, 'prepare_model', lambda *a, **k: pytest.fail('preflight too late'))
-    with pytest.raises(CacheResolutionError, match='ScoreBundle lock active'):
-        run(tables, 'blocked')
-    assert not (root / 'results/runs/blocked').exists()
-
-
-def test_registered_preflight_uses_bound_runner_root(tmp_path, monkeypatch):
-    from syncmate_core.context import use
-    from scripts.syncmate.opengu_adapter import _modular_preflight
-    import experiments.modular_run as module
-    folder = tmp_path / 'results/cache_v2/.locks'
-    folder.mkdir(parents=True)
-    (folder / 'score-x.lock').write_text('invalid', encoding='ascii')
-    monkeypatch.setattr(module, 'execute', lambda *a, **k: dict(stage='unlearning',
-        configuration_fingerprint='same', logical_cells=1, experiment_id='test'))
-    definition = dict(configuration_fingerprint='same', logical_cells=1, run_identity={'experiment_id':'test'})
-    with use(tmp_path):
-        result = _modular_preflight(definition, tmp_path / 'experiment.yaml')
-    assert not result['ready'] and result['cache_recovery']['locks'][0]['status'] == 'unknown'
+    lock = folder / 'score-unrelated.lock'
+    lock.write_text('unknown-other-host', encoding='ascii')
+    class PreparationReached(Exception):
+        pass
+    def reached(*args, **kwargs):
+        raise PreparationReached('CPU test stops before any model preparation')
+    monkeypatch.setattr(module, 'prepare_model', reached)
+    with pytest.raises(PreparationReached):
+        run(tables, 'entry-boundary')
+    assert lock.read_text(encoding='ascii') == 'unknown-other-host'
 
 
 def test_prepared_models_are_private_and_keyed_by_training_input():
