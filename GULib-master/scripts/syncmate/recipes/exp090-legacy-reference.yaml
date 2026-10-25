@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp090-legacy-reference
+runner: experiment
+config_path: experiments/configs/exp090/metrics_legacy_reference.yaml
+config_sha256: 79b3cd741bcd995672e5166a892542f8c688adb758902accf96c0b6e8b02ce2f
+configuration_fingerprint: 5c72ee1e88330fcb96a79b91bb2ca7ffdc26415b89db4c1f495c78f8c2d17d72
+run_identity:
+  experiment_id: exp090-legacy-reference
+  run_id: e90o1
+timeout_seconds: 9000
+logical_cells: 120
+stage: metrics
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
