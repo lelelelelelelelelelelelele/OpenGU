@@ -79,6 +79,7 @@ def test_real_queue_command_collect_verify_accept_results_and_repeat(exported,mo
             collected,args,options=collect(exported)
             checked=extension.accept('modular-output-v1',definition,collected)
             assert checked['passed'],checked['errors']
+            assert not extension.accept('unreviewed-profile',definition,collected)['passed']
             assert checked['accepted_cells']==8
             rows=extension.results(collected['artifact_index'],{'project_root':collector})
             assert len(rows['rows'])==8 and not rows['parse_errors'],rows

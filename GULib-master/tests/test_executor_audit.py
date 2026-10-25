@@ -56,19 +56,21 @@ main(['experiment.yaml','--run-id','killed','--device','cpu','--verification-roo
     from scripts.syncmate.opengu_audit import reconcile
     from experiments.modular_config import configuration_fingerprint
     from utils.target_checkpoint import sha256_file
-    execution = dict(protocol='syncmate.run-handoff/v1', project='opengu', job_id='killed-job',
-        recipe='verification', git_sha=sha, config_path='experiment.yaml', config_sha256=sha256_file(path),
-        timeout_seconds=60, run_identity=dict(experiment_id='contract',run_id='killed'),
-        artifact_paths=[],collect_paths=[])
+    from syncmate_core.run_handoff import build_execution_contract
+    from syncmate_core import context
+    definition = dict(id='verification', experiment_id='contract', config_path='experiment.yaml',
+        config_sha256=sha256_file(path), timeout_seconds=60, run_identity=dict(run_id='killed'),
+        configuration_fingerprint=configuration_fingerprint(path), expected_artifact_paths=[])
+    with context.use(root, node_id='runner'):
+        execution = build_execution_contract(definition, project='opengu', job_id='killed-job', git_sha=sha)
     terminal = dict(protocol='syncmate.job-status/v1', job_id='killed-job', state='failed',
         observed_at='2026-10-08T00:00:01+00:00', created_at='2026-10-08T00:00:00',
         started_at='2026-10-08T00:00:00', finished_at='2026-10-08T00:00:01',exit_code=None,
-        error_code='recipe_timeout', execution_digest=execution_digest(execution))
+        error_code='recipe_timeout', execution_digest=execution_digest(execution), node_id='runner')
     job = dict(id='killed-job', expected_git_sha=sha, recipe='verification')
-    definition = dict(run_identity=execution['run_identity'], config_sha256=execution['config_sha256'],
-        configuration_fingerprint=configuration_fingerprint(path))
-    assert reconcile(job,definition,execution,terminal,journal/'auto_report.events.jsonl') == 1
-    assert reconcile(job,definition,execution,terminal,journal/'auto_report.events.jsonl') == 0
+    with context.use(root, node_id='runner'):
+        assert reconcile(job,definition,execution,terminal,journal/'auto_report.events.jsonl') == 1
+        assert reconcile(job,definition,execution,terminal,journal/'auto_report.events.jsonl') == 0
     events, _ = read_event_stream(journal/'auto_report.events.jsonl')
     assert events[-1]['state']=='failed' and events[-1]['error']['type']=='recipe_timeout'
     assert len([e for e in events if e['stage']=='attack' and e['state']=='completed']) == 1
@@ -100,24 +102,35 @@ def test_entry_scientific_failure_does_not_mark_completed(tables):
 
 def test_real_core_timeout_reconciles_its_own_execution(workspace):
     from test_syncmate_execution_contract import declaration, FixtureRegistration
-    from syncmate_core import context, devices, queue
+    from syncmate_core import context, devices, queue, versions
+    from opengu_syncmate.runtime import execution_readiness
     from scripts.syncmate.opengu_audit import reconcile
     root,path,config=workspace
     config.update(selector_refs=['degree.yaml'])
     config.pop('budget_ratios');config.pop('seeds')
     write_yaml(path,config)
-    (root/'timeout_probe.py').write_text('''from pathlib import Path
-import time
-from experiments.run import main
-def notify(event, **value):
-    if event == 'progress' and value.get('position',{}).get('stage') == 'selector' and value.get('current') == 1:
-        time.sleep(120)
-main(['experiment.yaml','--run-id','registered','--device','cpu','--verification-root',str(Path.cwd())], notify=notify)
+    progress = root/'scripts/syncmate/opengu_progress.py'
+    progress.write_text(progress.read_text(encoding='utf-8') + '''
+_original_make_notify = make_notify
+def make_notify(*args, **kwargs):
+    notify = _original_make_notify(*args, **kwargs)
+    def observed(event, **values):
+        result = notify(event, **values)
+        if event == 'progress' and values.get('position', {}).get('stage') == 'selector' and values.get('current') == 1:
+            import time
+            time.sleep(120)
+        return result
+    return observed
 ''',encoding='utf-8')
     definition=declaration(root,path,'selector')
-    definition.update(argv=('{python}','timeout_probe.py'),timeout_seconds=10)
+    recipe_path=root/'scripts/syncmate/recipes/temporary-contract.yaml'
+    import yaml
+    spec=yaml.safe_load(recipe_path.read_text(encoding='utf-8'))
+    spec['timeout_seconds']=20
+    write_yaml(recipe_path,spec)
     sha=commit(root)
-    with context.use(root,extension=FixtureRegistration(definition)):
+    with context.use(root,extension=FixtureRegistration(definition), node_id='runner', execution_readiness=execution_readiness):
+        definition=versions.bind(definition['id'],sha)['definition']
         assert queue.runner_queue_submit('real-timeout',definition['id'],expected_git_sha=sha)['submitted']
         device,warnings=devices.load_device(root/'.syncmate/device.yaml');assert not warnings
         outcome=queue.runner_queue_run_once(device)
@@ -127,7 +140,8 @@ main(['experiment.yaml','--run-id','registered','--device','cpu','--verification
     event_path=root/'results/runtime/modular/_journal/auto_report.events.jsonl'
     before,_=read_event_stream(event_path)
     assert any(e['stage']=='selection' and e['state']=='completed' for e in before)
-    assert reconcile(details,definition,details['receipt']['output_contract'],terminal,event_path)==1
+    with context.use(root,node_id='runner'):
+        assert reconcile(details,definition,details['receipt']['output_contract'],terminal,event_path)==1
     after,_=read_event_stream(event_path)
     assert after[-1]['error']['type']=='recipe_timeout'
     assert after[-1]['metadata']['terminal_source']==terminal

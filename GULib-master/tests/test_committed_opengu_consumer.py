@@ -40,6 +40,11 @@ def native(root, *args, verification_root=None, check=True, input_data=None):
     return result
 
 
+def test_installed_smoke_uses_generic_core_fixture(workspace):
+    result = json.loads(native(workspace[0], 'smoke', '--json').stdout)
+    assert result['passed'] and result['cleaned'], result
+
+
 def test_committed_definition_excludes_workspace_yaml_and_python(workspace):
     root, path, _ = workspace
     spec = generate('experiment.yaml', recipe_id='committed', run_id='e103-first', project_root=root)

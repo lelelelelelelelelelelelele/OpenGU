@@ -98,7 +98,7 @@ def accept(source, request):
                     'sha256': hashlib.sha256(source.read_bytes('scripts/syncmate/opengu_acceptance.py')).hexdigest()}:
         raise ValueError('frozen scientific verifier identity differs')
     with committed_files(source, root=request['context']['project_root']):
-        return acceptance_payload('modular-output-v1', definition, request['context'])
+        return acceptance_payload(request['profile'], definition, request['context'])
 
 
 def main():

@@ -60,7 +60,7 @@ class OpenGUProjectExtension(GenericProjectExtension):
     def accept(self, profile, definition, details):
         source = GitSource(context.current().root, details['expected_git_sha'])
         details = {**details, 'project_root': str(details['project_root'])}
-        return worker(source, 'accept', definition=definition, context=details)
+        return worker(source, 'accept', profile=profile, definition=definition, context=details)
 
     def results(self, index, options):
         options = {**options, 'project_root': str(options['project_root'])}
