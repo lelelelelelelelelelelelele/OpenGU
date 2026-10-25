@@ -44,7 +44,7 @@ class Desk:
     def block(self, key):
         path, text, start, end = self.slice(key)
         return dict(id=key, title=BLOCKS[key][0], path=str(path),
-                    line=text[:start].count('\n') + 1, source=text[start:end],
+                    line=text[:start].count('\n') + 1, source=text[start:end].replace('\r\n', '\n'),
                     version=digest(text.encode('utf-8')))
 
     def events(self, key):
@@ -67,6 +67,9 @@ class Desk:
             if digest(text.encode('utf-8')) != version:
                 raise ValueError('源码已被其他编辑更新，请刷新后重新核对。')
             before = text[start:end]
+            source = source.replace('\r\n', '\n')
+            if '\r\n' in before:
+                source = source.replace('\n', '\r\n')
             if source == before:
                 raise ValueError('源码没有变化；意见请单独保存。')
             if BLOCKS[key][2] and not source.startswith('\\subsection{' + BLOCKS[key][2] + '}'):

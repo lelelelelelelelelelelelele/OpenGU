@@ -58,6 +58,12 @@ class ReviewTests(unittest.TestCase):
         self.desk.comment('exp014', block['version'], '<script>意见</script>')
         self.assertEqual(block['source'], self.desk.events('exp014')[0]['source'])
 
+    def test_browser_newlines_do_not_make_unchanged_source_dirty(self):
+        block = self.desk.block('fig3')
+        self.assertNotIn('\r', block['source'])
+        with self.assertRaisesRegex(ValueError, '没有变化'):
+            self.desk.save('fig3', block['version'], block['source'], 'unchanged')
+
     def test_empty_reason_rejected(self):
         block = self.desk.block('fig3')
         with self.assertRaises(ValueError):
