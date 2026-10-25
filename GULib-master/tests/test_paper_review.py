@@ -2,13 +2,16 @@
 import importlib.util
 import io
 import json
+from html.parser import HTMLParser
 from pathlib import Path
+import shutil
 import tempfile
 import unittest
 import zipfile
 
 from scripts.paper_review.model import BLOCKS, Desk
 from scripts.paper_review.sync import Cloud, read_zip
+from scripts.paper_review.render import render
 
 
 def archive(files):
@@ -137,6 +140,60 @@ class ReviewTests(unittest.TestCase):
         self.assertEqual(original, (self.paper / 'sections/selector_cost.tex').read_bytes())
         self.assertIn('Timeout (2 h)', output.read_text(encoding='utf-8'))
         self.assertIn('6--8 h (est.)', output.read_text(encoding='utf-8'))
+
+
+class TextContent(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.parts = []
+        self.tags = []
+
+    def handle_starttag(self, tag, attrs):
+        self.tags.append(tag)
+
+    def handle_data(self, data):
+        self.parts.append(data)
+
+
+@unittest.skipUnless(shutil.which('make4ht') and shutil.which('pdftocairo'), 'HTML integration checks require TeX Live and Poppler')
+class HtmlRenderTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.paper = Path(__file__).resolve().parents[1] / 'report/paper/overleaf'
+        self.desk = Desk(self.paper, Path(self.temp.name))
+
+    def document(self, key):
+        source = self.desk.block(key)
+        path = render(self.desk, key)
+        text = path.read_text(encoding='utf-8')
+        parser = TextContent()
+        parser.feed(text)
+        self.assertEqual(source, self.desk.block(key), 'HTML conversion must not rewrite manuscript sources')
+        self.assertNotIn('.png', text)
+        return path, parser, ' '.join(' '.join(parser.parts).split())
+
+    def test_fig3_analysis_and_caption_are_dom_text_with_vector_figure(self):
+        path, parser, text = self.document('fig3')
+        self.assertIn('Reading each GU relative', text)
+        self.assertIn('ten training-seed values', text)
+        self.assertIn('figcaption', parser.tags)
+        self.assertTrue(list(path.parent.glob('*.svg')))
+
+    def test_fig4_formula_is_mathml_and_numeric_analysis_is_text(self):
+        _, parser, text = self.document('fig4')
+        self.assertIn('27.28 and 29.18 pp', text)
+        self.assertIn('math', parser.tags)
+        self.assertIn('three-training-seed means', text)
+
+    def test_costs_are_a_real_html_table_with_timeout_and_estimate(self):
+        _, parser, text = self.document('exp014')
+        self.assertIn('table', parser.tags)
+        self.assertIn('td', parser.tags)
+        self.assertIn('324.512', text)
+        self.assertIn('Timeout (2 h)', text)
+        self.assertIn('6–8', text)
+        self.assertIn('not a measured completion', text)
 
 
 if __name__ == '__main__':

@@ -1,4 +1,7 @@
-"""Compile each source slice with TeX, then expose browser-readable page images."""
+"""Convert manuscript LaTeX to selectable HTML/MathML with vector figures."""
+import html
+import os
+from pathlib import Path
 import re
 import subprocess
 
@@ -7,40 +10,51 @@ from .model import digest
 
 def render(desk, key):
     block = desk.block(key)
-    inputs = [p for p in desk.paper.rglob('*') if p.is_file() and p.suffix in {'.tex', '.pdf'}]
-    fingerprint = digest(block['source'].encode() + b''.join(p.read_bytes() for p in sorted(inputs)))
-    out = desk.state / 'preview' / key / fingerprint
+    inputs = sorted(p for p in desk.paper.rglob('*') if p.is_file() and p.suffix in {'.tex', '.pdf'})
+    fingerprint = digest(Path(__file__).read_bytes() + block['source'].encode('utf-8') +
+                         b''.join(p.read_bytes() for p in inputs))
+    out = desk.state / 'html-preview' / key / fingerprint
+    document = out / 'preview.html'
     if (out / 'ready').exists():
-        return sorted(out.glob('page-*.png'))
+        return document
     out.mkdir(parents=True, exist_ok=True)
-    body = block['source']
-    # Keep the exact text, caption, math and figure/table content; only adapt float placement.
-    body = re.sub(r'\\begin\{(figure|table)\*?\}(?:\[[^\]]*\])?', r'\\begin{\1}[H]', body)
-    body = re.sub(r'\\end\{(figure|table)\*\}', r'\\end{\1}', body)
+    body = block['source'].replace('{figure*}', '{figure}').replace('{table*}', '{table}')
     preamble = r'''\documentclass[10pt]{article}
-\usepackage[paperwidth=230mm,paperheight=310mm,margin=16mm]{geometry}
-\usepackage{graphicx,booktabs,float,xcolor}
+\usepackage{graphicx,booktabs,hyperref,xcolor}
 \input{math_commands.tex}
 \newcommand{\Description}[1]{}
 \newcommand{\draftnote}[1]{\textcolor{blue}{#1}}
 \newcommand{\todo}[1]{\textcolor{red}{#1}}
-\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
+\renewcommand{\includegraphics}[2][]{\href{/paper/#2}{Open original figure (PDF)}}
 \begin{document}
 '''
     counter = {'fig3': 2, 'fig4': 3, 'exp014': 0}[key]
     source = preamble + '\\setcounter{figure}{' + str(counter) + '}\n' + body + '\n\\end{document}\n'
-    path = out / 'preview.tex'
-    path.write_text(source, encoding='utf-8')
-    log = []
-    for _ in range(2):
-        run = subprocess.run(['pdflatex', '-no-shell-escape', '-interaction=nonstopmode',
-                              '-halt-on-error', '-output-directory', str(out), str(path)],
-                             cwd=desk.paper, capture_output=True, timeout=60)
-        log.append(run.stdout)
-        (out / 'compile.txt').write_bytes(b'\n'.join(log))
-        if run.returncode:
-            raise ValueError('LaTeX 预览编译失败，请检查源码。日志：' + str(out / 'compile.txt'))
-    subprocess.run(['pdftoppm', '-scale-to', '1800', '-png', str(out / 'preview.pdf'), str(out / 'page')],
-                   capture_output=True, check=True, timeout=60)
+    (out / 'preview.tex').write_bytes(source.encode('utf-8'))
+    env = dict(os.environ)
+    # Keep all converter outputs outside manuscript sources.
+    env['TEXINPUTS'] = desk.paper.as_posix() + '//' + os.pathsep + env.get('TEXINPUTS', '')
+    run = subprocess.run(['make4ht', '-a', 'warning', 'preview.tex', 'mathml'],
+                         cwd=out, env=env, capture_output=True, timeout=60)
+    (out / 'compile.txt').write_bytes(run.stdout + run.stderr)
+    if run.returncode or not document.exists():
+        raise ValueError('LaTeX 转 HTML 失败，请检查源码。日志：' + str(out / 'compile.txt'))
+    text = document.read_text(encoding='utf-8')
+
+    def figure(match):
+        url = match.group(1)
+        path = (desk.paper / url.removeprefix('/paper/')).resolve()
+        if not path.is_relative_to(desk.paper / 'figures') or path.suffix != '.pdf':
+            raise ValueError('图文件必须位于论文 figures 目录。')
+        name = digest(path.read_bytes()) + '.svg'
+        subprocess.run(['pdftocairo', '-svg', str(path), str(out / name)],
+                       check=True, capture_output=True, timeout=60)
+        return (f'<a class="figure-link" href="{html.escape(url, quote=True)}" target="_blank" '
+                f'rel="noreferrer"><img src="{name}" alt="{html.escape(block["title"], quote=True)}" '
+                'class="vector-figure" /></a>')
+
+    text = re.sub(r"<a href='(/paper/figures/[^']+\.pdf)'>Open original figure \(PDF\)</a>", figure, text)
+    text = text.replace('</head>', '<link href="/reader.css" rel="stylesheet" /></head>')
+    document.write_bytes(text.encode('utf-8'))
     (out / 'ready').touch()
-    return sorted(out.glob('page-*.png'))
+    return document

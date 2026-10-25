@@ -1,6 +1,6 @@
 # 论文分块审阅台
 
-在仓库的 `GULib-master` 目录启动（Python 标准库、TeX Live 的 `pdflatex` 与 Poppler 的 `pdftoppm`）：
+在仓库的 `GULib-master` 目录启动（Python 标准库、TeX Live 的 `make4ht` 与 Poppler 的 `pdftocairo`）：
 
 ```powershell
 python -B -X utf8 -m scripts.paper_review.server --state-dir <持久记录目录> --port 8129
@@ -9,13 +9,13 @@ python -B -X utf8 -m scripts.paper_review.server --state-dir <持久记录目录
 打开 `http://127.0.0.1:8129`。`--state-dir` 必须放在论文源码目录外；其中
 `reviews.jsonl` 保存意见、修改原因、源码快照和前后差异，`cloud.json` 与
 `cloud-latest.zip` 保存同步核验记录。备份此目录可保留审阅历史。
-`preview/` 是可重新生成的编译缓存。正文只保存在 LaTeX 中。
+`html-preview/` 是可重新生成的 HTML 缓存。正文只保存在 LaTeX 中。
 
 Fig3 与 Fig4 通过 `sections/results.tex` 的现有 subsection 标题定位；
-EXP-014 使用 `sections/selector_cost.tex`。修改后刷新会从当前 LaTeX 编译；
+EXP-014 使用 `sections/selector_cost.tex`。阅读区可切换“HTML 正文”和“LaTeX 源码”。HTML 的段落、caption 与成本表是可选择、复制的文字，公式使用 MathML；实验图单独转为 SVG 矢量图，可点击查看原 PDF，不生成整页 PNG。修改后刷新会从当前 LaTeX 重新转换；
 保存时使用文件版本检查，拒绝覆盖已经被外部编辑更新的源码。
 意见绑定提交时的源码版本与快照。Git diff 提供相对 HEAD 的全文修改，
-历史意见中的 diff 提供逐次修改。独立预览适配浮动位置，不代替投稿全文排版检查。
+历史意见中的 diff 提供逐次修改。HTML 使用浏览器排版，不代替投稿全文 PDF 的版面检查。
 
 ## Overleaf 同步
 

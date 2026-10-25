@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 import secrets
 import subprocess
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, unquote
 
 from .model import BLOCKS, Desk
 from .render import render
@@ -27,6 +27,8 @@ def make_server(desk, port):
             self.send_header('Content-Length', str(len(data)))
             self.send_header('Cache-Control', 'no-store')
             self.send_header('X-Content-Type-Options', 'nosniff')
+            if self.path.startswith('/preview/'):
+                self.send_header('Content-Security-Policy', "default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'")
             self.end_headers()
             self.wfile.write(data)
 
@@ -48,14 +50,20 @@ def make_server(desk, port):
                     return self.send(cloud.package(), 'application/zip')
                 if path == '/api/preview':
                     key = parse_qs(parsed.query)['id'][0]
-                    pages = render(desk, key)
-                    return self.send(dict(pages=['/preview/' + p.relative_to(desk.state / 'preview').as_posix() for p in pages]))
+                    document = render(desk, key)
+                    return self.send(dict(url='/preview/' + document.relative_to(desk.state / 'html-preview').as_posix()))
                 if path.startswith('/preview/'):
-                    target = (desk.state / path.lstrip('/')).resolve()
-                    if not target.is_relative_to(desk.state / 'preview') or target.suffix != '.png':
+                    root = desk.state / 'html-preview'
+                    target = (root / unquote(path.removeprefix('/preview/'))).resolve()
+                    if not target.is_relative_to(root) or target.suffix not in {'.html', '.css', '.svg'}:
                         raise ValueError('无效预览路径。')
-                    return self.send(target.read_bytes(), 'image/png')
-                if path in {'/', '/app.js', '/style.css'}:
+                    return self.send(target.read_bytes(), mimetypes.guess_type(target)[0] + '; charset=utf-8')
+                if path.startswith('/paper/'):
+                    target = (desk.paper / unquote(path.removeprefix('/paper/'))).resolve()
+                    if not target.is_relative_to(desk.paper / 'figures') or target.suffix != '.pdf':
+                        raise ValueError('无效图文件路径。')
+                    return self.send(target.read_bytes(), 'application/pdf')
+                if path in {'/', '/app.js', '/style.css', '/reader.css'}:
                     target = assets / ('index.html' if path == '/' else path[1:])
                     return self.send(target.read_bytes(), mimetypes.guess_type(target)[0] + '; charset=utf-8')
                 self.send({'error': '页面不存在。'}, status=404)

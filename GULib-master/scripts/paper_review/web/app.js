@@ -1,5 +1,11 @@
 const $ = id => document.getElementById(id);
 let state, current, active = 'fig3', busy = false;
+let previewObserver;
+function showSource(source) {
+  $('source-panel').hidden = !source; $('preview').hidden = source;
+  $('html-view').setAttribute('aria-pressed',String(!source));
+  $('source-view').setAttribute('aria-pressed',String(source));
+}
 async function api(url, data, raw = false) {
   const response = await fetch(url, data === undefined ? {} : {method:'POST', headers:{'X-Review-Token':state.token,'Content-Type':raw?'application/zip':'application/json'},body:raw?data:JSON.stringify(data)});
   if (!response.ok) { const result = await response.json(); throw new Error(result.error); }
@@ -30,14 +36,26 @@ async function load() {
     $('events').append(el);
   }
   if(!$('events').children.length){const p=document.createElement('p');p.className='note';p.textContent='本块暂无意见。保存后会记录对应源码版本。';$('events').append(p);}
-  $('pages').replaceChildren();message('正在从 LaTeX 编译本块展示…');
+  message('正在从 LaTeX 生成 HTML 文字…');
   const preview=await api('/api/preview?id='+active);
-  for(const page of preview.pages){const image=document.createElement('img');image.src=page;image.alt=current.title+'：图表、caption 与分析的 LaTeX 编译页';const link=document.createElement('a');link.href=page;link.target='_blank';link.title='打开原尺寸编译页';link.append(image);$('pages').append(link);}
-  message('展示已从当前 LaTeX 生成。');
+  await new Promise((resolve,reject)=>{
+    const frame=$('preview');
+    previewObserver?.disconnect();frame.style.height='160px';
+    frame.onload=()=>{
+      const body=frame.contentDocument?.body;
+      if(!body){reject(new Error('HTML 正文加载失败。'));return;}
+      const resize=()=>{frame.style.height=Math.ceil(body.getBoundingClientRect().height+30)+'px';};
+      previewObserver=new ResizeObserver(resize);previewObserver.observe(body);resize();resolve();
+    };
+    frame.onerror=()=>reject(new Error('HTML 正文加载失败。'));frame.src=preview.url;
+  });
+  message('HTML 正文已更新，可直接选择和复制文字。');
 }
 async function action(fn){if(busy)return;busy=true;document.querySelectorAll('button').forEach(b=>b.disabled=true);try{await fn();}catch(e){message(e.message);}finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false);}}
 $('refresh').onclick=()=>action(async()=>{state=await api('/api/state');cloudView(state.cloud);await load();});
-$('source-link').onclick=()=>{$('source-panel').open=true;$('source-panel').scrollIntoView({behavior:'smooth'});};
+$('source-link').onclick=()=>{showSource(true);$('source-panel').scrollIntoView({behavior:'smooth'});};
+$('html-view').onclick=()=>showSource(false);
+$('source-view').onclick=()=>showSource(true);
 $('add-comment').onclick=()=>action(async()=>{await api('/api/comment',{id:active,version:current.version,text:$('comment').value});$('comment').value='';await load();message('意见已保存，并绑定当前源码版本。');});
 $('save').onclick=()=>action(async()=>{await api('/api/save',{id:active,version:current.version,source:$('source').value,reason:$('reason').value});$('reason').value='';state=await api('/api/state');cloudView(state.cloud);await load();});
 $('cloud-zip').onchange=()=>action(async()=>{const file=$('cloud-zip').files[0];if(file){const result=await api('/api/cloud/check',await file.arrayBuffer(),true);cloudView(result);message('云端快照检查完成。源码 ZIP 本身不证明云端编译成功。');}});
