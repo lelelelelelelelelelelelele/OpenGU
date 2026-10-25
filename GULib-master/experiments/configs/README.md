@@ -69,6 +69,21 @@ parameters:
 组合表的 `seeds` 仍不允许给显式 checkpoint 展开训练重复；需要改变遗忘随机性时在独立方法表设置
 `training.seed`。实际数据、split、删除请求、评估图继续由对应配置决定。
 
+### 多个固定模型输入的完整矩阵
+
+多个 checkpoint 及其对应 Selector 可在同一组合表声明 `matrix: paired_inputs`。
+解析器按小表原有的 `training.seed` 绑定模型输入，组内展开 Selector × GU × 预算，
+Random 等无模型 Selector 应用于各组。这里的 seed 标识既有执行随机性，不是额外训练轴；
+有 checkpoint 就直接加载权重，不从头训练，也不覆盖小表的 checkpoint 或 seed。
+不得同时填写大表 `seeds`，模型型 Selector 与 GU 的 seed 集合不一致时直接拒绝。
+
+[EXP-088 完整表](exp088/gu_full.yaml) 保留 10 组 × 3 请求 × 2 预算 = 60 单元，
+使用单份 `exp088-gu-full` Recipe；[EXP-089 MEGU 完整表](exp089/megu_full.yaml)
+保留 10 组 × 2 参数设置 × 3 请求 × 2 预算 = 120 单元，使用单份 `exp089-megu-full`。
+两者复用原小表，替代 30 份逐 seed 入口；GIF 禁用缓存的数值观察配置保持。
+旧入口原文保存在原 Git 版本，既有任务和结果继续消费其冻结版本。
+表名、分组和提交数量不改变 Cache V2 身份，命中仍由实际计算输入决定。
+
 活动配置只有一种规范：`kind: experiment` 组合表引用四类公共小表。解析与真实执行均经过 `experiments/run.py` → `modular_config` → `modular_run`。
 
 数据轴统一写作 `dataset_refs: [cora.yaml, citeseer.yaml, pubmed.yaml]`，单数据集写作 `dataset_refs: [cora.yaml]`。同一表内不能重复同一个 Dataset/Split 实例。每个数据集独立绑定 manifest、划分和候选空间；加入或重排其他数据集不改变原有计算身份。

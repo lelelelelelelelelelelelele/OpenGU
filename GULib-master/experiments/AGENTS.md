@@ -39,6 +39,11 @@
 
 ## 5. 通用矩阵与证据接缝
 
+已有多个模型输入可用 `matrix: paired_inputs` 在同一表内按小表的有效执行 seed 配对；
+模型型 Selector 与 GU 的 seed 集合必须一致，无模型 Selector 应用于各组。
+此模式不接受大表 `seeds` 覆盖，不修改 checkpoint 或初始训练设置；固定 checkpoint 直接加载。
+每组仍使用同一预算、Random/IM 条件展开、进度与结果消费者，不新增执行通道。
+
 组合表按声明顺序展开 Dataset/Split×Selector×独立方法×训练seed×预算。每个 cell 记录数据集序号、名称与实例指纹；这些展示坐标不进入计算缓存身份。两侧模型训练seed按批次配对，Degree/Random等无需模型的Selector不因训练seed变更失效。GNNDelete、GIF和Retrain各自消费真实Selection并保存独立Output，不隐式调用另一方法。
 
 Selector/Unlearning只以selector_refs声明选点规则；两阶段按同一有效输入与producer自动查找Score/Selection缓存，HIT复用、MISS计算。实际Artifact身份、哈希和HIT/MISS保存在结果中，不要求手填上一轮Selection或summary。执行与核验共用批次及条件展开。Unlearning按具体请求连续执行：Selection就绪后先执行配置中已有的Retrain及其适用评价，再逐方法执行Output、基础单方法指标与utility、evaluation_refs，全部适用评价结束后才报告该请求完整。配对指标要求显式声明同请求Retrain；Retrain自身的GU对照配对评价明确标为not_applicable，缓存命中不跳过评价。执行轨迹按请求/方法定位，结果仍按声明坐标导出。独立Metrics入口在执行端读取已完成 run.json 的 Output 引用，从现有远端 Cache 重算；缺少、冲突或过时引用失败关闭。常规结果消费者不依赖本地图、模型或预测。

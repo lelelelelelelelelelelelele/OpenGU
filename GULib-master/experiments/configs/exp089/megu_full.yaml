@@ -1,0 +1,56 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp089-megu
+stage: unlearning
+dataset_refs:
+- citeseer_seed2025.yaml
+selector_refs:
+- ../exp087/full/seed73001/selector_S.yaml
+- ../exp087/full/seed73001/selector_M44.yaml
+- random.yaml
+- ../exp087/full/seed73003/selector_S.yaml
+- ../exp087/full/seed73003/selector_M44.yaml
+- ../exp087/full/seed73007/selector_S.yaml
+- ../exp087/full/seed73007/selector_M44.yaml
+- ../exp087/full/seed73009/selector_S.yaml
+- ../exp087/full/seed73009/selector_M44.yaml
+- ../exp087/full/seed73013/selector_S.yaml
+- ../exp087/full/seed73013/selector_M44.yaml
+- ../exp087/full/seed73019/selector_S.yaml
+- ../exp087/full/seed73019/selector_M44.yaml
+- ../exp087/full/seed73021/selector_S.yaml
+- ../exp087/full/seed73021/selector_M44.yaml
+- ../exp087/full/seed73027/selector_S.yaml
+- ../exp087/full/seed73027/selector_M44.yaml
+- ../exp087/full/seed73033/selector_S.yaml
+- ../exp087/full/seed73033/selector_M44.yaml
+- ../exp087/full/seed73039/selector_S.yaml
+- ../exp087/full/seed73039/selector_M44.yaml
+unlearning_refs:
+- ./full/seed73001/megu_m1.yaml
+- ./full/seed73003/megu_m1.yaml
+- ./full/seed73007/megu_m1.yaml
+- ./full/seed73009/megu_m1.yaml
+- ./full/seed73013/megu_m1.yaml
+- ./full/seed73019/megu_m1.yaml
+- ./full/seed73021/megu_m1.yaml
+- ./full/seed73027/megu_m1.yaml
+- ./full/seed73033/megu_m1.yaml
+- ./full/seed73039/megu_m1.yaml
+- ./full/seed73001/megu_m2.yaml
+- ./full/seed73003/megu_m2.yaml
+- ./full/seed73007/megu_m2.yaml
+- ./full/seed73009/megu_m2.yaml
+- ./full/seed73013/megu_m2.yaml
+- ./full/seed73019/megu_m2.yaml
+- ./full/seed73021/megu_m2.yaml
+- ./full/seed73027/megu_m2.yaml
+- ./full/seed73033/megu_m2.yaml
+- ./full/seed73039/megu_m2.yaml
+matrix: paired_inputs
+random_selector_seeds:
+- 44
+budget_ratios:
+- 0.05
+- 0.33
+return_scores: false

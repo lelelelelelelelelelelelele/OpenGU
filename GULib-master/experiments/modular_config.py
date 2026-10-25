@@ -433,7 +433,7 @@ def load_experiment(path):
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
     choice(value['stage'], ('selector', 'unlearning', 'metrics', 'retrain_diagnostics'), 'stage')
-    choice(value['matrix'], ('cartesian_product',), 'matrix')
+    choice(value['matrix'], ('cartesian_product', 'paired_inputs'), 'matrix')
     if value['stage'] in ('selector', 'unlearning') and not value.get('selector_refs'):
         raise ConfigurationError('selector_refs is required for selector and unlearning stages')
     if value['stage'] == 'selector' and value.get('unlearning_refs'):
@@ -629,7 +629,43 @@ def validate_repeats(config):
         if not models:
             raise ConfigurationError('seeds requires a model training consumer')
         if any('checkpoint' in instance for instance in models):
-            raise ConfigurationError('seeds cannot relabel an explicit checkpoint; use separate instances')
+            raise ConfigurationError('seeds cannot relabel an explicit checkpoint; use pre-bound paired_inputs')
+    if config['matrix'] == 'paired_inputs':
+        if config['stage'] != 'unlearning' or 'seeds' in config:
+            raise ConfigurationError('paired_inputs requires unlearning with pre-bound inputs, without a seeds override')
+        # A checkpoint is a fixed model input, never another Cartesian axis.
+        # Existing execution seeds pair the corresponding model consumers;
+        # their training settings and checkpoint declarations stay untouched.
+        gu_seeds = {item['training']['seed'] for item in config['unlearnings']}
+        selector_seeds = {item['training']['seed'] for item in config['selectors']
+                          if 'training' in item}
+        if selector_seeds and selector_seeds != gu_seeds:
+            raise ConfigurationError('paired_inputs requires matching Selector and GU execution seeds')
+
+
+def input_groups(config):
+    """Bound model inputs share a group; stateless selectors apply to each."""
+    if config['matrix'] == 'cartesian_product':
+        for seed in config.get('seeds', [None]):
+            yield seed, config
+        return
+    seeds = dict.fromkeys(item['training']['seed'] for item in config['unlearnings'])
+    for seed in seeds:
+        group = copy.deepcopy(config)
+        for kind in ('selector', 'unlearning'):
+            indices = [i for i, item in enumerate(config[kind + 's'])
+                       if 'training' not in item or item['training']['seed'] == seed]
+            group[kind + 's'] = [group[kind + 's'][i] for i in indices]
+            group[kind + '_refs'] = [group[kind + '_refs'][i] for i in indices]
+            group['configuration_sources'][kind + 's'] = [
+                group['configuration_sources'][kind + 's'][i] for i in indices]
+            if kind == 'unlearning' and 'unlearnings_by_dataset' in group:
+                group['unlearnings_by_dataset'] = [[items[i] for i in indices]
+                    for items in group['unlearnings_by_dataset']]
+                group['configuration_sources']['unlearnings_by_dataset'] = [
+                    [items[i] for i in indices]
+                    for items in group['configuration_sources']['unlearnings_by_dataset']]
+        yield seed, group
 
 
 def experiment_batches(config):
@@ -639,22 +675,22 @@ def experiment_batches(config):
     Training seeds are paired across the two model consumers, not crossed.
     """
     for index, dataset in enumerate(config['datasets']):
-        for seed in config.get('seeds', [None]):
+        for seed, inputs in input_groups(config):
             for ratio in config.get('budget_ratios', [None]):
-                batch = copy.deepcopy(config)
+                batch = copy.deepcopy(inputs)
                 batch['dataset'] = dataset
                 batch['dataset_directory'] = config['dataset_directories'][index]
                 batch['matrix_values'] = {**dataset_binding(config, index), 'training_seed': seed, 'budget_ratio': ratio}
-                if 'unlearnings_by_dataset' in config:
-                    batch['unlearnings'] = copy.deepcopy(config['unlearnings_by_dataset'][index])
+                if 'unlearnings_by_dataset' in inputs:
+                    batch['unlearnings'] = copy.deepcopy(inputs['unlearnings_by_dataset'][index])
                     batch['configuration_sources']['unlearnings'] = copy.deepcopy(
-                        config['configuration_sources']['unlearnings_by_dataset'][index])
+                        inputs['configuration_sources']['unlearnings_by_dataset'][index])
                     batch['effective_parameter_profile'] = copy.deepcopy(
                         config['effective_parameter_profiles'][index])
                 for kind in ('selector', 'unlearning'):
                     for instance_index, instance in enumerate(batch[kind + 's']):
                         sources = batch['configuration_sources'][kind + 's'][instance_index]
-                        if seed is not None and 'training' in instance:
+                        if 'seeds' in config and 'training' in instance:
                             instance['training']['seed'] = seed
                             sources['training.seed'] = 'experiment:seeds'
                         if kind == 'selector' and ratio is not None:
