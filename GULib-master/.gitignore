@@ -6,6 +6,11 @@ __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 
+# Local wheel builds and incidental uv tooling state are not deployment inputs.
+/build/
+/opengu_syncmate.egg-info/
+/uv.lock
+
 # Editor / OS
 .DS_Store
 Thumbs.db
