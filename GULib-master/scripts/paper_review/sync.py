@@ -146,7 +146,7 @@ class Cloud:
             raise ValueError('需要实际核对编译结果的观察记录。')
         # This is an explicit human/agent verification receipt, not inferred compiler success.
         state.update(status='已同步', verifiedAt=now(), compileUrl=compile_url,
-                     compileObservation=observation, baseline=state['remote'])
+                     compileObservation=observation, baseline=state['remote'], cloudChanged=[])
         self.state.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding='utf-8')
         (self.desk.state / 'cloud-baseline.zip').write_bytes(data)
         return self.status()

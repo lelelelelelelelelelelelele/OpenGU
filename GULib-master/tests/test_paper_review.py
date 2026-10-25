@@ -117,6 +117,7 @@ class ReviewTests(unittest.TestCase):
                           'https://www.overleaf.com/download/project/6ab3c34131990d0250f3d05d/build/test/output.pdf',
                           'Explicit test fixture observation, not a real cloud compilation')
         self.assertEqual('已同步', self.cloud.status()['status'])
+        self.assertEqual([], self.cloud.status()['cloudChanged'])
         (self.paper / 'main.tex').write_text('changed', encoding='utf-8')
         self.assertEqual('未验证', self.cloud.status()['status'])
 
