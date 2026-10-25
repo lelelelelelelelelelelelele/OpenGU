@@ -1,0 +1,25 @@
+# AAGU-125 GPU gate: includes the exact PubMed/seed2024/r_point failure.
+# Three datasets and both model-based/topological requests use matched Retrain.
+kind: experiment
+schema_version: 1
+experiment_id: exp011-t2
+stage: unlearning
+dataset_refs:
+- cora.yaml
+- citeseer.yaml
+- pubmed.yaml
+selector_refs:
+- r_point.yaml
+- pagerank.yaml
+unlearning_refs:
+- etr.yaml
+- retrain.yaml
+evaluation_refs:
+- post_unlearning_utility_and_retrain_gap.yaml
+- post_unlearning_flip_hop.yaml
+matrix: cartesian_product
+seeds:
+- 2024
+budget_ratios:
+- 0.1
+return_scores: false
