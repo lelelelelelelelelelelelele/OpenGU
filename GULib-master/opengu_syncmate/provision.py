@@ -258,17 +258,11 @@ def main():
         elif action == 'prepare':
             manifest = stage(root, request)
             result = ensure_runtime(root, manifest, request.get('node'))
-        elif action in ('ensure', 'entry', 'ensure-prepared'):
+        elif action in ('ensure', 'ensure-prepared'):
             manifest = load(root, request['source_sha'] if action == 'ensure-prepared' else None)
             if request.get('source_sha') and manifest['source_sha'] != request['source_sha']:
                 raise ValueError('node active deployment differs from controller')
             result = ensure_runtime(root, manifest, request.get('node'))
-            if action == 'entry':
-                raise SystemExit(subprocess.run([result['runtime_python'], '-I', '-X', 'utf8', '-B',
-                    '-m', 'opengu_syncmate', '--project-root', str(root), *request['argv']],
-                    input=request.get('stdin', ''), text=True, encoding='utf-8',
-                    stdout=sys.stdout, stderr=sys.stderr,
-                    **({'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {})).returncode)
         elif action == 'activate':
             manifest = load(root, request['source_sha'])
             if git(root, 'rev-parse', 'HEAD') != manifest['source_sha'] or git(root, 'status', '--porcelain=v1', '-uall'):

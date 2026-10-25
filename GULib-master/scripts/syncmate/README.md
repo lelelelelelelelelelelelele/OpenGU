@@ -1385,8 +1385,20 @@ python scripts/syncmate/syncmate.py --source-ref <full-sha> runner-agent dispatc
 OpenGU dispatch freezes the committed Recipe/config/defaults and original
 scientific validator. It saves the Core handoff and immutable
 `.syncmate/science/<job_id>.json` before node submission. The Core recipe digest
-authenticates the project declaration. Generic Core console submission does not
-carry this custom installed transport; use the fixed OpenGU CLI entry.
+authenticates the project declaration. The installed OpenGU console uses the
+same private preview/dispatch functions, then Core owns observation and return:
+
+```bash
+python scripts/syncmate/syncmate.py --source-ref <full-sha> console --port 8769
+```
+
+The desktop adds `--desktop` to keep its owner-input pipe live. The deployment
+launcher first verifies/prepares the exact installed runtime, then forwards the
+original stdin/stdout streams to that installed entry. Console configuration
+previews use the selected committed source worker; no mutable scientific module
+is imported into the long-lived HTTP process. Old original records remain
+available through the read-only original-record viewer; they are not migrated
+or promoted into current execution/verification contracts.
 
 OpenGU may submit declared jobs and inspect `manifest.json`, receipts, and
 results. It must not move files between queue states, add command/argument/path

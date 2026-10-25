@@ -1,19 +1,20 @@
 {
   "distribution": "opengu-syncmate",
   "files": {
-    "opengu_syncmate-0.2.0.dist-info/METADATA": "916200b010165d0de5356d228d929482877779f551ed571d28384a179ca3d71b",
-    "opengu_syncmate-0.2.0.dist-info/WHEEL": "78e2e134019ad845b7c1697f4d4e3ce21eead54360cb42578e3a2a2a8c400107",
-    "opengu_syncmate-0.2.0.dist-info/entry_points.txt": "d20b7bbd9020f5db17ad712511a2aa8bebf0bfd988073ca8d9124203eb0daa04",
+    "opengu_syncmate-0.2.0.dist-info/METADATA": "f15c2d384abc1b73b43aa8b00d66245abd69fd5fd3083d3a6f90f1abef537e1d",
+    "opengu_syncmate-0.2.0.dist-info/WHEEL": "04d44c0f2ccb92472696fd09f29a434249365440f7dd27ac243ca7afd103d607",
+    "opengu_syncmate-0.2.0.dist-info/entry_points.txt": "29035f12cad263f246525ffc08743c6e5e4ee067668c6ed22f941fb3e782955e",
     "opengu_syncmate-0.2.0.dist-info/top_level.txt": "4fe9dfdca3e7265ef0d3de19ec1747a6f37722979f34b79618439952b9300d96",
     "opengu_syncmate/__init__.py": "db6de6ea1a134891bc4a705497186721f5f678926a0247861995f1cc772d50e3",
     "opengu_syncmate/__main__.py": "2ba601bb1697245fe1efd7a16251d9929057a709b1d6f60efbbef4f15fc48bdf",
     "opengu_syncmate/adapter.py": "c208048cffaaa54fc73a240700bef9286c0491790296532c5b02cf60882fde1f",
-    "opengu_syncmate/control.py": "6c84b73898f1ad573719f4f70cef68c1e07e0c658b894c4a5c6b03219f93ed55",
-    "opengu_syncmate/provision.py": "266ab1ad133e972b32f9a99f937ac6b4413ffa60c5e102aebe5d7e355aa4228e",
+    "opengu_syncmate/console.py": "704ab19e265dc0e100083a25a07c1dfa2dd43af560f3fabf39d7f73d6ed1d898",
+    "opengu_syncmate/control.py": "cd4d3bf25c60e9a7d0cb0e77ffea971c98d0216e7961890dba1fe53d7b1c2835",
+    "opengu_syncmate/provision.py": "5ac4db7615748d7f5e021c20e80d4b1077454a2d9fce71b90350c71b52a8e28e",
     "opengu_syncmate/runtime.py": "2777132a193c34cccf5f28e96d47514a95625a43f0936d40c777161ef225442e",
     "opengu_syncmate/source_worker.py": "e38e9a21df9fb867cccbdd7cfeb2978ca3992745a717c9f018c4a15a9ca1f1be"
   },
   "version": "0.2.0",
   "wheel": "opengu_syncmate-0.2.0-py3-none-any.whl",
-  "wheel_sha256": "7cdf0eebe74a16ce44d1c48606c736cb87aeda97c00a23dfd6a609f904721e97"
+  "wheel_sha256": "773af71f16fac3f3d3a38ffd82b78ea1f34cdbd3bd892c3ed32c54d808a55568"
 }
