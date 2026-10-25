@@ -1,11 +1,11 @@
 {
   "distribution": "opengu-syncmate",
   "files": {
-    "opengu_syncmate-0.2.0.dist-info/METADATA": "f15c2d384abc1b73b43aa8b00d66245abd69fd5fd3083d3a6f90f1abef537e1d",
-    "opengu_syncmate-0.2.0.dist-info/WHEEL": "04d44c0f2ccb92472696fd09f29a434249365440f7dd27ac243ca7afd103d607",
-    "opengu_syncmate-0.2.0.dist-info/entry_points.txt": "29035f12cad263f246525ffc08743c6e5e4ee067668c6ed22f941fb3e782955e",
-    "opengu_syncmate-0.2.0.dist-info/top_level.txt": "4fe9dfdca3e7265ef0d3de19ec1747a6f37722979f34b79618439952b9300d96",
-    "opengu_syncmate/__init__.py": "db6de6ea1a134891bc4a705497186721f5f678926a0247861995f1cc772d50e3",
+    "opengu_syncmate-0.2.1.dist-info/METADATA": "5519d30b4a1a3a1ee6edcc7b8925c2d57e733ba2f0a11b9b6b88510c2465884f",
+    "opengu_syncmate-0.2.1.dist-info/WHEEL": "195f5a3138703ffe28342b6f102d9e737a9462eb6059e033925ae8ff49b85894",
+    "opengu_syncmate-0.2.1.dist-info/entry_points.txt": "29035f12cad263f246525ffc08743c6e5e4ee067668c6ed22f941fb3e782955e",
+    "opengu_syncmate-0.2.1.dist-info/top_level.txt": "4fe9dfdca3e7265ef0d3de19ec1747a6f37722979f34b79618439952b9300d96",
+    "opengu_syncmate/__init__.py": "7eb108aa33c48c1fda1595ff5ab2e0d20a58cbd7d8f46abdfd87318aad8c03f3",
     "opengu_syncmate/__main__.py": "2ba601bb1697245fe1efd7a16251d9929057a709b1d6f60efbbef4f15fc48bdf",
     "opengu_syncmate/adapter.py": "c208048cffaaa54fc73a240700bef9286c0491790296532c5b02cf60882fde1f",
     "opengu_syncmate/console.py": "704ab19e265dc0e100083a25a07c1dfa2dd43af560f3fabf39d7f73d6ed1d898",
@@ -14,7 +14,7 @@
     "opengu_syncmate/runtime.py": "2777132a193c34cccf5f28e96d47514a95625a43f0936d40c777161ef225442e",
     "opengu_syncmate/source_worker.py": "e38e9a21df9fb867cccbdd7cfeb2978ca3992745a717c9f018c4a15a9ca1f1be"
   },
-  "version": "0.2.0",
-  "wheel": "opengu_syncmate-0.2.0-py3-none-any.whl",
-  "wheel_sha256": "773af71f16fac3f3d3a38ffd82b78ea1f34cdbd3bd892c3ed32c54d808a55568"
+  "version": "0.2.1",
+  "wheel": "opengu_syncmate-0.2.1-py3-none-any.whl",
+  "wheel_sha256": "a93092f34c252f028ba28bb98fb43b9e53b7957f2abfbaa248ad193df6f6f54f"
 }

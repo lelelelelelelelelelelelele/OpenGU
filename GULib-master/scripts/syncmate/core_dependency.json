@@ -1,14 +1,14 @@
 {
-  "build_source_commit": "5337f55780452af7ab081f544e09f36f852328d9",
+  "build_source_commit": "a1802994f300a7def29afe7b7b57e703699d1cf9",
   "distribution": "syncmate",
   "files": {
-    "syncmate-0.7.0.dist-info/LICENSE": "6d10772cc99400ac24a64d51e473393423b9c582df512fe713a10ba5df19e1cb",
-    "syncmate-0.7.0.dist-info/METADATA": "56972f2b4e16238792f3ac087a0b352d569cad2ebd5b1bc21d11ca439d8acd8d",
-    "syncmate-0.7.0.dist-info/WHEEL": "04d44c0f2ccb92472696fd09f29a434249365440f7dd27ac243ca7afd103d607",
-    "syncmate-0.7.0.dist-info/entry_points.txt": "6aee4b38d463d2ebce47db0834dc039addb49614c75d66e5b5e7b9e48574a41c",
-    "syncmate-0.7.0.dist-info/top_level.txt": "9aba514b5d6a7b7e6a12cd4e46c4f22a4b8f91c826a537ae73af33f7b1ee46ad",
+    "syncmate-0.7.1.dist-info/LICENSE": "6d10772cc99400ac24a64d51e473393423b9c582df512fe713a10ba5df19e1cb",
+    "syncmate-0.7.1.dist-info/METADATA": "76caa60c1c62d5af59b4fc4fd2b15861e0c2244dfac4be4e8e84c51f7cdd9d14",
+    "syncmate-0.7.1.dist-info/WHEEL": "195f5a3138703ffe28342b6f102d9e737a9462eb6059e033925ae8ff49b85894",
+    "syncmate-0.7.1.dist-info/entry_points.txt": "6aee4b38d463d2ebce47db0834dc039addb49614c75d66e5b5e7b9e48574a41c",
+    "syncmate-0.7.1.dist-info/top_level.txt": "9aba514b5d6a7b7e6a12cd4e46c4f22a4b8f91c826a537ae73af33f7b1ee46ad",
     "syncmate.py": "311a6bfd3f961ddc93c4e4329d0f9211798966b5fa935a4305bc7547008129bf",
-    "syncmate_core/__init__.py": "62ea7543f30174d18ae54b9e2bfbb0b3a9437df4e12ca535e51b87470dba17ff",
+    "syncmate_core/__init__.py": "63d2972b8f1a149d5db98c40c511a894fa8dcacbaf9fe274dfc21ad6833acb1e",
     "syncmate_core/acceptance.py": "282ba0f99262fe1273e01f62e206edf449f0414ca8f1981b9a531592afba5082",
     "syncmate_core/artifacts.py": "0fa5c1de50da7a7a102c207dafe546f8683629a1a44071eff7e3c724d05307bf",
     "syncmate_core/automation.py": "26946d8f8e9b61c87065b40042c50fa8c041e92fce552153490b7b6ca92d8ba6",
@@ -57,11 +57,11 @@
     "syncmate_core/progress_sync.py": "069ae4655c6c69ee1a41ebca32394a89a482b07a120fb909cb3f1ae33c6c7b82",
     "syncmate_core/project.py": "fe254e002570cc4fbbe323c6c1a875120d5d9ff10afa2feaa6298281bcebc8ed",
     "syncmate_core/publish.py": "ecfeff417cbc61fb21b9dc2017f52cbe8298bd528581b7d5e806f65dffbd2772",
-    "syncmate_core/queue.py": "23518ac39a296f23df396eb80c7f4467696fd3a35e72a1a5712bc27ba41723b3",
+    "syncmate_core/queue.py": "69a222e28bf854172521af1c7101d3aeb6ad1fcc4ebe209049e59a701d20b48b",
     "syncmate_core/readiness.py": "249a1fd44c3da9a1370e47871f6133c588750da9de1e2faf48c48bc0c4c01b24",
     "syncmate_core/receipts.py": "aca577f7951263e880052f273aa2b400099d87a226d402d9b3d2662e6493e53b",
     "syncmate_core/recipes.py": "405f20cb8fd3bef85873e7817bd20f4983d73b6efe341f05efa4cc568a36bc35",
-    "syncmate_core/records.py": "fae05be97fca2dc9822bb459597d6743740ccdf9cde25fc66867293fb2e4e829",
+    "syncmate_core/records.py": "216f00596f82eab39fda8d89929257c90609aaf1393686836b0db74584c5d43c",
     "syncmate_core/run_handoff.py": "f928a8b1811a96a66746863e7b21da9071784872c9324adc39d8c86d95aa0689",
     "syncmate_core/runbook.py": "cca713adb058b1f3e1ff621d3383d4a68bf8e554df4c636e0869ebf09baf87a9",
     "syncmate_core/runner.py": "3865d0b350ce00d6fe3c1eca339be2330a447c5453dbb83b0edc6529c470af61",
@@ -80,8 +80,8 @@
     "syncmate_core/workflow.py": "cc270d7778e7510bc50ae87f47d61d7e9e2edc2431a8948b3ad6260167afedc9"
   },
   "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
-  "source_commit": "5337f55780452af7ab081f544e09f36f852328d9",
-  "version": "0.7.0",
-  "wheel": "syncmate-0.7.0-py3-none-any.whl",
-  "wheel_sha256": "1bba9aaeb63813613eb90726039061aab4a3d3ff498f0f44867f0aab0c5a1564"
+  "source_commit": "a1802994f300a7def29afe7b7b57e703699d1cf9",
+  "version": "0.7.1",
+  "wheel": "syncmate-0.7.1-py3-none-any.whl",
+  "wheel_sha256": "9c50092c974cb34ac36496a9e80f7d5c8c7c5a9c3997acc00c03ad51f5e48ae5"
 }
