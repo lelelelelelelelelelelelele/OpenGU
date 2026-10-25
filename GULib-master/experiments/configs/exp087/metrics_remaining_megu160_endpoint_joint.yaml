@@ -1,0 +1,1641 @@
+kind: experiment
+schema_version: 1
+stage: metrics
+matrix: cartesian_product
+experiment_id: exp087-megu160-endpoint-joint
+dataset_refs:
+- citeseer_seed2025.yaml
+output_inputs:
+- run: ../../../results/runs/exp087-megu-s73001/e87h01/run.json
+  sha256: f6152533fee4c140d39746a8de6bd9d744874afec0492d311f8a5a591da4af27
+  cell_ids:
+  - 86bef7684474d94547f1
+  - f582bca01feb8d85e318
+  - 6e3f10fe425f7fe2a9af
+  - 623004dc061c449d8b84
+  - f222c4bdc2d5142794f0
+  - 956936c5c1a9154cbbb5
+  - f6de838deceab9fa2f82
+  - ded3200f4b0ca36f3996
+  - 55bdabc8134d01433b4e
+  - 63bcb024ba58545f90c5
+  - 0f256753831fefbd6eb1
+  - 59e66a7b5c3a308e0e5a
+  - df252c3e671530ee8ed6
+  - 9bcb799a453643afb612
+  - f3c425e4c47da4225e18
+  - 5d932bb32eecfa507d6d
+- run: ../../../results/runs/exp087-megu-s73003/e87h02/run.json
+  sha256: b79c182f79c4fe66bb830306fc674adabb9d2bf31adbe770e7d4b129d32d467f
+  cell_ids:
+  - 7aa5e161166f9ed2e6d2
+  - 0cbd952579868e917a33
+  - 068619488ce333e02984
+  - b6eb1f9b7446648d742a
+  - e7fdabd9370c306cb96d
+  - 0eee4739879a236c1108
+  - 2f6f49edbc2b75c22f8f
+  - 85e0f6c421a904fa67eb
+  - b9cccb314069b09bd3a0
+  - bc39a0ccf8dd6505cf3d
+  - 3a96e006e2f24628a851
+  - 73dc243bfa01eac71792
+  - '28158255509073461977'
+  - 3648b7716d3949c860b3
+  - 5cb0ff9964bc1cdd0258
+  - 3b855c47030e54c512f7
+- run: ../../../results/runs/exp087-megu-s73007/e87h03/run.json
+  sha256: 98deef9ca5a9d89bda6d0092e46dc28de1ead7bc60ceed5bdf9875a11dbcb4ff
+  cell_ids:
+  - 2b25dbcf250232de9970
+  - fc23d2d7c685de4b4a6a
+  - c4e50d2367ee4143f127
+  - 99b39b720dd868a9ffbe
+  - fad4f6d98d9bc9e65509
+  - 273efe99a519bcf45723
+  - 11e90b138a75811a16e6
+  - 4a7aa05c5e989bde429c
+  - eb0e493135776521de05
+  - b1f8235e0142d5710433
+  - ce42ec3de2440364064a
+  - 2b30f0ab1190f109047b
+  - b667d29bbc86312959bf
+  - 4312c9d90efbfefd371d
+  - 0f4887553c24c438d3fb
+  - 40c9e536ce4ddb106a31
+- run: ../../../results/runs/exp087-megu-s73009/e87h04/run.json
+  sha256: 6473dc1de681191a2f60de9d5e6ba834e7601354da944e65cf8cfcfc60632e2c
+  cell_ids:
+  - 8beda93b9b33bc6a08da
+  - ab9aaf1f8098575e753c
+  - 3ad644fe339b4c6062a5
+  - 80930b4365257093d7c8
+  - b99532e768328f3d1d3f
+  - 73edee7f9146af7cda87
+  - 681c5c1dce1ef8a923f8
+  - 24bb3c77ac5fedee6280
+  - 0e4829a3cc0109f1c316
+  - 99bfbf66a011812b37e5
+  - ca7c88b6eb48531f3c08
+  - bf21e0d67f628ece543f
+  - 1b931bdf30559df57e49
+  - b1fc08c99014f91ebdc7
+  - 4b903c84515c670b99e9
+  - a3869e52699d17b4a5ad
+- run: ../../../results/runs/exp087-megu-s73013/e87h05/run.json
+  sha256: e7b4e2640e340f5880d746d46e95f2ec34581e51c7e511bd4244f12175a92c17
+  cell_ids:
+  - d76a79b4aaa251edb6c8
+  - c0d191a59cd0d0686ff8
+  - defd7cfbfcfbd10122eb
+  - 69aa8b0b36bbe16d50ee
+  - dc48092e8c9bad30279e
+  - 2c1affc520d063aa5d28
+  - 40368e531b47b86c39f5
+  - 94b5125fa45967b4048d
+  - a1124fc062f9e68e3d55
+  - ffd41d8b0b17df1b0d4d
+  - 1c2aa3d0179998117b69
+  - a2effb5dfc407af2947d
+  - 498038db6dff3d830dcd
+  - 3afe86063ac09e2f792d
+  - af47641f2428aa072221
+  - cccf9cd6893e52b1e2d1
+- run: ../../../results/runs/exp087-megu-s73019/e87h06b/run.json
+  sha256: 0db8ab816727cc5a46882e8ba278ecc90abb4f57bf0a1bdf7600bb3ee8316416
+  cell_ids:
+  - 062a4d58636524fd4dad
+  - a5306b074397fb5299e1
+  - 5a3aed71a7741f1a4e74
+  - f9c3946db5bf57999edb
+  - 976c2060c9d83ef57b3f
+  - 07a9c46232154e69bf69
+  - 31258c0eaec81553ea26
+  - 32e7bdaeed3975be54ac
+  - cacea83f19573a8e5c67
+  - 63de066cc759f8b0d307
+  - ae2ec4098b722b80d8b2
+  - 8ae168e4fb0eb912b23d
+  - 639ffe4a7180b19c79ed
+  - c4103b7cdbd8f5f179cb
+  - 27d203d6ffcf652c8908
+  - 49cafbd97b4660f77b1d
+- run: ../../../results/runs/exp087-megu-s73021/e87h07b/run.json
+  sha256: d729756e63a0342f36d7541cdd60f9e691d7b2b3faa86ad9fb4c6530cb02814a
+  cell_ids:
+  - f0a6d16a30f208a93947
+  - 549ee9beb716ebe7aa82
+  - 99e3998446e5ca52c3e4
+  - b5a5bec6ed8101a65312
+  - 9892ecc35190f5df4a85
+  - 5dd1422ee98f3543ec51
+  - 917d6b10eb53bc99bcd2
+  - 630ee2957d415f6f5c86
+  - d449922fbd37689bc4c6
+  - 99c508d7f72f50b5c089
+  - 4f6f7776f9ba4864851c
+  - 6b4ff55276feec34549f
+  - dd0ebfd97f5973ab5e2e
+  - 45c2626f1f3428098336
+  - 41e27d4d37fdd16aa1a2
+  - 00681680192773739cac
+- run: ../../../results/runs/exp087-megu-s73027/e87h08/run.json
+  sha256: acbadce2a71a47950333f0ad3e7d493b5cd757f941bc212f0f6a74051f91560f
+  cell_ids:
+  - 712270da1444189b8b26
+  - 050b0fdce86c229faf3f
+  - ae9635f833e43143af82
+  - ded2b9a3e6c51cee6385
+  - 2f0995b9c17b69025acb
+  - 47bad46f02a255854ffa
+  - a1eed8cdd1a3907baaba
+  - 0e7bf12253798a6a7cf4
+  - 922e74cadd4d9af93fb6
+  - 0ee98805466da7d8d1bb
+  - 066473d29373d7398e6b
+  - 2e2fe844be9822725d65
+  - 16b567b47645e00c61a9
+  - e30103faa9e38f335d19
+  - 77fd3496f2571af323d1
+  - 7283930e7b754d31ff1d
+- run: ../../../results/runs/exp087-megu-s73033/e87h09/run.json
+  sha256: e07284c8d28540764fbd9cb3241a727596ecb0096dab73bddc7d3441d5f3904a
+  cell_ids:
+  - 215f3f655a1fbd8ed218
+  - ff3eff90b2742732c182
+  - 1d1d186216e1e369e52e
+  - edd1f497a692682708ae
+  - 6b02ec31059bd26b12d0
+  - d507ea3855c35a263b60
+  - e5f2d64b3a3d1cab4755
+  - 58df5e7e45606444e042
+  - 9128d84b3cd552ecf709
+  - 3f4829b45e3bee0677cb
+  - 91fe1c7e4756131643dd
+  - 73e2e16799bb05a02e3e
+  - 6dac3adab147d1efa6c3
+  - c8717cbaca1369d4364b
+  - 3aa430196d8bbcaa05ad
+  - 0e57d16d8f252789fc99
+- run: ../../../results/runs/exp087-megu-s73039/e87h10/run.json
+  sha256: 8d317e912907eba31ae266f0593b141670ad00c3f98dba8326a9207010903888
+  cell_ids:
+  - 43c4db4adf3ad37547f3
+  - 38962dbec57cffce89ef
+  - b7a36ab974ede431daa3
+  - 6492f48abda3087e880a
+  - cd9ff58dcab1de346eb4
+  - 8fcfb3363d48342e2c9a
+  - 9a2b2c1db4404e1e1500
+  - 78ff3a14a40479c9b520
+  - 294689752c1cdb4aba1d
+  - d3fee2918c07dd4ddd47
+  - 7397811bc785c3500542
+  - ce94fda3e95e35c3747d
+  - 35e4b13eabb8ef7323d9
+  - 29504e8ff5c46568f587
+  - b6c92b1414c5b7561e8c
+  - 40e91f7a7772204e3016
+ret_endpoint_inputs:
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 70b2ba9753fdd330a917
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: baf8bc186115e3629d50
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: fb4302b9bb6807374f80
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: a808e3775745eabc05b1
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 5d05517ecefba235d3c3
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 3bd26ea7fcc0b6fadafd
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: a9f66d1e95a5db388dbb
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: ea582e293bf05ff9a446
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 4cd568e17fd7bad327f9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 1a3bfe5130f68eaf37cb
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 26842c29b338ae55bde9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 51926644d4b439a88117
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: e803c4c87eae6e7fd359
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 4ff2bfae7e414034241c
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: e6e2e79a8c0a22896130
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: cd6b7a2ef8adf1814897
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 692b697b5a67f1dc1f37
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 1a52dd23d203317b75be
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 967acbc0b4e9e067c5a0
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: ba21bbe482275155b133
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 1bb8976eaa863b7dac7e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 164e9d94f09efe5aaff7
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: ccfa414499b3cf4fe825
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: a486070412d8af8bac5a
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 3f1d33824a456104eace
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: dc04d404b465530407d1
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: b8e7445d85aec25195ef
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: c08fd01a01e0759fc67f
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 2b84a2a032ff676f1cda
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 3d15acf7cf14e52639e8
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 6e1a9536b0ce97f5563b
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 7e981a3cefe3674c0909
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 05674bd313dcdb86bc6b
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 4eb9b2591fb19c024893
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 69a0e36eb3f83aafe5af
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 319e252c4156064011fb
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: da1ae81bec7f893f5541
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 3186a12b2d18ef26d1d9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: e984af1b8cdc6de35a39
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 68dd0a1c514c5d83d948
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 8db56bd7ff17dcd81d30
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: a10a56645d9584d463ed
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 9f7b0f7e2d02f7429126
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: b0052132de9390a90af9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: e7103d6b057ebbaabffd
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: d239d80f9c0d1ed70d9e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: a5d692462805f20951ba
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 35ea3783d5124f58f267
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 3ee833b13e7355e2344a
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 1d300988ab4cc652eb1e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 1795009fa72ad0e033a6
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: d97f9a6edd9319bcfd90
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 927d95758a1e93ce2c3a
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: d5c8bb674644e8a0c14c
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 670d28b9843a9536d62d
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 28de9b886258f8fc6eca
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 3b5d9b3ff10130989cde
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: fb5819140c12a41f8e09
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 34a488fc2e763a98ee61
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: c338b17ace457b2cd182
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: d7154a73765388856459
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: aa18277e57c72b4ee6c7
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 504ab2142091e2da9a89
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f58a2fa9cdb2d3a9a2a9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 6485e0414d9d9f1e0036
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f2b8b0800f11b76bb8a9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 956c26fb361a37a082af
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: b47be87745d68e1b1a24
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 05be8e82c93f35867e59
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 0217f11fb7fe0b5ff0eb
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 074aa2ece07cbe27ba76
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 0957167ca794a32eea2d
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 08fe7b210390b42edb82
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: fe9fd20c60b8e023e292
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 201e877d3a87af7d9b6f
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 9ab8812b1af362fdcf04
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: ab55dcc2e9008ba17295
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 6eb46ddcbdbd10e7bac9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: d3a7cab8ab23372d6b85
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 20077c97c6e7c9ff9976
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 5aaf41af480057d78c14
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 2567cdf8b556902efa9f
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 7ed40161425f6711509f
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 6ed24c4f52d51e96d390
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f58848e4b5781d05b975
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: c4689f8a96c900278dce
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 4183347413a74a00f7aa
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: e89377902a75cd0123b1
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 0845af0106635fff72d3
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 1cb51f5bddb4df090431
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 43763bf85fb9632c287e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: ac98ae185ff4ebb33e64
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 52d7a867db1de8e53180
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 7c193dc27ca0a7f65b7b
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 795d606d27097f5b5054
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 0d9f2be7c9aff5ef0ff5
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 36e2ad041190b74611b9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f4c388fc13ca5f60c742
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: d5c04995dd7b04d0da15
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: c71725c07747d19efee6
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 4e3087d02825606205c9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 81d0b49b4eff959947bc
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 55338eae8dfd334c6f6b
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 63be0210bb579f18101a
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 105c6edbf621da880dd7
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 7f7ed4f0e91e598ff783
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 91c3126ed2709cc0d91f
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: cbcf4ba238342c77dd49
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: d2951ed455c4e2be3822
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 212a284f1d3b79aa8930
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 771f4e9aa42b5b5ded92
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 525dfabaf212dccbd735
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 6b2975c31ca0c26475d2
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: a9317ea8b68764ba6e13
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 2a6a185252d438845c06
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: bd8d32566e81e32851a6
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: ccc219bdde44adee645a
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 10c61d61ba41fa02fda9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f0ad61b1186ec12dc7fd
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f2dd0853e5d9f0d979b0
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: d523a7f92b3d24065c93
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f90df72d3479bd48c155
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 56bd65fd2931f6924452
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: dd5edbb853f1b49636ed
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: c1c357b23c2ea72184a8
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f68b4f57f2e490c7fa74
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 3ef02b8d2ccd36aa1471
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 906394fffae48bb9bec9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: fed5d2d22f7f2c4cf680
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 7f2879629f9847863d4d
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: b26fa4b3adb02edacdf3
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 5a3f3fe2a7a595d92b9b
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: a370bbc50376dd57bdb1
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: b6b77fb7c5cb8ebb1f23
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 7ade4fc0e8d313109ce3
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f92d8e354b356e8b5231
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: d4fe82dac75d3c12ea63
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: cee551bef72248d3f827
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: a3dcebd2ea031e6c515d
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: e912a49f8c255907d413
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 3514f2e616157d7d9caf
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 6dcdf522264b73a4ebc3
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 2830dcba26b837f3e6cd
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 325aa5b65656a63e7e6c
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: cc744b957d3010a31a6a
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: afe00da567792f27b829
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 6dd2040fe3e3520b9cd9
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f48bfad3832b6ae6129e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 103a2856a56e75dc4dc5
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: e72cb93d9425fdc10849
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 08e1b83b2fc7b58a2a10
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: a54cba515937b5f73a59
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: ab357d11228c58d1c78e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: f522e6c4deecde3eca40
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: a00bc07d74c2d10b4e16
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: ebcb39193bd1c1f1bc22
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 96cb0ed1cf39e998bff0
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 3bc97d50711eb73b6d6e
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: ac8056fd69f26b276821
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+- run: ../../../results/runs/exp087-ret-joint/e87j1/run.json
+  sha256: ed49f446c0b359d746afe8ed6eafee20cb45f8b903a9deb82a18f78631336663
+  cell_id: 12a26147230a26488442
+  repeat: reference
+  policy: ret-deterministic-v1
+  arm: joint
+  endpoints:
+  - final
+  - best
+evaluation_refs:
+- post_unlearning_ret_endpoint_sensitivity.yaml
