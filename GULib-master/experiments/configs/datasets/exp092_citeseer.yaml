@@ -1,0 +1,18 @@
+artifacts:
+  manifest: ../../../data/processed/transductive/citeseer__planetoid_70_10_20_seed2024.modular.json
+  manifest_sha256: ab079581b16c8ddfbe6a38edeba82a0669e7a9a7dc5577f79e9e379501651208
+  node_id_space: pyg-global-node-index-v1
+  split_hash: b8877443252d36d5863e1a534712091390cfb39127a726395d65592ead0dd14d
+dataset:
+  family: Planetoid
+  name: CiteSeer
+kind: dataset_split
+preprocessing:
+  adapter: OpenGU_persisted_processed_pair
+schema_version: 1
+split:
+  profile: planetoid_70_10_20_seed2024
+  seed: 2024
+  test_ratio: 0.2
+  train_ratio: 0.7
+  val_ratio: 0.1

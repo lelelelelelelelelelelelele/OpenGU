@@ -1,0 +1,17 @@
+kind: unlearning
+schema_version: 1
+model:
+  architecture: OpenGU.GCNNet
+  layers: 2
+  hidden_channels: 64
+training:
+  seed: 73001
+checkpoint: ../../../../../results/runtime/modular/e87x1/unlearning/933ac84eefe721a0bc2ca90a2a20606d1b1ba130b12d1d3afd9226e1457302d5/reference_assets/reference/final.pt
+deletion:
+  evaluation_graph: original
+method: GIF
+parameters:
+  iteration: 400
+  scale: 20418
+  damp: 0.11319888963911964
+  GIF_method: GIF

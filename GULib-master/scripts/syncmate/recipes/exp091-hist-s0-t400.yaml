@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp091-hist-s0-t400
+runner: experiment
+config_path: experiments/configs/exp091/hist_s0_t400.yaml
+config_sha256: a9e3fb1ea7ded7249860959bf135146d39ce7363a8681db09a63ffdae0cbab86
+configuration_fingerprint: 951d0baba146176bd0510cea1a66e5041a4e2b481efde7d250a0f8706e91795b
+run_identity:
+  experiment_id: exp091-hist-s0-t400
+  run_id: e91h03
+timeout_seconds: 780
+logical_cells: 3
+stage: unlearning
+expected_datasets:
+- num_nodes: 3327
+  candidate_count: 2328
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz

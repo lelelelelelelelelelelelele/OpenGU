@@ -1,0 +1,33 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp091-additional-s5-t100
+stage: unlearning
+dataset_refs:
+- ../datasets/exp091_citeseer.yaml
+selector_refs:
+- ../selectors/exp091_a_s5_sgc_r10.yaml
+- ../selectors/exp091_a_s5_gat_r10.yaml
+unlearning_refs:
+- ../unlearning/exp091_s5_t100.yaml
+evaluation_refs:
+- ../evaluations/exp091_post_unlearning_utility_and_retrain_gap.yaml
+- ../evaluations/exp091_post_unlearning_flip_hop.yaml
+- ../evaluations/exp091_post_unlearning_response_diagnostics.yaml
+matrix: cartesian_product
+return_scores: false
+execution:
+  gu_cache:
+    GIF: disabled
+observers:
+- name: linear_solver_trace
+  methods:
+  - GIF
+- name: same_graph_change
+  methods:
+  - GIF
+- name: hessian_calibration
+  methods:
+  - GIF
+exact_inputs:
+  path: inputs/additional_s5_t100.json
+  sha256: 2ff7076f98cc406f92ac43c28eca167cede06928f2c57bdc0ded2f1ceca338b5
