@@ -16,6 +16,11 @@ from opengu_adapter import OpenGUProjectExtension
 from deployment_policy import deployment_policy, installation_receipt, execution_readiness
 
 
+def prepare_console_runtime():
+    """Load project numerical DLLs before HTTP and observer threads start."""
+    from experiments import modular_config, modular_run  # noqa: F401
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     import argparse
@@ -54,6 +59,7 @@ def main(argv=None):
                          require_origin_main=policy['require_origin_main'], node_id=root_args.node_id) as project:
             if args.stop:
                 return console.cmd_console(args)
+            prepare_console_runtime()
             project = replace(project, execution_readiness=execution_readiness)
             console.serve_console({root.name: project}, args.port, args.desktop)
         return 0
