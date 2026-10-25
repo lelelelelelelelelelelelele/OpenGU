@@ -75,7 +75,7 @@ def commit(root):
 
 def cli(root, path, run_id):
     return subprocess.run([sys.executable, '-B', 'experiments/run.py', str(path),
-        '--run-id', run_id, '--syncmate', '--device-config', '.syncmate/device.yaml',
+        '--run-id', run_id, '--syncmate', '--node-id', 'runner', '--device-config', '.syncmate/device.yaml',
         '--verification-root', str(root)], cwd=root, capture_output=True, text=True,
         encoding='utf-8', timeout=120)
 
@@ -88,7 +88,7 @@ def declaration(root, path, stage):
     definition = assemble(load_declaration(declaration_path), root)
     # Only the existing disposable-verification CLI switches are fixture-specific.
     definition['argv'] = (*definition['argv'], '--device-config', '.syncmate/device.yaml',
-                          '--verification-root', str(root))
+                          '--verification-root', str(root), '--node-id', 'runner')
     return definition
 
 
@@ -128,7 +128,7 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
     direct = cli(root, path, 'direct')
     assert direct.returncode == 0, direct.stdout + direct.stderr
     direct_summary = json.loads(direct.stdout)
-    with context.use(root, extension=FixtureRegistration(definition)):
+    with context.use(root, extension=FixtureRegistration(definition), node_id='runner'):
         submitted = queue.runner_queue_submit('contract-job', definition['id'], expected_git_sha=sha)
         assert submitted['submitted'], submitted
         device, warnings = devices.load_device(root / '.syncmate/device.yaml')
@@ -154,10 +154,10 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
     else:
         assert len(actual['cells']) == 4
     assert before == {str(p.relative_to(root)): p.read_bytes() for p in root.rglob('*.yaml')
-                      if 'runner_queue' not in p.parts}
+                      if not {'runner_queue','runner_queues'} & set(p.parts)}
     collector = root / 'collector'
     collector.mkdir()
-    with context.use(collector, extension=FixtureRegistration(definition)):
+    with context.use(collector, extension=FixtureRegistration(definition), node_id='runner'):
         peer = devices.build_peer_config('runner', None, str(root), transport='local')
         from syncmate_core import progress, progress_sync, run_handoff
         from syncmate_core.controller import write_receipt
@@ -214,7 +214,8 @@ def test_device_configuration_controls_failure_before_production(workspace, devi
 
 
 def test_live_registration_invokes_ordinary_yaml_directly():
-    definition = OpenGUProjectExtension().resolve_recipe(ROOT, 'opengu-aagu007-v2')
+    with context.use(ROOT, extension=OpenGUProjectExtension(), node_id='gpu4090'):
+        definition = OpenGUProjectExtension().resolve_recipe(ROOT, 'opengu-aagu007-v2')
     assert definition['argv'][:3] == ('{python}', 'experiments/run.py', definition['config_path'])
     assert '--recipe' not in definition['argv']
     assert '--run-id' in definition['argv']

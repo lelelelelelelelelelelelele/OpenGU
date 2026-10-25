@@ -427,7 +427,7 @@ def load_experiment(path):
     fields(value, required | {'round',
         'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
         'seeds', 'random_selector_seeds', 'budget_ratios', 'im_selector_seeds', 'return_scores',
-        'execution', 'observers', 'parameter_profile_ref', 'ret_reference', 'ret_endpoint_inputs'},
+        'execution', 'observers', 'parameter_profile_ref', 'ret_reference', 'ret_endpoint_inputs', 'exact_inputs'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
@@ -590,6 +590,9 @@ def load_experiment(path):
     result['source_directory'] = str(path.parent)
     # Validate matrix axes while parsing, including during the ordinary dry-run.
     validate_repeats(result)
+    if 'exact_inputs' in result:
+        from experiments.exact_replay_inputs import validate_config
+        validate_config(result)
     return result
 
 
@@ -719,7 +722,11 @@ def configuration_fingerprint(path):
             refs.append(resolve_reference('parameter_profile_ref', value['parameter_profile_ref'], current.parent))
         children = [document(ref) for ref in refs]
         visited.remove(current)
-        return {'document': value, 'references': children}
+        result = {'document': value, 'references': children}
+        if 'exact_inputs' in value:
+            from experiments.exact_replay_inputs import read_document
+            result['exact_inputs'] = read_document(value['exact_inputs'], current.parent)
+        return result
     return hashlib.sha256(json.dumps(document(path), sort_keys=True,
         separators=(',', ':'), allow_nan=False).encode()).hexdigest()
 

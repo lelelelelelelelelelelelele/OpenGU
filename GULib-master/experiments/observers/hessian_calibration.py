@@ -123,6 +123,12 @@ class HessianCalibration:
                 actual_rhs, expected_rhs = matvec(rhs).detach(), self.expected(rhs)
                 self.measurements['hvp'] = dict(
                     probe_seed=self.parameters['probe_seed'], dtype=str(rhs.dtype),
+                    probe_absolute_error=scalar(magnitude(actual - expected)),
+                    probe_reference_l2=scalar(magnitude(expected)),
+                    rhs_absolute_error=scalar(magnitude(actual_rhs - expected_rhs)),
+                    rhs_reference_l2=scalar(magnitude(expected_rhs)),
+                    repeat_absolute_error=scalar(magnitude(repeated - actual)),
+                    repeat_reference_l2=scalar(magnitude(actual)),
                     probe_relative_error=relative_difference(actual, expected),
                     rhs_relative_error=relative_difference(actual_rhs, expected_rhs),
                     repeat_relative_error=relative_difference(repeated, actual),
