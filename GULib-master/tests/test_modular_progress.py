@@ -219,9 +219,9 @@ def test_exp079_detailed_progress_covers_each_request_and_method():
     config = load_experiment(root/'experiments/configs/exp079/surrogate_multiseed.yaml')
     steps = progress_steps(config)
     assert len(execution_batches(config)) == 120
-    assert len(steps) == 5764
+    assert len(steps) == 6484
     assert sum(step['total'] for step in steps if step['position']['stage'] == 'request_complete') == 360
     assert sum(step['total'] for step in steps if step['position']['stage'] == 'selector') == 360
-    assert sum(step['total'] for step in steps if step['position']['stage'] == 'unlearning') == 2520
+    assert sum(step['total'] for step in steps if step['position']['stage'] == 'unlearning') == 2880
     assert len({json.dumps(step['position'], sort_keys=True) for step in steps}) == len(steps)
     assert all(type(step['total']) is int and step['total'] > 0 for step in steps)

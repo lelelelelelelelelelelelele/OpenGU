@@ -1,0 +1,54 @@
+kind: experiment
+schema_version: 1
+experiment_id: exp088-gu
+stage: unlearning
+dataset_refs:
+- citeseer_seed2025.yaml
+selector_refs:
+- ./full/seed73001/profile_44.yaml
+- ./full/seed73001/profile_55.yaml
+- ./full/seed73001/profile_66.yaml
+- ./full/seed73003/profile_44.yaml
+- ./full/seed73003/profile_55.yaml
+- ./full/seed73003/profile_66.yaml
+- ./full/seed73007/profile_44.yaml
+- ./full/seed73007/profile_55.yaml
+- ./full/seed73007/profile_66.yaml
+- ./full/seed73009/profile_44.yaml
+- ./full/seed73009/profile_55.yaml
+- ./full/seed73009/profile_66.yaml
+- ./full/seed73013/profile_44.yaml
+- ./full/seed73013/profile_55.yaml
+- ./full/seed73013/profile_66.yaml
+- ./full/seed73019/profile_44.yaml
+- ./full/seed73019/profile_55.yaml
+- ./full/seed73019/profile_66.yaml
+- ./full/seed73021/profile_44.yaml
+- ./full/seed73021/profile_55.yaml
+- ./full/seed73021/profile_66.yaml
+- ./full/seed73027/profile_44.yaml
+- ./full/seed73027/profile_55.yaml
+- ./full/seed73027/profile_66.yaml
+- ./full/seed73033/profile_44.yaml
+- ./full/seed73033/profile_55.yaml
+- ./full/seed73033/profile_66.yaml
+- ./full/seed73039/profile_44.yaml
+- ./full/seed73039/profile_55.yaml
+- ./full/seed73039/profile_66.yaml
+unlearning_refs:
+- ../exp087/full/seed73001/gif.yaml
+- ../exp087/full/seed73003/gif.yaml
+- ../exp087/full/seed73007/gif.yaml
+- ../exp087/full/seed73009/gif.yaml
+- ../exp087/full/seed73013/gif.yaml
+- ../exp087/full/seed73019/gif.yaml
+- ../exp087/full/seed73021/gif.yaml
+- ../exp087/full/seed73027/gif.yaml
+- ../exp087/full/seed73033/gif.yaml
+- ../exp087/full/seed73039/gif.yaml
+parameter_profile_ref: gif_idea_fixed_pt.yaml
+matrix: paired_inputs
+budget_ratios:
+- 0.05
+- 0.33
+return_scores: false
