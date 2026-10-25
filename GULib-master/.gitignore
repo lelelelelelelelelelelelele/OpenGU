@@ -27,16 +27,10 @@ Thumbs.db
 # Reviewed manuscript sources and analysis archives live under report/paper/.
 /output/overleaf-sync-*/
 
-# Manuscript inputs; the full-document previews above remain device-local.
-!/report/paper/overleaf/figures/citeseer_selector_responses.pdf
-!/report/paper/overleaf/figures/pubmed_request_patterns.pdf
-!/report/paper/overleaf/figures/teaser-framework-draft.pdf
-!/report/paper/figures/exp080-ratio-response-20261025/disagreement_increment.pdf
-
 # Runtime logs (timestamped, large, regenerable)
 log/
 logs/
-report/daily-log/
+report/daily-log/*
 
 # AAGU-052 local diagnostic datasets and method traces stay device-local;
 # reviewed summaries and hashes live in the canonical WorkItem evidence.
@@ -78,3 +72,13 @@ GEMINI.md
 
 # Downloaded papers, extracted full text and reading previews are local inputs.
 /tmp/pdfs/
+
+# Retired research ownership: use the independent OpenGU-research repository.
+/self/research/*
+/report/paper/*
+/report/progress/*
+/report/docs/*
+/paper_writing/*
+/papers/*
+/output/paper-review-*/*
+/output/figures/*

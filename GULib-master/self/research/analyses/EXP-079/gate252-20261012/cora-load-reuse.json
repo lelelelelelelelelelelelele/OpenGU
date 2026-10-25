@@ -1,8 +1,0 @@
-{
-  "base_calls": 77,
-  "base_unique": 77,
-  "post_unlearning_utility_and_retrain_gap_expected_load_calls": 77,
-  "post_unlearning_flip_hop_expected_load_calls": 77,
-  "unique_outputs": 77,
-  "basis": "Derived from observed cache outcomes and current per-family loaded dict; not instrumented runtime call counts"
-}

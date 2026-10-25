@@ -38,7 +38,7 @@ def records():
 
 
 def frame():
-    return model.read_json(view.SOURCE / 'framework.json')
+    return dict(title='Work Plan', reviewed_at='2026-10-26', topics=[dict(question='Test question', narrative=['Test research context'])])
 
 
 @pytest.mark.parametrize('defect', ['id','old_experiment_id','experiment_as_block','state','evidence','analysis','decision','cycle','unknown_dependency','block','duplicate_id','config'])
@@ -70,7 +70,7 @@ def test_partially_verified_preparation_aliases_to_ongoing(tmp_path):
     pending = dict(preparation=rows[0]['preparation'],
                    configs=[dict(role='candidate', path='not-yet-created.yaml')],
                    sources=[dict(label='Pending candidate', path='not-yet-created.yaml')])
-    assert model.check_links({}, [pending], tmp_path, tmp_path) == 0
+    assert model.check_links({}, [pending], tmp_path, tmp_path, tmp_path) == 0
 
 
 def write_block(root, code, status):
@@ -93,7 +93,7 @@ def test_block_status_is_read_only_fail_closed_and_needs_delivery(tmp_path):
 
 
 def test_unrelated_block_and_graph_changes_do_not_change_experiment_or_view(tmp_path):
-    framework,rows=frame(),records();sources=view.Sources(view.ROOT,tmp_path)
+    framework,rows=frame(),records();sources=view.Sources(view.ROOT,tmp_path,tmp_path)
     page=tmp_path/'index.html'
     before=view.index_page(framework,rows,sources,page)
     serialized=json.dumps(rows,ensure_ascii=False)
@@ -121,7 +121,7 @@ def test_yaml_rendering_uses_actual_file_and_escapes_html(tmp_path):
     p=tmp_path/'experiments/configs/test.yaml';p.parent.mkdir(parents=True)
     p.write_text('kind: experiment\nbudget_ratios: [0.1]\nlabel: "<script>"\n')
     config=dict(path='experiments/configs/test.yaml',label='config',role='current')
-    sources=view.Sources(tmp_path,tmp_path)
+    sources=view.Sources(tmp_path,tmp_path,tmp_path)
     text=view.config_preview(config,sources,tmp_path/'index.html')
     assert '0.1' in text and '&lt;script&gt;' in text
     p.write_text('budget_ratios: [')
@@ -132,30 +132,38 @@ def test_unmaterialized_candidate_config_is_visible_but_not_a_broken_link(tmp_pa
     rows=records();r=rows[0]
     r['preparation']['state']='draft';r['configs'][0]['role']='candidate'
     (tmp_path/'report.md').write_text('evidence',encoding='utf-8')
-    assert model.check_links({},rows,tmp_path,tmp_path)>0
-    sources=view.Sources(tmp_path,tmp_path)
+    assert model.check_links({},rows,tmp_path,tmp_path,tmp_path)>0
+    sources=view.Sources(tmp_path,tmp_path,tmp_path)
     text=view.config_preview(r['configs'][0],sources,tmp_path/'index.html',True)
     assert '候选配置待创建' in text
     assert 'href=' not in text
 
     r['preparation']['state']='defined'
     with pytest.raises(ValueError,match='Missing sources'):
-        model.check_links({},rows,tmp_path,tmp_path)
+        model.check_links({},rows,tmp_path,tmp_path,tmp_path)
     with pytest.raises(ValueError,match='Missing experiment config'):
         view.config_preview(r['configs'][0],sources,tmp_path/'index.html')
 
 
-def test_catalog_classifies_development_without_registering_experiments():
-    rows=list(model.read_records(view.SOURCE / 'analyses').values());catalog=view.catalog(view.ROOT,rows)
-    assert any(c['owner']=='EXP-032' for c in catalog)
-    assert any(c['owner']=='AAGU-063' and c['kind']=='development' for c in catalog)
-    assert not any(r['id']=='AAGU-063' for r in rows)
-    assert len({c['path'] for c in catalog})==len(catalog)
+def test_catalog_classifies_development_without_registering_experiments(tmp_path):
+    research = tmp_path / 'research'
+    (research / 'self/research').mkdir(parents=True)
+    groups = {'exp001':dict(owner='EXP-001',kind='experiment'),
+              'aagu002':dict(owner='AAGU-002',kind='development')}
+    (research / 'self/research/config_groups.json').write_text(json.dumps(groups), encoding='utf-8')
+    for name in groups:
+        folder = tmp_path / 'experiments/configs' / name
+        folder.mkdir(parents=True)
+        (folder / 'test.yaml').write_text('kind: experiment', encoding='utf-8')
+    catalog = view.catalog(tmp_path, research, records())
+    assert {c['owner'] for c in catalog} == {'EXP-001', 'AAGU-002'}
+    assert any(c['owner']=='AAGU-002' and c['kind']=='development' for c in catalog)
+    assert len({c['path'] for c in catalog}) == len(catalog)
 
 
 @pytest.mark.parametrize('path',['../secret','/absolute','C:/secret','bad\\path','../../OpenGU-DocMap/../secret'])
 def test_unsafe_source_paths_rejected(path,tmp_path):
-    with pytest.raises(ValueError):model.resolve(tmp_path,tmp_path,path)
+    with pytest.raises(ValueError):model.resolve(tmp_path,tmp_path,tmp_path,path)
 
 
 def test_diagram_valid_and_all_explicit_dependencies_present(tmp_path):
@@ -167,7 +175,7 @@ def test_diagram_valid_and_all_explicit_dependencies_present(tmp_path):
 
 
 def test_repeated_generation_is_deterministic_and_escapes_data(tmp_path):
-    framework,rows=frame(),records(); sources=view.Sources(view.ROOT,tmp_path)
+    framework,rows=frame(),records(); sources=view.Sources(view.ROOT,tmp_path,tmp_path)
     assert view.index_page(framework,rows,sources,tmp_path/'index.html')==view.index_page(framework,rows,sources,tmp_path/'index.html')
     rows[0]['title']='</text><script>alert(1)</script>'
     content=view.index_page(framework,rows,sources,tmp_path/'index.html')
@@ -178,7 +186,7 @@ def test_training_diagnostic_experiment_page(tmp_path):
     rows = records()
     rows[0]['family'] = 'training-diagnostic'
     rows[0]['configs'] = []
-    page = view.sheet_page(rows[0], rows, view.Sources(view.ROOT, tmp_path), tmp_path / 'EXP-001.html')
+    page = view.sheet_page(rows[0], rows, view.Sources(view.ROOT, tmp_path, tmp_path), tmp_path / 'EXP-001.html')
     assert 'EXP-001 / 训练诊断' in page
 
 
@@ -189,16 +197,16 @@ def test_manifest_binding_checks_identity_count_and_file_hash(tmp_path):
     p.write_text(json.dumps(run))
     bound=dict(path='results/run/run.json',sha256=hashlib.sha256(p.read_bytes()).hexdigest(),experiment_id='e1',commit='a'*40,completed=1)
     rows=[{'attempts':[dict(run_id='r1',manifest=bound)]}]
-    assert model.verify_manifests(rows,tmp_path,tmp_path)==2
+    assert model.verify_manifests(rows,tmp_path,tmp_path,tmp_path)==2
     bound['completed']=2
-    with pytest.raises(ValueError,match='count mismatch'):model.verify_manifests(rows,tmp_path,tmp_path)
+    with pytest.raises(ValueError,match='count mismatch'):model.verify_manifests(rows,tmp_path,tmp_path,tmp_path)
     bound['completed']=1;artifact.write_text('changed')
-    with pytest.raises(ValueError,match='checksum mismatch'):model.verify_manifests(rows,tmp_path,tmp_path)
+    with pytest.raises(ValueError,match='checksum mismatch'):model.verify_manifests(rows,tmp_path,tmp_path,tmp_path)
 
 
 def test_missing_evidence_not_silently_omitted(tmp_path):
     with pytest.raises(ValueError,match='Missing sources'):
-        model.check_links({},[{'evidence':[dict(label='result',path='missing.json')]}],tmp_path,tmp_path)
+        model.check_links({},[{'evidence':[dict(label='result',path='missing.json')]}],tmp_path,tmp_path,tmp_path)
 
 
 def timed_attempt(*, actual_status='recorded', actual_seconds=120, cache_status='observed'):
@@ -225,7 +233,7 @@ def test_time_budget_is_optional_for_existing_entries(tmp_path):
 
     rows=records();rows[0]['time_budget']=None
     model.validate(rows)
-    text=view.time_budget_section(rows[0],view.Sources(view.ROOT,tmp_path),tmp_path/'EXP-001.html')
+    text=view.time_budget_section(rows[0],view.Sources(view.ROOT,tmp_path,tmp_path),tmp_path/'EXP-001.html')
     assert '估时未记录' in text
     assert '未记录' in text
 
@@ -298,7 +306,7 @@ def test_legacy_attempts_without_runtime_are_shown_as_unrecorded(tmp_path):
     assert summary['deviation_seconds'] is None
 
     page=tmp_path/'EXP-001.html'
-    sources=view.Sources(view.ROOT,tmp_path)
+    sources=view.Sources(view.ROOT,tmp_path,tmp_path)
     text=view.time_budget_section(rows[0],sources,page)
     assert '1 次历史尝试未记录 runtime' in text
     assert '实耗 未记录' in text
@@ -358,7 +366,7 @@ def test_time_match_waits_for_full_scope_runtime_and_cache():
 
 def test_time_budget_view_shows_estimate_actual_deviation_and_cache_counts(tmp_path):
     r=records()[0];r['attempts']=[timed_attempt()]
-    sources=view.Sources(view.ROOT,tmp_path)
+    sources=view.Sources(view.ROOT,tmp_path,tmp_path)
     page=tmp_path/'EXP-001.html'
     text=view.time_budget_section(r,sources,page)
     assert '120.00 秒' in text
@@ -380,7 +388,7 @@ def write_split(root, rows):
             (source / directory / (row['id'] + '.json')).write_text(json.dumps(data), encoding='utf-8')
 
 
-def test_split_load_preserves_information_and_uses_canonical_state(tmp_path):
+def test_split_load_uses_only_explicit_research_repository(tmp_path):
     rows = records()
     write_split(tmp_path, rows)
     assert model.load(tmp_path)[1] == rows
@@ -388,7 +396,7 @@ def test_split_load_preserves_information_and_uses_canonical_state(tmp_path):
     write_split(candidate, rows)
     for p in (candidate / 'self/research/experiments').glob('*.json'):
         p.unlink()
-    assert model.load(candidate, tmp_path)[1] == rows
+    assert model.load(tmp_path)[1] == rows
     with pytest.raises(ValueError, match='Missing local experiment state'):
         model.load(candidate)
 
@@ -424,7 +432,7 @@ def test_published_analysis_cannot_contain_live_state(tmp_path):
 def test_state_edits_leave_git_head_and_status_unchanged_analysis_is_tracked(tmp_path):
     write_split(tmp_path, records())
     source = tmp_path / 'self/research'
-    (source / '.gitignore').write_bytes((view.SOURCE / '.gitignore').read_bytes())
+    (source / '.gitignore').write_text('/experiments/\n', encoding='utf-8')
     def git(*args):
         return subprocess.check_output(['git', '-C', str(tmp_path), *args], text=True).strip()
     git('init', '-q')
@@ -441,3 +449,26 @@ def test_state_edits_leave_git_head_and_status_unchanged_analysis_is_tracked(tmp
     p = source / 'analyses/EXP-001.json'
     p.write_text(p.read_text() + '\n')
     assert 'self/research/analyses/EXP-001.json' in git('status', '--porcelain')
+
+
+def test_distinct_roots_have_one_owner_and_never_fall_back(tmp_path):
+    code, canonical, research = [tmp_path / name for name in ('code', 'canonical', 'research')]
+    for root in (code, canonical, research):
+        root.mkdir()
+    assert model.resolve(code,canonical,research,'experiments/configs/test.yaml') == code/'experiments/configs/test.yaml'
+    assert model.resolve(code,canonical,research,'self/research/analyses/EXP-001.json') == research/'self/research/analyses/EXP-001.json'
+    assert model.resolve(code,canonical,research,'self/research/experiments/EXP-001.json') == research/'self/research/experiments/EXP-001.json'
+    assert model.resolve(code,canonical,research,'report/paper/overleaf/main.tex') == research/'report/paper/overleaf/main.tex'
+    assert model.resolve(code,canonical,research,'results/run.json') == canonical/'results/run.json'
+    assert model.resolve(code,canonical,research,'.workblock/items/AAGU-072/WORKITEM.md') == canonical/'.workblock/items/AAGU-072/WORKITEM.md'
+    stale=code/'self/research/analyses/EXP-001.json'
+    stale.parent.mkdir(parents=True);stale.write_text('stale code-owned research',encoding='utf-8')
+    target=model.resolve(code,canonical,research,'self/research/analyses/EXP-001.json')
+    assert not target.exists()
+
+
+def test_current_blocked_preparation_is_preserved_in_display():
+    rows=records();rows[0]['preparation']['state']='blocked'
+    model.validate(rows)
+    assert '准备受阻' in view.badge('preparation','blocked')
+    assert rows[0]['preparation']['state']=='blocked'

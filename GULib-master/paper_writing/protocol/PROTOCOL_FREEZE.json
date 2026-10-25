@@ -1,9 +1,0 @@
-{
-  "version": "1.0",
-  "frozen_at": "2026-10-24T07:55:15.5844558+08:00",
-  "protocol": "ROUND3_EXECUTION_PROTOCOL.md",
-  "sha256": "d329095471847cb720d64c721df27e0f9363f2e0af3065dbefe30d0947124d40",
-  "phase": "before_any_new_formal_gpu_dispatch",
-  "writing_gate": "not_met",
-  "review": "Independent prelaunch rule review: fixed A direction/confirmation, A controls, Ret Degree/pilot scope, exact C&S matching, finite Random draws, missing-core rule incorporated."
-}

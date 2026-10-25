@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 STATES = {
-    'preparation': {'draft': '待定义', 'preparing': '准备中', 'ready': '准备就绪', 'ongoing': '进行中', 'defined': '定义已固定'},
+    'preparation': {'draft': '待定义', 'preparing': '准备中', 'ready': '准备就绪', 'ongoing': '进行中', 'defined': '定义已固定', 'blocked': '准备受阻'},
     'execution': {'unknown': '待核对', 'pending': '待运行', 'running': '运行中',
                   'partial': '部分完成', 'completed': '运行已完成', 'not_required': '无需新运行', 'failed': '运行失败'},
     'analysis': {'not_started': '待分析', 'working': '分析中', 'review': '待复核', 'complete': '分析已交付'},
@@ -32,10 +32,10 @@ def canonical_state(stage, state):
     return STATE_ALIASES.get(stage, {}).get(state, state)
 
 
-def load(root, canonical=None):
-    source = root / 'self/research'
+def load(research):
+    source = research / 'self/research'
     frame = read_json(source / 'framework.json')
-    states = read_records((canonical or root) / 'self/research/experiments')
+    states = read_records(source / 'experiments')
     analyses = read_records(source / 'analyses')
     if not states or analyses.keys() - states.keys():
         raise ValueError('Missing local experiment state; restore self/research/experiments '
@@ -350,7 +350,7 @@ def refs(value):
             yield from refs(child)
 
 
-def resolve(root, canonical, path):
+def resolve(root, canonical, research, path):
     if path.startswith('../../OpenGU-DocMap/'):
         suffix = path[len('../../OpenGU-DocMap/'):]
         target = canonical.parent.parent / 'OpenGU-DocMap' / suffix
@@ -360,11 +360,18 @@ def resolve(root, canonical, path):
     p = Path(path)
     if p.anchor or '..' in p.parts or ':' in path or '\\' in path:
         raise ValueError('Unsafe source path: ' + path)
-    base = canonical if path.startswith(('.workblock/', 'results/', '.syncmate/', 'self/research/experiments/')) else root
+    if path.startswith(('.workblock/', 'results/', '.syncmate/')):
+        base = canonical
+    elif path.startswith(('.planning/paper-v1/', 'self/', 'report/paper/', 'report/progress/', 'report/daily-log/',
+                          'report/docs/', 'paper_writing/', 'papers/', 'output/',
+                          'reports/forgetting_response_audit/', 'reports/research-navigation-plan/')):
+        base = research
+    else:
+        base = root
     return base / p
 
 
-def check_links(frame, records, root, canonical):
+def check_links(frame, records, root, canonical, research):
     references = list(refs([frame, records]))
     pending_candidates = {
         config['path']
@@ -372,27 +379,27 @@ def check_links(frame, records, root, canonical):
         if canonical_state('preparation', record.get('preparation', {}).get('state')) in {
                 'draft', 'preparing', 'ongoing'}
         for config in record.get('configs', [])
-        if config['role'] == 'candidate' and not resolve(root, canonical, config['path']).exists()
+                if config['role'] == 'candidate' and not resolve(root, canonical, research, config['path']).exists()
     }
     missing = [r['path'] for r in references
                if r['path'] not in pending_candidates
-               and not resolve(root, canonical, r['path']).exists()]
+               and not resolve(root, canonical, research, r['path']).exists()]
     if missing:
         raise ValueError('Missing sources: ' + ', '.join(sorted(set(missing))))
     return sum(r['path'] not in pending_candidates for r in references)
 
 
-def verify_manifests(records, root, canonical):
+def verify_manifests(records, root, canonical, research):
     """Explicit selected manifests only; does not turn local files into trusted evidence."""
     count = 0
     for record in records:
         if record.get('published_analysis'):
-            count += verify_manifests([record['published_analysis']], root, canonical)
+            count += verify_manifests([record['published_analysis']], root, canonical, research)
         for attempt in record['attempts']:
             bound = attempt.get('manifest')
             if not bound:
                 continue
-            path = resolve(root, canonical, bound['path'])
+            path = resolve(root, canonical, research, bound['path'])
             raw = path.read_bytes()
             if hashlib.sha256(raw).hexdigest() != bound['sha256']:
                 raise ValueError('Manifest changed: ' + attempt['run_id'])

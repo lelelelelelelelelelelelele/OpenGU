@@ -1,6 +1,0 @@
-{
-  "passed": true,
-  "checks": 10906,
-  "curve_points": 1160,
-  "method": "csv/statistics independent H, interaction, D_extra, means, SD, profile-distance and all within-selector curve-point recomputation."
-}

@@ -10,7 +10,6 @@ import yaml
 from scripts.dashboard import workplan_model as model
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / 'self/research'
 STAGE_NAMES = {'preparation': '创建与准备', 'execution': '运行', 'analysis': '分析', 'decision': '科学决定'}
 FAMILIES = {'main': 'GU 主实验', 'if': 'IF 与数值验证', 'im': 'IM', 'baseline': '共同参照', 'shared': '跨实验分析', 'training-diagnostic': '训练诊断'}
 
@@ -20,11 +19,11 @@ def esc(text):
 
 
 class Sources:
-    def __init__(self, root, canonical):
-        self.root, self.canonical = root.resolve(), canonical.resolve()
+    def __init__(self, root, canonical, research):
+        self.root, self.canonical, self.research = root.resolve(), canonical.resolve(), research.resolve()
 
     def resolve(self, path):
-        return model.resolve(self.root, self.canonical, path)
+        return model.resolve(self.root, self.canonical, self.research, path)
 
     def href(self, path, page):
         target = self.resolve(path)
@@ -392,8 +391,8 @@ def index_page(frame, records, sources, page):
     return shell(frame['title'], body)
 
 
-def catalog(root, records):
-    groups = model.read_json(root / 'self/research/config_groups.json')
+def catalog(root, research, records):
+    groups = model.read_json(research / 'self/research/config_groups.json')
     roles = {c['path']: c['role'] for r in records for c in r['configs']}
     result = []
     for name, group in groups.items():
@@ -411,15 +410,15 @@ def catalog(root, records):
 
 
 def catalog_page(records, sources, page):
-    rows = catalog(sources.root, records)
+    rows = catalog(sources.root, sources.research, records)
     body = '<main class="shell">' + nav() + f'<header><h1>配置目录</h1><p>{len(rows)} 份编号实验目录及 IM 目录中的 YAML。参数直接读取原文件；文件数量不是实验数量。</p></header><div class="table-scroll"><table><thead><tr><th>归属</th><th>文件</th><th>类型</th><th>用途</th></tr></thead><tbody>'
     for r in rows:
         body += '<tr><td>' + (f'<a href="experiments/{r["owner"]}.html">{r["owner"]}</a>' if r['kind'] == 'experiment' else esc(r['owner']) + ' 开发验证') + '</td><td>' + sources.anchor(r, page) + f'<p class="path">{esc(r["path"])}</p></td><td>{esc(r["config_kind"])}</td><td>{esc(r["role"])}</td></tr>'
     return shell('Work Plan · 配置目录', body + '</tbody></table></div></main>')
 
 
-def document_page(title, filename):
-    text = (SOURCE / filename).read_text(encoding='utf-8')
+def document_page(title, filename, research):
+    text = (research / 'self/research' / filename).read_text(encoding='utf-8')
     body = '<main class="shell prose">' + nav() + f'<header><h1>{esc(title)}</h1></header>'
     in_code = False
     for line in text.splitlines():
@@ -441,8 +440,8 @@ def outputs(frame, records, sources, directory):
     result = {directory / 'index.html': index_page(frame, records, sources, directory / 'index.html'),
               directory / 'diagram/experiment-dependencies.svg': diagram(records, sources.canonical, '../experiments/'),
               directory / 'catalog.html': catalog_page(records, sources, directory / 'catalog.html'),
-              directory / 'runbook.html': document_page('实验运行流程', 'RUNBOOK.md'),
-              directory / 'migration.html': document_page('实验归属整理', 'MIGRATION.md')}
+              directory / 'runbook.html': document_page('实验运行流程', 'RUNBOOK.md', sources.research),
+              directory / 'migration.html': document_page('实验归属整理', 'MIGRATION.md', sources.research)}
     for r in records:
         path = directory / 'experiments' / f'{r["id"]}.html'
         result[path] = sheet_page(r, records, sources, path)
@@ -452,19 +451,24 @@ def outputs(frame, records, sources, directory):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--canonical-root', type=Path, default=ROOT)
-    parser.add_argument('--output-dir', type=Path, default=SOURCE)
+    parser.add_argument('--research-root', type=Path, required=True,
+                        help='Independent private research repository; never inferred from code Git')
+    parser.add_argument('--output-dir', type=Path)
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--check-links', action='store_true')
     parser.add_argument('--verify-evidence', action='store_true')
     args = parser.parse_args(argv)
     try:
-        frame, records = model.load(ROOT, args.canonical_root)
-        sources = Sources(ROOT, args.canonical_root)
+        research = args.research_root.resolve()
+        if not (research / 'research.json').is_file():
+            raise ValueError('Missing research repository connection: ' + str(research / 'research.json'))
+        frame, records = model.load(research)
+        sources = Sources(ROOT, args.canonical_root, research)
         if args.check_links:
-            print('Source references:', model.check_links(frame, records, ROOT, sources.canonical))
+            print('Source references:', model.check_links(frame, records, ROOT, sources.canonical, research))
         if args.verify_evidence:
-            print('Explicit manifest / file hashes:', model.verify_manifests(records, ROOT, sources.canonical))
-        generated = outputs(frame, records, sources, args.output_dir.resolve())
+            print('Explicit manifest / file hashes:', model.verify_manifests(records, ROOT, sources.canonical, research))
+        generated = outputs(frame, records, sources, (args.output_dir or research / 'self/research').resolve())
         for path, content in generated.items():
             if args.check:
                 if not path.exists() or path.read_text(encoding='utf-8') != content:
