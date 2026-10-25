@@ -396,7 +396,7 @@ def build_event(
 
 
 @contextmanager
-def _exclusive_lock(path: Path, timeout_s: float = 10.0, stale_after_s: float = 120.0):
+def _exclusive_lock(path: Path, timeout_s: float = 10.0):
     lock_path = path.with_name(path.name + ".lock")
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     deadline = time.monotonic() + timeout_s
@@ -406,13 +406,6 @@ def _exclusive_lock(path: Path, timeout_s: float = 10.0, stale_after_s: float = 
             fd = os.open(str(lock_path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
             os.write(fd, "{0} {1}\n".format(os.getpid(), _utc_now()).encode("utf-8"))
         except FileExistsError:
-            try:
-                age = time.time() - lock_path.stat().st_mtime
-                if age > stale_after_s:
-                    lock_path.unlink()
-                    continue
-            except FileNotFoundError:
-                continue
             if time.monotonic() >= deadline:
                 raise TimeoutError("timed out waiting for AutoReport lock: {0}".format(lock_path))
             time.sleep(0.05)
@@ -477,9 +470,12 @@ def append_event(
     path = event_path_from_env(event_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     written = False
-    with _exclusive_lock(path):
+    while True:
+        # A cold/shared stream can be large. Validate a snapshot before taking
+        # the append lock, then require that exact snapshot while holding it.
         stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
         cached = _validated_streams.get(path)
+        integrity_problem = None
         if cached is None or cached.stamp != stamp:
             existing, stream_warnings = read_event_stream(path)
             integrity_errors = []
@@ -489,40 +485,47 @@ def append_event(
                 except EventValidationError as exc:
                     integrity_errors.append("event {0}: {1}".format(index, exc))
             if stream_warnings or integrity_errors:
-                details = "; ".join((stream_warnings + integrity_errors)[:5])
+                integrity_problem = "; ".join((stream_warnings + integrity_errors)[:5])
+            else:
+                cached = _ValidatedStream(stamp)
+                for existing_event in existing:
+                    cached.add(existing_event)
+        with _exclusive_lock(path):
+            current_stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
+            if current_stamp != stamp:
+                continue
+            if integrity_problem is not None:
                 raise EventStreamCorruptionError(
-                    "refusing to append to an untrusted AutoReport stream: {0}".format(details)
+                    "refusing to append to an untrusted AutoReport stream: {0}".format(integrity_problem)
                 )
-            cached = _ValidatedStream(stamp)
-            for existing_event in existing:
-                cached.add(existing_event)
-        if event_value["dedup_key"] not in cached.dedup_keys:
-            attempt = (event_value["cell_id"], event_value["run_id"])
-            _check_transition_conflict(cached.attempts.get(attempt, ()), event_value)
-            prefix = ""
-            if path.exists() and path.stat().st_size:
-                with path.open("rb") as existing_file:
-                    existing_file.seek(-1, os.SEEK_END)
-                    if existing_file.read(1) not in (b"\n", b"\r"):
-                        prefix = "\n"
-            line = prefix + _canonical_json(event_value) + "\n"
-            with path.open("a", encoding="utf-8", newline="\n") as file_obj:
-                file_obj.write(line)
-                file_obj.flush()
-                os.fsync(file_obj.fileno())
-            written = True
-            # Cache the serialized fact, detached from caller-owned nested data.
-            cached.add(json.loads(line))
-        stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
-        cached.stamp = stamp
-        _validated_streams[path] = cached
-        if refresh:
-            refresh_status_views(
-                event_path=path,
-                status_md_path=status_md_path,
-                status_html_path=status_html_path,
-                acquire_lock=False,
-            )
+            if event_value["dedup_key"] not in cached.dedup_keys:
+                attempt = (event_value["cell_id"], event_value["run_id"])
+                _check_transition_conflict(cached.attempts.get(attempt, ()), event_value)
+                prefix = ""
+                if path.exists() and path.stat().st_size:
+                    with path.open("rb") as existing_file:
+                        existing_file.seek(-1, os.SEEK_END)
+                        if existing_file.read(1) not in (b"\n", b"\r"):
+                            prefix = "\n"
+                line = prefix + _canonical_json(event_value) + "\n"
+                with path.open("a", encoding="utf-8", newline="\n") as file_obj:
+                    file_obj.write(line)
+                    file_obj.flush()
+                    os.fsync(file_obj.fileno())
+                written = True
+                # Cache the serialized fact, detached from caller-owned nested data.
+                cached.add(json.loads(line))
+            stamp = (path.stat().st_size, path.stat().st_mtime_ns) if path.exists() else None
+            cached.stamp = stamp
+            _validated_streams[path] = cached
+            if refresh:
+                refresh_status_views(
+                    event_path=path,
+                    status_md_path=status_md_path,
+                    status_html_path=status_html_path,
+                    acquire_lock=False,
+                )
+        break
     return AppendResult(
         event_id=str(event_value["event_id"]),
         dedup_key=str(event_value["dedup_key"]),
