@@ -1,14 +1,14 @@
 schema_version: 1
-id: exp080-etr-gate
+id: exp080-cc-base-g4
 runner: experiment
-config_path: experiments/configs/exp080/cc_etr_gate.yaml
-config_sha256: 9994046bf3542cba941f4c60c2a4f049b7e26b065b161b2eec982bdf80039e1e
-configuration_fingerprint: 59c96fcbf6fa5d6f4d1fd77d6eebd6db19ebd8ae76f23083077a34a8af06b2b7
+config_path: experiments/configs/exp080/cc_base_gate.yaml
+config_sha256: 936de73866e3e0a6efa95ea65768e2fdd1a14d58e4249002a19dbfebf8065201
+configuration_fingerprint: fb66bba73ab01e1ffa20f6c9292d2de68ffeaa046e8adc164e98995803aa5cb7
 run_identity:
-  experiment_id: exp080-cc-etr-gate
-  run_id: e80eg1
+  experiment_id: exp080-cc-base-gate
+  run_id: e80g401
 timeout_seconds: 7200
-logical_cells: 8
+logical_cells: 32
 stage: unlearning
 expected_datasets:
 - num_nodes: 2708

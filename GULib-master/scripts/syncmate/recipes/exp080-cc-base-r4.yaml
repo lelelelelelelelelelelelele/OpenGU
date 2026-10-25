@@ -1,14 +1,14 @@
 schema_version: 1
-id: exp080-etr-r1
+id: exp080-cc-base-r4
 runner: experiment
-config_path: experiments/configs/exp080/cc_etr.yaml
-config_sha256: 11c4e650c9ec85c1c382d420869df7135fb01b050dc9c164392e9513b06e9029
-configuration_fingerprint: 843af757e8c64e33a727f6a66db47d37d104d26caf2d1bc5182dc596f74ac2c2
+config_path: experiments/configs/exp080/cc_base.yaml
+config_sha256: d837c18c6690b2e61760eb114844b7bc699759b12f63acfa9d33994fa1c91ee8
+configuration_fingerprint: 8f6c6d6e139a8648057128d0cb67b911e346b1583cec56ac8154eed4418e11f8
 run_identity:
-  experiment_id: exp080-cc-etr
-  run_id: e80etr1
+  experiment_id: exp080-cc-base
+  run_id: e80r401
 timeout_seconds: 21600
-logical_cells: 588
+logical_cells: 2016
 stage: unlearning
 expected_datasets:
 - num_nodes: 2708

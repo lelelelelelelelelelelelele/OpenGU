@@ -1,25 +1,24 @@
 # EXP-080 ratio response configuration
 
-## ETR supplement
+## Complete tables including ETR
 
-`cc_etr.yaml` adds ETR and explicit same-request Retrain over Cora/CiteSeer,
-training seeds 42/212/2024 and deletion ratios 5%, 7.5%, 10%, 15%, 22%, 33%,
-50%. It retains the five selection strategies, including three IM draws,
-and the evaluation definitions of the completed matrix. The full table has
-588 rows: 294 ETR and 294 Retrain. Existing exact results remain reusable;
-the 294 repeated Retrain rows are not new independent scientific conditions.
+Add ETR directly to each existing `cc_*.yaml` main table and its gate. Each
+submission retains all applicable GU methods and explicit same-request Retrain;
+exact matching Score, Selection, Output and Evaluation artifacts are reused by
+the ordinary cache lookup. An added method does not require a separate scientific
+table or joining method-specific exports. The unsubmitted ETR-only ratio tables
+and Recipes have been retired; their frozen preparation remains in Git history.
 
-`cc_etr_gate.yaml` checks Degree at 5% and 50% on both datasets, seed 42,
-with ETR and Retrain (8 rows, an exact subset of the main table). The new
-declarations are `exp080-etr-gate` / `e80eg1` (7200-second cap) and
-`exp080-etr-r1` / `e80etr1` (21600-second cap). The authorized sequence waits
-for EXP-079's verified return and project check, then this gate's verified
-return and project check before submitting the full table. Runtime state and
-budget are owned by Work Plan; configuration preparation is not GPU execution.
+The complete main scope is 2310 rows: base2016, Cora50%126, CiteSeer50%168.
+Their gates have32,6,8 rows. ETR adds294 scientific conditions; the existing
+Retrain rows appear once per condition. Training seeds, selectors, IM draws,
+budgets, profiles and evaluation definitions are unchanged for existing methods.
 
-ETR has no shard-aggregation constraint at Cora 50%; the old 42 unavailable
-sharded endpoints remain excluded from their original evidence. PubMed remains
-deferred. Existing scientific decisions and result files are preserved.
+The three existing rectangles remain necessary: Cora50% excludes GraphEraser
+and GraphRevoker under the fixed1000-sample aggregation constraint. ETR is
+included there. PubMed remains deferred. Every run uses a fresh run ID and a
+complete reviewed declaration; historical results and scientific decisions are
+preserved. Work Plan owns the current queue order, budgets and execution facts.
 
 The current prepared scope is **Cora + CiteSeer**. PubMed is deferred. The
 `cc_*.yaml` definitions replace the previous ten-group submission plan; Work Plan
@@ -31,28 +30,29 @@ unchanged. In particular, GraphEraser and GraphRevoker retain
 `num_opt_samples: 1000`. Existing exact cache artifacts are eligible for ordinary
 reuse; a new experiment ID or run ID does not force recomputation.
 
-The original matrix contains 3087 unique conditions. The current scope contains
-**2016 unique main output rows**, with no duplicated Retrain rows across the
-three main tables. It defers 1029 PubMed rows and excludes the same 42 infeasible
-Cora endpoint rows described below. Seeds, selectors, deletion ratios and all
-evaluation definitions are unchanged within the retained conditions.
+Before ETR, the original matrix contained3087 unique conditions and the retained
+Cora/CiteSeer scope contained2016 main rows. The complete current scope contains
+**2310 unique main output rows**, with no duplicated Retrain rows across the
+three main tables. PubMed remains deferred, and the same42 infeasible Cora
+sharded endpoints remain excluded. Seeds, selectors, deletion ratios and all
+evaluation definitions are unchanged for the existing methods.
 
 ## Current submission declarations
 
 | Main Recipe | Dataset | Deletion ratios | GU methods plus explicit Retrain | Main rows | Gate rows | New run IDs (gate / main) |
 | --- | --- | --- | --- | ---: | ---: | --- |
-| `exp080-cc-base` | Cora, CiteSeer | 5%, 7.5%, 10%, 15%, 22%, 33% | All six GU methods | 1764 | 28 | `e80g301` / `e80r301` |
-| `exp080-cc-cora-high` | Cora | 50% | GIF, IDEA, MEGU, GNNDelete | 105 | 5 | `e80g302` / `e80r302` |
-| `exp080-cc-citeseer-high` | CiteSeer | 50% | All six GU methods | 147 | 7 | `e80g303` / `e80r303` |
+| `exp080-cc-base-r4` | Cora, CiteSeer | 5%, 7.5%, 10%, 15%, 22%, 33% | All seven GU methods | 2016 | 32 | `e80g401` / `e80r401` |
+| `exp080-cc-cora-high-r4` | Cora | 50% | GIF, IDEA, MEGU, GNNDelete, ETR | 126 | 6 | `e80g402` / `e80r402` |
+| `exp080-cc-citeseer-high-r4` | CiteSeer | 50% | All seven GU methods | 168 | 8 | `e80g403` / `e80r403` |
 
 The existing configuration interface represents Cartesian products and has no
 per-condition exclusions. These three rectangles preserve every feasible
 Cora/CiteSeer condition without changing the 1000-sample aggregation setting.
 They are not separate per-method or per-seed experiments.
 
-Each main declaration has a `-gate` Recipe using Degree and training seed 42;
+Each main declaration has a `-g4` gate Recipe using Degree and training seed 42;
 the base gate checks 5% and 33%, and the two endpoint gates check 50%. The gates
-contain 40 rows in total and are exact subsets of their main tables. A main run
+contain46 rows in total and are exact subsets of their main tables. A main run
 requires its gate's trusted collection and project acceptance, or an explicitly
 verified equivalent existing gate. Gates are prerequisite checks, not additional
 independent research samples.

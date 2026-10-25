@@ -15,6 +15,7 @@ unlearning_refs:
 - gnndelete.yaml
 - grapheraser.yaml
 - graphrevoker.yaml
+- etr.yaml
 parameter_profile_ref: gif_idea_fixed_pt.yaml
 evaluation_refs:
 - post_method_metrics.yaml

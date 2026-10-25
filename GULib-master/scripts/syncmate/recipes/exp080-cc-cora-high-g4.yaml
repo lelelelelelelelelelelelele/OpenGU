@@ -1,0 +1,23 @@
+schema_version: 1
+id: exp080-cc-cora-high-g4
+runner: experiment
+config_path: experiments/configs/exp080/cc_cora_high_gate.yaml
+config_sha256: 9c492d58e7adc561307f749b50c1fc306c11d22d25bf9e8040f00fe26230e99b
+configuration_fingerprint: 5b3425e411243d234e26ed02655beac176599a76b34ea0aaad69b29483ec1af2
+run_identity:
+  experiment_id: exp080-cc-cora-high-gate
+  run_id: e80g402
+timeout_seconds: 7200
+logical_cells: 6
+stage: unlearning
+expected_datasets:
+- num_nodes: 2708
+  candidate_count: 1895
+outputs:
+  root: results/runs/{experiment_id}/{run_id}
+  layout: modular-cells-v1
+  files:
+  - run.json
+  - metrics.json
+  - selection.json
+  - scores.npz
