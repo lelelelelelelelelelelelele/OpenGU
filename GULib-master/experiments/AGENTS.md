@@ -59,7 +59,7 @@ Selection 生产回调的 `compute_seconds` 记录真实回调 wall，可能包�
 
 正式启动前核对run identity和现有产物。入口不支持强制覆盖、隐式截断或自动重试；发现已存在、部分、过时或损坏结果时按明确的修复链处理，保护历史Cache V2和结果。多预算前缀复用只适用于显式prefix-stable排序；仅精确MISS调用producer。
 
-新 `run_id`（RID）默认简短，如 `r1`、`r2`；不重复 `experiment_id`。只有特殊语义或避免路径冲突时增加短说明，细则见 [Runbook](../self/research/RUNBOOK.md#run-id-命名)。
+新 `run_id`（RID）默认简短，如 `r1`、`r2`；不重复 `experiment_id`。只有特殊语义或避免路径冲突时增加短说明，细则见 [Runbook](E:/project/OpenGU-research/self/research/RUNBOOK.md#run-id-命名)。
 
 ### SSH 正式数据固定位置
 
@@ -117,6 +117,6 @@ Historical Output v1 files are not converted, removed or automatically rerun.
 
 ## 实验管理入口
 
-正式运行、重跑、指标补算和分析统一从 [Work Plan Runbook](../self/research/RUNBOOK.md) 进入。该指引拥有“实验配置 → 独立 Recipe YAML → 只读预览 → 代码交付与同步 → SyncMate 提交 → 回执与回传”的操作流程，以及运行中修改配置的处理边界。新增或修改配置时同步审阅 `scripts/syncmate/recipes/<id>.yaml`；配置输入改变须显式重新生成 SHA/指纹，不编辑 Python 登记表，不改写旧任务或在运行中更新共享 SSH checkout。
+正式运行、重跑、指标补算和分析统一从 [Work Plan Runbook](E:/project/OpenGU-research/self/research/RUNBOOK.md) 进入。该指引拥有“实验配置 → 独立 Recipe YAML → 只读预览 → 代码交付与同步 → SyncMate 提交 → 回执与回传”的操作流程，以及运行中修改配置的处理边界。新增或修改配置时同步审阅 `scripts/syncmate/recipes/<id>.yaml`；配置输入改变须显式重新生成 SHA/指纹，不编辑 Python 登记表，不改写旧任务或在运行中更新共享 SSH checkout。
 
 实验过程由 Work Plan 管理。通过既有接口新增、修改、校验或退役科学 YAML、公共参数小表与提交 Recipe，均属于实验准备，不创建开发 Block、Claim 或软件候选；范围与参数变更在实验记录中审阅，配置与 Recipe 仍须一起提交、同步并通过正式 preflight。只有改变程序行为或接口契约（如解析器、算法、执行器、指标实现、缓存或结果格式）时，才由开发 Block 交付。历史材料中的 WorkItem 执行记录按其日期作为来源，不重新建立双份实验状态。

@@ -1,9 +1,0 @@
-{
-  "passed": true,
-  "checks": 51720,
-  "cells": 2016,
-  "seed_groups": 1440,
-  "method": "Independent csv/statistics recomputation; no pandas aggregation used.",
-  "input_sha256": "150a9d1e1580f44fb4b7c0c937df8ec8621a12ee138dbafa05eca0153136f2b7",
-  "scope": "All seed means, condition means/SD/counts, endpoint differences and same-seed Random contrasts."
-}

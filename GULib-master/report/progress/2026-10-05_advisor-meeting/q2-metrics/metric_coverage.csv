@@ -1,8 +1,0 @@
-method,cells,CE,classification_AUC,update_detection_AUC,before_accuracy,GU_Retrain_disagreement
-GIF,360,360,360,360,360,360
-GNNDelete,360,360,360,360,360,360
-GraphEraser,360,360,360,360,360,360
-GraphRevoker,360,360,360,360,360,360
-IDEA,360,360,360,360,360,360
-MEGU,360,360,360,360,360,360
-Retrain,360,360,360,0,0,0

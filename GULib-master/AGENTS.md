@@ -10,9 +10,9 @@ The framework connects OpenGU's data processing, model training, and graph-unlea
 
 This repository is both a codebase and an experiment/evidence repository: source code and YAML define executable experiments; datasets and splits, cache identities, result artifacts, and reports support conclusions. Every experiment conclusion must be traceable to an explicit configuration, dataset and split, code version, and artifact evidence.
 
-Current research framing and scientific rationale start in the sibling [OpenGU DocMap](../../OpenGU-DocMap/_文档地图.md). [Work Plan](self/research/index.html) independently owns experiment creation, preparation, runs, reruns, analysis, scientific decisions and experiment dependencies; its continuously maintained local state is `self/research/experiments/EXP-NNN.json` (Git-ignored), while versioned analysis and scientific decisions live in `self/research/analyses/EXP-NNN.json`. State updates never require a commit; completed analysis is committed separately with the original execution SHA, then the next formal run re-establishes three-end SHA alignment. Development contracts and lifecycle belong to canonical WorkBlock records and Companion. An experiment may reference a blocking development Block; Work Plan never manages or synchronizes Block lifecycle.
+Research materials and scientific records belong to the independent private [OpenGU research repository](E:/project/OpenGU-research/README.md). Research framing starts in [OpenGU DocMap](../../OpenGU-DocMap/_文档地图.md). [Work Plan](E:/project/OpenGU-research/self/research/index.html) independently owns experiment creation, preparation, runs, reruns, analysis, scientific decisions and experiment dependencies; its continuously maintained local state is `E:/project/OpenGU-research/self/research/experiments/EXP-NNN.json` (Git-ignored), while versioned analysis and scientific decisions live in `E:/project/OpenGU-research/self/research/analyses/EXP-NNN.json`. State updates never require a commit; completed analysis is committed only in research Git with its original execution SHA. A research commit does not change code HEAD or require another deployment; formal runs still verify local code main, private bundle and SSH code main. Development contracts and lifecycle belong to canonical WorkBlock records and Companion. An experiment may reference a blocking development Block; Work Plan never manages or synchronizes Block lifecycle.
 
-Pure experiment maintenance, including creating, revising, validating or retiring scientific YAML and submission Recipes through existing interfaces, follows [the experiment Runbook](self/research/RUNBOOK.md) without a Block Claim or software-candidate cycle. Development Blocks own changes to program behavior or interface contracts, such as parsers, algorithms, runners, metric implementations, and cache or result schemas. Tracked configuration and Recipe changes still require review, commit, version synchronization and formal preflight before execution. Do not duplicate either system's live state. Ordinary Block edits require no experiment-record update or dashboard commit. If provenance, dataset/split, cache identity or metric semantics are ambiguous, do not treat the result as trusted evidence.
+Pure experiment maintenance, including creating, revising, validating or retiring scientific YAML and submission Recipes through existing interfaces, follows [the experiment Runbook](E:/project/OpenGU-research/self/research/RUNBOOK.md) without a Block Claim or software-candidate cycle. Development Blocks own changes to program behavior or interface contracts, such as parsers, algorithms, runners, metric implementations, and cache or result schemas. Tracked configuration and Recipe changes still require review, commit, version synchronization and formal preflight before execution. Do not duplicate either system's live state. Ordinary Block edits require no experiment-record update or dashboard commit. If provenance, dataset/split, cache identity or metric semantics are ambiguous, do not treat the result as trusted evidence.
 
 ## 2. Execution Locations
 
@@ -39,6 +39,15 @@ Registered experiment definitions enter the execution chain through the launcher
 - `cache_v2/` stores exact, immutable Recipe/Artifact evidence. Dataset loading, split construction, candidate construction, and selection computation belong to the experiment layer; never rename, overwrite, repair, or delete a V2 Artifact by hand.
 - AutoReport V3 writes append-only JSONL audit facts. Its Markdown and HTML files are rebuildable projections; change producers or generators, then rebuild, rather than hand-editing either evidence surface.
 - When a repository generator owns a dashboard, report, aggregate, figure, or manifest, change its source or generator, then rebuild and validate; never hand-edit the derived output.
+
+### Figure generation: reuse the saved source
+
+- Every data-driven figure must have a saved, executable Python entry point. Preserve its helper modules, input locations/version, generation command, output paths, and required plotting environment. A one-off terminal snippet, notebook output, or image alone is not a delivered figure source. Formal sources belong in version control; honor explicit isolated-draft/no-Git instructions for exploratory work.
+- Before creating or revising a figure, read [the figure-source index](E:/project/OpenGU-research/report/paper/FIGURE_SOURCES.md), then search existing generators with `rg`. Compare the intended question, data cohort, metric/reference, aggregation and uncertainty, and visual layout. If an existing entry fits, modify and reuse it; do not write a parallel replacement because a new chat or paper figure number is being used. New entry points require a concrete reason why the closest existing sources do not fit, recorded beside the source and in the index.
+- Use a stable descriptive identity for each figure; Fig. 1/3/4 are manuscript positions, not source identities. Record the currently adopted artifact and its generator together. Reuse does not authorize silently adopting an old metric, cohort, baseline, or obsolete visualization plan.
+- Keep adopted colors, method/selector order, fonts, dimensions, axis scales/ranges, and uncertainty definitions explicit in the source or its shared style module. Default to preserving them. Explain intentional changes and compare against the adopted output; do not silently replace an adopted figure with an exploratory variant.
+- Deliver the generator and its dependencies with any changed figure. Verify source data/series and compare the regenerated figure at paper width with the previous adopted output; numerical checks and visual inspection serve different purposes. Record changed inputs/parameters/styles and the actual checks. Reusing a filename or obtaining a successful exit code does not establish consistency.
+- Conceptual/vector diagrams retain their editable native sources and established generation/export chain; do not force an unrelated Python redraw. Review frontends display the adopted artifact or convert its format, rather than independently replotting experimental values.
 
 ## 5. Runtime and Validation
 
@@ -71,7 +80,7 @@ GULib-master/
 │   ├── docs/
 │   ├── report/
 │   ├── reports/
-│   └── papers/
+│   └── reports/  (software reports; research sources live in OpenGU-research)
 │
 └── Runtime Evidence
     └── results/
@@ -79,3 +88,7 @@ GULib-master/
 
 The independently versioned Obsidian research map lives beside this repository
 at `E:\project\OpenGU-DocMap`.
+
+## Independent private research repository
+
+Manuscripts, scientific analyses, figures and their generators, editorial reviews and Work Plan records are owned by `E:/project/OpenGU-research`. Code Git owns algorithms, metrics, runners, software tests, formal YAML and Recipes. The Work Plan generator in this code repository requires an explicit `--research-root`; training, submission and SSH preflight do not read that repository. Existing history still contains unpublished material: do not publish current code main or rewrite history as part of this split. See [repository boundary](docs/research-repository.md).

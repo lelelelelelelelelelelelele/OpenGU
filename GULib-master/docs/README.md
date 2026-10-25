@@ -19,7 +19,7 @@
 
 - `*_ACCEPTANCE_REPORT.md`：记录某个候选和范围当时的验收证据。判断当前完成状态时回到对应 WorkItem；不要将旧通过结果套到后来修改的版本。
 - `*_PROGRESS_REPORT.md`、`*_REPORT.md`：对应日期或阶段的观察。Git 审计中的分支、路径与远端状态需要重新核对。
-- [plans/](plans/)：早期课程报告、图表与答辩制作方案；成果已在 [EE5003 报告目录](../report/progress/2026-04-17_EE5003-report/) 落地，不能再按这些计划重开制作任务。
+- [历史报告/答辩方案](E:/project/OpenGU-research/docs/plans/)：早期课程报告、图表与答辩制作方案；成果已在 [EE5003 报告目录](E:/project/OpenGU-research/report/progress/2026-04-17_EE5003-report/) 落地，不能再按这些计划重开制作任务。
 - [superpowers/plans/](superpowers/plans/)、[superpowers/specs/](superpowers/specs/)：历史实施与设计材料；执行范围由当前 WorkItem 决定。
 - [历史 Phase B runbook](history/phase_b_202605_runbooks.md)：历史操作记录，不是当前运行入口。
 - [AGENTS 拆分审计](claude_agents_decomposition_ACCEPTANCE_REPORT.md)：2026-07 的迁移依据；仓库级迁移已合入，dashboard 的现行规则已归入其 AGENTS.md。

@@ -1,8 +1,0 @@
-{
-  "status": "verified_exact_bytes",
-  "scientific_gate": "not_met",
-  "evidence_file_count": 146,
-  "plan_manifest_sha256": "44a797daeec244e4c39035ac5d10287f72b88121046e837768df4b88dd39b2b0",
-  "target": "paper_writing/review/2026-10-24-round3/evidence",
-  "links_rewritten": false
-}

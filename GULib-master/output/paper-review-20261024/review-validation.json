@@ -1,7 +1,0 @@
-{
-  "report_broken_local_links": [],
-  "source_still_byte_equal_to_download": true,
-  "source_file_count": 17,
-  "html_generated_from": "REPORT.md",
-  "browser_visual_check": "pass, no page overflow at 1280px; embedded image loaded; 5 tables/8 sections"
-}
