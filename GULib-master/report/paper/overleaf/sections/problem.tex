@@ -1,6 +1,7 @@
 \section{Problem Formulation and Threat Model}
 \label{sec:problem}
 
+
 \subsection{Graph-unlearning setting}
 We study node-deletion requests in graph unlearning. Let $\mathcal{G}=(V,E,X,Y)$ be a node-classification dataset with a fixed train / validation / test split. A canonical model trained on the original training graph produces the pre-request endpoint with utility $U_0$. A deletion request is a set $S\subseteq\mathcal{C}$, where $\mathcal{C}$ is the eligible candidate pool and $|S|=k$ is the request budget. For a GU method $M$, let $U_M(S)$ denote the utility of its output after processing $S$. Let $U_R(S)$ denote the utility of a model retrained from scratch on the corresponding retained training data. The GU and retraining procedures use the same request, graph split, test nodes, labels, and evaluation metric whenever a paired comparison is reported.
 

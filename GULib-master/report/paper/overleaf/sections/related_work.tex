@@ -1,6 +1,13 @@
 \section{Related Work}
 \label{sec:related}
 
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{figures/teaser-framework-draft.pdf}
+\caption{Draft overview of request selection and GU response diagnosis. A red-team selector constructs a legal deletion request from the eligible candidate pool using the available information view and an IM or IF criterion. The same request is evaluated across GU methods and a full-retraining reference. Test utility, the same-request retraining gap, and its increment over budget-matched Random requests provide distinct diagnostic views.}
+\Description{The F01 framework draft has two panels: request selection from an eligible graph-node pool, and matched-request GU responses with full-retraining and same-budget Random references.}
+\label{fig:teaser-framework}
+\end{figure*}
 \paragraph{Graph unlearning.}
 Graph-unlearning methods include approaches based on partitioning and partial retraining, influence-function updates, and learned deletion-aware objectives. GraphEraser and GraphRevoker are partition-based approaches \cite{chen2022graph,zhang2024graphrevoker}; GIF estimates deletion effects with influence functions \cite{wu2023gif}; GNNDelete and MEGU use learned update procedures \cite{cheng2023gnndelete,li2024towards}; and IDEA studies certified graph unlearning \cite{dong2024idea}. These methods motivate evaluation across update mechanisms. Our question is different from proposing another update rule: we study how the choice of deletion request interacts with the output of an existing GU method.
 

@@ -6,7 +6,7 @@
 \subsection{The same selector change can accompany different GU responses}
 Table~\ref{tab:cora-main} shows the Cora/GCN primary case. Under Random deletion, GNNDelete has a mean post-request F1 of 66.67\%; with R-point it is 75.71\%. The corresponding same-request retraining gaps are 21.59 and 10.89 percentage points (pp), where a positive gap means that GU has lower F1 than retraining. GraphRevoker has lower F1 under both requests and a larger positive retraining gap, while GIF and IDEA have the same reported value across these three selectors in this case. These entries show why post-request utility and a retraining reference answer different questions. They do not establish a universal ordering of selectors or methods.
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
 \small
 \caption{Cora/GCN primary case at a 10\% deletion budget. Entries are mean and sample standard deviation across three training seeds. F1 is reported in percent; $G_M=U_R(S)-U_M(S)$ is in pp, so positive values indicate lower GU utility than same-request retraining.}
@@ -34,7 +34,7 @@ GraphEraser & $+3.44\pm1.08$ & $+6.33\pm1.61$ & $+4.86\pm1.26$ \\
 GraphRevoker & $+21.22\pm6.88$ & $+32.29\pm9.98$ & $+30.57\pm11.61$ \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 The full five-selector tables in Appendix~\ref{app:full-matrix} preserve additional conditions and both reported outcomes. CiteSeer and PubMed do not reproduce one common ordering. For example, the GNNDelete gap is slightly negative under Random on CiteSeer ($-0.30$ pp), but positive under Random on PubMed ($+4.24$ pp); its R-point gap also changes from $+0.40$ pp on CiteSeer to $-1.56$ pp on PubMed. These are descriptive three-seed means, not evidence of equivalence when a mean is near zero.
 
@@ -79,7 +79,7 @@ In the separate AAGU-032 analysis, the 3000-epoch D-full configurations have low
 
 For AAGU-053, Table~\ref{tab:aagu053} decomposes the same-request comparison between the pre-request GNNDelete reference, full retraining, and GNNDelete. Cora and PubMed have positive mean retraining gaps, whereas CiteSeer is near zero. The decomposition preserves the sign and reports distinct descriptive terms by dataset. A near-zero dataset average does not imply request-level equivalence.
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
 \small
 \caption{AAGU-053 same-request GNNDelete and full-retraining results at a 10\% budget. Values are equal-weight means over 16 requests per dataset. The stored f1 field is test accuracy in this analysis. Utility values are percentages; differences are pp.}
@@ -93,7 +93,7 @@ CiteSeer & 74.47 & 74.64 & 74.81 & $-0.169$ & $-0.338$ & $+0.169$ \\
 PubMed & 88.56 & 85.80 & 88.48 & $+2.764$ & $+0.087$ & $+2.677$ \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 The current AAGU-053 update-detection AUC is 0.587, 0.731, and 0.509 for Cora, CiteSeer, and PubMed, respectively. It uses deleted nodes as positives, test nodes as negatives, and prediction-probability change as the score. We report it only as the implemented update-detection diagnostic; it is not a general membership-inference or privacy guarantee.
 

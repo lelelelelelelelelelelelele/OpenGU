@@ -1,22 +1,18 @@
 \section{Attack and Audit Framework}
 \label{sec:methods}
 
+
+
+
 \subsection{Framework overview and attacker access}
 % P1 candidate, 2026-09-25. Paragraph plan is maintained in DocMap's Methods chapter.
-As shown in Figure~\ref{fig:framework}, we study graph-unlearning responses through a request-selection and evaluation pipeline. Given a graph $\mathcal G$, an eligible candidate set $\mathcal C$, and a deletion budget $k$, a selector uses the information available to the attacker to construct a request $S\subseteq\mathcal C$ with $|S|=k$. The selected GU method $M$ then processes this request. Uniformly sampled requests from $\mathcal C$ at the same budget provide the random-selection reference.
+We study graph-unlearning responses through a request-selection and evaluation pipeline. Given a graph $\mathcal G$, an eligible candidate set $\mathcal C$, and a deletion budget $k$, a selector uses the information available to the attacker to construct a request $S\subseteq\mathcal C$ with $|S|=k$. The selected GU method $M$ then processes this request. Uniformly sampled requests from $\mathcal C$ at the same budget provide the random-selection reference.
 
 % P2 candidate: protocol assumptions; selector-specific access is detailed with each strategy.
 Each selector operates on the information set $\mathcal I_a$ defined in Section~\ref{sec:attacker-access}. For loss-based selection, the nodes defining the target objective are specified separately from the deletion candidates.
 % Section 4.2 is the reviewed writing draft; Section 4.3 is the current decomposition candidate.
 
-% V5 is the author-selected placeholder; visual refinement belongs to AAGU-084.
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=0.8\linewidth]{figures/method-framework-v5.pdf}
-  \caption{Overview of the attack and audit framework. A selector constructs a deletion request $S$, which is processed by GU and full retraining to compare their outcomes.}
-  \Description{A deletion-target selector constructs a request that is evaluated through graph unlearning and full retraining, with their outcomes compared.}
-  \label{fig:framework}
-\end{figure*}
+
 
 \subsection{Selection strategies}
 \label{sec:selection}
@@ -45,6 +41,7 @@ where $q_v$ represents the deletion source and $\lambda$ is the damping shift. R
 We quantify how differently these criteria select nodes through selected-set overlap (Appendix~\ref{app:selection-overlap}), then evaluate the resulting requests under a common GU protocol to examine how the choice of selection criterion affects GU responses.
 
 We use Random, Degree, and PageRank as baseline selectors under the same candidate pool and deletion budget.
+
 
 \subsection{Diagnosing GU vulnerability through performance decomposition}
 \label{sec:decomposition}
