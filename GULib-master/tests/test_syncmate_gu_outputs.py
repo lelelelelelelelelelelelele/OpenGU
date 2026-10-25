@@ -34,7 +34,7 @@ def exported(workspace):
     write_yaml(path, config)
     definition = declaration(runner, path, 'unlearning')
     sha = commit(runner)
-    with context.use(runner, extension=FixtureRegistration(definition)):
+    with context.use(runner, extension=FixtureRegistration(definition), node_id='runner'):
         submitted = queue.runner_queue_submit('cpu-job', definition['id'], expected_git_sha=sha)
         assert submitted['submitted'], submitted
         device, warnings = devices.load_device(runner / '.syncmate/device.yaml')

@@ -126,7 +126,7 @@ def test_stale_git_version_rejected_by_real_core(workspace):
     root, config, _ = workspace
     definition = declaration(root, config, 'selector')
     sha = commit(root)
-    with context.use(root, extension=FixtureRegistration(definition)):
+    with context.use(root, extension=FixtureRegistration(definition), node_id='runner'):
         with pytest.raises(SystemExit, match='main changed'):
             queue.runner_queue_submit('wrong-version', definition['id'], expected_git_sha='f'*40)
     assert not (root / 'results').exists()
