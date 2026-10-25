@@ -9,11 +9,11 @@
     "opengu_syncmate/__main__.py": "2ba601bb1697245fe1efd7a16251d9929057a709b1d6f60efbbef4f15fc48bdf",
     "opengu_syncmate/adapter.py": "c208048cffaaa54fc73a240700bef9286c0491790296532c5b02cf60882fde1f",
     "opengu_syncmate/control.py": "6c84b73898f1ad573719f4f70cef68c1e07e0c658b894c4a5c6b03219f93ed55",
-    "opengu_syncmate/provision.py": "89f26d60189aa0c3177beb54076b1eb2973b1ef6138e733475bfac20de34f339",
+    "opengu_syncmate/provision.py": "266ab1ad133e972b32f9a99f937ac6b4413ffa60c5e102aebe5d7e355aa4228e",
     "opengu_syncmate/runtime.py": "2777132a193c34cccf5f28e96d47514a95625a43f0936d40c777161ef225442e",
     "opengu_syncmate/source_worker.py": "e38e9a21df9fb867cccbdd7cfeb2978ca3992745a717c9f018c4a15a9ca1f1be"
   },
   "version": "0.2.0",
   "wheel": "opengu_syncmate-0.2.0-py3-none-any.whl",
-  "wheel_sha256": "53bfdb5ff9a98421fb5c64b13a25919840782a280a1cc008f83f38652545f560"
+  "wheel_sha256": "7cdf0eebe74a16ce44d1c48606c736cb87aeda97c00a23dfd6a609f904721e97"
 }

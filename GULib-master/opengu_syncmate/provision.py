@@ -178,9 +178,12 @@ def stage(root, request):
 
 
 def probe_runtime(python, pins):
-    code = '''import json,sys
+    code = '''import json,sys,importlib
+from pathlib import Path
 from opengu_syncmate.control import verify_payload
 pins=json.load(sys.stdin)
+for module in ('syncmate_core','opengu_syncmate'):
+    Path(importlib.import_module(module).__file__).resolve().relative_to(Path(sys.prefix).resolve())
 print(json.dumps({'python':sys.executable,'pins':{module:verify_payload(pins[key],module) for key,module in [('core','syncmate_core'),('control','opengu_syncmate')]}}))'''
     return json.loads(run([python, '-I', '-X', 'utf8', '-B', '-c', code], input=json.dumps(pins), timeout=60))
 
@@ -224,7 +227,7 @@ def ensure_runtime(root, manifest, node=None):
                 if file.is_symlink() or digest(file.read_bytes()) != pin['wheel_sha256']:
                     raise ValueError('staged wheel integrity failed')
                 wheels.append(file)
-            run([python, '-I', '-B', '-m', 'pip', 'install', '--no-index', '--no-deps', '--no-compile',
+            run([python, '-I', '-B', '-m', 'pip', 'install', '--no-index', '--no-deps', '--no-compile', '--ignore-installed',
                  '--no-cache-dir', '--disable-pip-version-check', *wheels], timeout=180)
             probe_runtime(python, manifest['pins'])
             atomic(state, {**identity, 'status': 'ready'})

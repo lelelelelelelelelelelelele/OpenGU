@@ -13,34 +13,37 @@ from opengu_syncmate import provision
 from test_experiment_install import checkout, local_transport, git, isolated_node
 
 
-def offline_second(client, monkeypatch):
+def offline_endpoint(client, monkeypatch, offline='gpu4090-2'):
     original = client.invoke
     def invoke(peer, request):
-        if request['node'] == 'gpu4090-2':
+        if request['node'] == offline:
             raise client.NodeOffline('Connection refused')
         return original(peer, request)
     monkeypatch.setattr(client, 'invoke', invoke)
 
 
-def test_offline_idle_node_does_not_block_online_shared_update(local_transport, monkeypatch, capsys):
+@pytest.mark.parametrize('offline', ['gpu4090', 'gpu4090-2'])
+def test_offline_idle_node_does_not_block_online_shared_update(local_transport, monkeypatch, capsys, offline, record_property):
     client, project, source, request, protected, peers, calls = local_transport
-    offline_second(client, monkeypatch)
-    assert client.deploy('gpu4090-2') == 0
+    offline_endpoint(client, monkeypatch, offline)
+    online = next(n for n in peers if n != offline)
+    assert client.deploy(offline) == 0
     result = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
-    assert result['coordinator'] == 'gpu4090'
+    assert result['coordinator'] == online
     assert result['status'] == 'installed_with_deferred_nodes'
-    assert result['deferred']['gpu4090-2']['status'] == 'deferred'
+    assert result['deferred'][offline]['status'] == 'deferred'
     assert set(result['shared_update']['nodes']) == set(peers)
-    assert set(result['after']) == {'gpu4090'}
+    assert set(result['after']) == {online}
     assert git(project, 'rev-parse', 'HEAD') == request['target']
     assert protected.read_bytes() == b'untouched-cache'
-    assert not (source / '.workblock/runtime/install/gpu4090-2' / request['target'] / 'receipt.json').exists()
+    assert not (source / '.workblock/runtime/install' / offline / request['target'] / 'receipt.json').exists()
+    record_property('actual_offline_rollout', json.dumps(result))
 
 
 @pytest.mark.parametrize('condition', ['busy', 'unknown'])
 def test_offline_does_not_turn_physical_occupancy_into_idle(local_transport, monkeypatch, condition):
     client, project, source, request, protected, peers, calls = local_transport
-    offline_second(client, monkeypatch)
+    offline_endpoint(client, monkeypatch)
     with context.use(project, node_id='gpu4090-2'):
         if condition == 'unknown':
             queue.runner_agent_lock_dir().mkdir()
@@ -78,7 +81,7 @@ def provision_process(python, request, *, success=True):
     return json.loads(result.stdout)
 
 
-def test_returning_old_node_installs_exact_runtime_and_real_entry_works(checkout, tmp_path, monkeypatch):
+def test_returning_old_node_installs_exact_runtime_and_real_entry_works(checkout, tmp_path, monkeypatch, record_property):
     project, request, protected = checkout
     source = tmp_path / 'source/GULib-master'
     repository = Path(__file__).resolve().parents[1]
@@ -105,6 +108,12 @@ def test_returning_old_node_installs_exact_runtime_and_real_entry_works(checkout
     # Use the exact reviewed deployment wheels, supplied explicitly by the test owner.
     wheels = {key: base64.b64encode(Path(os.environ['OPENGU_TEST_' + key.upper() + '_WHEEL']).read_bytes()).decode()
               for key in pins}
+    # A matching package inherited from a base must still be copied into the
+    # immutable runtime, never mistaken for a private installation.
+    subprocess.run([str(bases['gpu4090']), '-I', '-B', '-m', 'pip', 'install',
+        '--no-index', '--no-deps', '--no-compile', '--ignore-installed',
+        os.environ['OPENGU_TEST_CORE_WHEEL'], os.environ['OPENGU_TEST_CONTROL_WHEEL']],
+        check=True, capture_output=True, text=True, encoding='utf-8')
     prepare = {'action': 'prepare', 'node': 'gpu4090', 'root': str(project), 'manifest': manifest, 'wheels': wheels,
                'bundle': request['bundle'], 'bundle_sha256': request['bundle_sha256']}
     online = provision_process(bases['gpu4090'], prepare)
@@ -154,10 +163,16 @@ except Exception as exc:
     assert rollout['nodes'] == {'gpu4090':{'status':'verified'},'gpu4090-2':{'status':'deferred'}}
     updated = yaml.safe_load(config.read_text(encoding='utf-8'))
     assert updated['peers']['gpu4090-2']['python_executable'] == str(offline_runtime)
-    # A returning node has only its old 0.6 base, not a preinstalled control package.
-    for base in bases.values():
+    # The returning node has only its old 0.6 base. The online base has the
+    # current package pair; neither base may be changed by provisioning.
+    expected_base = {'gpu4090':'0.7.0', 'gpu4090-2':'0.6.0'}
+    for node, base in bases.items():
         check = subprocess.check_output([str(base), '-I', '-B', '-c', 'import syncmate_core;print(syncmate_core.__version__)'], text=True).strip()
-        assert check == '0.6.0'
+        assert check == expected_base[node]
+    subprocess.run([online['runtime_python'], '-I', '-B', '-c',
+        'from pathlib import Path;import sys,syncmate_core,opengu_syncmate;'
+        '[Path(m.__file__).resolve().relative_to(Path(sys.prefix).resolve()) '
+        'for m in (syncmate_core,opengu_syncmate)]'],check=True,capture_output=True,text=True)
     returned = subprocess.run([str(bases['gpu4090-2']), '-I', '-X', 'utf8', '-B',
         str(project / 'scripts/syncmate/syncmate.py'), '--node-id', 'gpu4090-2', 'dependencies'],
         capture_output=True, text=True, encoding='utf-8', timeout=240)
@@ -180,5 +195,9 @@ except Exception as exc:
     rejected = provision_process(bases['gpu4090-2'], {'action':'ensure','node':'gpu4090-2','root':str(project)}, success=False)
     assert rejected['status'] == 'blocked' and 'payload differs' in str(rejected)
     assert payload.read_bytes().endswith(b'# controlled corruption\n')
-    for base in bases.values():
-        assert subprocess.check_output([str(base),'-I','-B','-c','import syncmate_core;print(syncmate_core.__version__)'],text=True).strip() == '0.6.0'
+    for node, base in bases.items():
+        assert subprocess.check_output([str(base),'-I','-B','-c','import syncmate_core;print(syncmate_core.__version__)'],text=True).strip() == expected_base[node]
+    record_property('actual_returning_node', json.dumps({'source_sha':sha, 'rollout':rollout,
+        'before_return_runtime_present':False, 'after_return':receipt, 'dependencies':result,
+        'stdin_available':json.loads(supplied.stdout)['available'], 'corruption_rejected':rejected,
+        'base_versions_preserved':expected_base, 'transport':'disposable local; real wheels/Core/Git/CLI'}))
