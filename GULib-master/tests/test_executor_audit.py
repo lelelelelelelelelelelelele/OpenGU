@@ -31,16 +31,11 @@ def notify(event, **value):
         time.sleep(120)
 main(['experiment.yaml','--run-id','killed','--device','cpu','--verification-root',str(Path.cwd())], notify=notify)
 ''', encoding='utf-8')
-    with (root / 'process.log').open('w', encoding='utf-8') as log:
-        process = subprocess.Popen([sys.executable, '-B', str(script)], cwd=root, stdout=log, stderr=log)
-        try:
-            deadline = time.monotonic()+60
-            while not (root/'ready').exists() and process.poll() is None and time.monotonic() < deadline:
-                time.sleep(.1)
-            assert (root/'ready').exists(), (root/'process.log').read_text(encoding='utf-8')
-        finally:
-            process.kill()
-            process.wait(timeout=10)
+    from syncmate_core.process_tree import run as run_contained
+    with pytest.raises(subprocess.TimeoutExpired) as interrupted:
+        run_contained([sys.executable, '-B', str(script)], cwd=root, timeout=20)
+    (root / 'process.log').write_bytes(interrupted.value.output + interrupted.value.stderr)
+    assert (root/'ready').exists(), (root/'process.log').read_text(encoding='utf-8')
     journal = root/'results/runtime/modular/_journal'
     events, warnings = read_event_stream(journal/'auto_report.events.jsonl')
     assert not warnings
@@ -52,18 +47,18 @@ main(['experiment.yaml','--run-id','killed','--device','cpu','--verification-roo
     assert not (journal/'auto_report.md').exists()
     assert not (journal/'auto_report.html').exists()
     # Reconcile through the exact Core status schema and captured run contract.
-    from syncmate_core.job_status import execution_digest
+    from syncmate_core.job_status import execution_digest, PROTOCOL
     from scripts.syncmate.opengu_audit import reconcile
     from experiments.modular_config import configuration_fingerprint
     from utils.target_checkpoint import sha256_file
     from syncmate_core.run_handoff import build_execution_contract
     from syncmate_core import context
     definition = dict(id='verification', experiment_id='contract', config_path='experiment.yaml',
-        config_sha256=sha256_file(path), timeout_seconds=60, run_identity=dict(run_id='killed'),
+        config_sha256=sha256_file(path), timeout_seconds=20, run_identity=dict(run_id='killed'),
         configuration_fingerprint=configuration_fingerprint(path), expected_artifact_paths=[])
     with context.use(root, node_id='runner'):
         execution = build_execution_contract(definition, project='opengu', job_id='killed-job', git_sha=sha)
-    terminal = dict(protocol='syncmate.job-status/v1', job_id='killed-job', state='failed',
+    terminal = dict(protocol=PROTOCOL, job_id='killed-job', state='failed',
         observed_at='2026-10-08T00:00:01+00:00', created_at='2026-10-08T00:00:00',
         started_at='2026-10-08T00:00:00', finished_at='2026-10-08T00:00:01',exit_code=None,
         error_code='recipe_timeout', execution_digest=execution_digest(execution), node_id='runner')
