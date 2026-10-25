@@ -96,3 +96,5 @@ PubMed & 88.56 & 85.80 & 88.48 & $+2.764$ & $+0.087$ & $+2.677$ \\
 \end{table*}
 
 The current AAGU-053 update-detection AUC is 0.587, 0.731, and 0.509 for Cora, CiteSeer, and PubMed, respectively. It uses deleted nodes as positives, test nodes as negatives, and prediction-probability change as the score. We report it only as the implemented update-detection diagnostic; it is not a general membership-inference or privacy guarantee.
+
+On ogbn-arxiv, R-point, D-full, and CPU-only IM-RR with 4,096 and 16,384 samples generated verified requests of 5,927 nodes from 118,540 training candidates; Appendix~\ref{app:arxiv-selector-cost} reports request-generation costs, with the RR=65,536 runtime marked as an estimate, without claiming large-graph GU effectiveness.
